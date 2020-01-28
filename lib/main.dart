@@ -1,8 +1,20 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() => runApp(MyApp());
+
+const Map<int, Color> swatch = {
+  50: Color.fromRGBO(0xF9, 0x37, 0x30, .1),
+  100: Color.fromRGBO(0xF9, 0x37, 0x30, .2),
+  200: Color.fromRGBO(0xF9, 0x37, 0x30, .3),
+  300: Color.fromRGBO(0xF9, 0x37, 0x30, .4),
+  400: Color.fromRGBO(0xF9, 0x37, 0x30, .5),
+  500: Color.fromRGBO(0xF9, 0x37, 0x30, .6),
+  600: Color.fromRGBO(0xF9, 0x37, 0x30, .7),
+  700: Color.fromRGBO(0xF9, 0x37, 0x30, .8),
+  800: Color.fromRGBO(0xF9, 0x37, 0x30, .9),
+  900: Color.fromRGBO(0xF9, 0x37, 0x30, 1),
+};
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -20,7 +32,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: MaterialColor(0xFFF93730, swatch),
       ),
       home: MyHomePage(title: 'BeatFlutter'),
     );
@@ -30,32 +42,23 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
+
 Duration animationDuration = const Duration(milliseconds: 300);
+
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int _counter = 0;
   InteractionMode _interactionMode = InteractionMode.view;
+  bool _showViewOptions = false;
+  bool _showKeyboard = false;
+  bool _showColorboard = false;
 
   _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
   }
@@ -71,18 +74,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _editMode() {
     setState(() {
       _interactionMode = InteractionMode.edit;
+      _showViewOptions = false;
+    });
+  }
+
+  _toggleViewOptions() {
+    setState(() {
+      _showViewOptions = !_showViewOptions;
+    });
+  }
+
+  _toggleKeyboard() {
+    setState(() {
+      _showKeyboard = !_showKeyboard;
+    });
+  }
+
+  _toggleColorboard() {
+    setState(() {
+      _showColorboard = !_showColorboard;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
+      backgroundColor: Color(0xFF424242),
       appBar: PreferredSize(
           preferredSize: Size.fromHeight(0.0), // here the desired height
           child: AppBar(
@@ -98,104 +115,108 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 Expanded(
                     child: FlatButton(
                         onPressed: _doNothing,
-                        padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
+                        padding: EdgeInsets.only(bottom: 10.0),
+                        child: SvgPicture.asset('assets/logo.svg'))),
                 Expanded(
                     child: FlatButton(
                         onPressed: _doNothing,
                         padding: EdgeInsets.all(0.0),
-                        child: Icon(Icons.menu, color: Colors.black))),
+                        child: Icon(
+                            (_interactionMode == InteractionMode.view)
+                                ? Icons.play_arrow
+                                : Icons.menu,
+                            color: Colors.white))),
                 Expanded(
-                    child: FlatButton(
-                        onPressed: _viewMode,
-                        padding: EdgeInsets.all(0.0),
-                        child:
-                            Icon(Icons.remove_red_eye, color: Colors.black))),
+                    child: (_interactionMode == InteractionMode.view)
+                        ? RaisedButton(
+                            onPressed: _toggleViewOptions,
+                            padding: EdgeInsets.all(0.0),
+                            child:
+                                Icon(Icons.remove_red_eye, color: Colors.black))
+                        : FlatButton(
+                            onPressed: _viewMode,
+                            padding: EdgeInsets.all(0.0),
+                            child: Icon(Icons.remove_red_eye,
+                                color: Colors.white))),
                 Expanded(
-                    child: FlatButton(
-                        onPressed: _editMode,
-                        padding: EdgeInsets.all(0.0),
-                        child: Icon(Icons.edit, color: Colors.black)))
+                    child: (_interactionMode == InteractionMode.edit)
+                        ? RaisedButton(
+                            onPressed: _editMode,
+                            padding: EdgeInsets.all(0.0),
+                            child: Icon(Icons.edit, color: Colors.black))
+                        : FlatButton(
+                            onPressed: _editMode,
+                            padding: EdgeInsets.all(0.0),
+                            child: Icon(Icons.edit, color: Colors.white)))
               ])),
           AnimatedContainer(
               duration: animationDuration,
               height: (_interactionMode == InteractionMode.edit) ? 36 : 0,
               child: Row(children: [
                 Expanded(
-                    child: FlatButton(
-                  child: Icon(Icons.play_arrow, color: Colors.black),
+                    child: RaisedButton(
+                  child: Image.asset('assets/play.png'),
                   onPressed: _doNothing,
                 )),
                 Expanded(
                     child: RaisedButton(
-                  child: Icon(Icons.stop, color: Colors.black),
+                  child: Image.asset('assets/stop.png'),
                   onPressed: _doNothing,
                 )),
                 Expanded(
                     child: RaisedButton(
-                  child: Icon(Icons.play_arrow, color: Colors.black),
+                  padding: EdgeInsets.only(top: 7, bottom: 5),
+                  child: SvgPicture.asset('assets/metronome.svg'),
                   onPressed: _doNothing,
                 )),
                 Expanded(
                     child: RaisedButton(
-                  child: Icon(Icons.play_arrow, color: Colors.black),
-                  onPressed: _doNothing,
+                  child: Image.asset('assets/piano.png'),
+                  onPressed: _toggleKeyboard,
+                  color: (_showKeyboard) ? Colors.white : Colors.grey,
                 )),
                 Expanded(
                     child: RaisedButton(
-                  child: Icon(Icons.play_arrow, color: Colors.black),
-                  onPressed: _doNothing,
+                  child: Image.asset('assets/colorboard.png'),
+                  onPressed: _toggleColorboard,
+                  color: (_showColorboard) ? Colors.white : Colors.grey,
                 ))
               ])),
           AnimatedContainer(
-            duration: animationDuration,
-            height: (_interactionMode == InteractionMode.view) ? 36 : 0,
+              duration: animationDuration,
+              height: (_showViewOptions) ? 36 : 0,
               child: Row(children: [
                 Expanded(
-                    child: FlatButton(
-                        onPressed: null,
+                    child: RaisedButton(
+                        onPressed: _doNothing,
                         padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
+                        child: SvgPicture.asset('assets/notehead_filled.svg',
+                            fit: BoxFit.none))),
                 Expanded(
-                    child: FlatButton(
-                        onPressed: null,
+                    child: RaisedButton(
+                        onPressed: _toggleKeyboard,
                         padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
+                        color: (_showKeyboard) ? Colors.white : Colors.grey,
+                        child: Image.asset('assets/piano.png'))),
                 Expanded(
-                    child: FlatButton(
-                        onPressed: null,
+                    child: RaisedButton(
+                        onPressed: _toggleColorboard,
                         padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
-                Expanded(
-                    child: FlatButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
-                Expanded(
-                    child: FlatButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
-                Expanded(
-                    child: FlatButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png'))),
-                Expanded(
-                    child: FlatButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0.0),
-                        child: Image.network(
-                            'https://beatscratch.io/images/beatscratch.png')))
+                        color: (_showColorboard) ? Colors.white : Colors.grey,
+                        child: Image.asset('assets/colorboard.png')))
               ])),
-          Text('Toolbar'),
+          AnimatedContainer(
+              duration: animationDuration,
+              height: (_interactionMode == InteractionMode.edit) ? 36 : 0,
+              child: Row(children: [
+                Expanded(
+                    child: Text('Section List',
+                        style: TextStyle(color: Colors.white))),
+                RaisedButton(
+                  child: Text('+'),
+                  onPressed: _doNothing,
+                )
+              ])),
           Expanded(
               child: Stack(children: [
             GridView.builder(
@@ -204,9 +225,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               itemCount: _counter * 17,
               itemBuilder: (BuildContext context, int index) {
                 return GridTile(
-                    child: Image.network(
-                        'https://beatscratch.io/images/beatscratch_256.png',
-                        fit: BoxFit.cover));
+                    child: SvgPicture.asset('assets/notehead_half.svg'));
               },
               padding: const EdgeInsets.all(4.0),
             ),
@@ -223,8 +242,33 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
               ],
             ))
-          ]))
-        ])
+          ])),
+          AnimatedContainer(
+              duration: animationDuration,
+              height: (_showColorboard) ? 150 : 0,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: Text('Colorboard')),
+          AnimatedContainer(
+              duration: animationDuration,
+              height: (_showKeyboard) ? 150 : 0,
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: Text('Keyboard')),
+        ]),
+        // The keyboards
+//        Column(children: [
+//          Expanded(child:Text('')),
+//          Align(
+//          alignment: Alignment.bottomCenter,
+//          child: Column(
+//          children: [
+//            Container(height:150, width: MediaQuery.of(context).size.width,color: Colors.white, child: Text('Colorboard')),
+//            Container(height:150, width: MediaQuery.of(context).size.width, color: Colors.white, child: Text('Keyboard')),
+//          ]
+//        )
+//        )
+//    ])
       ]),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,

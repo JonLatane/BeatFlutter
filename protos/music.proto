@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+// `java_package` must match the package name you declare for `androidPackage` in your pubspec.yaml
+option java_package = "org.beatscratch.messages";
+
+// NoteName corresponds to "white keys" (notes A-G)
+enum NoteName {
+  C = 0;
+  D = 1;
+  E = 2;
+  F = 3;
+  G = 4;
+  A = 5;
+  B = 6;
+};
+
+enum NoteSign {
+  natural = 0;
+  none = 1;
+  flat = 2;
+  double_flat = 3;
+  sharp = 4;
+  double_sharp = 5;
+}
+
+message Note {
+  NoteName note_name = 1;
+  NoteSign note_sign = 2;
+}
+
+message Chord {
+  Note root_note = 1;
+}
+
+// A Harmony is a rhythmic mapping of chords.
+message Harmony {
+  string id = 1;
+  uint32 subdivisions_per_beat = 2;
+  // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
+  uint32 length = 3;
+  // Cannot be empty for a valid harmony. Generally, should contain an attack at 0.
+  map<sint32, Chord> data = 4;
+}
+
+enum MelodyType {
+  harmonic = 0;
+  drum = 1;
+}
+
+message MelodyAttack {
+
+}
+
+message Melody {
+  string id = 1;
+  uint32 subdivisions_per_beat = 2;
+  // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
+  uint32 length = 3;
+
+  MelodyType type = 4;
+}
