@@ -43,11 +43,18 @@ message Harmony {
 }
 
 enum MelodyType {
-  harmonic = 0;
-  drum = 1;
+  // Uses MelodyAttacks
+  melody_harmonic = 0;
+  melody_drum = 1;
+  midi_harmonic = 2;
+  midi_drum = 3;
 }
 
 message MelodyAttack {
+
+}
+
+message MidiChange {
 
 }
 
@@ -57,5 +64,52 @@ message Melody {
   // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   uint32 length = 3;
 
+  // Indicates what type of data (attacks only or full MIDI) this melody uses.
   MelodyType type = 4;
+  // Used for MelodyType.melody_harmonic and MelodyType.melody_drum
+  map<sint32, MelodyAttack> attack_data = 5;
+  // Used for MelodyType.midi_harmonic and MelodyType.midi_drum
+  map<sint32, MelodyAttack> midi_data = 6;
+}
+
+enum InstrumentType {
+  harmonic = 0;
+  drum = 1;
+}
+
+message Instrument {
+  string name = 1;
+  InstrumentType type = 2;
+  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
+  uint32 midi_channel = 3;
+  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
+  uint32 midi_instrument = 4;
+  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
+  uint32 midi_gm2_msb = 5;
+  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
+  uint32 midi_gm2_lsb = 6;
+}
+
+message Part {
+  string id = 1;
+  Instrument instrument = 2;
+}
+
+message SectionMelodies {
+  repeated Melody melodies = 1;
+}
+
+message Section {
+  string id = 1;
+  string name = 2;
+  Harmony harmony = 3;
+  // Maps Part.ids to melodies
+  map<string, SectionMelodies> melodies = 4;
+}
+
+message Score {
+  string id = 1;
+  string name = 2;
+  repeated Part parts = 3;
+  repeated Section sections = 4;
 }

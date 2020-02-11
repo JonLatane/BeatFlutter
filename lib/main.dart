@@ -1,9 +1,18 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:quiver/collection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'melodybeat.dart';
+import 'dart:math';
 
 void main() => runApp(MyApp());
 
+const Color foo = Color.fromRGBO(0xF9, 0x37, 0x30, .1);
+
 const Map<int, Color> swatch = {
+  //createSwatch(0xF9, 0x37, 0x30);
   50: Color.fromRGBO(0xF9, 0x37, 0x30, .1),
   100: Color.fromRGBO(0xF9, 0x37, 0x30, .2),
   200: Color.fromRGBO(0xF9, 0x37, 0x30, .3),
@@ -56,6 +65,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
+  double _startHorizontalScale = 1.0;
+  double _startVerticalScale = 1.0;
+  double _horizontalScale = 1.0;
+  double _verticalScale = 1.0;
 
   _incrementCounter() {
     setState(() {
@@ -68,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     setState(() {
       _interactionMode = InteractionMode.view;
+      _showViewOptions = true;
     });
   }
 
@@ -94,6 +108,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _showColorboard = !_showColorboard;
     });
+  }
+
+  PhotoViewScaleStateController scaleStateController;
+
+  @override
+  void initState() {
+    super.initState();
+    scaleStateController = PhotoViewScaleStateController();
+  }
+
+  @override
+  void dispose() {
+    scaleStateController.dispose();
+    super.dispose();
   }
 
   @override
@@ -151,18 +179,38 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ])),
           AnimatedContainer(
               duration: animationDuration,
-              height: (_interactionMode == InteractionMode.edit) ? 36 : 0,
+              height: (_interactionMode == InteractionMode.edit)
+                  ? 36
+                  : _showViewOptions ? 35 : 0,
               child: Row(children: [
-                Expanded(
+                AnimatedContainer(
+                    duration: animationDuration,
+                    width: (_interactionMode == InteractionMode.edit)
+                        ? MediaQuery.of(context).size.width / 5
+                        : 0,
                     child: RaisedButton(
-                  child: Image.asset('assets/play.png'),
-                  onPressed: _doNothing,
-                )),
-                Expanded(
+                      child: Image.asset('assets/play.png'),
+                      onPressed: _doNothing,
+                    )),
+                AnimatedContainer(
+                    duration: animationDuration,
+                    width: (_interactionMode == InteractionMode.edit)
+                        ? MediaQuery.of(context).size.width / 5
+                        : 0,
                     child: RaisedButton(
-                  child: Image.asset('assets/stop.png'),
-                  onPressed: _doNothing,
-                )),
+                      child: Image.asset('assets/stop.png'),
+                      onPressed: _doNothing,
+                    )),
+                AnimatedContainer(
+                    duration: animationDuration,
+                    width: (_interactionMode == InteractionMode.view)
+                        ? MediaQuery.of(context).size.width / 4
+                        : 0,
+                    child: RaisedButton(
+                        onPressed: _doNothing,
+                        padding: EdgeInsets.all(0.0),
+                        child: SvgPicture.asset('assets/notehead_filled.svg',
+                            fit: BoxFit.none))),
                 Expanded(
                     child: RaisedButton(
                   padding: EdgeInsets.only(top: 7, bottom: 5),
@@ -184,29 +232,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ])),
           AnimatedContainer(
               duration: animationDuration,
-              height: (_showViewOptions) ? 36 : 0,
-              child: Row(children: [
-                Expanded(
-                    child: RaisedButton(
-                        onPressed: _doNothing,
-                        padding: EdgeInsets.all(0.0),
-                        child: SvgPicture.asset('assets/notehead_filled.svg',
-                            fit: BoxFit.none))),
-                Expanded(
-                    child: RaisedButton(
-                        onPressed: _toggleKeyboard,
-                        padding: EdgeInsets.all(0.0),
-                        color: (_showKeyboard) ? Colors.white : Colors.grey,
-                        child: Image.asset('assets/piano.png'))),
-                Expanded(
-                    child: RaisedButton(
-                        onPressed: _toggleColorboard,
-                        padding: EdgeInsets.all(0.0),
-                        color: (_showColorboard) ? Colors.white : Colors.grey,
-                        child: Image.asset('assets/colorboard.png')))
-              ])),
-          AnimatedContainer(
-              duration: animationDuration,
               height: (_interactionMode == InteractionMode.edit) ? 36 : 0,
               child: Row(children: [
                 Expanded(
@@ -219,16 +244,75 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ])),
           Expanded(
               child: Stack(children: [
-            GridView.builder(
-              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 16),
-              itemCount: _counter * 17,
-              itemBuilder: (BuildContext context, int index) {
-                return GridTile(
-                    child: SvgPicture.asset('assets/notehead_half.svg'));
-              },
-              padding: const EdgeInsets.all(4.0),
-            ),
+            // GridView.builder(
+            //   gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+            //       crossAxisCount: 16),
+            //   itemCount: _counter * 17,
+            //   itemBuilder: (BuildContext context, int index) {
+            //     return GridTile(
+            //         child: SvgPicture.asset('assets/notehead_half.svg'));
+            //   },
+            //   padding: const EdgeInsets.all(4.0),
+            // ),
+            // PhotoView.customChild(
+            //   // customSize: Size(gridWidth, constraints.maxHeight),
+            //   child: GridView.builder(
+            //     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            //         crossAxisCount: 13,
+            //         mainAxisSpacing: 1.0,
+            //         crossAxisSpacing: 1.0,
+            //         childAspectRatio: 1),
+            //     itemCount: _counter * 2,
+            //     // physics: ClampingScrollPhysics(),
+            //     padding: const EdgeInsets.all(0.0),
+            //     itemBuilder: (BuildContext context, int index) {
+            //       return GridTile(
+            //           child: SvgPicture.asset('assets/notehead_half.svg'));
+            //     },
+            //   ),
+            //   minScale: 0.5,
+            //   maxScale: 5.0,
+            //   initialScale: 1.0,
+            //   //initialScale: 5.0,
+            //   backgroundDecoration: BoxDecoration(color: Colors.white),
+            //   scaleStateChangedCallback: (scaleState) {
+            //     // scaleState.
+            //   },
+            //   scaleStateController: scaleStateController,
+            //   // childSize: Size(gridWidth, constraints.maxHeight),
+            //   //scaleChange: gridCreationHelperClass.scaleHasChanged,
+            // ),
+            Container(
+                color: Colors.white,
+                child: GestureDetector(
+                  onScaleStart: (details) => setState(() {
+                    _startHorizontalScale = _horizontalScale;
+                  }),
+                  onScaleUpdate: (ScaleUpdateDetails details) {
+                    setState(() {
+                      if(details.horizontalScale > 0) {
+                        _horizontalScale =
+                          _startHorizontalScale * details.horizontalScale;
+                      }
+                    });
+                  },
+                  onScaleEnd: (ScaleEndDetails details) {
+
+                  },
+                  child: GridView.builder(
+                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount:
+                            max(1, (16 / _horizontalScale).floor())),
+                    itemCount: _counter * 4,
+                    itemBuilder: (BuildContext context, int index) {
+                      return GridTile(
+                          child: Transform.scale(
+                            scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
+                            child:SvgPicture.asset('assets/notehead_half.svg')));
+                    },
+//                padding: const EdgeInsets.all(4.0),
+                  ),
+                )),
             Center(
                 child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

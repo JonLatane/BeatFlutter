@@ -1,0 +1,181 @@
+///
+//  Generated code. Do not modify.
+//  source: protos/music.proto
+//
+// @dart = 2.3
+// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+
+const NoteName$json = const {
+  '1': 'NoteName',
+  '2': const [
+    const {'1': 'C', '2': 0},
+    const {'1': 'D', '2': 1},
+    const {'1': 'E', '2': 2},
+    const {'1': 'F', '2': 3},
+    const {'1': 'G', '2': 4},
+    const {'1': 'A', '2': 5},
+    const {'1': 'B', '2': 6},
+  ],
+};
+
+const NoteSign$json = const {
+  '1': 'NoteSign',
+  '2': const [
+    const {'1': 'natural', '2': 0},
+    const {'1': 'none', '2': 1},
+    const {'1': 'flat', '2': 2},
+    const {'1': 'double_flat', '2': 3},
+    const {'1': 'sharp', '2': 4},
+    const {'1': 'double_sharp', '2': 5},
+  ],
+};
+
+const MelodyType$json = const {
+  '1': 'MelodyType',
+  '2': const [
+    const {'1': 'melody_harmonic', '2': 0},
+    const {'1': 'melody_drum', '2': 1},
+    const {'1': 'midi_harmonic', '2': 2},
+    const {'1': 'midi_drum', '2': 3},
+  ],
+};
+
+const InstrumentType$json = const {
+  '1': 'InstrumentType',
+  '2': const [
+    const {'1': 'harmonic', '2': 0},
+    const {'1': 'drum', '2': 1},
+  ],
+};
+
+const Note$json = const {
+  '1': 'Note',
+  '2': const [
+    const {'1': 'note_name', '3': 1, '4': 1, '5': 14, '6': '.NoteName', '10': 'noteName'},
+    const {'1': 'note_sign', '3': 2, '4': 1, '5': 14, '6': '.NoteSign', '10': 'noteSign'},
+  ],
+};
+
+const Chord$json = const {
+  '1': 'Chord',
+  '2': const [
+    const {'1': 'root_note', '3': 1, '4': 1, '5': 11, '6': '.Note', '10': 'rootNote'},
+  ],
+};
+
+const Harmony$json = const {
+  '1': 'Harmony',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'subdivisions_per_beat', '3': 2, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
+    const {'1': 'length', '3': 3, '4': 1, '5': 13, '10': 'length'},
+    const {'1': 'data', '3': 4, '4': 3, '5': 11, '6': '.Harmony.DataEntry', '10': 'data'},
+  ],
+  '3': const [Harmony_DataEntry$json],
+};
+
+const Harmony_DataEntry$json = const {
+  '1': 'DataEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.Chord', '10': 'value'},
+  ],
+  '7': const {'7': true},
+};
+
+const MelodyAttack$json = const {
+  '1': 'MelodyAttack',
+};
+
+const MidiChange$json = const {
+  '1': 'MidiChange',
+};
+
+const Melody$json = const {
+  '1': 'Melody',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'subdivisions_per_beat', '3': 2, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
+    const {'1': 'length', '3': 3, '4': 1, '5': 13, '10': 'length'},
+    const {'1': 'type', '3': 4, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
+    const {'1': 'attack_data', '3': 5, '4': 3, '5': 11, '6': '.Melody.AttackDataEntry', '10': 'attackData'},
+    const {'1': 'midi_data', '3': 6, '4': 3, '5': 11, '6': '.Melody.MidiDataEntry', '10': 'midiData'},
+  ],
+  '3': const [Melody_AttackDataEntry$json, Melody_MidiDataEntry$json],
+};
+
+const Melody_AttackDataEntry$json = const {
+  '1': 'AttackDataEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodyAttack', '10': 'value'},
+  ],
+  '7': const {'7': true},
+};
+
+const Melody_MidiDataEntry$json = const {
+  '1': 'MidiDataEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodyAttack', '10': 'value'},
+  ],
+  '7': const {'7': true},
+};
+
+const Instrument$json = const {
+  '1': 'Instrument',
+  '2': const [
+    const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
+    const {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.InstrumentType', '10': 'type'},
+    const {'1': 'midi_channel', '3': 3, '4': 1, '5': 13, '10': 'midiChannel'},
+    const {'1': 'midi_instrument', '3': 4, '4': 1, '5': 13, '10': 'midiInstrument'},
+    const {'1': 'midi_gm2_msb', '3': 5, '4': 1, '5': 13, '10': 'midiGm2Msb'},
+    const {'1': 'midi_gm2_lsb', '3': 6, '4': 1, '5': 13, '10': 'midiGm2Lsb'},
+  ],
+};
+
+const Part$json = const {
+  '1': 'Part',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'instrument', '3': 2, '4': 1, '5': 11, '6': '.Instrument', '10': 'instrument'},
+  ],
+};
+
+const SectionMelodies$json = const {
+  '1': 'SectionMelodies',
+  '2': const [
+    const {'1': 'melodies', '3': 1, '4': 3, '5': 11, '6': '.Melody', '10': 'melodies'},
+  ],
+};
+
+const Section$json = const {
+  '1': 'Section',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+    const {'1': 'harmony', '3': 3, '4': 1, '5': 11, '6': '.Harmony', '10': 'harmony'},
+    const {'1': 'melodies', '3': 4, '4': 3, '5': 11, '6': '.Section.MelodiesEntry', '10': 'melodies'},
+  ],
+  '3': const [Section_MelodiesEntry$json],
+};
+
+const Section_MelodiesEntry$json = const {
+  '1': 'MelodiesEntry',
+  '2': const [
+    const {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.SectionMelodies', '10': 'value'},
+  ],
+  '7': const {'7': true},
+};
+
+const Score$json = const {
+  '1': 'Score',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+    const {'1': 'parts', '3': 3, '4': 3, '5': 11, '6': '.Part', '10': 'parts'},
+    const {'1': 'sections', '3': 4, '4': 3, '5': 11, '6': '.Section', '10': 'sections'},
+  ],
+};
+
