@@ -42,6 +42,7 @@ class MyApp extends StatelessWidget {
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
         primarySwatch: MaterialColor(0xFFF93730, swatch),
+        fontFamily: 'VulfSans'
       ),
       home: MyHomePage(title: 'BeatFlutter'),
     );
@@ -60,7 +61,7 @@ class MyHomePage extends StatefulWidget {
 Duration animationDuration = const Duration(milliseconds: 300);
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  int _counter = 0;
+  int _counter = 1;
   InteractionMode _interactionMode = InteractionMode.view;
   bool _showViewOptions = false;
   bool _showKeyboard = false;
@@ -141,10 +142,47 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               height: 48,
               child: Row(children: [
                 Expanded(
-                    child: FlatButton(
-                        onPressed: _doNothing,
+                    child: PopupMenuButton(
+//                        onPressed: _doNothing,
+                        offset: Offset(0, MediaQuery.of(context).size.height),
+                        onSelected: (result) { setState(() {}); },
+                        itemBuilder: (BuildContext context) => [
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('score name'),
+                            enabled: false,
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('New Score'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('Open Score...'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('Duplicate Score...'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('Save Score'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('Copy Score'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('MIDI Output Settings'),
+                          ),
+                          const PopupMenuItem(
+                            value: null,
+                            child: Text('Quit BeatScratch'),
+                          ),
+                        ],
                         padding: EdgeInsets.only(bottom: 10.0),
-                        child: SvgPicture.asset('assets/logo.svg'))),
+                        icon: SvgPicture.asset('assets/logo.svg'))),
                 Expanded(
                     child: FlatButton(
                         onPressed: _doNothing,
@@ -210,11 +248,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         onPressed: _doNothing,
                         padding: EdgeInsets.all(0.0),
                         child: SvgPicture.asset('assets/notehead_filled.svg',
-                            fit: BoxFit.none))),
+                            height: 24, width: 24,))),
                 Expanded(
                     child: RaisedButton(
                   padding: EdgeInsets.only(top: 7, bottom: 5),
-                  child: SvgPicture.asset('assets/metronome.svg'),
+                  child: Stack(children: [
+                    SvgPicture.asset('assets/metronome.svg'),
+                    Align(alignment: Alignment.centerRight,
+                      child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),)
+                  ]),
                   onPressed: _doNothing,
                 )),
                 Expanded(
@@ -291,8 +333,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   onScaleUpdate: (ScaleUpdateDetails details) {
                     setState(() {
                       if(details.horizontalScale > 0) {
-                        _horizontalScale =
-                          _startHorizontalScale * details.horizontalScale;
+                        _horizontalScale = max(0.1,min(16,
+                          _startHorizontalScale * details.horizontalScale));
                       }
                     });
                   },
@@ -303,7 +345,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount:
                             max(1, (16 / _horizontalScale).floor())),
-                    itemCount: _counter * 4,
+                    itemCount: _counter * 8,
                     itemBuilder: (BuildContext context, int index) {
                       return GridTile(
                           child: Transform.scale(
