@@ -1,11 +1,18 @@
 import 'dart:collection';
 
+import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:quiver/collection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'melodybeat.dart';
+import 'expanded_section.dart';
+import 'melody_view.dart';
+import 'section_list.dart';
+import 'part_melodies_view.dart';
 import 'dart:math';
+import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
+import 'package:uuid/uuid.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,6 +32,89 @@ const Map<int, Color> swatch = {
   900: Color.fromRGBO(0xF9, 0x37, 0x30, 1),
 };
 
+var section1 = Section()
+  ..id = Uuid().toString()
+  ..name = "Section 1";
+var score = Score()
+  ..parts.addAll([
+    Part()
+      ..id = Uuid().toString()
+      ..instrument = (Instrument()
+        ..name = "Drums"
+        ..type = InstrumentType.drum)
+      ..melodies.addAll([
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+      ]),
+    Part()
+      ..id = Uuid().toString()
+      ..instrument = (Instrument()
+        ..name = "Piano"
+        ..type = InstrumentType.harmonic)
+      ..melodies.addAll([
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+      ]),
+    Part()
+      ..id = Uuid().toString()
+      ..instrument = (Instrument()
+        ..name = "Bass"
+        ..type = InstrumentType.harmonic)
+      ..melodies.addAll([
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+        Melody(),
+      ]),
+    Part()
+      ..id = Uuid().toString()
+      ..instrument = (Instrument()
+        ..name = "Part 4"
+        ..type = InstrumentType.harmonic)
+      ..melodies.addAll([
+        Melody(),
+        Melody(),
+      ]),
+    Part()
+      ..id = Uuid().toString()
+      ..instrument = (Instrument()
+        ..name = "Part 5"
+        ..type = InstrumentType.harmonic)
+      ..melodies.addAll([
+        Melody(),
+        Melody(),
+        Melody(),
+      ]),
+  ])
+  ..sections.addAll([
+    section1,
+    Section()
+      ..id = Uuid().toString()
+      ..name = "Section 2",
+    Section()
+      ..id = Uuid().toString()
+      ..name = "Section 3",
+    Section()
+      ..id = Uuid().toString()
+      ..name = "Section 4",
+    Section()
+      ..id = Uuid().toString()
+      ..name = "Section 5"
+  ]);
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -32,18 +122,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BeatFlutter',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: MaterialColor(0xFFF93730, swatch),
-        fontFamily: 'VulfSans'
-      ),
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: MaterialColor(0xFFF93730, swatch),
+          fontFamily: 'VulfSans'),
       home: MyHomePage(title: 'BeatFlutter'),
     );
   }
@@ -61,15 +150,18 @@ class MyHomePage extends StatefulWidget {
 Duration animationDuration = const Duration(milliseconds: 300);
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  int _counter = 1;
+  int _counter = 20;
   InteractionMode _interactionMode = InteractionMode.view;
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
+  double _melodyViewSizeFactor = 1.0;
   double _startHorizontalScale = 1.0;
   double _startVerticalScale = 1.0;
   double _horizontalScale = 1.0;
   double _verticalScale = 1.0;
+  Section _currentSection = section1;
+  Score _score = score;
 
   _incrementCounter() {
     setState(() {
@@ -82,14 +174,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     setState(() {
       _interactionMode = InteractionMode.view;
-      _showViewOptions = true;
+      _showViewOptions = false;
+      _melodyViewSizeFactor = 1;
     });
   }
 
   _editMode() {
     setState(() {
       _interactionMode = InteractionMode.edit;
-      _showViewOptions = false;
+      _melodyViewSizeFactor = 0.5;
     });
   }
 
@@ -108,6 +201,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _toggleColorboard() {
     setState(() {
       _showColorboard = !_showColorboard;
+    });
+  }
+
+  _selectSection(Section section) {
+    setState(() {
+      _currentSection = section;
     });
   }
 
@@ -137,237 +236,78 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               //title: Row(Text(widget.title)])
               )),
       body: Stack(children: [
-        Column(children: [
-          Container(
-              height: 48,
-              child: Row(children: [
-                Expanded(
-                    child: PopupMenuButton(
-//                        onPressed: _doNothing,
-                        offset: Offset(0, MediaQuery.of(context).size.height),
-                        onSelected: (result) { setState(() {}); },
-                        itemBuilder: (BuildContext context) => [
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('score name'),
-                            enabled: false,
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('New Score'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('Open Score...'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('Duplicate Score...'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('Save Score'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('Copy Score'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('MIDI Output Settings'),
-                          ),
-                          const PopupMenuItem(
-                            value: null,
-                            child: Text('Quit BeatScratch'),
-                          ),
-                        ],
-                        padding: EdgeInsets.only(bottom: 10.0),
-                        icon: SvgPicture.asset('assets/logo.svg'))),
-                Expanded(
-                    child: FlatButton(
-                        onPressed: _doNothing,
-                        padding: EdgeInsets.all(0.0),
-                        child: Icon(
-                            (_interactionMode == InteractionMode.view)
-                                ? Icons.play_arrow
-                                : Icons.menu,
-                            color: Colors.white))),
-                Expanded(
-                    child: (_interactionMode == InteractionMode.view)
-                        ? RaisedButton(
-                            onPressed: _toggleViewOptions,
-                            padding: EdgeInsets.all(0.0),
-                            child:
-                                Icon(Icons.remove_red_eye, color: Colors.black))
-                        : FlatButton(
-                            onPressed: _viewMode,
-                            padding: EdgeInsets.all(0.0),
-                            child: Icon(Icons.remove_red_eye,
-                                color: Colors.white))),
-                Expanded(
-                    child: (_interactionMode == InteractionMode.edit)
-                        ? RaisedButton(
-                            onPressed: _editMode,
-                            padding: EdgeInsets.all(0.0),
-                            child: Icon(Icons.edit, color: Colors.black))
-                        : FlatButton(
-                            onPressed: _editMode,
-                            padding: EdgeInsets.all(0.0),
-                            child: Icon(Icons.edit, color: Colors.white)))
-              ])),
-          AnimatedContainer(
-              duration: animationDuration,
-              height: (_interactionMode == InteractionMode.edit)
-                  ? 36
-                  : _showViewOptions ? 35 : 0,
-              child: Row(children: [
-                AnimatedContainer(
-                    duration: animationDuration,
-                    width: (_interactionMode == InteractionMode.edit)
-                        ? MediaQuery.of(context).size.width / 5
-                        : 0,
-                    child: RaisedButton(
-                      child: Image.asset('assets/play.png'),
-                      onPressed: _doNothing,
-                    )),
-                AnimatedContainer(
-                    duration: animationDuration,
-                    width: (_interactionMode == InteractionMode.edit)
-                        ? MediaQuery.of(context).size.width / 5
-                        : 0,
-                    child: RaisedButton(
-                      child: Image.asset('assets/stop.png'),
-                      onPressed: _doNothing,
-                    )),
-                AnimatedContainer(
-                    duration: animationDuration,
-                    width: (_interactionMode == InteractionMode.view)
-                        ? MediaQuery.of(context).size.width / 4
-                        : 0,
-                    child: RaisedButton(
-                        onPressed: _doNothing,
-                        padding: EdgeInsets.all(0.0),
-                        child: SvgPicture.asset('assets/notehead_filled.svg',
-                            height: 24, width: 24,))),
-                Expanded(
-                    child: RaisedButton(
-                  padding: EdgeInsets.only(top: 7, bottom: 5),
-                  child: Stack(children: [
-                    SvgPicture.asset('assets/metronome.svg'),
-                    Align(alignment: Alignment.centerRight,
-                      child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),)
-                  ]),
-                  onPressed: _doNothing,
-                )),
-                Expanded(
-                    child: RaisedButton(
-                  child: Image.asset('assets/piano.png'),
-                  onPressed: _toggleKeyboard,
-                  color: (_showKeyboard) ? Colors.white : Colors.grey,
-                )),
-                Expanded(
-                    child: RaisedButton(
-                  child: Image.asset('assets/colorboard.png'),
-                  onPressed: _toggleColorboard,
-                  color: (_showColorboard) ? Colors.white : Colors.grey,
-                ))
-              ])),
-          AnimatedContainer(
-              duration: animationDuration,
-              height: (_interactionMode == InteractionMode.edit) ? 36 : 0,
-              child: Row(children: [
-                Expanded(
-                    child: Text('Section List',
-                        style: TextStyle(color: Colors.white))),
-                RaisedButton(
-                  child: Text('+'),
-                  onPressed: _doNothing,
-                )
-              ])),
+        //Column(children: [
+        Flex(direction: Axis.vertical, children: <Widget>[
+          MediaQuery.of(context).size.width > 500
+              ? Container(
+                  height: 36,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                          child: BeatScratchToolbar(
+                              viewMode: _viewMode,
+                              editMode: _editMode,
+                              toggleViewOptions: _toggleViewOptions,
+                              interactionMode: _interactionMode)),
+                      AnimatedContainer(
+                          duration: animationDuration,
+                          width: _interactionMode == InteractionMode.edit || _showViewOptions
+                              ? MediaQuery.of(context).size.width / 2
+                              : 0,
+                          child: SecondToolbar(
+                            toggleKeyboard: _toggleKeyboard,
+                            toggleColorboard: _toggleColorboard,
+                            showKeyboard: _showKeyboard,
+                            showColorboard: _showColorboard,
+                            interactionMode: _interactionMode,
+                            showViewOptions: _showViewOptions,
+                          ))
+                    ],
+                  ))
+              : Column(children: <Widget>[
+                  BeatScratchToolbar(
+                      viewMode: _viewMode,
+                      editMode: _editMode,
+                      toggleViewOptions: _toggleViewOptions,
+                      interactionMode: _interactionMode),
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      height: _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0,
+                      child: SecondToolbar(
+                        toggleKeyboard: _toggleKeyboard,
+                        toggleColorboard: _toggleColorboard,
+                        showKeyboard: _showKeyboard,
+                        showColorboard: _showColorboard,
+                        interactionMode: _interactionMode,
+                        showViewOptions: _showViewOptions,
+                      ))
+                ]),
+          SectionList(
+            score: _score,
+            scrollDirection: Axis.horizontal,
+            visible: _interactionMode == InteractionMode.edit,
+            currentSection: _currentSection,
+            selectSection: _selectSection,
+          ),
           Expanded(
               child: Stack(children: [
-            // GridView.builder(
-            //   gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-            //       crossAxisCount: 16),
-            //   itemCount: _counter * 17,
-            //   itemBuilder: (BuildContext context, int index) {
-            //     return GridTile(
-            //         child: SvgPicture.asset('assets/notehead_half.svg'));
-            //   },
-            //   padding: const EdgeInsets.all(4.0),
-            // ),
-            // PhotoView.customChild(
-            //   // customSize: Size(gridWidth, constraints.maxHeight),
-            //   child: GridView.builder(
-            //     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            //         crossAxisCount: 13,
-            //         mainAxisSpacing: 1.0,
-            //         crossAxisSpacing: 1.0,
-            //         childAspectRatio: 1),
-            //     itemCount: _counter * 2,
-            //     // physics: ClampingScrollPhysics(),
-            //     padding: const EdgeInsets.all(0.0),
-            //     itemBuilder: (BuildContext context, int index) {
-            //       return GridTile(
-            //           child: SvgPicture.asset('assets/notehead_half.svg'));
-            //     },
-            //   ),
-            //   minScale: 0.5,
-            //   maxScale: 5.0,
-            //   initialScale: 1.0,
-            //   //initialScale: 5.0,
-            //   backgroundDecoration: BoxDecoration(color: Colors.white),
-            //   scaleStateChangedCallback: (scaleState) {
-            //     // scaleState.
-            //   },
-            //   scaleStateController: scaleStateController,
-            //   // childSize: Size(gridWidth, constraints.maxHeight),
-            //   //scaleChange: gridCreationHelperClass.scaleHasChanged,
-            // ),
-            Container(
-                color: Colors.white,
-                child: GestureDetector(
-                  onScaleStart: (details) => setState(() {
-                    _startHorizontalScale = _horizontalScale;
-                  }),
-                  onScaleUpdate: (ScaleUpdateDetails details) {
-                    setState(() {
-                      if(details.horizontalScale > 0) {
-                        _horizontalScale = max(0.1,min(16,
-                          _startHorizontalScale * details.horizontalScale));
-                      }
-                    });
-                  },
-                  onScaleEnd: (ScaleEndDetails details) {
-
-                  },
-                  child: GridView.builder(
-                    gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount:
-                            max(1, (16 / _horizontalScale).floor())),
-                    itemCount: _counter * 8,
-                    itemBuilder: (BuildContext context, int index) {
-                      return GridTile(
-                          child: Transform.scale(
-                            scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
-                            child:SvgPicture.asset('assets/notehead_half.svg')));
-                    },
-//                padding: const EdgeInsets.all(4.0),
-                  ),
-                )),
-            Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'You have pushed the button this many times:',
-                ),
-                Text(
-                  '$_counter',
-                  style: Theme.of(context).textTheme.display1,
-                ),
-              ],
-            ))
+            (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
+                ? Column(children: [
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        height: MediaQuery.of(context).size.height * (1 - _melodyViewSizeFactor),
+                        child: PartMelodiesView(
+                          score: _score,
+                        )),
+                    MelodyView(counter: _counter)
+                  ])
+                : Row(children: [
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
+                        child: PartMelodiesView(score: _score)),
+                    MelodyView(counter: _counter)
+                  ])
           ])),
           AnimatedContainer(
               duration: animationDuration,
@@ -381,28 +321,175 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
               child: Text('Keyboard')),
-        ]),
-        // The keyboards
-//        Column(children: [
-//          Expanded(child:Text('')),
-//          Align(
-//          alignment: Alignment.bottomCenter,
-//          child: Column(
-//          children: [
-//            Container(height:150, width: MediaQuery.of(context).size.width,color: Colors.white, child: Text('Colorboard')),
-//            Container(height:150, width: MediaQuery.of(context).size.width, color: Colors.white, child: Text('Keyboard')),
-//          ]
-//        )
-//        )
-//    ])
+        ])
+        //]),
       ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
 
 enum InteractionMode { view, edit }
+
+class BeatScratchToolbar extends StatelessWidget {
+  final VoidCallback viewMode;
+  final VoidCallback editMode;
+  final VoidCallback toggleViewOptions;
+  final InteractionMode interactionMode;
+
+  const BeatScratchToolbar({Key key, this.interactionMode, this.viewMode, this.editMode, this.toggleViewOptions})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: 48,
+        child: Row(children: [
+          Expanded(
+              child: PopupMenuButton(
+//                        onPressed: _doNothing,
+                  offset: Offset(0, MediaQuery.of(context).size.height),
+                  onSelected: (result) {
+                    //setState(() {});
+                  },
+                  itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('score name'),
+                          enabled: false,
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('New Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Open Score...'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Duplicate Score...'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Save Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Copy Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('MIDI Output Settings'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Quit BeatScratch'),
+                        ),
+                      ],
+                  padding: EdgeInsets.only(bottom: 10.0),
+                  icon: SvgPicture.asset('assets/logo.svg'))),
+          Expanded(
+              child: FlatButton(
+                  onPressed: () => {},
+                  padding: EdgeInsets.all(0.0),
+                  child: Icon((interactionMode == InteractionMode.view) ? Icons.play_arrow : Icons.menu,
+                      color: Colors.white))),
+          Expanded(
+              child: (interactionMode == InteractionMode.view)
+                  ? RaisedButton(
+                      onPressed: toggleViewOptions,
+                      padding: EdgeInsets.all(0.0),
+                      child: Icon(Icons.remove_red_eye, color: Colors.black))
+                  : FlatButton(
+                      onPressed: viewMode,
+                      padding: EdgeInsets.all(0.0),
+                      child: Icon(Icons.remove_red_eye, color: Colors.white))),
+          Expanded(
+              child: (interactionMode == InteractionMode.edit)
+                  ? RaisedButton(
+                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.black))
+                  : FlatButton(
+                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.white)))
+        ]));
+  }
+}
+
+class SecondToolbar extends StatelessWidget {
+  final VoidCallback toggleKeyboard;
+  final VoidCallback toggleColorboard;
+  final bool showKeyboard;
+  final bool showColorboard;
+  final InteractionMode interactionMode;
+  final bool showViewOptions;
+
+  const SecondToolbar(
+      {Key key,
+      this.toggleKeyboard,
+      this.toggleColorboard,
+      this.showKeyboard,
+      this.showColorboard,
+      this.interactionMode,
+      this.showViewOptions})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      ExpandedSection(
+          expand: interactionMode == InteractionMode.edit,
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
+      ExpandedSection(
+          expand: interactionMode == InteractionMode.edit,
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/stop.png'),
+                onPressed: () => {},
+              ))),
+      ExpandedSection(
+          expand: interactionMode == InteractionMode.view,
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                  onPressed: () => {},
+                  padding: EdgeInsets.all(0.0),
+                  child: SvgPicture.asset(
+                    'assets/notehead_filled.svg',
+                    height: 24,
+                    width: 24,
+                  )))),
+      Expanded(
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                padding: EdgeInsets.only(top: 7, bottom: 5),
+                child: Stack(children: [
+                  SvgPicture.asset('assets/metronome.svg'),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
+                  )
+                ]),
+                onPressed: () => {},
+              ))),
+      Expanded(
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/piano.png'),
+                onPressed: toggleKeyboard,
+                color: (showKeyboard) ? Colors.white : Colors.grey,
+              ))),
+      Expanded(
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/colorboard.png'),
+                onPressed: toggleColorboard,
+                color: (showColorboard) ? Colors.white : Colors.grey,
+              )))
+    ]);
+  }
+}

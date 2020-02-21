@@ -138,14 +138,16 @@ const Part$json = const {
   '1': 'Part',
   '2': const [
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    const {'1': 'instrument', '3': 2, '4': 1, '5': 11, '6': '.Instrument', '10': 'instrument'},
+    const {'1': 'instrument', '3': 3, '4': 1, '5': 11, '6': '.Instrument', '10': 'instrument'},
+    const {'1': 'melodies', '3': 4, '4': 3, '5': 11, '6': '.Melody', '10': 'melodies'},
   ],
 };
 
-const SectionMelodies$json = const {
-  '1': 'SectionMelodies',
+const MelodyReference$json = const {
+  '1': 'MelodyReference',
   '2': const [
-    const {'1': 'melodies', '3': 1, '4': 3, '5': 11, '6': '.Melody', '10': 'melodies'},
+    const {'1': 'melody_id', '3': 1, '4': 1, '5': 9, '10': 'melodyId'},
+    const {'1': 'volume', '3': 2, '4': 1, '5': 2, '10': 'volume'},
   ],
 };
 
@@ -155,18 +157,8 @@ const Section$json = const {
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'harmony', '3': 3, '4': 1, '5': 11, '6': '.Harmony', '10': 'harmony'},
-    const {'1': 'melodies', '3': 4, '4': 3, '5': 11, '6': '.Section.MelodiesEntry', '10': 'melodies'},
+    const {'1': 'melodies', '3': 4, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
   ],
-  '3': const [Section_MelodiesEntry$json],
-};
-
-const Section_MelodiesEntry$json = const {
-  '1': 'MelodiesEntry',
-  '2': const [
-    const {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.SectionMelodies', '10': 'value'},
-  ],
-  '7': const {'7': true},
 };
 
 const Score$json = const {

@@ -337,7 +337,8 @@ class Instrument extends $pb.GeneratedMessage {
 class Part extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Part', createEmptyInstance: create)
     ..aOS(1, 'id')
-    ..aOM<Instrument>(2, 'instrument', subBuilder: Instrument.create)
+    ..aOM<Instrument>(3, 'instrument', subBuilder: Instrument.create)
+    ..pc<Melody>(4, 'melodies', $pb.PbFieldType.PM, subBuilder: Melody.create)
     ..hasRequiredFields = false
   ;
 
@@ -365,41 +366,60 @@ class Part extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearId() => clearField(1);
 
-  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
   Instrument get instrument => $_getN(1);
-  @$pb.TagNumber(2)
-  set instrument(Instrument v) { setField(2, v); }
-  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  set instrument(Instrument v) { setField(3, v); }
+  @$pb.TagNumber(3)
   $core.bool hasInstrument() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearInstrument() => clearField(2);
-  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  void clearInstrument() => clearField(3);
+  @$pb.TagNumber(3)
   Instrument ensureInstrument() => $_ensure(1);
+
+  @$pb.TagNumber(4)
+  $core.List<Melody> get melodies => $_getList(2);
 }
 
-class SectionMelodies extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('SectionMelodies', createEmptyInstance: create)
-    ..pc<Melody>(1, 'melodies', $pb.PbFieldType.PM, subBuilder: Melody.create)
+class MelodyReference extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodyReference', createEmptyInstance: create)
+    ..aOS(1, 'melodyId')
+    ..a<$core.double>(2, 'volume', $pb.PbFieldType.OF)
     ..hasRequiredFields = false
   ;
 
-  SectionMelodies._() : super();
-  factory SectionMelodies() => create();
-  factory SectionMelodies.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory SectionMelodies.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  SectionMelodies clone() => SectionMelodies()..mergeFromMessage(this);
-  SectionMelodies copyWith(void Function(SectionMelodies) updates) => super.copyWith((message) => updates(message as SectionMelodies));
+  MelodyReference._() : super();
+  factory MelodyReference() => create();
+  factory MelodyReference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MelodyReference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MelodyReference clone() => MelodyReference()..mergeFromMessage(this);
+  MelodyReference copyWith(void Function(MelodyReference) updates) => super.copyWith((message) => updates(message as MelodyReference));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static SectionMelodies create() => SectionMelodies._();
-  SectionMelodies createEmptyInstance() => create();
-  static $pb.PbList<SectionMelodies> createRepeated() => $pb.PbList<SectionMelodies>();
+  static MelodyReference create() => MelodyReference._();
+  MelodyReference createEmptyInstance() => create();
+  static $pb.PbList<MelodyReference> createRepeated() => $pb.PbList<MelodyReference>();
   @$core.pragma('dart2js:noInline')
-  static SectionMelodies getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SectionMelodies>(create);
-  static SectionMelodies _defaultInstance;
+  static MelodyReference getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodyReference>(create);
+  static MelodyReference _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<Melody> get melodies => $_getList(0);
+  $core.String get melodyId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set melodyId($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasMelodyId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMelodyId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get volume => $_getN(1);
+  @$pb.TagNumber(2)
+  set volume($core.double v) { $_setFloat(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasVolume() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVolume() => clearField(2);
 }
 
 class Section extends $pb.GeneratedMessage {
@@ -407,7 +427,7 @@ class Section extends $pb.GeneratedMessage {
     ..aOS(1, 'id')
     ..aOS(2, 'name')
     ..aOM<Harmony>(3, 'harmony', subBuilder: Harmony.create)
-    ..m<$core.String, SectionMelodies>(4, 'melodies', entryClassName: 'Section.MelodiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OM, valueCreator: SectionMelodies.create)
+    ..pc<MelodyReference>(4, 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
     ..hasRequiredFields = false
   ;
 
@@ -456,7 +476,7 @@ class Section extends $pb.GeneratedMessage {
   Harmony ensureHarmony() => $_ensure(2);
 
   @$pb.TagNumber(4)
-  $core.Map<$core.String, SectionMelodies> get melodies => $_getMap(3);
+  $core.List<MelodyReference> get melodies => $_getList(3);
 }
 
 class Score extends $pb.GeneratedMessage {

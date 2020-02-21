@@ -92,11 +92,14 @@ message Instrument {
 
 message Part {
   string id = 1;
-  Instrument instrument = 2;
+  Instrument instrument = 3;
+  repeated Melody melodies = 4;
 }
 
-message SectionMelodies {
-  repeated Melody melodies = 1;
+message MelodyReference {
+  string melody_id = 1;
+  // Volume, between 0 and 1.
+  float volume = 2;
 }
 
 message Section {
@@ -104,7 +107,7 @@ message Section {
   string name = 2;
   Harmony harmony = 3;
   // Maps Part.ids to melodies
-  map<string, SectionMelodies> melodies = 4;
+  repeated MelodyReference melodies = 4;
 }
 
 message Score {

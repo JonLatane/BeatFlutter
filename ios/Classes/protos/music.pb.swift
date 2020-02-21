@@ -373,6 +373,11 @@ struct Part {
   /// Clears the value of `instrument`. Subsequent reads from it will return its default value.
   mutating func clearInstrument() {_uniqueStorage()._instrument = nil}
 
+  var melodies: [Melody] {
+    get {return _storage._melodies}
+    set {_uniqueStorage()._melodies = newValue}
+  }
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -380,12 +385,15 @@ struct Part {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-struct SectionMelodies {
+struct MelodyReference {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var melodies: [Melody] = []
+  var melodyID: String = String()
+
+  /// Volume, between 0 and 1.
+  var volume: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -417,7 +425,7 @@ struct Section {
   mutating func clearHarmony() {_uniqueStorage()._harmony = nil}
 
   /// Maps Part.ids to melodies
-  var melodies: Dictionary<String,SectionMelodies> {
+  var melodies: [MelodyReference] {
     get {return _storage._melodies}
     set {_uniqueStorage()._melodies = newValue}
   }
@@ -791,12 +799,14 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
   static let protoMessageName: String = "Part"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
-    2: .same(proto: "instrument"),
+    3: .same(proto: "instrument"),
+    4: .same(proto: "melodies"),
   ]
 
   fileprivate class _StorageClass {
     var _id: String = String()
     var _instrument: Instrument? = nil
+    var _melodies: [Melody] = []
 
     static let defaultInstance = _StorageClass()
 
@@ -805,6 +815,7 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
     init(copying source: _StorageClass) {
       _id = source._id
       _instrument = source._instrument
+      _melodies = source._melodies
     }
   }
 
@@ -821,7 +832,8 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
       while let fieldNumber = try decoder.nextFieldNumber() {
         switch fieldNumber {
         case 1: try decoder.decodeSingularStringField(value: &_storage._id)
-        case 2: try decoder.decodeSingularMessageField(value: &_storage._instrument)
+        case 3: try decoder.decodeSingularMessageField(value: &_storage._instrument)
+        case 4: try decoder.decodeRepeatedMessageField(value: &_storage._melodies)
         default: break
         }
       }
@@ -834,7 +846,10 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
         try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
       }
       if let v = _storage._instrument {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      }
+      if !_storage._melodies.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._melodies, fieldNumber: 4)
       }
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -847,6 +862,7 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
         let rhs_storage = _args.1
         if _storage._id != rhs_storage._id {return false}
         if _storage._instrument != rhs_storage._instrument {return false}
+        if _storage._melodies != rhs_storage._melodies {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -856,30 +872,36 @@ extension Part: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
   }
 }
 
-extension SectionMelodies: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "SectionMelodies"
+extension MelodyReference: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MelodyReference"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "melodies"),
+    1: .standard(proto: "melody_id"),
+    2: .same(proto: "volume"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
-      case 1: try decoder.decodeRepeatedMessageField(value: &self.melodies)
+      case 1: try decoder.decodeSingularStringField(value: &self.melodyID)
+      case 2: try decoder.decodeSingularFloatField(value: &self.volume)
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.melodies.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.melodies, fieldNumber: 1)
+    if !self.melodyID.isEmpty {
+      try visitor.visitSingularStringField(value: self.melodyID, fieldNumber: 1)
+    }
+    if self.volume != 0 {
+      try visitor.visitSingularFloatField(value: self.volume, fieldNumber: 2)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: SectionMelodies, rhs: SectionMelodies) -> Bool {
-    if lhs.melodies != rhs.melodies {return false}
+  static func ==(lhs: MelodyReference, rhs: MelodyReference) -> Bool {
+    if lhs.melodyID != rhs.melodyID {return false}
+    if lhs.volume != rhs.volume {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -898,7 +920,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     var _id: String = String()
     var _name: String = String()
     var _harmony: Harmony? = nil
-    var _melodies: Dictionary<String,SectionMelodies> = [:]
+    var _melodies: [MelodyReference] = []
 
     static let defaultInstance = _StorageClass()
 
@@ -927,7 +949,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
         case 1: try decoder.decodeSingularStringField(value: &_storage._id)
         case 2: try decoder.decodeSingularStringField(value: &_storage._name)
         case 3: try decoder.decodeSingularMessageField(value: &_storage._harmony)
-        case 4: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,SectionMelodies>.self, value: &_storage._melodies)
+        case 4: try decoder.decodeRepeatedMessageField(value: &_storage._melodies)
         default: break
         }
       }
@@ -946,7 +968,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       }
       if !_storage._melodies.isEmpty {
-        try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,SectionMelodies>.self, value: _storage._melodies, fieldNumber: 4)
+        try visitor.visitRepeatedMessageField(value: _storage._melodies, fieldNumber: 4)
       }
     }
     try unknownFields.traverse(visitor: &visitor)
