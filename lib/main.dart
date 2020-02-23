@@ -17,6 +17,7 @@ import 'package:uuid/uuid.dart';
 void main() => runApp(MyApp());
 
 const Color foo = Color.fromRGBO(0xF9, 0x37, 0x30, .1);
+var uuid = Uuid();
 
 const Map<int, Color> swatch = {
   //createSwatch(0xF9, 0x37, 0x30);
@@ -33,85 +34,85 @@ const Map<int, Color> swatch = {
 };
 
 var section1 = Section()
-  ..id = Uuid().toString()
+  ..id = uuid.v1()
   ..name = "Section 1";
 var score = Score()
   ..parts.addAll([
     Part()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..instrument = (Instrument()
         ..name = "Drums"
         ..type = InstrumentType.drum)
       ..melodies.addAll([
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
       ]),
     Part()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..instrument = (Instrument()
         ..name = "Piano"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
       ]),
     Part()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..instrument = (Instrument()
         ..name = "Bass"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
-        Melody(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
       ]),
     Part()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..instrument = (Instrument()
         ..name = "Part 4"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody(),
-        Melody(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
       ]),
     Part()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..instrument = (Instrument()
         ..name = "Part 5"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody(),
-        Melody(),
-        Melody(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v1(),
       ]),
   ])
   ..sections.addAll([
     section1,
     Section()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..name = "Section 2",
     Section()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..name = "Section 3",
     Section()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..name = "Section 4",
     Section()
-      ..id = Uuid().toString()
+      ..id = uuid.v1()
       ..name = "Section 5"
   ]);
 
@@ -132,6 +133,7 @@ class MyApp extends StatelessWidget {
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
           primarySwatch: MaterialColor(0xFFF93730, swatch),
+        platform: TargetPlatform.iOS,
           fontFamily: 'VulfSans'),
       home: MyHomePage(title: 'BeatFlutter'),
     );
@@ -294,18 +296,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
                 ? Column(children: [
                     AnimatedContainer(
-                        duration: animationDuration,
-                        height: MediaQuery.of(context).size.height * (1 - _melodyViewSizeFactor),
-                        child: PartMelodiesView(
-                          score: _score,
-                        )),
+                      duration: animationDuration,
+                      height: MediaQuery.of(context).size.height * (1 - _melodyViewSizeFactor),
+                      child: PartMelodiesView(score: _score, setState: setState,)),
                     MelodyView(counter: _counter)
                   ])
                 : Row(children: [
                     AnimatedContainer(
                         duration: animationDuration,
                         width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
-                        child: PartMelodiesView(score: _score)),
+                        child: PartMelodiesView(score: _score, setState: setState,)),
                     MelodyView(counter: _counter)
                   ])
           ])),

@@ -43,7 +43,7 @@ class _MelodyViewState extends State<MelodyView> {
                 });
               },
               onScaleEnd: (ScaleEndDetails details) {
-                _horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
+                //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
               },
               child: GridView.builder(
                 gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
