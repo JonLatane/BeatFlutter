@@ -167,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
+  get showMelodyView => _melodyViewSizeFactor > 0;
   double _melodyViewSizeFactor = 1.0;
   Section _currentSection = section1;
   get currentSection => _currentSection;
@@ -250,6 +251,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  bool get _combineSecondAndMainToolbar => MediaQuery.of(context).size.width > 500;
+  double get _secondToolbarHeight => (_combineSecondAndMainToolbar) ? 0
+    : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
+  double get _colorboardHeight => _showColorboard ? 150 : 0;
+  double get _keyboardHeight => _showKeyboard ? 150 : 0;
+
   PhotoViewScaleStateController scaleStateController;
 
   @override
@@ -281,9 +288,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       body: Stack(children: [
         //Column(children: [
         Flex(direction: Axis.vertical, children: <Widget>[
-          MediaQuery.of(context).size.width > 500
+          _combineSecondAndMainToolbar
               ? Container(
-                  height: 36,
+                  height: 48,
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -293,6 +300,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               editMode: _editMode,
                               toggleViewOptions: _toggleViewOptions,
                               interactionMode: _interactionMode)),
+                      Container(height:36, child:
                       AnimatedContainer(
                           duration: animationDuration,
                           width: _interactionMode == InteractionMode.edit || _showViewOptions
@@ -305,7 +313,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             showColorboard: _showColorboard,
                             interactionMode: _interactionMode,
                             showViewOptions: _showViewOptions,
-                          ))
+                          )))
                     ],
                   ))
               : Column(children: <Widget>[
@@ -317,7 +325,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       interactionMode: _interactionMode),
                   AnimatedContainer(
                       duration: animationDuration,
-                      height: _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0,
+                      height: _secondToolbarHeight,
                       child: SecondToolbar(
                         toggleKeyboard: _toggleKeyboard,
                         toggleColorboard: _toggleColorboard,
@@ -336,51 +344,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             selectSection: _selectSection,
           ),
           Expanded(
-            child: Stack(children: [
-              _handleStatusBar(context),
-              (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
-                ? Column(children: [
-                AnimatedContainer(
-                  duration: animationDuration,
-                  height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * (1 - _melodyViewSizeFactor),
-                  child: PartMelodiesView(
-                    score: _score,
-                    sectionColor: sectionColor,
-                    setState: setState,
-                    selectMelody: _selectOrDeselectMelody,
-                    selectedMelody: selectedMelody,
-                  )),
-                MelodyView(counter: _counter)
-              ])
-                : Row(children: [
-                AnimatedContainer(
-                  duration: animationDuration,
-                  width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * (1 - _melodyViewSizeFactor),
-                  child: PartMelodiesView(
-                    score: _score,
-                    sectionColor: sectionColor,
-                    setState: setState,
-                    selectMelody: _selectOrDeselectMelody,
-                    selectedMelody: selectedMelody,)),
-                MelodyView(counter: _counter)
-              ])
-            ]
-              ..removeAt(0))),
+            child: _partsAndMelodiesAndMelodyView(context)),
           AnimatedContainer(
               duration: animationDuration,
-              height: (_showColorboard) ? 150 : 0,
+              height: _colorboardHeight,
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
               child: Image.asset('assets/colorboard.png', fit: BoxFit.fill,)),
           AnimatedContainer(
               duration: animationDuration,
-              height: (_showKeyboard) ? 150 : 0,
+              height: _keyboardHeight,
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
               child: Image.asset('assets/piano.png', fit: BoxFit.fill,)),
@@ -388,6 +361,40 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         //]),
       ]),
     );
+  }
+
+  Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
+    var data = MediaQuery.of(context);
+    double height = data.size.height - data.padding.top - kToolbarHeight -
+      28 - _secondToolbarHeight - _colorboardHeight - _keyboardHeight;
+    _handleStatusBar(context);
+
+    return Stack(children: [
+      (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
+        ? Column( children: [
+        AnimatedContainer(
+          duration: animationDuration,
+          height: height * (1 - _melodyViewSizeFactor),
+          child: PartMelodiesView(score: _score, sectionColor: sectionColor, setState: setState,
+            selectMelody: _selectOrDeselectMelody, selectedMelody: selectedMelody,)),
+        MelodyView(counter: _counter)
+      ])
+        : Row(children: [
+        AnimatedContainer(
+          duration: animationDuration,
+          width: MediaQuery
+            .of(context)
+            .size
+            .width * (1 - _melodyViewSizeFactor),
+          child: PartMelodiesView(
+            score: _score,
+            sectionColor: sectionColor,
+            setState: setState,
+            selectMelody: _selectOrDeselectMelody,
+            selectedMelody: selectedMelody,)),
+        MelodyView(counter: _counter)
+      ])
+    ]);
   }
 
   _handleStatusBar(BuildContext context) {
