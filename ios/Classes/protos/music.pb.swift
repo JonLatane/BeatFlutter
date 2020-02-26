@@ -337,6 +337,8 @@ struct Instrument {
 
   var type: InstrumentType = .harmonic
 
+  var volume: Float = 0
+
   /// Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
   var midiChannel: UInt32 = 0
 
@@ -741,10 +743,11 @@ extension Instrument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
     2: .same(proto: "type"),
-    3: .standard(proto: "midi_channel"),
-    4: .standard(proto: "midi_instrument"),
-    5: .standard(proto: "midi_gm2_msb"),
-    6: .standard(proto: "midi_gm2_lsb"),
+    3: .same(proto: "volume"),
+    4: .standard(proto: "midi_channel"),
+    5: .standard(proto: "midi_instrument"),
+    6: .standard(proto: "midi_gm2_msb"),
+    7: .standard(proto: "midi_gm2_lsb"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -752,10 +755,11 @@ extension Instrument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.name)
       case 2: try decoder.decodeSingularEnumField(value: &self.type)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.midiChannel)
-      case 4: try decoder.decodeSingularUInt32Field(value: &self.midiInstrument)
-      case 5: try decoder.decodeSingularUInt32Field(value: &self.midiGm2Msb)
-      case 6: try decoder.decodeSingularUInt32Field(value: &self.midiGm2Lsb)
+      case 3: try decoder.decodeSingularFloatField(value: &self.volume)
+      case 4: try decoder.decodeSingularUInt32Field(value: &self.midiChannel)
+      case 5: try decoder.decodeSingularUInt32Field(value: &self.midiInstrument)
+      case 6: try decoder.decodeSingularUInt32Field(value: &self.midiGm2Msb)
+      case 7: try decoder.decodeSingularUInt32Field(value: &self.midiGm2Lsb)
       default: break
       }
     }
@@ -768,17 +772,20 @@ extension Instrument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     if self.type != .harmonic {
       try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
     }
+    if self.volume != 0 {
+      try visitor.visitSingularFloatField(value: self.volume, fieldNumber: 3)
+    }
     if self.midiChannel != 0 {
-      try visitor.visitSingularUInt32Field(value: self.midiChannel, fieldNumber: 3)
+      try visitor.visitSingularUInt32Field(value: self.midiChannel, fieldNumber: 4)
     }
     if self.midiInstrument != 0 {
-      try visitor.visitSingularUInt32Field(value: self.midiInstrument, fieldNumber: 4)
+      try visitor.visitSingularUInt32Field(value: self.midiInstrument, fieldNumber: 5)
     }
     if self.midiGm2Msb != 0 {
-      try visitor.visitSingularUInt32Field(value: self.midiGm2Msb, fieldNumber: 5)
+      try visitor.visitSingularUInt32Field(value: self.midiGm2Msb, fieldNumber: 6)
     }
     if self.midiGm2Lsb != 0 {
-      try visitor.visitSingularUInt32Field(value: self.midiGm2Lsb, fieldNumber: 6)
+      try visitor.visitSingularUInt32Field(value: self.midiGm2Lsb, fieldNumber: 7)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -786,6 +793,7 @@ extension Instrument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
   static func ==(lhs: Instrument, rhs: Instrument) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.type != rhs.type {return false}
+    if lhs.volume != rhs.volume {return false}
     if lhs.midiChannel != rhs.midiChannel {return false}
     if lhs.midiInstrument != rhs.midiInstrument {return false}
     if lhs.midiGm2Msb != rhs.midiGm2Msb {return false}

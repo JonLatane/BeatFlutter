@@ -80,14 +80,15 @@ enum InstrumentType {
 message Instrument {
   string name = 1;
   InstrumentType type = 2;
+  float volume = 3;
   // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
-  uint32 midi_channel = 3;
+  uint32 midi_channel = 4;
   // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
-  uint32 midi_instrument = 4;
+  uint32 midi_instrument = 5;
   // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
-  uint32 midi_gm2_msb = 5;
+  uint32 midi_gm2_msb = 6;
   // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
-  uint32 midi_gm2_lsb = 6;
+  uint32 midi_gm2_lsb = 7;
 }
 
 message Part {

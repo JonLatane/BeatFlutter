@@ -127,10 +127,11 @@ const Instrument$json = const {
   '2': const [
     const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.InstrumentType', '10': 'type'},
-    const {'1': 'midi_channel', '3': 3, '4': 1, '5': 13, '10': 'midiChannel'},
-    const {'1': 'midi_instrument', '3': 4, '4': 1, '5': 13, '10': 'midiInstrument'},
-    const {'1': 'midi_gm2_msb', '3': 5, '4': 1, '5': 13, '10': 'midiGm2Msb'},
-    const {'1': 'midi_gm2_lsb', '3': 6, '4': 1, '5': 13, '10': 'midiGm2Lsb'},
+    const {'1': 'volume', '3': 3, '4': 1, '5': 2, '10': 'volume'},
+    const {'1': 'midi_channel', '3': 4, '4': 1, '5': 13, '10': 'midiChannel'},
+    const {'1': 'midi_instrument', '3': 5, '4': 1, '5': 13, '10': 'midiInstrument'},
+    const {'1': 'midi_gm2_msb', '3': 6, '4': 1, '5': 13, '10': 'midiGm2Msb'},
+    const {'1': 'midi_gm2_lsb', '3': 7, '4': 1, '5': 13, '10': 'midiGm2Lsb'},
   ],
 };
 

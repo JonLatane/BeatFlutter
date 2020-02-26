@@ -6,10 +6,11 @@ class SectionList extends StatelessWidget {
   final Axis scrollDirection;
   final bool visible;
   final Score score;
+  final Color sectionColor;
   final Section currentSection;
   final Function(Section) selectSection;
 
-  const SectionList({Key key, this.scrollDirection, this.visible, this.score, this.currentSection, this.selectSection})
+  const SectionList({Key key, this.scrollDirection, this.visible, this.score, this.currentSection, this.selectSection, this.sectionColor})
       : super(key: key);
 
   @override
@@ -21,17 +22,17 @@ class SectionList extends StatelessWidget {
         child: (scrollDirection == Axis.horizontal)
             ? Row(children: [
                 Expanded(
-                    child: ListView.builder(
+                    child: Padding(padding: EdgeInsets.all(2), child: ListView.builder(
                   scrollDirection: scrollDirection,
                   itemBuilder: (context, position) {
                     return RaisedButton(
-                      color: (currentSection == score.sections[position]) ? Colors.white : Colors.white70,
-                      child: Text(score.sections[position].name),
+                      color: (currentSection == score.sections[position]) ? sectionColor : Colors.white,
+                      child: Text(score.sections[position].name, style: TextStyle(fontWeight: FontWeight.w100),),
                       onPressed: () => {selectSection(score.sections[position])},
                     );
                   },
                   itemCount: score.sections.length,
-                )),
+                ))),
                 RaisedButton(
                   child: Text('+'),
                   onPressed: () => {

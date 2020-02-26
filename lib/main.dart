@@ -13,6 +13,8 @@ import 'part_melodies_view.dart';
 import 'dart:math';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/services.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -34,85 +36,85 @@ const Map<int, Color> swatch = {
 };
 
 var section1 = Section()
-  ..id = uuid.v1()
+  ..id = uuid.v4()
   ..name = "Section 1";
 var score = Score()
   ..parts.addAll([
     Part()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Drums"
         ..type = InstrumentType.drum)
       ..melodies.addAll([
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
       ]),
     Part()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Piano"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
       ]),
     Part()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Bass"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
       ]),
     Part()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Part 4"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
       ]),
     Part()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Part 5"
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
-        Melody()..id = uuid.v1(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
       ]),
   ])
   ..sections.addAll([
     section1,
     Section()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..name = "Section 2",
     Section()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..name = "Section 3",
     Section()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..name = "Section 4",
     Section()
-      ..id = uuid.v1()
+      ..id = uuid.v4()
       ..name = "Section 5"
   ]);
 
@@ -140,6 +142,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
+var sectionColors = [
+  Color(0xFF59F9FF),
+  Color(0xFF884DF2),
+  Color(0xFFF93730),
+  Color(0xFF4AFBC1),
+  Color(0xFFF652F9),
+];
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -158,16 +168,43 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showKeyboard = false;
   bool _showColorboard = false;
   double _melodyViewSizeFactor = 1.0;
-  double _startHorizontalScale = 1.0;
-  double _startVerticalScale = 1.0;
-  double _horizontalScale = 1.0;
-  double _verticalScale = 1.0;
   Section _currentSection = section1;
+  get currentSection => _currentSection;
+  set currentSection (Section section) {
+    _currentSection = section;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: sectionColor,
+    ));
+  }
   Score _score = score;
+  Melody _selectedMelody;
+  get selectedMelody => _selectedMelody;
+  set selectedMelody (Melody melody){
+    _selectedMelody = melody;
+    if(_interactionMode == InteractionMode.edit) {
+      if(melody == null) {
+        _melodyViewSizeFactor = 0;
+      } else {
+        _melodyViewSizeFactor = 0.5;
+      }
+    }
+  }
+
+  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection)];
 
   _incrementCounter() {
     setState(() {
       _counter++;
+    });
+  }
+
+  _selectOrDeselectMelody(Melody melody) {
+    setState(() {
+      if(selectedMelody != melody) {
+        selectedMelody = melody;
+      } else {
+        selectedMelody = null;
+      }
     });
   }
 
@@ -178,13 +215,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _interactionMode = InteractionMode.view;
       _showViewOptions = false;
       _melodyViewSizeFactor = 1;
+      selectedMelody = null;
     });
   }
 
   _editMode() {
     setState(() {
       _interactionMode = InteractionMode.edit;
-      _melodyViewSizeFactor = 0.5;
+      _melodyViewSizeFactor = 0.0;
     });
   }
 
@@ -208,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _selectSection(Section section) {
     setState(() {
-      _currentSection = section;
+      currentSection = section;
     });
   }
 
@@ -228,6 +266,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: sectionColor,
+    ));
     return Scaffold(
       backgroundColor: Color(0xFF424242),
       appBar: PreferredSize(
@@ -247,6 +288,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     children: <Widget>[
                       Expanded(
                           child: BeatScratchToolbar(
+                            sectionColor: sectionColor,
                               viewMode: _viewMode,
                               editMode: _editMode,
                               toggleViewOptions: _toggleViewOptions,
@@ -268,6 +310,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ))
               : Column(children: <Widget>[
                   BeatScratchToolbar(
+                    sectionColor: sectionColor,
                       viewMode: _viewMode,
                       editMode: _editMode,
                       toggleViewOptions: _toggleViewOptions,
@@ -285,46 +328,73 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       ))
                 ]),
           SectionList(
+            sectionColor: sectionColor,
             score: _score,
             scrollDirection: Axis.horizontal,
             visible: _interactionMode == InteractionMode.edit,
-            currentSection: _currentSection,
+            currentSection: currentSection,
             selectSection: _selectSection,
           ),
           Expanded(
-              child: Stack(children: [
-            (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
+            child: Stack(children: [
+              _handleStatusBar(context),
+              (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
                 ? Column(children: [
-                    AnimatedContainer(
-                      duration: animationDuration,
-                      height: MediaQuery.of(context).size.height * (1 - _melodyViewSizeFactor),
-                      child: PartMelodiesView(score: _score, setState: setState,)),
-                    MelodyView(counter: _counter)
-                  ])
+                AnimatedContainer(
+                  duration: animationDuration,
+                  height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * (1 - _melodyViewSizeFactor),
+                  child: PartMelodiesView(
+                    score: _score,
+                    sectionColor: sectionColor,
+                    setState: setState,
+                    selectMelody: _selectOrDeselectMelody,
+                    selectedMelody: selectedMelody,
+                  )),
+                MelodyView(counter: _counter)
+              ])
                 : Row(children: [
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
-                        child: PartMelodiesView(score: _score, setState: setState,)),
-                    MelodyView(counter: _counter)
-                  ])
-          ])),
+                AnimatedContainer(
+                  duration: animationDuration,
+                  width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * (1 - _melodyViewSizeFactor),
+                  child: PartMelodiesView(
+                    score: _score,
+                    sectionColor: sectionColor,
+                    setState: setState,
+                    selectMelody: _selectOrDeselectMelody,
+                    selectedMelody: selectedMelody,)),
+                MelodyView(counter: _counter)
+              ])
+            ]
+              ..removeAt(0))),
           AnimatedContainer(
               duration: animationDuration,
               height: (_showColorboard) ? 150 : 0,
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
-              child: Text('Colorboard')),
+              child: Image.asset('assets/colorboard.png', fit: BoxFit.fill,)),
           AnimatedContainer(
               duration: animationDuration,
               height: (_showKeyboard) ? 150 : 0,
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
-              child: Text('Keyboard')),
+              child: Image.asset('assets/piano.png', fit: BoxFit.fill,)),
         ])
         //]),
       ]),
     );
+  }
+
+  _handleStatusBar(BuildContext context) {
+//    var size = MediaQuery.of(context).size;
+//    if(size.width > size.height && size.height < 600) {
+//      SystemChrome.setEnabledSystemUIOverlays([]);
+//    }
   }
 }
 
@@ -335,8 +405,9 @@ class BeatScratchToolbar extends StatelessWidget {
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
   final InteractionMode interactionMode;
+  final Color sectionColor;
 
-  const BeatScratchToolbar({Key key, this.interactionMode, this.viewMode, this.editMode, this.toggleViewOptions})
+  const BeatScratchToolbar({Key key, this.interactionMode, this.viewMode, this.editMode, this.toggleViewOptions, this.sectionColor})
       : super(key: key);
 
   @override
@@ -393,23 +464,25 @@ class BeatScratchToolbar extends StatelessWidget {
                   onPressed: () => {},
                   padding: EdgeInsets.all(0.0),
                   child: Icon((interactionMode == InteractionMode.view) ? Icons.play_arrow : Icons.menu,
-                      color: Colors.white))),
+                      color: sectionColor))),
           Expanded(
               child: (interactionMode == InteractionMode.view)
                   ? RaisedButton(
+                      color: sectionColor,
                       onPressed: toggleViewOptions,
                       padding: EdgeInsets.all(0.0),
-                      child: Icon(Icons.remove_red_eye, color: Colors.black))
+                      child: Icon(Icons.remove_red_eye, color: Colors.white))
                   : FlatButton(
                       onPressed: viewMode,
                       padding: EdgeInsets.all(0.0),
-                      child: Icon(Icons.remove_red_eye, color: Colors.white))),
+                      child: Icon(Icons.remove_red_eye, color: sectionColor))),
           Expanded(
               child: (interactionMode == InteractionMode.edit)
                   ? RaisedButton(
-                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.black))
+                color: sectionColor,
+                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.white))
                   : FlatButton(
-                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.white)))
+                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: sectionColor)))
         ]));
   }
 }

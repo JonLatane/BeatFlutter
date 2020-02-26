@@ -257,10 +257,11 @@ class Instrument extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Instrument', createEmptyInstance: create)
     ..aOS(1, 'name')
     ..e<InstrumentType>(2, 'type', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
-    ..a<$core.int>(3, 'midiChannel', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, 'midiInstrument', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, 'midiGm2Msb', $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, 'midiGm2Lsb', $pb.PbFieldType.OU3)
+    ..a<$core.double>(3, 'volume', $pb.PbFieldType.OF)
+    ..a<$core.int>(4, 'midiChannel', $pb.PbFieldType.OU3)
+    ..a<$core.int>(5, 'midiInstrument', $pb.PbFieldType.OU3)
+    ..a<$core.int>(6, 'midiGm2Msb', $pb.PbFieldType.OU3)
+    ..a<$core.int>(7, 'midiGm2Lsb', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -298,40 +299,49 @@ class Instrument extends $pb.GeneratedMessage {
   void clearType() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.int get midiChannel => $_getIZ(2);
+  $core.double get volume => $_getN(2);
   @$pb.TagNumber(3)
-  set midiChannel($core.int v) { $_setUnsignedInt32(2, v); }
+  set volume($core.double v) { $_setFloat(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasMidiChannel() => $_has(2);
+  $core.bool hasVolume() => $_has(2);
   @$pb.TagNumber(3)
-  void clearMidiChannel() => clearField(3);
+  void clearVolume() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get midiInstrument => $_getIZ(3);
+  $core.int get midiChannel => $_getIZ(3);
   @$pb.TagNumber(4)
-  set midiInstrument($core.int v) { $_setUnsignedInt32(3, v); }
+  set midiChannel($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasMidiInstrument() => $_has(3);
+  $core.bool hasMidiChannel() => $_has(3);
   @$pb.TagNumber(4)
-  void clearMidiInstrument() => clearField(4);
+  void clearMidiChannel() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get midiGm2Msb => $_getIZ(4);
+  $core.int get midiInstrument => $_getIZ(4);
   @$pb.TagNumber(5)
-  set midiGm2Msb($core.int v) { $_setUnsignedInt32(4, v); }
+  set midiInstrument($core.int v) { $_setUnsignedInt32(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasMidiGm2Msb() => $_has(4);
+  $core.bool hasMidiInstrument() => $_has(4);
   @$pb.TagNumber(5)
-  void clearMidiGm2Msb() => clearField(5);
+  void clearMidiInstrument() => clearField(5);
 
   @$pb.TagNumber(6)
-  $core.int get midiGm2Lsb => $_getIZ(5);
+  $core.int get midiGm2Msb => $_getIZ(5);
   @$pb.TagNumber(6)
-  set midiGm2Lsb($core.int v) { $_setUnsignedInt32(5, v); }
+  set midiGm2Msb($core.int v) { $_setUnsignedInt32(5, v); }
   @$pb.TagNumber(6)
-  $core.bool hasMidiGm2Lsb() => $_has(5);
+  $core.bool hasMidiGm2Msb() => $_has(5);
   @$pb.TagNumber(6)
-  void clearMidiGm2Lsb() => clearField(6);
+  void clearMidiGm2Msb() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get midiGm2Lsb => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set midiGm2Lsb($core.int v) { $_setUnsignedInt32(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasMidiGm2Lsb() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMidiGm2Lsb() => clearField(7);
 }
 
 class Part extends $pb.GeneratedMessage {
