@@ -187,11 +187,12 @@ class MidiChange extends $pb.GeneratedMessage {
 class Melody extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Melody', createEmptyInstance: create)
     ..aOS(1, 'id')
-    ..a<$core.int>(2, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, 'length', $pb.PbFieldType.OU3)
-    ..e<MelodyType>(4, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melody_harmonic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
-    ..m<$core.int, MelodyAttack>(5, 'attackData', entryClassName: 'Melody.AttackDataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodyAttack.create)
-    ..m<$core.int, MelodyAttack>(6, 'midiData', entryClassName: 'Melody.MidiDataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodyAttack.create)
+    ..aOS(2, 'name')
+    ..a<$core.int>(3, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
+    ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melody_harmonic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
+    ..m<$core.int, MelodyAttack>(6, 'attackData', entryClassName: 'Melody.AttackDataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodyAttack.create)
+    ..m<$core.int, MelodyAttack>(7, 'midiData', entryClassName: 'Melody.MidiDataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodyAttack.create)
     ..hasRequiredFields = false
   ;
 
@@ -220,37 +221,46 @@ class Melody extends $pb.GeneratedMessage {
   void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get subdivisionsPerBeat => $_getIZ(1);
+  $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set subdivisionsPerBeat($core.int v) { $_setUnsignedInt32(1, v); }
+  set name($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasSubdivisionsPerBeat() => $_has(1);
+  $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearSubdivisionsPerBeat() => clearField(2);
+  void clearName() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.int get length => $_getIZ(2);
+  $core.int get subdivisionsPerBeat => $_getIZ(2);
   @$pb.TagNumber(3)
-  set length($core.int v) { $_setUnsignedInt32(2, v); }
+  set subdivisionsPerBeat($core.int v) { $_setUnsignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasLength() => $_has(2);
+  $core.bool hasSubdivisionsPerBeat() => $_has(2);
   @$pb.TagNumber(3)
-  void clearLength() => clearField(3);
+  void clearSubdivisionsPerBeat() => clearField(3);
 
   @$pb.TagNumber(4)
-  MelodyType get type => $_getN(3);
+  $core.int get length => $_getIZ(3);
   @$pb.TagNumber(4)
-  set type(MelodyType v) { setField(4, v); }
+  set length($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasType() => $_has(3);
+  $core.bool hasLength() => $_has(3);
   @$pb.TagNumber(4)
-  void clearType() => clearField(4);
+  void clearLength() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.Map<$core.int, MelodyAttack> get attackData => $_getMap(4);
+  MelodyType get type => $_getN(4);
+  @$pb.TagNumber(5)
+  set type(MelodyType v) { setField(5, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasType() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearType() => clearField(5);
 
   @$pb.TagNumber(6)
-  $core.Map<$core.int, MelodyAttack> get midiData => $_getMap(5);
+  $core.Map<$core.int, MelodyAttack> get attackData => $_getMap(5);
+
+  @$pb.TagNumber(7)
+  $core.Map<$core.int, MelodyAttack> get midiData => $_getMap(6);
 }
 
 class Instrument extends $pb.GeneratedMessage {
@@ -394,7 +404,8 @@ class Part extends $pb.GeneratedMessage {
 class MelodyReference extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodyReference', createEmptyInstance: create)
     ..aOS(1, 'melodyId')
-    ..a<$core.double>(2, 'volume', $pb.PbFieldType.OF)
+    ..e<MelodyReference_PlaybackType>(2, 'playbackType', $pb.PbFieldType.OE, defaultOrMaker: MelodyReference_PlaybackType.disabled, valueOf: MelodyReference_PlaybackType.valueOf, enumValues: MelodyReference_PlaybackType.values)
+    ..a<$core.double>(3, 'volume', $pb.PbFieldType.OF)
     ..hasRequiredFields = false
   ;
 
@@ -423,13 +434,22 @@ class MelodyReference extends $pb.GeneratedMessage {
   void clearMelodyId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.double get volume => $_getN(1);
+  MelodyReference_PlaybackType get playbackType => $_getN(1);
   @$pb.TagNumber(2)
-  set volume($core.double v) { $_setFloat(1, v); }
+  set playbackType(MelodyReference_PlaybackType v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasVolume() => $_has(1);
+  $core.bool hasPlaybackType() => $_has(1);
   @$pb.TagNumber(2)
-  void clearVolume() => clearField(2);
+  void clearPlaybackType() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get volume => $_getN(2);
+  @$pb.TagNumber(3)
+  set volume($core.double v) { $_setFloat(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasVolume() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearVolume() => clearField(3);
 }
 
 class Section extends $pb.GeneratedMessage {

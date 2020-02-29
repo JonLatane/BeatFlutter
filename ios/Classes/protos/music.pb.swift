@@ -309,6 +309,8 @@ struct Melody {
 
   var id: String = String()
 
+  var name: String = String()
+
   var subdivisionsPerBeat: UInt32 = 0
 
   /// Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
@@ -394,13 +396,55 @@ struct MelodyReference {
 
   var melodyID: String = String()
 
+  var playbackType: MelodyReference.PlaybackType = .disabled
+
   /// Volume, between 0 and 1.
   var volume: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
+  enum PlaybackType: SwiftProtobuf.Enum {
+    typealias RawValue = Int
+    case disabled // = 0
+    case playbackIndefinitely // = 1
+    case UNRECOGNIZED(Int)
+
+    init() {
+      self = .disabled
+    }
+
+    init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .disabled
+      case 1: self = .playbackIndefinitely
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    var rawValue: Int {
+      switch self {
+      case .disabled: return 0
+      case .playbackIndefinitely: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   init() {}
 }
+
+#if swift(>=4.2)
+
+extension MelodyReference.PlaybackType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [MelodyReference.PlaybackType] = [
+    .disabled,
+    .playbackIndefinitely,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 struct Section {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -683,22 +727,24 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   static let protoMessageName: String = "Melody"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
-    2: .standard(proto: "subdivisions_per_beat"),
-    3: .same(proto: "length"),
-    4: .same(proto: "type"),
-    5: .standard(proto: "attack_data"),
-    6: .standard(proto: "midi_data"),
+    2: .same(proto: "name"),
+    3: .standard(proto: "subdivisions_per_beat"),
+    4: .same(proto: "length"),
+    5: .same(proto: "type"),
+    6: .standard(proto: "attack_data"),
+    7: .standard(proto: "midi_data"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularUInt32Field(value: &self.subdivisionsPerBeat)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.length)
-      case 4: try decoder.decodeSingularEnumField(value: &self.type)
-      case 5: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.attackData)
-      case 6: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.midiData)
+      case 2: try decoder.decodeSingularStringField(value: &self.name)
+      case 3: try decoder.decodeSingularUInt32Field(value: &self.subdivisionsPerBeat)
+      case 4: try decoder.decodeSingularUInt32Field(value: &self.length)
+      case 5: try decoder.decodeSingularEnumField(value: &self.type)
+      case 6: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.attackData)
+      case 7: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.midiData)
       default: break
       }
     }
@@ -708,26 +754,30 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
     if self.subdivisionsPerBeat != 0 {
-      try visitor.visitSingularUInt32Field(value: self.subdivisionsPerBeat, fieldNumber: 2)
+      try visitor.visitSingularUInt32Field(value: self.subdivisionsPerBeat, fieldNumber: 3)
     }
     if self.length != 0 {
-      try visitor.visitSingularUInt32Field(value: self.length, fieldNumber: 3)
+      try visitor.visitSingularUInt32Field(value: self.length, fieldNumber: 4)
     }
     if self.type != .melodyHarmonic {
-      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 4)
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 5)
     }
     if !self.attackData.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.attackData, fieldNumber: 5)
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.attackData, fieldNumber: 6)
     }
     if !self.midiData.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.midiData, fieldNumber: 6)
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.midiData, fieldNumber: 7)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Melody, rhs: Melody) -> Bool {
     if lhs.id != rhs.id {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.subdivisionsPerBeat != rhs.subdivisionsPerBeat {return false}
     if lhs.length != rhs.length {return false}
     if lhs.type != rhs.type {return false}
@@ -884,14 +934,16 @@ extension MelodyReference: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   static let protoMessageName: String = "MelodyReference"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "melody_id"),
-    2: .same(proto: "volume"),
+    2: .standard(proto: "playback_type"),
+    3: .same(proto: "volume"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.melodyID)
-      case 2: try decoder.decodeSingularFloatField(value: &self.volume)
+      case 2: try decoder.decodeSingularEnumField(value: &self.playbackType)
+      case 3: try decoder.decodeSingularFloatField(value: &self.volume)
       default: break
       }
     }
@@ -901,18 +953,29 @@ extension MelodyReference: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.melodyID.isEmpty {
       try visitor.visitSingularStringField(value: self.melodyID, fieldNumber: 1)
     }
+    if self.playbackType != .disabled {
+      try visitor.visitSingularEnumField(value: self.playbackType, fieldNumber: 2)
+    }
     if self.volume != 0 {
-      try visitor.visitSingularFloatField(value: self.volume, fieldNumber: 2)
+      try visitor.visitSingularFloatField(value: self.volume, fieldNumber: 3)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: MelodyReference, rhs: MelodyReference) -> Bool {
     if lhs.melodyID != rhs.melodyID {return false}
+    if lhs.playbackType != rhs.playbackType {return false}
     if lhs.volume != rhs.volume {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension MelodyReference.PlaybackType: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "disabled"),
+    1: .same(proto: "playback_indefinitely"),
+  ]
 }
 
 extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

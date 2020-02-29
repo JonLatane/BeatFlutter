@@ -15,7 +15,6 @@ import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 
-
 void main() => runApp(MyApp());
 
 const Color foo = Color.fromRGBO(0xF9, 0x37, 0x30, .1);
@@ -44,6 +43,7 @@ var score = Score()
       ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Drums"
+        ..volume = 0.5
         ..type = InstrumentType.drum)
       ..melodies.addAll([
         Melody()..id = uuid.v4(),
@@ -56,6 +56,7 @@ var score = Score()
       ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Piano"
+        ..volume = 0.5
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
         Melody()..id = uuid.v4(),
@@ -72,6 +73,7 @@ var score = Score()
       ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Bass"
+        ..volume = 0.5
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
         Melody()..id = uuid.v4(),
@@ -86,6 +88,7 @@ var score = Score()
       ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Part 4"
+        ..volume = 0.5
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
         Melody()..id = uuid.v4(),
@@ -95,6 +98,7 @@ var score = Score()
       ..id = uuid.v4()
       ..instrument = (Instrument()
         ..name = "Part 5"
+        ..volume = 0.5
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
         Melody()..id = uuid.v4(),
@@ -134,8 +138,8 @@ class MyApp extends StatelessWidget {
           // or simply save your changes to "hot reload" in a Flutter IDE).
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
-          primarySwatch: MaterialColor(0xFFF93730, swatch),
-        platform: TargetPlatform.iOS,
+          primarySwatch: MaterialColor(0xFF212121, swatch),
+          platform: TargetPlatform.iOS,
           fontFamily: 'VulfSans'),
       home: MyHomePage(title: 'BeatFlutter'),
     );
@@ -160,6 +164,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 Duration animationDuration = const Duration(milliseconds: 300);
+enum MelodyViewDisplayMode { half, full }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int _counter = 20;
@@ -167,23 +172,66 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
+
   get showMelodyView => _melodyViewSizeFactor > 0;
   double _melodyViewSizeFactor = 1.0;
+  MelodyViewDisplayMode _melodyViewDisplayMode = MelodyViewDisplayMode.half;
+
+  get melodyViewDisplayMode => _melodyViewDisplayMode;
+
+  set melodyViewDisplayMode(value) {
+    _melodyViewDisplayMode = value;
+    if (_melodyViewSizeFactor > 0) {
+      if (value == MelodyViewDisplayMode.half) {
+        _melodyViewSizeFactor = 0.5;
+      } else {
+        _melodyViewSizeFactor = 1;
+      }
+    }
+  }
+
+  toggleMelodyViewDisplayMode(value) {
+    setState(() {
+      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+        melodyViewDisplayMode = MelodyViewDisplayMode.full;
+      } else {
+        melodyViewDisplayMode = MelodyViewDisplayMode.half;
+      }
+    });
+  }
+
+  _showMelodyView() {
+    if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+      _melodyViewSizeFactor = 0.5;
+    } else {
+      _melodyViewSizeFactor = 1;
+    }
+  }
+
+  _hideMelodyView() {
+    _melodyViewSizeFactor = 0;
+  }
+
   Section _currentSection = section1;
+
   get currentSection => _currentSection;
-  set currentSection (Section section) {
+
+  set currentSection(Section section) {
     _currentSection = section;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
   }
+
   Score _score = score;
   Melody _selectedMelody;
+
   get selectedMelody => _selectedMelody;
-  set selectedMelody (Melody melody){
+
+  set selectedMelody(Melody melody) {
     _selectedMelody = melody;
-    if(_interactionMode == InteractionMode.edit) {
-      if(melody == null) {
+    if (_interactionMode == InteractionMode.edit) {
+      if (melody == null) {
         _melodyViewSizeFactor = 0;
       } else {
         _melodyViewSizeFactor = 0.5;
@@ -191,7 +239,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection)];
+  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
 
   _incrementCounter() {
     setState(() {
@@ -201,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _selectOrDeselectMelody(Melody melody) {
     setState(() {
-      if(selectedMelody != melody) {
+      if (selectedMelody != melody) {
         selectedMelody = melody;
       } else {
         selectedMelody = null;
@@ -215,6 +263,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _interactionMode = InteractionMode.view;
       _showViewOptions = false;
+      melodyViewDisplayMode = MelodyViewDisplayMode.full;
       _melodyViewSizeFactor = 1;
       selectedMelody = null;
     });
@@ -252,9 +301,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   bool get _combineSecondAndMainToolbar => MediaQuery.of(context).size.width > 500;
-  double get _secondToolbarHeight => (_combineSecondAndMainToolbar) ? 0
-    : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
+
+  double get _secondToolbarHeight =>
+      (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
+
   double get _colorboardHeight => _showColorboard ? 150 : 0;
+
   double get _keyboardHeight => _showKeyboard ? 150 : 0;
 
   PhotoViewScaleStateController scaleStateController;
@@ -271,129 +323,182 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    if (selectedMelody != null) {
+      setState(() {
+        selectedMelody = null;
+      });
+      return false;
+    } else {
+      return (await showDialog(
+            context: context,
+            builder: (context) => new AlertDialog(
+              title: new Text('Are you sure?'),
+              content: new Text('Do you want to exit BeatFlutter?'),
+              actions: <Widget>[
+                new FlatButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: new Text('No'),
+                ),
+                new FlatButton(
+                  color: sectionColor,
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: new Text('Yes, exit'),
+                ),
+              ],
+            ),
+          )) ??
+          false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
-    return Scaffold(
-      backgroundColor: Color(0xFF424242),
-      appBar: PreferredSize(
-          preferredSize: Size.fromHeight(0.0), // here the desired height
-          child: AppBar(
-              // Here we take the value from the MyHomePage object that was created by
-              // the App.build method, and use it to set our appbar title.
-              //title: Row(Text(widget.title)])
-              )),
-      body: Stack(children: [
-        //Column(children: [
-        Flex(direction: Axis.vertical, children: <Widget>[
-          _combineSecondAndMainToolbar
-              ? Container(
-                  height: 48,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                          child: BeatScratchToolbar(
-                            sectionColor: sectionColor,
+    return WillPopScope(
+        onWillPop: _onWillPop,
+        child: Scaffold(
+            backgroundColor: Color(0xFF424242),
+            appBar: PreferredSize(
+                preferredSize: Size.fromHeight(0.0), // here the desired height
+                child: AppBar(
+                    // Here we take the value from the MyHomePage object that was created by
+                    // the App.build method, and use it to set our appbar title.
+                    //title: Row(Text(widget.title)])
+                    )),
+            body: new GestureDetector(
+              onTap: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+              },
+              child: Stack(children: [
+                //Column(children: [
+                Flex(direction: Axis.vertical, children: <Widget>[
+                  _combineSecondAndMainToolbar
+                      ? Container(
+                          height: 48,
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                  child: BeatScratchToolbar(
+                                      sectionColor: sectionColor,
+                                      viewMode: _viewMode,
+                                      editMode: _editMode,
+                                      toggleViewOptions: _toggleViewOptions,
+                                      interactionMode: _interactionMode)),
+                              Container(
+                                  height: 36,
+                                  child: AnimatedContainer(
+                                      duration: animationDuration,
+                                      width: _interactionMode == InteractionMode.edit || _showViewOptions
+                                          ? MediaQuery.of(context).size.width / 2
+                                          : 0,
+                                      child: SecondToolbar(
+                                        toggleKeyboard: _toggleKeyboard,
+                                        toggleColorboard: _toggleColorboard,
+                                        showKeyboard: _showKeyboard,
+                                        showColorboard: _showColorboard,
+                                        interactionMode: _interactionMode,
+                                        showViewOptions: _showViewOptions,
+                                      )))
+                            ],
+                          ))
+                      : Column(children: <Widget>[
+                          BeatScratchToolbar(
+                              sectionColor: sectionColor,
                               viewMode: _viewMode,
                               editMode: _editMode,
                               toggleViewOptions: _toggleViewOptions,
-                              interactionMode: _interactionMode)),
-                      Container(height:36, child:
-                      AnimatedContainer(
-                          duration: animationDuration,
-                          width: _interactionMode == InteractionMode.edit || _showViewOptions
-                              ? MediaQuery.of(context).size.width / 2
-                              : 0,
-                          child: SecondToolbar(
-                            toggleKeyboard: _toggleKeyboard,
-                            toggleColorboard: _toggleColorboard,
-                            showKeyboard: _showKeyboard,
-                            showColorboard: _showColorboard,
-                            interactionMode: _interactionMode,
-                            showViewOptions: _showViewOptions,
-                          )))
-                    ],
-                  ))
-              : Column(children: <Widget>[
-                  BeatScratchToolbar(
+                              interactionMode: _interactionMode),
+                          AnimatedContainer(
+                              duration: animationDuration,
+                              height: _secondToolbarHeight,
+                              child: SecondToolbar(
+                                toggleKeyboard: _toggleKeyboard,
+                                toggleColorboard: _toggleColorboard,
+                                showKeyboard: _showKeyboard,
+                                showColorboard: _showColorboard,
+                                interactionMode: _interactionMode,
+                                showViewOptions: _showViewOptions,
+                              ))
+                        ]),
+                  SectionList(
                     sectionColor: sectionColor,
-                      viewMode: _viewMode,
-                      editMode: _editMode,
-                      toggleViewOptions: _toggleViewOptions,
-                      interactionMode: _interactionMode),
+                    score: _score,
+                    setState: setState,
+                    scrollDirection: Axis.horizontal,
+                    visible: _interactionMode == InteractionMode.edit,
+                    currentSection: currentSection,
+                    selectSection: _selectSection,
+                  ),
+                  Expanded(child: _partsAndMelodiesAndMelodyView(context)),
                   AnimatedContainer(
                       duration: animationDuration,
-                      height: _secondToolbarHeight,
-                      child: SecondToolbar(
-                        toggleKeyboard: _toggleKeyboard,
-                        toggleColorboard: _toggleColorboard,
-                        showKeyboard: _showKeyboard,
-                        showColorboard: _showColorboard,
-                        interactionMode: _interactionMode,
-                        showViewOptions: _showViewOptions,
-                      ))
-                ]),
-          SectionList(
-            sectionColor: sectionColor,
-            score: _score,
-            scrollDirection: Axis.horizontal,
-            visible: _interactionMode == InteractionMode.edit,
-            currentSection: currentSection,
-            selectSection: _selectSection,
-          ),
-          Expanded(
-            child: _partsAndMelodiesAndMelodyView(context)),
-          AnimatedContainer(
-              duration: animationDuration,
-              height: _colorboardHeight,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.white,
-              child: Image.asset('assets/colorboard.png', fit: BoxFit.fill,)),
-          AnimatedContainer(
-              duration: animationDuration,
-              height: _keyboardHeight,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.white,
-              child: Image.asset('assets/piano.png', fit: BoxFit.fill,)),
-        ])
-        //]),
-      ]),
-    );
+                      height: _colorboardHeight,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.white,
+                      child: Image.asset(
+                        'assets/colorboard.png',
+                        fit: BoxFit.fill,
+                      )),
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      height: _keyboardHeight,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.white,
+                      child: Image.asset(
+                        'assets/piano.png',
+                        fit: BoxFit.fill,
+                      )),
+                ])
+                //]),
+              ]),
+            )));
   }
 
   Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
     var data = MediaQuery.of(context);
-    double height = data.size.height - data.padding.top - kToolbarHeight -
-      28 - _secondToolbarHeight - _colorboardHeight - _keyboardHeight;
+    double height = data.size.height -
+        data.padding.top -
+        kToolbarHeight -
+        _secondToolbarHeight -
+        _colorboardHeight -
+        _keyboardHeight +
+        8;
     _handleStatusBar(context);
 
     return Stack(children: [
       (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
-        ? Column( children: [
-        AnimatedContainer(
-          duration: animationDuration,
-          height: height * (1 - _melodyViewSizeFactor),
-          child: PartMelodiesView(score: _score, sectionColor: sectionColor, setState: setState,
-            selectMelody: _selectOrDeselectMelody, selectedMelody: selectedMelody,)),
-        MelodyView(counter: _counter)
-      ])
-        : Row(children: [
-        AnimatedContainer(
-          duration: animationDuration,
-          width: MediaQuery
-            .of(context)
-            .size
-            .width * (1 - _melodyViewSizeFactor),
-          child: PartMelodiesView(
-            score: _score,
-            sectionColor: sectionColor,
-            setState: setState,
-            selectMelody: _selectOrDeselectMelody,
-            selectedMelody: selectedMelody,)),
-        MelodyView(counter: _counter)
-      ])
+          ? Column(children: [
+              Expanded(
+                  child: PartMelodiesView(
+                currentSection: currentSection,
+                score: _score,
+                sectionColor: sectionColor,
+                setState: setState,
+                selectMelody: _selectOrDeselectMelody,
+                selectedMelody: selectedMelody,
+              )),
+              AnimatedContainer(
+                  duration: animationDuration,
+                  height: height * _melodyViewSizeFactor,
+                  child: MelodyView(counter: _counter))
+            ])
+          : Row(children: [
+              AnimatedContainer(
+                  duration: animationDuration,
+                  width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
+                  child: PartMelodiesView(
+                    score: _score,
+                    currentSection: currentSection,
+                    sectionColor: sectionColor,
+                    setState: setState,
+                    selectMelody: _selectOrDeselectMelody,
+                    selectedMelody: selectedMelody,
+                  )),
+              Expanded(child: MelodyView(counter: _counter))
+            ])
     ]);
   }
 
@@ -414,7 +519,8 @@ class BeatScratchToolbar extends StatelessWidget {
   final InteractionMode interactionMode;
   final Color sectionColor;
 
-  const BeatScratchToolbar({Key key, this.interactionMode, this.viewMode, this.editMode, this.toggleViewOptions, this.sectionColor})
+  const BeatScratchToolbar(
+      {Key key, this.interactionMode, this.viewMode, this.editMode, this.toggleViewOptions, this.sectionColor})
       : super(key: key);
 
   @override
@@ -486,8 +592,10 @@ class BeatScratchToolbar extends StatelessWidget {
           Expanded(
               child: (interactionMode == InteractionMode.edit)
                   ? RaisedButton(
-                color: sectionColor,
-                      onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: Colors.white))
+                      color: sectionColor,
+                      onPressed: editMode,
+                      padding: EdgeInsets.all(0.0),
+                      child: Icon(Icons.edit, color: Colors.white))
                   : FlatButton(
                       onPressed: editMode, padding: EdgeInsets.all(0.0), child: Icon(Icons.edit, color: sectionColor)))
         ]));

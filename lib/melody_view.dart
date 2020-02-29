@@ -28,8 +28,7 @@ class _MelodyViewState extends State<MelodyView> {
   double _verticalScale = 1.0;
 
   Widget build(context) {
-    return Expanded(
-        child: Container(
+    return Container(
             color: Colors.white,
             child: GestureDetector(
               onScaleStart: (details) => setState(() {
@@ -57,6 +56,6 @@ class _MelodyViewState extends State<MelodyView> {
                 },
 //                padding: const EdgeInsets.all(4.0),
               ),
-            )));
+            ));
   }
 }

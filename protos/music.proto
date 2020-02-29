@@ -60,16 +60,17 @@ message MidiChange {
 
 message Melody {
   string id = 1;
-  uint32 subdivisions_per_beat = 2;
+  string name = 2;
+  uint32 subdivisions_per_beat = 3;
   // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
-  uint32 length = 3;
+  uint32 length = 4;
 
   // Indicates what type of data (attacks only or full MIDI) this melody uses.
-  MelodyType type = 4;
+  MelodyType type = 5;
   // Used for MelodyType.melody_harmonic and MelodyType.melody_drum
-  map<sint32, MelodyAttack> attack_data = 5;
+  map<sint32, MelodyAttack> attack_data = 6;
   // Used for MelodyType.midi_harmonic and MelodyType.midi_drum
-  map<sint32, MelodyAttack> midi_data = 6;
+  map<sint32, MelodyAttack> midi_data = 7;
 }
 
 enum InstrumentType {
@@ -98,9 +99,14 @@ message Part {
 }
 
 message MelodyReference {
+  enum PlaybackType {
+    disabled = 0;
+    playback_indefinitely = 1;
+  }
   string melody_id = 1;
+  PlaybackType playback_type = 2;
   // Volume, between 0 and 1.
-  float volume = 2;
+  float volume = 3;
 }
 
 message Section {

@@ -91,3 +91,18 @@ class InstrumentType extends $pb.ProtobufEnum {
   const InstrumentType._($core.int v, $core.String n) : super(v, n);
 }
 
+class MelodyReference_PlaybackType extends $pb.ProtobufEnum {
+  static const MelodyReference_PlaybackType disabled = MelodyReference_PlaybackType._(0, 'disabled');
+  static const MelodyReference_PlaybackType playback_indefinitely = MelodyReference_PlaybackType._(1, 'playback_indefinitely');
+
+  static const $core.List<MelodyReference_PlaybackType> values = <MelodyReference_PlaybackType> [
+    disabled,
+    playback_indefinitely,
+  ];
+
+  static final $core.Map<$core.int, MelodyReference_PlaybackType> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static MelodyReference_PlaybackType valueOf($core.int value) => _byValue[value];
+
+  const MelodyReference_PlaybackType._($core.int v, $core.String n) : super(v, n);
+}
+

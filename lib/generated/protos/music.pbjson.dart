@@ -95,11 +95,12 @@ const Melody$json = const {
   '1': 'Melody',
   '2': const [
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    const {'1': 'subdivisions_per_beat', '3': 2, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
-    const {'1': 'length', '3': 3, '4': 1, '5': 13, '10': 'length'},
-    const {'1': 'type', '3': 4, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
-    const {'1': 'attack_data', '3': 5, '4': 3, '5': 11, '6': '.Melody.AttackDataEntry', '10': 'attackData'},
-    const {'1': 'midi_data', '3': 6, '4': 3, '5': 11, '6': '.Melody.MidiDataEntry', '10': 'midiData'},
+    const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
+    const {'1': 'subdivisions_per_beat', '3': 3, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
+    const {'1': 'length', '3': 4, '4': 1, '5': 13, '10': 'length'},
+    const {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
+    const {'1': 'attack_data', '3': 6, '4': 3, '5': 11, '6': '.Melody.AttackDataEntry', '10': 'attackData'},
+    const {'1': 'midi_data', '3': 7, '4': 3, '5': 11, '6': '.Melody.MidiDataEntry', '10': 'midiData'},
   ],
   '3': const [Melody_AttackDataEntry$json, Melody_MidiDataEntry$json],
 };
@@ -148,7 +149,17 @@ const MelodyReference$json = const {
   '1': 'MelodyReference',
   '2': const [
     const {'1': 'melody_id', '3': 1, '4': 1, '5': 9, '10': 'melodyId'},
-    const {'1': 'volume', '3': 2, '4': 1, '5': 2, '10': 'volume'},
+    const {'1': 'playback_type', '3': 2, '4': 1, '5': 14, '6': '.MelodyReference.PlaybackType', '10': 'playbackType'},
+    const {'1': 'volume', '3': 3, '4': 1, '5': 2, '10': 'volume'},
+  ],
+  '4': const [MelodyReference_PlaybackType$json],
+};
+
+const MelodyReference_PlaybackType$json = const {
+  '1': 'PlaybackType',
+  '2': const [
+    const {'1': 'disabled', '2': 0},
+    const {'1': 'playback_indefinitely', '2': 1},
   ],
 };
 

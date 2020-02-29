@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/expanded_section.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:flutter/material.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
@@ -89,9 +90,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
         // Remember to update the underlying data when the list has been
         // reordered.
         setState(() {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
+//          if (newIndex > oldIndex) {
+//            newIndex -= 1;
+//          }
           Part toMove = widget.score.parts.removeAt(oldIndex);
           widget.score.parts.insert(newIndex, toMove);
 //          widget.score.parts
@@ -107,12 +108,19 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
         return Reorderable(
             // Each item must have an unique key.
             key: Key(item.id),
-            builder: (context, dragAnimation, inDrag) => SizeFadeTransition(
+            builder: (context, dragAnimation, inDrag) {
+              final t = dragAnimation.value;
+              final tile = _buildPart(item);
+//              if (t > 0.0) {
+//                return tile;
+//              }
+
+              return SizeFadeTransition(
                   sizeFraction: 0.7,
                   curve: Curves.easeInOut,
                   animation: animation,
-                  child: _buildPart(item),
-                ));
+                  child: tile,
+                ); });
       },
       // An optional builder when an item was removed from the list.
       // If not specified, the List uses the itemBuilder with
@@ -258,6 +266,7 @@ class _MelodiesView extends StatelessWidget {
                         currentSection: currentSection,
                         selectedMelody: selectedMelody,
                         selectMelody: selectMelody,
+                        setState: setState,
                         // first and last attributes affect border drawn during dragging
                         isFirst: index == 0,
                         isLast: index == _items.length - 1,
@@ -275,7 +284,7 @@ class _MelodyReference extends StatelessWidget {
   _MelodyReference({
     this.melody,
     this.isFirst,
-    this.isLast, this.sectionColor, this.currentSection, this.selectedMelody, this.selectMelody,
+    this.isLast, this.sectionColor, this.currentSection, this.selectedMelody, this.selectMelody, this.setState,
   });
 
   final Melody melody;
@@ -285,6 +294,21 @@ class _MelodyReference extends StatelessWidget {
   final Section currentSection;
   final Melody selectedMelody;
   final Function(Melody) selectMelody;
+  final Function(VoidCallback) setState;
+
+  MelodyReference referenceFor(Melody melody) {
+    return currentSection.melodies.firstWhere((reference) => reference.melodyId == melody.id,
+      orElse: () => _defaultMelodyReference(melody));
+  }
+
+  MelodyReference _defaultMelodyReference(Melody melody) {
+    var result = MelodyReference()
+      ..melodyId = melody.id
+      ..playbackType = MelodyReference_PlaybackType.disabled
+      ..volume = 0.5;
+    currentSection.melodies.add(result);
+    return result;
+  }
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
@@ -315,8 +339,45 @@ class _MelodyReference extends StatelessWidget {
           color: melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD),
           child: Stack(children: [
             Column(children: [
-              Text("Melody ${melody.id.substring(0, 5)}"),
-              Slider(value: 0.5, activeColor: sectionColor, onChanged: (value) => {}),
+              TextField(
+                controller: TextEditingController()..text = melody.name,
+                textCapitalization: TextCapitalization.words,
+                onChanged: (value) { melody.name = value; },
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "Melody ${melody.id.substring(0, 5)}"
+                ),
+              ),
+//              Text("Melody ${melody.id.substring(0, 5)}"),
+              ExpandedSection(
+                child: Slider(
+                  value: referenceFor(melody).volume,
+                  activeColor: sectionColor,
+                  onChanged: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                    ? null
+                    : (value) {
+                    setState(() {
+                      referenceFor(melody).volume = value;
+                    });
+                  }
+                ),
+                axis: Axis.vertical,
+                expand: referenceFor(melody).playbackType != MelodyReference_PlaybackType.disabled,
+              ),
+              RaisedButton(
+                onPressed: () {
+                  var ref = referenceFor(melody);
+                  if(ref.playbackType == MelodyReference_PlaybackType.disabled) {
+                    setState(() { ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely; });
+                  } else {
+                    setState(() { ref.playbackType = MelodyReference_PlaybackType.disabled; });
+                  }
+                },
+
+                color: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                  ? Color(0xFFDDDDDD) : sectionColor,
+                child: Icon((referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                  ? Icons.not_interested : Icons.volume_up))
             ])
           ]))
 //      child: SafeArea(
