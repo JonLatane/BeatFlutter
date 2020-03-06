@@ -65,43 +65,66 @@ message Harmony {
   map<sint32, Chord> data = 4;
 }
 
+enum InstrumentType {
+  // Represents actual tones, with a basis of "tones" of C4 = 0.
+  harmonic = 0;
+  // Represents MIDI drum tones (so B1, below C2, is a kick, F#2 is a hat, etc.) from C4 = 0
+  drum = 1;
+}
+
 enum MelodyType {
-  // Uses MelodyAttacks and represents pitched/harmonic instrument data for touch editing
-  melody_harmonic = 0;
-  // Uses MelodyAttacks and represents drum instrument data for touch editing
-  melody_drum = 1;
-  // Uses MidiChanges and represents pitched/harmonic raw MIDI instrument data
-  midi_harmonic = 2;
-  // Uses MidiChanges and represents drum raw MIDI instrument data
-  midi_drum = 3;
+  // Uses MelodyAttacks and represents instrument data for touch editing
+  melodic = 0;
+  // Uses MidiChanges and represents raw MIDI instrument data
+  midi = 1;
 }
 
+// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
+// and make touchable. A "rest" is any MelodyAttack with no tones. MelodyAttacks can represent a
+// traditional "music theory class" single-note melody, but expanded slightly so that we can have
+// multiple notes. Notes must all attack at once and release at once.
+//
+// To phrase it more simply, this way of breaking down melodies forces you to separate your
+// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
 message MelodyAttack {
-
+  repeated sint32 tones = 1;
+  float velocity = 2;
 }
 
+// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
+// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
+// recorded MIDI messages at playback time.
+//
+// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
+// and bass parts as a single "melody." But your music theory teach would berate you in class for
+// that. These are also harder to make editable by touch, but handy for recording MIDI performance
+// by a musician.
 message MidiChange {
-
+  uint32 length = 1;
+  repeated uint32 data = 2;
 }
 
 message Melody {
+  // Unique identifier for a Melody. Should be kept unique within a given Score.
   string id = 1;
+  // Optional name for the Melody.
   string name = 2;
+  // How many subdivisions per beat the melody is in. Allowed values are 1-24 (MIDI beat clock max).
+  // 1 per beat is quarter notes in 4/4 time; 3 is triplet eighths; 4 is sixteenths; 6 is triplet
+  // sixteenths; etc.
   uint32 subdivisions_per_beat = 3;
   // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   uint32 length = 4;
-
   // Indicates what type of data (attacks only or full MIDI) this melody uses.
   MelodyType type = 5;
-  // Used for MelodyType.melody_harmonic and MelodyType.melody_drum
-  map<sint32, MelodyAttack> attack_data = 6;
-  // Used for MelodyType.midi_harmonic and MelodyType.midi_drum
-  map<sint32, MidiChange> midi_data = 7;
-}
-
-enum InstrumentType {
-  harmonic = 0;
-  drum = 1;
+  // Indicates what type of instrument the Melody is for. In the context of a Score,
+  // should match the Part's instrument type. Useful for letting the user copy/paste Melodies
+  // between Parts.
+  InstrumentType instrument_type = 6;
+  // Used for MelodyType.melodic type.
+  map<sint32, MelodyAttack> melodic_data = 7;
+  // Used for MelodyType.midi type.
+  map<sint32, MidiChange> midi_data = 8;
 }
 
 message Instrument {

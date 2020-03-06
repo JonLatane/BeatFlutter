@@ -132,65 +132,13 @@ extension NoteSign: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-enum MelodyType: SwiftProtobuf.Enum {
-  typealias RawValue = Int
-
-  /// Uses MelodyAttacks and represents pitched/harmonic instrument data for touch editing
-  case melodyHarmonic // = 0
-
-  /// Uses MelodyAttacks and represents drum instrument data for touch editing
-  case melodyDrum // = 1
-
-  /// Uses MidiChanges and represents pitched/harmonic raw MIDI instrument data
-  case midiHarmonic // = 2
-
-  /// Uses MidiChanges and represents drum raw MIDI instrument data
-  case midiDrum // = 3
-  case UNRECOGNIZED(Int)
-
-  init() {
-    self = .melodyHarmonic
-  }
-
-  init?(rawValue: Int) {
-    switch rawValue {
-    case 0: self = .melodyHarmonic
-    case 1: self = .melodyDrum
-    case 2: self = .midiHarmonic
-    case 3: self = .midiDrum
-    default: self = .UNRECOGNIZED(rawValue)
-    }
-  }
-
-  var rawValue: Int {
-    switch self {
-    case .melodyHarmonic: return 0
-    case .melodyDrum: return 1
-    case .midiHarmonic: return 2
-    case .midiDrum: return 3
-    case .UNRECOGNIZED(let i): return i
-    }
-  }
-
-}
-
-#if swift(>=4.2)
-
-extension MelodyType: CaseIterable {
-  // The compiler won't synthesize support with the UNRECOGNIZED case.
-  static var allCases: [MelodyType] = [
-    .melodyHarmonic,
-    .melodyDrum,
-    .midiHarmonic,
-    .midiDrum,
-  ]
-}
-
-#endif  // swift(>=4.2)
-
 enum InstrumentType: SwiftProtobuf.Enum {
   typealias RawValue = Int
+
+  /// Represents actual tones, with a basis of "tones" of C4 = 0.
   case harmonic // = 0
+
+  /// Represents MIDI drum tones (so B1, below C2, is a kick, F#2 is a hat, etc.) from C4 = 0
   case drum // = 1
   case UNRECOGNIZED(Int)
 
@@ -228,7 +176,52 @@ extension InstrumentType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-struct Note {
+enum MelodyType: SwiftProtobuf.Enum {
+  typealias RawValue = Int
+
+  /// Uses MelodyAttacks and represents instrument data for touch editing
+  case melodic // = 0
+
+  /// Uses MidiChanges and represents raw MIDI instrument data
+  case midi // = 1
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .melodic
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .melodic
+    case 1: self = .midi
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .melodic: return 0
+    case .midi: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension MelodyType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [MelodyType] = [
+    .melodic,
+    .midi,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+/// Describes notes as pitch classes (i.e. without octave)
+struct NoteName {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -242,13 +235,30 @@ struct Note {
   init() {}
 }
 
+struct NoteSpecification {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var noteLetter: NoteLetter = .c
+
+  /// In rendering applications
+  var noteSign: NoteSign = .natural
+
+  var octave: Int32 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct Chord {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var rootNote: Note {
-    get {return _storage._rootNote ?? Note()}
+  var rootNote: NoteName {
+    get {return _storage._rootNote ?? NoteName()}
     set {_uniqueStorage()._rootNote = newValue}
   }
   /// Returns true if `rootNote` has been explicitly set.
@@ -258,8 +268,8 @@ struct Chord {
 
   /// Optional. When note provided, applications referencing bass_note should generally
   /// be able to revert to root_note.
-  var bassNote: Note {
-    get {return _storage._bassNote ?? Note()}
+  var bassNote: NoteName {
+    get {return _storage._bassNote ?? NoteName()}
     set {_uniqueStorage()._bassNote = newValue}
   }
   /// Returns true if `bassNote` has been explicitly set.
@@ -312,20 +322,43 @@ struct Harmony {
   init() {}
 }
 
+/// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
+/// and make touchable. A "rest" is any MelodyAttack with no tones. MelodyAttacks can represent a
+/// traditional "music theory class" single-note melody, but expanded slightly so that we can have
+/// multiple notes. Notes must all attack at once and release at once.
+///
+/// To phrase it more simply, this way of breaking down melodies forces you to separate your
+/// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
 struct MelodyAttack {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  var tones: [Int32] = []
+
+  var velocity: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
+/// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
+/// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
+/// recorded MIDI messages at playback time.
+///
+/// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
+/// and bass parts as a single "melody." But your music theory teach would berate you in class for
+/// that. These are also harder to make editable by touch, but handy for recording MIDI performance
+/// by a musician.
 struct MidiChange {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  var length: UInt32 = 0
+
+  var data: [UInt32] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -337,22 +370,32 @@ struct Melody {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  /// Unique identifier for a Melody. Should be kept unique within a given Score.
   var id: String = String()
 
+  /// Optional name for the Melody.
   var name: String = String()
 
+  /// How many subdivisions per beat the melody is in. Allowed values are 1-24 (MIDI beat clock max).
+  /// 1 per beat is quarter notes in 4/4 time; 3 is triplet eighths; 4 is sixteenths; 6 is triplet
+  /// sixteenths; etc.
   var subdivisionsPerBeat: UInt32 = 0
 
   /// Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   var length: UInt32 = 0
 
   /// Indicates what type of data (attacks only or full MIDI) this melody uses.
-  var type: MelodyType = .melodyHarmonic
+  var type: MelodyType = .melodic
 
-  /// Used for MelodyType.melody_harmonic and MelodyType.melody_drum
-  var attackData: Dictionary<Int32,MelodyAttack> = [:]
+  /// Indicates what type of instrument the Melody is for. In the context of a Score,
+  /// should match the Part's instrument type. Useful for letting the user copy/paste Melodies
+  /// between Parts.
+  var instrumentType: InstrumentType = .harmonic
 
-  /// Used for MelodyType.midi_harmonic and MelodyType.midi_drum
+  /// Used for MelodyType.melodic type.
+  var melodicData: Dictionary<Int32,MelodyAttack> = [:]
+
+  /// Used for MelodyType.midi type.
   var midiData: Dictionary<Int32,MidiChange> = [:]
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -555,15 +598,6 @@ extension NoteSign: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
-extension MelodyType: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "melody_harmonic"),
-    1: .same(proto: "melody_drum"),
-    2: .same(proto: "midi_harmonic"),
-    3: .same(proto: "midi_drum"),
-  ]
-}
-
 extension InstrumentType: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "harmonic"),
@@ -571,8 +605,15 @@ extension InstrumentType: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
-extension Note: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "Note"
+extension MelodyType: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "melodic"),
+    1: .same(proto: "midi"),
+  ]
+}
+
+extension NoteName: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "NoteName"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "note_letter"),
     2: .standard(proto: "note_sign"),
@@ -598,9 +639,50 @@ extension Note: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Note, rhs: Note) -> Bool {
+  static func ==(lhs: NoteName, rhs: NoteName) -> Bool {
     if lhs.noteLetter != rhs.noteLetter {return false}
     if lhs.noteSign != rhs.noteSign {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NoteSpecification: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "NoteSpecification"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "note_letter"),
+    2: .standard(proto: "note_sign"),
+    3: .same(proto: "octave"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.noteLetter)
+      case 2: try decoder.decodeSingularEnumField(value: &self.noteSign)
+      case 3: try decoder.decodeSingularSInt32Field(value: &self.octave)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.noteLetter != .c {
+      try visitor.visitSingularEnumField(value: self.noteLetter, fieldNumber: 1)
+    }
+    if self.noteSign != .natural {
+      try visitor.visitSingularEnumField(value: self.noteSign, fieldNumber: 2)
+    }
+    if self.octave != 0 {
+      try visitor.visitSingularSInt32Field(value: self.octave, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NoteSpecification, rhs: NoteSpecification) -> Bool {
+    if lhs.noteLetter != rhs.noteLetter {return false}
+    if lhs.noteSign != rhs.noteSign {return false}
+    if lhs.octave != rhs.octave {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -615,8 +697,8 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
   ]
 
   fileprivate class _StorageClass {
-    var _rootNote: Note? = nil
-    var _bassNote: Note? = nil
+    var _rootNote: NoteName? = nil
+    var _bassNote: NoteName? = nil
     var _extension: UInt32 = 0
 
     static let defaultInstance = _StorageClass()
@@ -732,18 +814,34 @@ extension Harmony: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
 
 extension MelodyAttack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "MelodyAttack"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "tones"),
+    2: .same(proto: "velocity"),
+  ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeRepeatedSInt32Field(value: &self.tones)
+      case 2: try decoder.decodeSingularFloatField(value: &self.velocity)
+      default: break
+      }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.tones.isEmpty {
+      try visitor.visitPackedSInt32Field(value: self.tones, fieldNumber: 1)
+    }
+    if self.velocity != 0 {
+      try visitor.visitSingularFloatField(value: self.velocity, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: MelodyAttack, rhs: MelodyAttack) -> Bool {
+    if lhs.tones != rhs.tones {return false}
+    if lhs.velocity != rhs.velocity {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -751,18 +849,34 @@ extension MelodyAttack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
 
 extension MidiChange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "MidiChange"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "length"),
+    2: .same(proto: "data"),
+  ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let _ = try decoder.nextFieldNumber() {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularUInt32Field(value: &self.length)
+      case 2: try decoder.decodeRepeatedUInt32Field(value: &self.data)
+      default: break
+      }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.length != 0 {
+      try visitor.visitSingularUInt32Field(value: self.length, fieldNumber: 1)
+    }
+    if !self.data.isEmpty {
+      try visitor.visitPackedUInt32Field(value: self.data, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: MidiChange, rhs: MidiChange) -> Bool {
+    if lhs.length != rhs.length {return false}
+    if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -776,8 +890,9 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     3: .standard(proto: "subdivisions_per_beat"),
     4: .same(proto: "length"),
     5: .same(proto: "type"),
-    6: .standard(proto: "attack_data"),
-    7: .standard(proto: "midi_data"),
+    6: .standard(proto: "instrument_type"),
+    7: .standard(proto: "melodic_data"),
+    8: .standard(proto: "midi_data"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -788,8 +903,9 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       case 3: try decoder.decodeSingularUInt32Field(value: &self.subdivisionsPerBeat)
       case 4: try decoder.decodeSingularUInt32Field(value: &self.length)
       case 5: try decoder.decodeSingularEnumField(value: &self.type)
-      case 6: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.attackData)
-      case 7: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: &self.midiData)
+      case 6: try decoder.decodeSingularEnumField(value: &self.instrumentType)
+      case 7: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.melodicData)
+      case 8: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: &self.midiData)
       default: break
       }
     }
@@ -808,14 +924,17 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if self.length != 0 {
       try visitor.visitSingularUInt32Field(value: self.length, fieldNumber: 4)
     }
-    if self.type != .melodyHarmonic {
+    if self.type != .melodic {
       try visitor.visitSingularEnumField(value: self.type, fieldNumber: 5)
     }
-    if !self.attackData.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.attackData, fieldNumber: 6)
+    if self.instrumentType != .harmonic {
+      try visitor.visitSingularEnumField(value: self.instrumentType, fieldNumber: 6)
+    }
+    if !self.melodicData.isEmpty {
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.melodicData, fieldNumber: 7)
     }
     if !self.midiData.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: self.midiData, fieldNumber: 7)
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: self.midiData, fieldNumber: 8)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -826,7 +945,8 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if lhs.subdivisionsPerBeat != rhs.subdivisionsPerBeat {return false}
     if lhs.length != rhs.length {return false}
     if lhs.type != rhs.type {return false}
-    if lhs.attackData != rhs.attackData {return false}
+    if lhs.instrumentType != rhs.instrumentType {return false}
+    if lhs.melodicData != rhs.melodicData {return false}
     if lhs.midiData != rhs.midiData {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

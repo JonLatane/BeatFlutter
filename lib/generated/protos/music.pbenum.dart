@@ -55,25 +55,6 @@ class NoteSign extends $pb.ProtobufEnum {
   const NoteSign._($core.int v, $core.String n) : super(v, n);
 }
 
-class MelodyType extends $pb.ProtobufEnum {
-  static const MelodyType melody_harmonic = MelodyType._(0, 'melody_harmonic');
-  static const MelodyType melody_drum = MelodyType._(1, 'melody_drum');
-  static const MelodyType midi_harmonic = MelodyType._(2, 'midi_harmonic');
-  static const MelodyType midi_drum = MelodyType._(3, 'midi_drum');
-
-  static const $core.List<MelodyType> values = <MelodyType> [
-    melody_harmonic,
-    melody_drum,
-    midi_harmonic,
-    midi_drum,
-  ];
-
-  static final $core.Map<$core.int, MelodyType> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static MelodyType valueOf($core.int value) => _byValue[value];
-
-  const MelodyType._($core.int v, $core.String n) : super(v, n);
-}
-
 class InstrumentType extends $pb.ProtobufEnum {
   static const InstrumentType harmonic = InstrumentType._(0, 'harmonic');
   static const InstrumentType drum = InstrumentType._(1, 'drum');
@@ -87,6 +68,21 @@ class InstrumentType extends $pb.ProtobufEnum {
   static InstrumentType valueOf($core.int value) => _byValue[value];
 
   const InstrumentType._($core.int v, $core.String n) : super(v, n);
+}
+
+class MelodyType extends $pb.ProtobufEnum {
+  static const MelodyType melodic = MelodyType._(0, 'melodic');
+  static const MelodyType midi = MelodyType._(1, 'midi');
+
+  static const $core.List<MelodyType> values = <MelodyType> [
+    melodic,
+    midi,
+  ];
+
+  static final $core.Map<$core.int, MelodyType> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static MelodyType valueOf($core.int value) => _byValue[value];
+
+  const MelodyType._($core.int v, $core.String n) : super(v, n);
 }
 
 class MelodyReference_PlaybackType extends $pb.ProtobufEnum {
