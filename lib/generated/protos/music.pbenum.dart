@@ -9,16 +9,16 @@
 import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-class NoteName extends $pb.ProtobufEnum {
-  static const NoteName C = NoteName._(0, 'C');
-  static const NoteName D = NoteName._(1, 'D');
-  static const NoteName E = NoteName._(2, 'E');
-  static const NoteName F = NoteName._(3, 'F');
-  static const NoteName G = NoteName._(4, 'G');
-  static const NoteName A = NoteName._(5, 'A');
-  static const NoteName B = NoteName._(6, 'B');
+class NoteLetter extends $pb.ProtobufEnum {
+  static const NoteLetter C = NoteLetter._(0, 'C');
+  static const NoteLetter D = NoteLetter._(1, 'D');
+  static const NoteLetter E = NoteLetter._(2, 'E');
+  static const NoteLetter F = NoteLetter._(3, 'F');
+  static const NoteLetter G = NoteLetter._(4, 'G');
+  static const NoteLetter A = NoteLetter._(5, 'A');
+  static const NoteLetter B = NoteLetter._(6, 'B');
 
-  static const $core.List<NoteName> values = <NoteName> [
+  static const $core.List<NoteLetter> values = <NoteLetter> [
     C,
     D,
     E,
@@ -28,23 +28,21 @@ class NoteName extends $pb.ProtobufEnum {
     B,
   ];
 
-  static final $core.Map<$core.int, NoteName> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static NoteName valueOf($core.int value) => _byValue[value];
+  static final $core.Map<$core.int, NoteLetter> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static NoteLetter valueOf($core.int value) => _byValue[value];
 
-  const NoteName._($core.int v, $core.String n) : super(v, n);
+  const NoteLetter._($core.int v, $core.String n) : super(v, n);
 }
 
 class NoteSign extends $pb.ProtobufEnum {
   static const NoteSign natural = NoteSign._(0, 'natural');
-  static const NoteSign none = NoteSign._(1, 'none');
-  static const NoteSign flat = NoteSign._(2, 'flat');
-  static const NoteSign double_flat = NoteSign._(3, 'double_flat');
-  static const NoteSign sharp = NoteSign._(4, 'sharp');
-  static const NoteSign double_sharp = NoteSign._(5, 'double_sharp');
+  static const NoteSign flat = NoteSign._(1, 'flat');
+  static const NoteSign double_flat = NoteSign._(2, 'double_flat');
+  static const NoteSign sharp = NoteSign._(3, 'sharp');
+  static const NoteSign double_sharp = NoteSign._(4, 'double_sharp');
 
   static const $core.List<NoteSign> values = <NoteSign> [
     natural,
-    none,
     flat,
     double_flat,
     sharp,

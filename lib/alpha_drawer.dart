@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'sizeutil.dart';
 import 'generated/protos/music.pb.dart';
 import 'package:unification/unification.dart';
+import 'music_theory.dart';
 
 class AlphaDrawer {
   Paint paint;
@@ -49,50 +50,6 @@ class OnScreenNote {
   double center = 0;
 
   OnScreenNote({this.tone, this.pressed, this.bottom, this.top, this.center});
-}
-
-extension NoteNameTheory on NoteName {
-  int get tone {
-    switch (this) {
-      case NoteName.C: { return 0; }
-      case NoteName.D: { return 2; }
-      case NoteName.E: { return 4; }
-      case NoteName.F: { return 5; }
-      case NoteName.G: { return 7; }
-      case NoteName.A: { return 9; }
-      case NoteName.B: { return 11; }
-      default: { throw FormatException(); }
-    }
-  }
-}
-
-extension SignTheory on NoteSign {
-  int get toneOffset {
-    switch (this) {
-      case NoteSign.none: { return 0; }
-      case NoteSign.natural: { return 0; }
-      case NoteSign.sharp: { return 1; }
-      case NoteSign.flat: { return -1; }
-      case NoteSign.double_sharp: { return 2; }
-      case NoteSign.double_flat: { return -2; }
-      default: { throw FormatException(); }
-    }
-  }
-}
-
-extension NoteTheory on Note {
-  int get tone => noteName.tone + noteSign.toneOffset;
-}
-
-extension NoteConversions on int {
-
-}
-
-extension ChordTheory on Chord {
-  /// Returns the nearest
-  int closestTone(int tone) {
-
-  }
 }
 
 class CanvasToneDrawer extends AlphaDrawer {

@@ -20,7 +20,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 }
 
 /// NoteName corresponds to "white keys" (notes A-G)
-enum NoteName: SwiftProtobuf.Enum {
+enum NoteLetter: SwiftProtobuf.Enum {
   typealias RawValue = Int
   case c // = 0
   case d // = 1
@@ -65,9 +65,9 @@ enum NoteName: SwiftProtobuf.Enum {
 
 #if swift(>=4.2)
 
-extension NoteName: CaseIterable {
+extension NoteLetter: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  static var allCases: [NoteName] = [
+  static var allCases: [NoteLetter] = [
     .c,
     .d,
     .e,
@@ -83,11 +83,10 @@ extension NoteName: CaseIterable {
 enum NoteSign: SwiftProtobuf.Enum {
   typealias RawValue = Int
   case natural // = 0
-  case none // = 1
-  case flat // = 2
-  case doubleFlat // = 3
-  case sharp // = 4
-  case doubleSharp // = 5
+  case flat // = 1
+  case doubleFlat // = 2
+  case sharp // = 3
+  case doubleSharp // = 4
   case UNRECOGNIZED(Int)
 
   init() {
@@ -97,11 +96,10 @@ enum NoteSign: SwiftProtobuf.Enum {
   init?(rawValue: Int) {
     switch rawValue {
     case 0: self = .natural
-    case 1: self = .none
-    case 2: self = .flat
-    case 3: self = .doubleFlat
-    case 4: self = .sharp
-    case 5: self = .doubleSharp
+    case 1: self = .flat
+    case 2: self = .doubleFlat
+    case 3: self = .sharp
+    case 4: self = .doubleSharp
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -109,11 +107,10 @@ enum NoteSign: SwiftProtobuf.Enum {
   var rawValue: Int {
     switch self {
     case .natural: return 0
-    case .none: return 1
-    case .flat: return 2
-    case .doubleFlat: return 3
-    case .sharp: return 4
-    case .doubleSharp: return 5
+    case .flat: return 1
+    case .doubleFlat: return 2
+    case .sharp: return 3
+    case .doubleSharp: return 4
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -126,7 +123,6 @@ extension NoteSign: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   static var allCases: [NoteSign] = [
     .natural,
-    .none,
     .flat,
     .doubleFlat,
     .sharp,
@@ -139,10 +135,16 @@ extension NoteSign: CaseIterable {
 enum MelodyType: SwiftProtobuf.Enum {
   typealias RawValue = Int
 
-  /// Uses MelodyAttacks
+  /// Uses MelodyAttacks and represents pitched/harmonic instrument data for touch editing
   case melodyHarmonic // = 0
+
+  /// Uses MelodyAttacks and represents drum instrument data for touch editing
   case melodyDrum // = 1
+
+  /// Uses MidiChanges and represents pitched/harmonic raw MIDI instrument data
   case midiHarmonic // = 2
+
+  /// Uses MidiChanges and represents drum raw MIDI instrument data
   case midiDrum // = 3
   case UNRECOGNIZED(Int)
 
@@ -231,7 +233,7 @@ struct Note {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var noteName: NoteName = .c
+  var noteLetter: NoteLetter = .c
 
   var noteSign: NoteSign = .natural
 
@@ -254,6 +256,33 @@ struct Chord {
   /// Clears the value of `rootNote`. Subsequent reads from it will return its default value.
   mutating func clearRootNote() {_uniqueStorage()._rootNote = nil}
 
+  /// Optional. When note provided, applications referencing bass_note should generally
+  /// be able to revert to root_note.
+  var bassNote: Note {
+    get {return _storage._bassNote ?? Note()}
+    set {_uniqueStorage()._bassNote = newValue}
+  }
+  /// Returns true if `bassNote` has been explicitly set.
+  var hasBassNote: Bool {return _storage._bassNote != nil}
+  /// Clears the value of `bassNote`. Subsequent reads from it will return its default value.
+  mutating func clearBassNote() {_uniqueStorage()._bassNote = nil}
+
+  /// 11-bit bit-set value from 0-2047. Bits (in order from msb to lsb) indicate presence of the
+  /// minor 2, major 2, minor 3, major 3, ..., major 7 of the chord. Some examples:
+  /// * 0 = 0b00000000000 is a chord of just the root note with no other notes.
+  /// * 144 = 0b00010010000 is a regular Major chord.
+  /// * 145 = 0b00010010001 is a Major 7 (M7) chord.
+  /// * A neat math thing: every odd extension has a M7 in it. Every even one does not.
+  /// * 2047 = 0b11111111111 is a chromatic scale rooted at root_note.
+  /// * 725 = 0b01011010101 is a major scale or a M13(11) chord (which are the same thing).
+  ///
+  /// With music theory, the idea is that we can derive the Note (i.e., differentiate whether these
+  /// should be a C# or Db) for all the tones in the extension based on the root_note and bass_note.
+  var `extension`: UInt32 {
+    get {return _storage._extension}
+    set {_uniqueStorage()._extension = newValue}
+  }
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -274,7 +303,8 @@ struct Harmony {
   /// Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   var length: UInt32 = 0
 
-  /// Cannot be empty for a valid harmony. Generally, should contain an attack at 0.
+  /// Must contain at least one entry with key less than Harmony length. Generally, should contain
+  /// an entry at 0.
   var data: Dictionary<Int32,Chord> = [:]
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -323,7 +353,7 @@ struct Melody {
   var attackData: Dictionary<Int32,MelodyAttack> = [:]
 
   /// Used for MelodyType.midi_harmonic and MelodyType.midi_drum
-  var midiData: Dictionary<Int32,MelodyAttack> = [:]
+  var midiData: Dictionary<Int32,MidiChange> = [:]
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -503,7 +533,7 @@ struct Score {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-extension NoteName: SwiftProtobuf._ProtoNameProviding {
+extension NoteLetter: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "C"),
     1: .same(proto: "D"),
@@ -518,11 +548,10 @@ extension NoteName: SwiftProtobuf._ProtoNameProviding {
 extension NoteSign: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "natural"),
-    1: .same(proto: "none"),
-    2: .same(proto: "flat"),
-    3: .same(proto: "double_flat"),
-    4: .same(proto: "sharp"),
-    5: .same(proto: "double_sharp"),
+    1: .same(proto: "flat"),
+    2: .same(proto: "double_flat"),
+    3: .same(proto: "sharp"),
+    4: .same(proto: "double_sharp"),
   ]
 }
 
@@ -545,14 +574,14 @@ extension InstrumentType: SwiftProtobuf._ProtoNameProviding {
 extension Note: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "Note"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "note_name"),
+    1: .standard(proto: "note_letter"),
     2: .standard(proto: "note_sign"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
-      case 1: try decoder.decodeSingularEnumField(value: &self.noteName)
+      case 1: try decoder.decodeSingularEnumField(value: &self.noteLetter)
       case 2: try decoder.decodeSingularEnumField(value: &self.noteSign)
       default: break
       }
@@ -560,8 +589,8 @@ extension Note: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.noteName != .c {
-      try visitor.visitSingularEnumField(value: self.noteName, fieldNumber: 1)
+    if self.noteLetter != .c {
+      try visitor.visitSingularEnumField(value: self.noteLetter, fieldNumber: 1)
     }
     if self.noteSign != .natural {
       try visitor.visitSingularEnumField(value: self.noteSign, fieldNumber: 2)
@@ -570,7 +599,7 @@ extension Note: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase,
   }
 
   static func ==(lhs: Note, rhs: Note) -> Bool {
-    if lhs.noteName != rhs.noteName {return false}
+    if lhs.noteLetter != rhs.noteLetter {return false}
     if lhs.noteSign != rhs.noteSign {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -581,10 +610,14 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
   static let protoMessageName: String = "Chord"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "root_note"),
+    2: .standard(proto: "bass_note"),
+    3: .same(proto: "extension"),
   ]
 
   fileprivate class _StorageClass {
     var _rootNote: Note? = nil
+    var _bassNote: Note? = nil
+    var _extension: UInt32 = 0
 
     static let defaultInstance = _StorageClass()
 
@@ -592,6 +625,8 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
 
     init(copying source: _StorageClass) {
       _rootNote = source._rootNote
+      _bassNote = source._bassNote
+      _extension = source._extension
     }
   }
 
@@ -608,6 +643,8 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
       while let fieldNumber = try decoder.nextFieldNumber() {
         switch fieldNumber {
         case 1: try decoder.decodeSingularMessageField(value: &_storage._rootNote)
+        case 2: try decoder.decodeSingularMessageField(value: &_storage._bassNote)
+        case 3: try decoder.decodeSingularUInt32Field(value: &_storage._extension)
         default: break
         }
       }
@@ -619,6 +656,12 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
       if let v = _storage._rootNote {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
       }
+      if let v = _storage._bassNote {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      }
+      if _storage._extension != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._extension, fieldNumber: 3)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -629,6 +672,8 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
         let _storage = _args.0
         let rhs_storage = _args.1
         if _storage._rootNote != rhs_storage._rootNote {return false}
+        if _storage._bassNote != rhs_storage._bassNote {return false}
+        if _storage._extension != rhs_storage._extension {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -744,7 +789,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       case 4: try decoder.decodeSingularUInt32Field(value: &self.length)
       case 5: try decoder.decodeSingularEnumField(value: &self.type)
       case 6: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.attackData)
-      case 7: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.midiData)
+      case 7: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: &self.midiData)
       default: break
       }
     }
@@ -770,7 +815,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.attackData, fieldNumber: 6)
     }
     if !self.midiData.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.midiData, fieldNumber: 7)
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MidiChange>.self, value: self.midiData, fieldNumber: 7)
     }
     try unknownFields.traverse(visitor: &visitor)
   }

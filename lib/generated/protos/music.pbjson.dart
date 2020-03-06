@@ -5,8 +5,8 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-const NoteName$json = const {
-  '1': 'NoteName',
+const NoteLetter$json = const {
+  '1': 'NoteLetter',
   '2': const [
     const {'1': 'C', '2': 0},
     const {'1': 'D', '2': 1},
@@ -22,11 +22,10 @@ const NoteSign$json = const {
   '1': 'NoteSign',
   '2': const [
     const {'1': 'natural', '2': 0},
-    const {'1': 'none', '2': 1},
-    const {'1': 'flat', '2': 2},
-    const {'1': 'double_flat', '2': 3},
-    const {'1': 'sharp', '2': 4},
-    const {'1': 'double_sharp', '2': 5},
+    const {'1': 'flat', '2': 1},
+    const {'1': 'double_flat', '2': 2},
+    const {'1': 'sharp', '2': 3},
+    const {'1': 'double_sharp', '2': 4},
   ],
 };
 
@@ -51,7 +50,7 @@ const InstrumentType$json = const {
 const Note$json = const {
   '1': 'Note',
   '2': const [
-    const {'1': 'note_name', '3': 1, '4': 1, '5': 14, '6': '.NoteName', '10': 'noteName'},
+    const {'1': 'note_letter', '3': 1, '4': 1, '5': 14, '6': '.NoteLetter', '10': 'noteLetter'},
     const {'1': 'note_sign', '3': 2, '4': 1, '5': 14, '6': '.NoteSign', '10': 'noteSign'},
   ],
 };
@@ -60,6 +59,8 @@ const Chord$json = const {
   '1': 'Chord',
   '2': const [
     const {'1': 'root_note', '3': 1, '4': 1, '5': 11, '6': '.Note', '10': 'rootNote'},
+    const {'1': 'bass_note', '3': 2, '4': 1, '5': 11, '6': '.Note', '10': 'bassNote'},
+    const {'1': 'extension', '3': 3, '4': 1, '5': 13, '10': 'extension'},
   ],
 };
 
@@ -118,7 +119,7 @@ const Melody_MidiDataEntry$json = const {
   '1': 'MidiDataEntry',
   '2': const [
     const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
-    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodyAttack', '10': 'value'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MidiChange', '10': 'value'},
   ],
   '7': const {'7': true},
 };

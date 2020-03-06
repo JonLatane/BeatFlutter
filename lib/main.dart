@@ -622,22 +622,29 @@ class SecondToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+    if(width > 500) {
+      width = width / 2;
+    }
     return Row(children: [
-      ExpandedSection(
-          expand: interactionMode == InteractionMode.edit,
+      AnimatedContainer(
+          width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+          duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
               child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
-      ExpandedSection(
-          expand: interactionMode == InteractionMode.edit,
+      AnimatedContainer(
+        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+        duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
               child: RaisedButton(
                 child: Image.asset('assets/stop.png'),
                 onPressed: () => {},
               ))),
-      ExpandedSection(
-          expand: interactionMode == InteractionMode.view,
+      AnimatedContainer(
+        width: (interactionMode == InteractionMode.view) ? width / 4 : 0,
+        duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
               child: RaisedButton(

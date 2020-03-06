@@ -4,7 +4,7 @@ syntax = "proto3";
 option java_package = "org.beatscratch.messages";
 
 // NoteName corresponds to "white keys" (notes A-G)
-enum NoteName {
+enum NoteLetter {
   C = 0;
   D = 1;
   E = 2;
@@ -16,20 +16,42 @@ enum NoteName {
 
 enum NoteSign {
   natural = 0;
-  none = 1;
-  flat = 2;
-  double_flat = 3;
-  sharp = 4;
-  double_sharp = 5;
+  flat = 1;
+  double_flat = 2;
+  sharp = 3;
+  double_sharp = 4;
 }
 
-message Note {
-  NoteName note_name = 1;
+// Describes notes as pitch classes (i.e. without octave)
+message NoteName {
+  NoteLetter note_letter = 1;
   NoteSign note_sign = 2;
 }
 
+message NoteSpecification {
+  NoteLetter note_letter = 1;
+  // In rendering applications
+  NoteSign note_sign = 2;
+  sint32 octave = 3;
+}
+
 message Chord {
-  Note root_note = 1;
+  NoteName root_note = 1;
+  // Optional. When note provided, applications referencing bass_note should generally
+  // be able to revert to root_note.
+  NoteName bass_note = 2;
+  // 11-bit bit-set value from 0-2047. Bits (in order from msb to lsb) indicate presence of the
+  // minor 2, major 2, minor 3, major 3, ..., major 7 of the chord. Some examples:
+  // * 0 = 0b00000000000 is a chord of just the root note with no other notes.
+  // * 144 = 0b00010010000 is a regular Major chord.
+  // * 145 = 0b00010010001 is a Major 7 (M7) chord.
+  // * A neat math thing: every odd extension has a M7 in it. Every even one does not.
+  // * 2047 = 0b11111111111 is a chromatic scale rooted at root_note.
+  // * 725 = 0b01011010101 is a major scale or a M13(11) chord (which are the same thing).
+  //
+  // With music theory, the idea is that we can derive the Note (i.e., differentiate whether these
+  // should be a C# or Db) for all the tones in the extension based on the root_note and bass_note.
+  uint32 extension = 3;
 }
 
 // A Harmony is a rhythmic mapping of chords.
@@ -38,15 +60,19 @@ message Harmony {
   uint32 subdivisions_per_beat = 2;
   // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   uint32 length = 3;
-  // Cannot be empty for a valid harmony. Generally, should contain an attack at 0.
+  // Must contain at least one entry with key less than Harmony length. Generally, should contain
+  // an entry at 0.
   map<sint32, Chord> data = 4;
 }
 
 enum MelodyType {
-  // Uses MelodyAttacks
+  // Uses MelodyAttacks and represents pitched/harmonic instrument data for touch editing
   melody_harmonic = 0;
+  // Uses MelodyAttacks and represents drum instrument data for touch editing
   melody_drum = 1;
+  // Uses MidiChanges and represents pitched/harmonic raw MIDI instrument data
   midi_harmonic = 2;
+  // Uses MidiChanges and represents drum raw MIDI instrument data
   midi_drum = 3;
 }
 
@@ -70,7 +96,7 @@ message Melody {
   // Used for MelodyType.melody_harmonic and MelodyType.melody_drum
   map<sint32, MelodyAttack> attack_data = 6;
   // Used for MelodyType.midi_harmonic and MelodyType.midi_drum
-  map<sint32, MelodyAttack> midi_data = 7;
+  map<sint32, MidiChange> midi_data = 7;
 }
 
 enum InstrumentType {
