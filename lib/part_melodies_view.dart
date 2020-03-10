@@ -7,6 +7,7 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/rendering.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'animations/animations.dart';
+import 'ui_models.dart';
 
 class PartMelodiesView extends StatefulWidget {
   final Score score;
@@ -16,8 +17,24 @@ class PartMelodiesView extends StatefulWidget {
   final Section currentSection;
   final Melody selectedMelody;
   final Function(Melody) selectMelody;
+  final Part colorboardPart;
+  final Part keyboardPart;
+  final Function(Part) setKeyboardPart;
+  final Function(Part) setColorboardPart;
+  final Function(Part) selectPart;
 
-  PartMelodiesView({this.score, this.setState, this.axis = Axis.horizontal, this.sectionColor, this.currentSection, this.selectedMelody, this.selectMelody});
+  PartMelodiesView(
+      {this.score,
+      this.setState,
+      this.axis = Axis.horizontal,
+      this.sectionColor,
+      this.currentSection,
+      this.selectedMelody,
+      this.selectMelody,
+      this.colorboardPart,
+      this.keyboardPart,
+      this.setKeyboardPart,
+      this.setColorboardPart, this.selectPart});
 
   @override
   _PartMelodiesViewState createState() {
@@ -56,6 +73,10 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 selectMelody: widget.selectMelody,
                 currentSection: widget.currentSection,
                 selectedMelody: widget.selectedMelody,
+                colorboardPart: widget.colorboardPart,
+                keyboardPart: widget.keyboardPart,
+                setKeyboardPart: widget.setKeyboardPart,
+                setColorboardPart: widget.setColorboardPart,
               ),
 //              child: _MelodiesView2(
 //                score: widget.score,
@@ -116,11 +137,12 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 //              }
 
               return SizeFadeTransition(
-                  sizeFraction: 0.7,
-                  curve: Curves.easeInOut,
-                  animation: animation,
-                  child: tile,
-                ); });
+                sizeFraction: 0.7,
+                curve: Curves.easeInOut,
+                animation: animation,
+                child: tile,
+              );
+            });
       },
       // An optional builder when an item was removed from the list.
       // If not specified, the List uses the itemBuilder with
@@ -144,6 +166,10 @@ class _MelodiesView extends StatelessWidget {
   final Color sectionColor;
   final Section currentSection;
   final Melody selectedMelody;
+  final Part colorboardPart;
+  final Part keyboardPart;
+  final Function(Part) setKeyboardPart;
+  final Function(Part) setColorboardPart;
 
   Part get part => score.parts[partPosition];
 
@@ -155,7 +181,11 @@ class _MelodiesView extends StatelessWidget {
     this.score,
     this.setState,
     this.scrollDirection,
-    this.partPosition, this.sectionColor, this.currentSection, this.selectedMelody, this.selectMelody,
+    this.partPosition,
+    this.sectionColor,
+    this.currentSection,
+    this.selectedMelody,
+    this.selectMelody, this.colorboardPart, this.keyboardPart, this.setKeyboardPart, this.setColorboardPart,
   });
 
   int _indexOfKey(Key key) {
@@ -196,6 +226,10 @@ class _MelodiesView extends StatelessWidget {
             SliverAppBar(
               backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
               actions: <Widget>[
+                AnimatedContainer(duration: animationDuration, width: (keyboardPart == part) ? 24 : 0, height:24, child:
+                Opacity(opacity: 0.5, child: Image.asset('assets/piano.png'))),
+                AnimatedContainer(duration: animationDuration, width: (colorboardPart == part) ? 24 : 0, height:24, child:
+                Opacity(opacity: 0.5, child: Image.asset('assets/colorboard.png'))),
                 PopupMenuButton<String>(
                   child: Container(
                     alignment: Alignment.center,
@@ -203,29 +237,45 @@ class _MelodiesView extends StatelessWidget {
                     child: Icon(Icons.menu),
                   ),
                   initialValue: "nothing",
-                  onSelected: (String mode) {
+                  onSelected: (String selected) {
                     setState(() {
+                      switch(selected) {
+                        case "useOnColorboard" : setColorboardPart(part); break;
+                        case "useOnKeyboard" : setKeyboardPart(part); break;
+                      }
                       //_draggingMode = mode;
                     });
                   },
                   itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
                     const PopupMenuItem<String>(value: "setInstrument", child: Text('Choose Instrument')),
-                    PopupMenuItem<String>(value: "blah", child:
-                    Row(children:[
-                      Text('Use on Colorboard'),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                        child:Image.asset('assets/colorboard.png', width: 20, height: 20,)
-                      )
-                    ])),
-                    PopupMenuItem<String>(value: "blah", child:
-                    Row(children:[
-                      Text('Use on Keyboard'),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                        child:Image.asset('assets/piano.png', width: 20, height: 20,)
-                      )
-                    ])),
+                    PopupMenuItem<String>(
+                      value: "useOnKeyboard",
+                      child: Row(children: [
+                        Checkbox(value: keyboardPart == part, onChanged: null),
+                        Expanded(child:Text('Use on Keyboard')),
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                          child: Image.asset(
+                            'assets/piano.png',
+                            width: 20,
+                            height: 20,
+                          ))
+                      ])),
+                    if(part.instrument.type != InstrumentType.drum)
+                    PopupMenuItem<String>(
+                        value: "useOnColorboard",
+
+                        child: Row(children: [
+                          Checkbox(value: colorboardPart == part, onChanged: null),
+                          Expanded(child:Text('Use on Colorboard',)),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              child: Image.asset(
+                                'assets/colorboard.png',
+                                width: 20,
+                                height: 20,
+                              ))
+                        ])),
                     const PopupMenuItem<String>(value: "blah", child: Text('Remove Part')),
                   ],
                 ),
@@ -233,7 +283,19 @@ class _MelodiesView extends StatelessWidget {
               pinned: true,
               expandedHeight: 100.0,
               flexibleSpace: FlexibleSpaceBar(
-                title: Handle(delay: const Duration(milliseconds: 250), child: Text(part.instrument.name)),
+//                stretchModes: [StretchMode.fadeTitle],
+                centerTitle: false,
+                titlePadding: EdgeInsets.all(0),
+//                titlePadding: EdgeInsets.only(left: 8, bottom: 15),
+//                titlePadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
+                title: Handle(delay: const Duration(milliseconds: 250), child:
+                FlatButton(onPressed: () {},
+                  child:Align(alignment: Alignment.bottomLeft,
+                    child:Padding(padding: EdgeInsets.only(bottom:18),
+                      child:Text(part.instrument.name,
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,)
+                    )))),
               ),
             ),
             SliverAppBar(
@@ -242,18 +304,21 @@ class _MelodiesView extends StatelessWidget {
               pinned: false,
               expandedHeight: 50.0,
               flexibleSpace: Slider(
-                value: max(0.0, min(1.0, part.instrument.volume)),
-                activeColor: Colors.white,
-                onChanged: (value) => { setState(() => part.instrument.volume = value) }
-              ),
+                  value: max(0.0, min(1.0, part.instrument.volume)),
+                  activeColor: Colors.white,
+                  onChanged: (value) => {setState(() => part.instrument.volume = value)}),
             ),
             SliverAppBar(
               backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
               floating: true,
               pinned: false,
               expandedHeight: 50.0,
-              flexibleSpace: FlatButton(onPressed: () {  },
-              child:Icon(Icons.add, color: Colors.white,)),
+              flexibleSpace: FlatButton(
+                  onPressed: () {},
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  )),
             ),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
@@ -270,6 +335,10 @@ class _MelodiesView extends StatelessWidget {
                         // first and last attributes affect border drawn during dragging
                         isFirst: index == 0,
                         isLast: index == _items.length - 1,
+                        colorboardPart: colorboardPart,
+                        keyboardPart: keyboardPart,
+                        setKeyboardPart: setKeyboardPart,
+                        setColorboardPart: setColorboardPart,
                       );
                     },
                     childCount: _items.length,
@@ -284,7 +353,12 @@ class _MelodyReference extends StatelessWidget {
   _MelodyReference({
     this.melody,
     this.isFirst,
-    this.isLast, this.sectionColor, this.currentSection, this.selectedMelody, this.selectMelody, this.setState,
+    this.isLast,
+    this.sectionColor,
+    this.currentSection,
+    this.selectedMelody,
+    this.selectMelody,
+    this.setState, this.colorboardPart, this.keyboardPart, this.setKeyboardPart, this.setColorboardPart,
   });
 
   final Melody melody;
@@ -295,10 +369,14 @@ class _MelodyReference extends StatelessWidget {
   final Melody selectedMelody;
   final Function(Melody) selectMelody;
   final Function(VoidCallback) setState;
+  final Part colorboardPart;
+  final Part keyboardPart;
+  final Function(Part) setKeyboardPart;
+  final Function(Part) setColorboardPart;
 
   MelodyReference referenceFor(Melody melody) {
-    return currentSection.melodies.firstWhere((reference) => reference.melodyId == melody.id,
-      orElse: () => _defaultMelodyReference(melody));
+    return currentSection.melodies
+        .firstWhere((reference) => reference.melodyId == melody.id, orElse: () => _defaultMelodyReference(melody));
   }
 
   MelodyReference _defaultMelodyReference(Melody melody) {
@@ -332,54 +410,58 @@ class _MelodyReference extends StatelessWidget {
     Widget content = Container(
         decoration: decoration,
         child: FlatButton(
-          onPressed: () {
+            onPressed: () {
 //            print("Hi");
-            selectMelody(melody);
-          },
-          color: melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD),
-          child: Stack(children: [
-            Column(children: [
-              TextField(
-                controller: TextEditingController()..text = melody.name,
-                textCapitalization: TextCapitalization.words,
-                onChanged: (value) { melody.name = value; },
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: "Melody ${melody.id.substring(0, 5)}"
+              selectMelody(melody);
+            },
+            color: melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD),
+            child: Stack(children: [
+              Column(children: [
+                TextField(
+                  controller: TextEditingController()..text = melody.name,
+                  textCapitalization: TextCapitalization.words,
+                  onChanged: (value) {
+                    melody.name = value;
+                  },
+                  decoration:
+                      InputDecoration(border: InputBorder.none, hintText: "Melody ${melody.id.substring(0, 5)}"),
                 ),
-              ),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
-              ExpandedSection(
-                child: Slider(
-                  value: referenceFor(melody).volume,
-                  activeColor: sectionColor,
-                  onChanged: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
-                    ? null
-                    : (value) {
-                    setState(() {
-                      referenceFor(melody).volume = value;
-                    });
-                  }
+                ExpandedSection(
+                  child: Slider(
+                      value: referenceFor(melody).volume,
+                      activeColor: sectionColor,
+                      onChanged: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                          ? null
+                          : (value) {
+                              setState(() {
+                                referenceFor(melody).volume = value;
+                              });
+                            }),
+                  axis: Axis.vertical,
+                  expand: referenceFor(melody).playbackType != MelodyReference_PlaybackType.disabled,
                 ),
-                axis: Axis.vertical,
-                expand: referenceFor(melody).playbackType != MelodyReference_PlaybackType.disabled,
-              ),
-              RaisedButton(
-                onPressed: () {
-                  var ref = referenceFor(melody);
-                  if(ref.playbackType == MelodyReference_PlaybackType.disabled) {
-                    setState(() { ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely; });
-                  } else {
-                    setState(() { ref.playbackType = MelodyReference_PlaybackType.disabled; });
-                  }
-                },
-
-                color: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
-                  ? Color(0xFFDDDDDD) : sectionColor,
-                child: Icon((referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
-                  ? Icons.not_interested : Icons.volume_up))
-            ])
-          ]))
+                RaisedButton(
+                    onPressed: () {
+                      var ref = referenceFor(melody);
+                      if (ref.playbackType == MelodyReference_PlaybackType.disabled) {
+                        setState(() {
+                          ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely;
+                        });
+                      } else {
+                        setState(() {
+                          ref.playbackType = MelodyReference_PlaybackType.disabled;
+                        });
+                      }
+                    },
+                    color: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                        ? Color(0xFFDDDDDD)
+                        : sectionColor,
+                    child: Icon((referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                        ? Icons.not_interested
+                        : Icons.volume_up))
+              ])
+            ]))
 //      child: SafeArea(
 //          top: false,
 //          bottom: false,

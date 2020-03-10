@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // `java_package` must match the package name you declare for `androidPackage` in your pubspec.yaml
-option java_package = "org.beatscratch.messages";
+option java_package = "org.beatscratch.models";
 
 // NoteName corresponds to "white keys" (notes A-G)
 enum NoteLetter {
@@ -26,13 +26,6 @@ enum NoteSign {
 message NoteName {
   NoteLetter note_letter = 1;
   NoteSign note_sign = 2;
-}
-
-message NoteSpecification {
-  NoteLetter note_letter = 1;
-  // In rendering applications
-  NoteSign note_sign = 2;
-  sint32 octave = 3;
 }
 
 message Chord {
@@ -93,15 +86,15 @@ message MelodyAttack {
 
 // Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
 // NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
-// recorded MIDI messages at playback time.
+// recorded MIDI messages at playback time. Note that MIDI note names are a first-class citizen:
+// *in a MidiChange NOTE ON or NOTE OFF, C4 = 60. Elsewhere C4 = 0.
 //
 // To phrase it more simply, this way of breaking down melodies will let you represent your soprano
 // and bass parts as a single "melody." But your music theory teach would berate you in class for
 // that. These are also harder to make editable by touch, but handy for recording MIDI performance
 // by a musician.
 message MidiChange {
-  uint32 length = 1;
-  repeated uint32 data = 2;
+  bytes data = 1;
 }
 
 message Melody {
@@ -121,23 +114,29 @@ message Melody {
   // should match the Part's instrument type. Useful for letting the user copy/paste Melodies
   // between Parts.
   InstrumentType instrument_type = 6;
-  // Used for MelodyType.melodic type.
-  map<sint32, MelodyAttack> melodic_data = 7;
-  // Used for MelodyType.midi type.
-  map<sint32, MidiChange> midi_data = 8;
+  oneof data {
+    MelodicData melodic_data = 7;
+    MidiData midi_data = 8;
+  }
+}
+
+// Map of subdivisions to melody attacks.
+message MelodicData {
+  map<sint32,MelodyAttack> data = 1;
+}
+
+// Map of subdivisions to MIDI data.
+message MidiData {
+  map<sint32,MidiChange> data = 1;
 }
 
 message Instrument {
   string name = 1;
   InstrumentType type = 2;
   float volume = 3;
-  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
   uint32 midi_channel = 4;
-  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
   uint32 midi_instrument = 5;
-  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
   uint32 midi_gm2_msb = 6;
-  // Used by InstrumentType.midi_harmonic and InstrumentType.midi_drum
   uint32 midi_gm2_lsb = 7;
 }
 

@@ -10,10 +10,14 @@ import 'expanded_section.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
+import 'colorboard.dart';
 import 'dart:math';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
+import 'colors.dart';
+import 'util.dart';
+import 'ui_models.dart';
 
 void main() => runApp(MyApp());
 
@@ -87,10 +91,19 @@ var score = Score()
     Part()
       ..id = uuid.v4()
       ..instrument = (Instrument()
-        ..name = "Part 4"
+        ..name = "Muted Electric Jazz Guitar 1"
         ..volume = 0.5
         ..type = InstrumentType.harmonic)
       ..melodies.addAll([
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
+        Melody()..id = uuid.v4(),
         Melody()..id = uuid.v4(),
         Melody()..id = uuid.v4(),
       ]),
@@ -146,14 +159,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-var sectionColors = [
-  Color(0xFF59F9FF),
-  Color(0xFF884DF2),
-  Color(0xFFF93730),
-  Color(0xFF4AFBC1),
-  Color(0xFFF652F9),
-];
-
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -163,15 +168,18 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-Duration animationDuration = const Duration(milliseconds: 300);
 enum MelodyViewDisplayMode { half, full }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  int _counter = 20;
+  Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
+  Section _currentSection = section1;
+  int _counter = 20;
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
+  Part _keyboardPart = null;
+  Part _colorboardPart = null;
 
   get showMelodyView => _melodyViewSizeFactor > 0;
   double _melodyViewSizeFactor = 1.0;
@@ -212,7 +220,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _melodyViewSizeFactor = 0;
   }
 
-  Section _currentSection = section1;
+  _setKeyboardPart(Part part) {
+    setState(() {
+      _keyboardPart = part;
+    });
+  }
+
+  _setColorboardPart(Part part) {
+    setState(() {
+      _colorboardPart = part;
+    });
+  }
+
 
   get currentSection => _currentSection;
 
@@ -223,11 +242,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ));
   }
 
-  Score _score = score;
   Melody _selectedMelody;
-
   get selectedMelody => _selectedMelody;
-
   set selectedMelody(Melody melody) {
     _selectedMelody = melody;
     if (_interactionMode == InteractionMode.edit) {
@@ -239,13 +255,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
-
-  _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  Part _selectedPart;
+  get selectedPart => _selectedPart;
+  set selectedPart(Part part) {
+    _selectedPart = part;
+    if (_interactionMode == InteractionMode.edit) {
+      if (part == null) {
+        _melodyViewSizeFactor = 0;
+      } else {
+        _melodyViewSizeFactor = 0.5;
+      }
+    }
   }
+
+  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
 
   _selectOrDeselectMelody(Melody melody) {
     setState(() {
@@ -257,12 +280,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  _selectOrDeselectPart(Part part) {
+    setState(() {
+//      if (selectedMelody != melody) {
+//        selectedMelody = melody;
+//      } else {
+//        selectedMelody = null;
+//      }
+    });
+  }
+
   _doNothing() {}
 
   _viewMode() {
     setState(() {
       _interactionMode = InteractionMode.view;
-      _showViewOptions = false;
+      if (MediaQuery.of(context).size.width < 500) {
+        _showViewOptions = false;
+      }
       melodyViewDisplayMode = MelodyViewDisplayMode.full;
       _melodyViewSizeFactor = 1;
       selectedMelody = null;
@@ -300,7 +335,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  bool get _combineSecondAndMainToolbar => MediaQuery.of(context).size.width > 500;
+  bool get _combineSecondAndMainToolbar => context.isTabletOrLandscape;
 
   double get _secondToolbarHeight =>
       (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
@@ -315,6 +350,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     scaleStateController = PhotoViewScaleStateController();
+    _keyboardPart = _score.parts.firstWhere((part) => true);
+    _colorboardPart = _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic);
   }
 
   @override
@@ -391,7 +428,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   height: 36,
                                   child: AnimatedContainer(
                                       duration: animationDuration,
-                                      width: _interactionMode == InteractionMode.edit || _showViewOptions
+                                      width: context.isTabletOrLandscape ||
+                                              _interactionMode == InteractionMode.edit ||
+                                              _showViewOptions
                                           ? MediaQuery.of(context).size.width / 2
                                           : 0,
                                       child: SecondToolbar(
@@ -438,10 +477,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       height: _colorboardHeight,
                       width: MediaQuery.of(context).size.width,
                       color: Colors.white,
-                      child: Image.asset(
-                        'assets/colorboard.png',
-                        fit: BoxFit.fill,
-                      )),
+                      child: Colorboard()
+//                      Image.asset(
+//                        'assets/colorboard.png',
+//                        fit: BoxFit.fill,
+//                      )
+                      ),
                   AnimatedContainer(
                       duration: animationDuration,
                       height: _keyboardHeight,
@@ -478,7 +519,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 sectionColor: sectionColor,
                 setState: setState,
                 selectMelody: _selectOrDeselectMelody,
+                selectPart: _selectOrDeselectPart,
                 selectedMelody: selectedMelody,
+                setColorboardPart: _setColorboardPart,
+                setKeyboardPart: _setKeyboardPart,
+                colorboardPart: _colorboardPart,
+                keyboardPart: _keyboardPart,
               )),
               AnimatedContainer(
                   duration: animationDuration,
@@ -495,7 +541,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     sectionColor: sectionColor,
                     setState: setState,
                     selectMelody: _selectOrDeselectMelody,
+                    selectPart: _selectOrDeselectPart,
                     selectedMelody: selectedMelody,
+                    setColorboardPart: _setColorboardPart,
+                    setKeyboardPart: _setKeyboardPart,
+                    colorboardPart: _colorboardPart,
+                    keyboardPart: _keyboardPart,
                   )),
               Expanded(child: MelodyView(counter: _counter))
             ])
@@ -510,7 +561,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 }
 
-enum InteractionMode { view, edit }
 
 class BeatScratchToolbar extends StatelessWidget {
   final VoidCallback viewMode;
@@ -564,6 +614,34 @@ class BeatScratchToolbar extends StatelessWidget {
                         const PopupMenuItem(
                           value: null,
                           child: Text('MIDI Output Settings'),
+                        ),
+                    PopupMenuItem(
+                      value: null,
+                      child: Row(children: [
+                        Checkbox(value: true, onChanged: null),
+                        Expanded(child:Text('Notation UI')),
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                          child: SvgPicture.asset(
+                            'assets/notehead_filled.svg',
+                            width: 20,
+                            height: 20,
+                          ))
+                      ]),
+                    ),
+                      PopupMenuItem(
+                          value: null,
+                          child: Row(children: [
+                            Checkbox(value: false, onChanged: null),
+                            Expanded(child:Text('Colorblock UI')),
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              child: Image.asset(
+                                'assets/colorboard_vertical.png',
+                                width: 20,
+                                height: 20,
+                              ))
+                          ]),
                         ),
                         const PopupMenuItem(
                           value: null,
@@ -623,7 +701,7 @@ class SecondToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
-    if(width > 500) {
+    if (context.isTabletOrLandscape) {
       width = width / 2;
     }
     return Row(children: [
@@ -634,27 +712,14 @@ class SecondToolbar extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
       AnimatedContainer(
-        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
-        duration: animationDuration,
+          width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+          duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
               child: RaisedButton(
                 child: Image.asset('assets/stop.png'),
                 onPressed: () => {},
               ))),
-      AnimatedContainer(
-        width: (interactionMode == InteractionMode.view) ? width / 4 : 0,
-        duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: RaisedButton(
-                  onPressed: () => {},
-                  padding: EdgeInsets.all(0.0),
-                  child: SvgPicture.asset(
-                    'assets/notehead_filled.svg',
-                    height: 24,
-                    width: 24,
-                  )))),
       Expanded(
           child: Padding(
               padding: const EdgeInsets.all(2),

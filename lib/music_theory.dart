@@ -1,3 +1,5 @@
+import 'package:unification/unification.dart';
+
 import 'generated/protos/music.pb.dart';
 
 
@@ -30,17 +32,50 @@ extension NoteSignTheory on NoteSign {
   }
 }
 
-extension NoteTheory on Note {
+extension NoteTheory on NoteName {
   int get tone => noteLetter.tone + noteSign.toneOffset;
 }
 
 extension NoteConversions on int {
-  List<Note> get noteNames => [];
+  List<NoteName> get noteNames => [];
+  int get mod12 {
+    int result = this;
+    result = result % 12;
+    while(result < 0) {
+      result += 12;
+    }
+    return result;
+  }
 }
 
 extension ChordTheory on Chord {
   /// Returns the nearest
   int closestTone(int tone) {
+    int result;
+    range(0, 11)
+      .forEach((i) {
+        if(result == null) {
+          if (containsTone(tone - i)) {
+            result = tone - i;
+          }
+          if (containsTone(tone + i)) {
+            result = tone + i;
+          }
+        }
+    });
+    return result ?? rootNote.tone;
+  }
 
+  bool containsTone(int tone) {
+    tone = tone.mod12;
+    int root = rootNote.tone;
+    if(root == 0) {
+      return true;
+    }
+    int difference = (tone - root).mod12;
+    if((extension_3 << difference) & 0x0001 == 1) {
+      return true;
+    }
+    return false;
   }
 }
