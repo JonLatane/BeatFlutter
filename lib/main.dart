@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:quiver/collection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,7 +23,6 @@ import 'ui_models.dart';
 void main() => runApp(MyApp());
 
 const Color foo = Color.fromRGBO(0xF9, 0x37, 0x30, .1);
-var uuid = Uuid();
 
 const Map<int, Color> swatch = {
   //createSwatch(0xF9, 0x37, 0x30);
@@ -139,6 +139,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+//    debugPaintSizeEnabled = true;
     return MaterialApp(
       title: 'BeatFlutter',
       theme: ThemeData(
@@ -184,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   get showMelodyView => _melodyViewSizeFactor > 0;
   double _melodyViewSizeFactor = 1.0;
   MelodyViewDisplayMode _melodyViewDisplayMode = MelodyViewDisplayMode.half;
+  MelodyViewMode _melodyViewMode = MelodyViewMode.score;
 
   get melodyViewDisplayMode => _melodyViewDisplayMode;
 
@@ -248,8 +250,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _selectedMelody = melody;
     if (_interactionMode == InteractionMode.edit) {
       if (melody == null) {
+        _melodyViewMode = MelodyViewMode.section;
         _melodyViewSizeFactor = 0;
       } else {
+        _melodyViewMode = MelodyViewMode.melody;
         _melodyViewSizeFactor = 0.5;
       }
     }
@@ -298,6 +302,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (MediaQuery.of(context).size.width < 500) {
         _showViewOptions = false;
       }
+      _melodyViewMode = MelodyViewMode.score;
       melodyViewDisplayMode = MelodyViewDisplayMode.full;
       _melodyViewSizeFactor = 1;
       selectedMelody = null;
@@ -307,6 +312,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _editMode() {
     setState(() {
       _interactionMode = InteractionMode.edit;
+      _melodyViewMode = MelodyViewMode.section;
       _melodyViewSizeFactor = 0.0;
     });
   }
@@ -529,7 +535,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               AnimatedContainer(
                   duration: animationDuration,
                   height: height * _melodyViewSizeFactor,
-                  child: MelodyView(counter: _counter))
+                  child: _melodyView(context))
             ])
           : Row(children: [
               AnimatedContainer(
@@ -548,9 +554,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     colorboardPart: _colorboardPart,
                     keyboardPart: _keyboardPart,
                   )),
-              Expanded(child: MelodyView(counter: _counter))
+              Expanded(child: _melodyView(context))
             ])
     ]);
+  }
+  Widget _melodyView(BuildContext context) {
+    return MelodyView(
+      melodyViewSizeFactor: _melodyViewSizeFactor,
+      melodyViewMode: _melodyViewMode,
+      score: _score,
+      currentSection: currentSection,
+      melody: selectedMelody,
+      part: selectedPart,);
   }
 
   _handleStatusBar(BuildContext context) {

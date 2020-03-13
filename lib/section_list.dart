@@ -1,12 +1,11 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import 'package:uuid/uuid.dart';
 import 'ui_models.dart';
+import 'util.dart';
 
 import 'animations/size_fade_transition.dart';
 
-var uuid = Uuid();
 class SectionList extends StatelessWidget {
   final Axis scrollDirection;
   final bool visible;

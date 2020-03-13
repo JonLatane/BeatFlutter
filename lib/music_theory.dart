@@ -79,3 +79,19 @@ extension ChordTheory on Chord {
     return false;
   }
 }
+
+extension SectionTheory on Section {
+  MelodyReference referenceTo(Melody melody) => melodies.firstWhere(
+      (element) => element.melodyId == melody.id,
+      orElse: () => _defaultMelodyReference(melody)
+  );
+
+  MelodyReference _defaultMelodyReference(Melody melody) {
+    var result = MelodyReference()
+      ..melodyId = melody.id
+      ..playbackType = MelodyReference_PlaybackType.disabled
+      ..volume = 0.5;
+    melodies.add(result);
+    return result;
+  }
+}

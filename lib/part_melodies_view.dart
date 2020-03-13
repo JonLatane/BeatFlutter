@@ -5,10 +5,11 @@ import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:flutter/material.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'animations/animations.dart';
 import 'ui_models.dart';
-
+import 'music_theory.dart';
 class PartMelodiesView extends StatefulWidget {
   final Score score;
   final Axis axis;
@@ -375,8 +376,7 @@ class _MelodyReference extends StatelessWidget {
   final Function(Part) setColorboardPart;
 
   MelodyReference referenceFor(Melody melody) {
-    return currentSection.melodies
-        .firstWhere((reference) => reference.melodyId == melody.id, orElse: () => _defaultMelodyReference(melody));
+    return currentSection.referenceTo(melody);
   }
 
   MelodyReference _defaultMelodyReference(Melody melody) {
@@ -390,10 +390,11 @@ class _MelodyReference extends StatelessWidget {
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
+    var color = melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD);
 
     if (state == ReorderableItemState.dragProxy || state == ReorderableItemState.dragProxyFinished) {
       // slightly transparent background white dragging (just like on iOS)
-      decoration = BoxDecoration(color: Color(0xD0FFFFFF));
+      decoration = BoxDecoration(color: color);
     } else {
       bool placeholder = state == ReorderableItemState.placeholder;
       decoration = BoxDecoration(
@@ -404,19 +405,17 @@ class _MelodyReference extends StatelessWidget {
               bottom: isLast && placeholder
                   ? BorderSide.none //
                   : Divider.createBorderSide(context)),
-          color: placeholder ? null : Colors.white);
+          color: color
+      );
     }
 
     Widget content = Container(
         decoration: decoration,
-        child: FlatButton(
-            onPressed: () {
-//            print("Hi");
-              selectMelody(melody);
-            },
-            color: melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD),
-            child: Stack(children: [
+        padding: EdgeInsets.only(bottom: 5),
+        child: Stack(children: [
               Column(children: [
+                Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                child:
                 TextField(
                   controller: TextEditingController()..text = melody.name,
                   textCapitalization: TextCapitalization.words,
@@ -425,7 +424,7 @@ class _MelodyReference extends StatelessWidget {
                   },
                   decoration:
                       InputDecoration(border: InputBorder.none, hintText: "Melody ${melody.id.substring(0, 5)}"),
-                ),
+                )),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
                 ExpandedSection(
                   child: Slider(
@@ -441,46 +440,57 @@ class _MelodyReference extends StatelessWidget {
                   axis: Axis.vertical,
                   expand: referenceFor(melody).playbackType != MelodyReference_PlaybackType.disabled,
                 ),
-                RaisedButton(
-                    onPressed: () {
-                      var ref = referenceFor(melody);
-                      if (ref.playbackType == MelodyReference_PlaybackType.disabled) {
-                        setState(() {
-                          ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely;
-                        });
-                      } else {
-                        setState(() {
-                          ref.playbackType = MelodyReference_PlaybackType.disabled;
-                        });
-                      }
-                    },
-                    color: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                Align(alignment: Alignment.centerRight, child:
+                Row(children: [
+                  Expanded(child:SizedBox()),
+                  Container(
+                    width: 40, height: 36,
+                    child: RaisedButton(
+                      padding: EdgeInsets.all(0),
+                      onPressed: () {
+                        var ref = referenceFor(melody);
+                        if (ref.playbackType == MelodyReference_PlaybackType.disabled) {
+                          setState(() {
+                            ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely;
+                          });
+                        } else {
+                          setState(() {
+                            ref.playbackType = MelodyReference_PlaybackType.disabled;
+                          });
+                        }
+                      },
+                      color: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
                         ? Color(0xFFDDDDDD)
                         : sectionColor,
-                    child: Icon((referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
+                      child: Align(alignment: Alignment.center, child: Icon((referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled)
                         ? Icons.not_interested
-                        : Icons.volume_up))
+                        : Icons.volume_up))),
+                  ),
+                  Container(
+                    width: 40, height: 36,
+                    child:
+                  RaisedButton(
+                    padding: EdgeInsets.all(0),
+                    onPressed: () { selectMelody(melody); },
+                    color: (melody == selectedMelody)
+                      ? sectionColor : Color(0xFFDDDDDD),
+                    child: Icon(Icons.remove_red_eye))),
+                  AnimatedContainer(
+                    duration: animationDuration,
+                    width: (referenceFor(melody).playbackType == MelodyReference_PlaybackType.disabled) ? 0 : 40,
+                    height: 36,
+                    child:
+                    RaisedButton(
+                      onPressed: () {},
+                      padding: EdgeInsets.all(0),
+                      color: (false)
+                        ? sectionColor : Color(0xFFDDDDDD),
+                      child: SvgPicture.asset('assets/edit.svg', fit: BoxFit.fill,))
+                  ),
+                  Expanded(child:SizedBox()),
+                ]))
               ])
-            ]))
-//      child: SafeArea(
-//          top: false,
-//          bottom: false,
-//          child: Opacity(
-//            // hide content for placeholder
-//            opacity: state == ReorderableItemState.placeholder ? 0.0 : 1.0,
-//            child: IntrinsicHeight(
-//              child: Row(
-//                crossAxisAlignment: CrossAxisAlignment.stretch,
-//                children: <Widget>[
-//                  Expanded(
-//                      child: Padding(
-//                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-//                    child: Text("Melody ${melody.id}", style: TextStyle(color: Colors.black)),
-//                  )),
-//                ],
-//              ),
-//            ),
-//          )),
+            ])
         );
 
     // For android dragging mode, wrap the entire content in DelayedReorderableListener
