@@ -78,6 +78,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 keyboardPart: widget.keyboardPart,
                 setKeyboardPart: widget.setKeyboardPart,
                 setColorboardPart: widget.setColorboardPart,
+                selectPart: widget.selectPart,
               ),
 //              child: _MelodiesView2(
 //                score: widget.score,
@@ -93,7 +94,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
           key: Key(part.id),
           color: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.black,
           child: Text(part.instrument.name, style: TextStyle(color: Colors.white)),
-          onPressed: () => {},
+          onPressed: () { widget.selectPart(part); },
         )
       ]);
     }
@@ -163,6 +164,7 @@ class _MelodiesView extends StatelessWidget {
   final int partPosition;
   final Axis scrollDirection;
   final Function(Melody) selectMelody;
+  final Function(Part) selectPart;
   final Function(VoidCallback) setState;
   final Color sectionColor;
   final Section currentSection;
@@ -186,7 +188,7 @@ class _MelodiesView extends StatelessWidget {
     this.sectionColor,
     this.currentSection,
     this.selectedMelody,
-    this.selectMelody, this.colorboardPart, this.keyboardPart, this.setKeyboardPart, this.setColorboardPart,
+    this.selectMelody, this.colorboardPart, this.keyboardPart, this.setKeyboardPart, this.setColorboardPart, this.selectPart,
   });
 
   int _indexOfKey(Key key) {
@@ -290,7 +292,7 @@ class _MelodiesView extends StatelessWidget {
 //                titlePadding: EdgeInsets.only(left: 8, bottom: 15),
 //                titlePadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
                 title: Handle(delay: const Duration(milliseconds: 250), child:
-                FlatButton(onPressed: () {},
+                FlatButton(onPressed: () { print("hi"); selectPart(part); },
                   child:Align(alignment: Alignment.bottomLeft,
                     child:Padding(padding: EdgeInsets.only(bottom:18),
                       child:Text(part.instrument.name,

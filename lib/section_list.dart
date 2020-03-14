@@ -170,51 +170,16 @@ class _Section extends StatefulWidget {
 }
 
 class _SectionState extends State<_Section> {
-  bool _editing = false;
-  FocusNode _focus = FocusNode();
   TextEditingController _controller = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _focus.addListener(_onFocusChange);
-    _controller.text = widget.section.name;
-  }
-
-  void _onFocusChange(){
-    if(!_focus.hasFocus) {
-      _editing = false;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onDoubleTap: () { widget.selectSection(widget.section); setState(() { _editing = !_editing; }); },
-      child:RaisedButton(
+    return RaisedButton(
       color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        width: _editing ? 200 : null,
-        child: _editing ? TextField(
-          autofocus: true,
-          focusNode: _focus,
-          textCapitalization: TextCapitalization.words,
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 11),
-          controller: TextEditingController()
-            ..text = widget.section.name,
-          onChanged: (value) {
-            widget.section.name = value;
-          },
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: "Section Name"
-          ),
-        ) : Text(widget.section.name, style: TextStyle(fontWeight: FontWeight.w100),)
-      ),
+      child: Text(widget.section.name, style: TextStyle(fontWeight: FontWeight.w100),),
       onPressed: () {
         widget.selectSection(widget.section);
       },
-    ));
+    );
   }
 }

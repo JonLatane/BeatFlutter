@@ -1,24 +1,17 @@
-import 'dart:collection';
-
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:quiver/collection.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'melodybeat.dart';
-import 'expanded_section.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
 import 'colorboard.dart';
-import 'dart:math';
-import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'colors.dart';
 import 'util.dart';
 import 'ui_models.dart';
+import 'dummydata.dart';
 
 void main() => runApp(MyApp());
 
@@ -38,102 +31,7 @@ const Map<int, Color> swatch = {
   900: Color.fromRGBO(0xF9, 0x37, 0x30, 1),
 };
 
-var section1 = Section()
-  ..id = uuid.v4()
-  ..name = "Section 1";
-var score = Score()
-  ..parts.addAll([
-    Part()
-      ..id = uuid.v4()
-      ..instrument = (Instrument()
-        ..name = "Drums"
-        ..volume = 0.5
-        ..type = InstrumentType.drum)
-      ..melodies.addAll([
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-      ]),
-    Part()
-      ..id = uuid.v4()
-      ..instrument = (Instrument()
-        ..name = "Piano"
-        ..volume = 0.5
-        ..type = InstrumentType.harmonic)
-      ..melodies.addAll([
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-      ]),
-    Part()
-      ..id = uuid.v4()
-      ..instrument = (Instrument()
-        ..name = "Bass"
-        ..volume = 0.5
-        ..type = InstrumentType.harmonic)
-      ..melodies.addAll([
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-      ]),
-    Part()
-      ..id = uuid.v4()
-      ..instrument = (Instrument()
-        ..name = "Muted Electric Jazz Guitar 1"
-        ..volume = 0.5
-        ..type = InstrumentType.harmonic)
-      ..melodies.addAll([
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-      ]),
-    Part()
-      ..id = uuid.v4()
-      ..instrument = (Instrument()
-        ..name = "Part 5"
-        ..volume = 0.5
-        ..type = InstrumentType.harmonic)
-      ..melodies.addAll([
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-        Melody()..id = uuid.v4(),
-      ]),
-  ])
-  ..sections.addAll([
-    section1,
-    Section()
-      ..id = uuid.v4()
-      ..name = "Section 2",
-    Section()
-      ..id = uuid.v4()
-      ..name = "Section 3",
-    Section()
-      ..id = uuid.v4()
-      ..name = "Section 4",
-    Section()
-      ..id = uuid.v4()
-      ..name = "Section 5"
-  ]);
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -169,57 +67,62 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-enum MelodyViewDisplayMode { half, full }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
+  MelodyViewDisplayMode melodyViewDisplayMode = MelodyViewDisplayMode.half;
+  MelodyViewMode _melodyViewMode = MelodyViewMode.score;
+  MelodyViewMode get melodyViewMode => _melodyViewMode;
+  set melodyViewMode(MelodyViewMode value) {
+    _melodyViewMode = value;
+    if(value != MelodyViewMode.melody) {
+      selectedMelody = null;
+    }
+    if(value != MelodyViewMode.part) {
+      selectedPart = null;
+    }
+  }
+
   Section _currentSection = section1;
-  int _counter = 20;
   bool _showViewOptions = false;
   bool _showKeyboard = false;
   bool _showColorboard = false;
-  Part _keyboardPart = null;
-  Part _colorboardPart = null;
+  Part _keyboardPart;
+  Part _colorboardPart;
 
-  get showMelodyView => _melodyViewSizeFactor > 0;
+  bool get melodyViewVisible => _melodyViewSizeFactor > 0;
+
   double _melodyViewSizeFactor = 1.0;
-  MelodyViewDisplayMode _melodyViewDisplayMode = MelodyViewDisplayMode.half;
-  MelodyViewMode _melodyViewMode = MelodyViewMode.score;
-
-  get melodyViewDisplayMode => _melodyViewDisplayMode;
-
-  set melodyViewDisplayMode(value) {
-    _melodyViewDisplayMode = value;
-    if (_melodyViewSizeFactor > 0) {
-      if (value == MelodyViewDisplayMode.half) {
+  _showMelodyView() {
+    if(_interactionMode == InteractionMode.edit) {
+      if(melodyViewDisplayMode == MelodyViewDisplayMode.half) {
         _melodyViewSizeFactor = 0.5;
       } else {
         _melodyViewSizeFactor = 1;
       }
-    }
-  }
-
-  toggleMelodyViewDisplayMode(value) {
-    setState(() {
-      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
-        melodyViewDisplayMode = MelodyViewDisplayMode.full;
-      } else {
-        melodyViewDisplayMode = MelodyViewDisplayMode.half;
-      }
-    });
-  }
-
-  _showMelodyView() {
-    if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
-      _melodyViewSizeFactor = 0.5;
     } else {
       _melodyViewSizeFactor = 1;
     }
   }
 
   _hideMelodyView() {
-    _melodyViewSizeFactor = 0;
+    setState(() {
+      _melodyViewSizeFactor = 0;
+      selectedMelody = null;
+      selectedPart = null;
+    });
+  }
+
+  toggleMelodyViewDisplayMode() {
+    setState(() {
+      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+        melodyViewDisplayMode = MelodyViewDisplayMode.full;
+      } else {
+        melodyViewDisplayMode = MelodyViewDisplayMode.half;
+      }
+      _showMelodyView();
+    });
   }
 
   _setKeyboardPart(Part part) {
@@ -244,33 +147,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ));
   }
 
-  Melody _selectedMelody;
-  get selectedMelody => _selectedMelody;
-  set selectedMelody(Melody melody) {
-    _selectedMelody = melody;
-    if (_interactionMode == InteractionMode.edit) {
-      if (melody == null) {
-        _melodyViewMode = MelodyViewMode.section;
-        _melodyViewSizeFactor = 0;
-      } else {
-        _melodyViewMode = MelodyViewMode.melody;
-        _melodyViewSizeFactor = 0.5;
-      }
-    }
-  }
-
-  Part _selectedPart;
-  get selectedPart => _selectedPart;
-  set selectedPart(Part part) {
-    _selectedPart = part;
-    if (_interactionMode == InteractionMode.edit) {
-      if (part == null) {
-        _melodyViewSizeFactor = 0;
-      } else {
-        _melodyViewSizeFactor = 0.5;
-      }
-    }
-  }
+  Melody selectedMelody;
+  Part selectedPart;
 
   Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
 
@@ -278,14 +156,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
+        melodyViewMode = MelodyViewMode.melody;
+        _showMelodyView();
       } else {
         selectedMelody = null;
+        melodyViewMode = MelodyViewMode.none;
+        _hideMelodyView();
       }
     });
   }
 
   _selectOrDeselectPart(Part part) {
     setState(() {
+      print("yay");
+      if (selectedPart != part) {
+        selectedPart = part;
+        melodyViewMode = MelodyViewMode.part;
+        _showMelodyView();
+      } else {
+        selectedPart = null;
+        melodyViewMode = MelodyViewMode.none;
+        _hideMelodyView();
+      }
 //      if (selectedMelody != melody) {
 //        selectedMelody = melody;
 //      } else {
@@ -299,21 +191,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     setState(() {
       _interactionMode = InteractionMode.view;
-      if (MediaQuery.of(context).size.width < 500) {
+      if (!context.isTabletOrLandscapey) {
         _showViewOptions = false;
       }
-      _melodyViewMode = MelodyViewMode.score;
-      melodyViewDisplayMode = MelodyViewDisplayMode.full;
-      _melodyViewSizeFactor = 1;
+      melodyViewMode = MelodyViewMode.score;
       selectedMelody = null;
+      _showMelodyView();
     });
   }
 
   _editMode() {
     setState(() {
       _interactionMode = InteractionMode.edit;
-      _melodyViewMode = MelodyViewMode.section;
-      _melodyViewSizeFactor = 0.0;
+      melodyViewMode = MelodyViewMode.section;
+      _hideMelodyView();
     });
   }
 
@@ -337,11 +228,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _selectSection(Section section) {
     setState(() {
-      currentSection = section;
+      if(currentSection == section) {
+        if(melodyViewMode != MelodyViewMode.section) {
+          melodyViewMode = MelodyViewMode.section;
+          _showMelodyView();
+        } else {
+          if(!melodyViewVisible) {
+            _showMelodyView();
+          } else {
+            melodyViewMode = MelodyViewMode.none;
+            _hideMelodyView();
+          }
+        }
+      } else {
+        currentSection = section;
+      }
     });
   }
 
-  bool get _combineSecondAndMainToolbar => context.isTabletOrLandscape;
+  bool get _combineSecondAndMainToolbar => context.isTabletOrLandscapey;
 
   double get _secondToolbarHeight =>
       (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
@@ -434,7 +339,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   height: 36,
                                   child: AnimatedContainer(
                                       duration: animationDuration,
-                                      width: context.isTabletOrLandscape ||
+                                      width: context.isTabletOrLandscapey ||
                                               _interactionMode == InteractionMode.edit ||
                                               _showViewOptions
                                           ? MediaQuery.of(context).size.width / 2
@@ -512,11 +417,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _secondToolbarHeight -
         _colorboardHeight -
         _keyboardHeight +
-        8;
+        8 - 36;
+    if(melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
+      height += 36;
+    }
     _handleStatusBar(context);
 
     return Stack(children: [
-      (MediaQuery.of(context).size.width <= MediaQuery.of(context).size.height)
+      (context.isPortrait)
           ? Column(children: [
               Expanded(
                   child: PartMelodiesView(
@@ -561,11 +469,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _melodyView(BuildContext context) {
     return MelodyView(
       melodyViewSizeFactor: _melodyViewSizeFactor,
-      melodyViewMode: _melodyViewMode,
+      melodyViewMode: melodyViewMode,
       score: _score,
       currentSection: currentSection,
       melody: selectedMelody,
-      part: selectedPart,);
+      part: selectedPart,
+    sectionColor: sectionColor,
+    melodyViewDisplayMode: melodyViewDisplayMode,
+    toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
+    closeMelodyView: _hideMelodyView,);
   }
 
   _handleStatusBar(BuildContext context) {
@@ -716,7 +628,7 @@ class SecondToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
-    if (context.isTabletOrLandscape) {
+    if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
     return Row(children: [
