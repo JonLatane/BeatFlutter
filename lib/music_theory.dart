@@ -81,10 +81,10 @@ extension ChordTheory on Chord {
 }
 
 extension SectionTheory on Section {
-  MelodyReference referenceTo(Melody melody) => melodies.firstWhere(
+  MelodyReference referenceTo(Melody melody) => (melody != null) ? melodies.firstWhere(
       (element) => element.melodyId == melody.id,
       orElse: () => _defaultMelodyReference(melody)
-  );
+  ) : null;
 
   MelodyReference _defaultMelodyReference(Melody melody) {
     var result = MelodyReference()

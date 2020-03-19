@@ -25,6 +25,13 @@ class MelodyView extends StatefulWidget {
   final Color sectionColor;
   final VoidCallback toggleMelodyViewDisplayMode;
   final VoidCallback closeMelodyView;
+  final VoidCallback toggleEditingMelody;
+  final Function(MelodyReference) toggleMelodyReference;
+  final Function(MelodyReference, double) setReferenceVolume;
+  final Function(Part, double) setPartVolume;
+  final Function(Melody, String) setMelodyName;
+  final Function(Section, String) setSectionName;
+  final bool editingMelody;
 
   MelodyView(
       {this.melodyViewSizeFactor,
@@ -36,7 +43,14 @@ class MelodyView extends StatefulWidget {
       this.sectionColor,
       this.melodyViewDisplayMode,
       this.toggleMelodyViewDisplayMode,
-      this.closeMelodyView});
+      this.closeMelodyView,
+      this.toggleMelodyReference,
+      this.setReferenceVolume,
+      this.setPartVolume,
+      this.editingMelody,
+      this.toggleEditingMelody,
+      this.setMelodyName,
+      this.setSectionName});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -54,11 +68,15 @@ class _MelodyViewState extends State<MelodyView> {
       children: [
         AnimatedContainer(
           duration: animationDuration,
-          color: (widget.melodyViewMode == MelodyViewMode.section) ? widget.sectionColor :
-          (widget.melodyViewMode == MelodyViewMode.melody) ? Colors.white :
-          (widget.melodyViewMode == MelodyViewMode.part)
-            ? ((widget.part.instrument.type == InstrumentType.drum) ? Colors.brown : Colors.grey)
-          : Colors.black,
+          color: (widget.melodyViewMode == MelodyViewMode.section)
+              ? widget.sectionColor
+              : (widget.melodyViewMode == MelodyViewMode.melody)
+                  ? Colors.white
+                  : (widget.melodyViewMode == MelodyViewMode.part)
+                      ? ((widget.part != null && widget.part.instrument.type == InstrumentType.drum)
+                          ? Colors.brown
+                          : Colors.grey)
+                      : Colors.black,
           child: Row(
             children: <Widget>[
               Padding(
@@ -80,20 +98,28 @@ class _MelodyViewState extends State<MelodyView> {
                     duration: animationDuration,
                     height: (widget.melodyViewMode == MelodyViewMode.section) ? 48 : 0,
                     child: _SectionToolbar(
-                        currentSection: widget.currentSection,
-                        sectionColor: widget.sectionColor,
-                        melodyViewMode: widget.melodyViewMode)),
+                      currentSection: widget.currentSection,
+                      sectionColor: widget.sectionColor,
+                      melodyViewMode: widget.melodyViewMode,
+                      setSectionName: widget.setSectionName,
+                    )),
                 AnimatedContainer(
-                  duration: animationDuration,
-                  height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
-                  child: _PartToolbar(
-                    part: widget.part)),
+                    duration: animationDuration,
+                    height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
+                    child: _PartToolbar(part: widget.part)),
                 AnimatedContainer(
                     duration: animationDuration,
                     height: (widget.melodyViewMode == MelodyViewMode.melody) ? 48 : 0,
                     child: _MelodyToolbar(
                       melody: widget.melody,
+                      melodyViewMode: widget.melodyViewMode,
                       currentSection: widget.currentSection,
+                      toggleMelodyReference: widget.toggleMelodyReference,
+                      setReferenceVolume: widget.setReferenceVolume,
+                      editingMelody: widget.editingMelody,
+                      sectionColor: widget.sectionColor,
+                      toggleEditingMelody: widget.toggleEditingMelody,
+                      setMelodyName: widget.setMelodyName,
                     )),
               ])),
               Padding(
@@ -132,26 +158,47 @@ class _MelodyViewState extends State<MelodyView> {
           child: GridView.builder(
             gridDelegate:
                 new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
-            itemCount: 20 * 8,
+            itemCount: 400,
             itemBuilder: (BuildContext context, int index) {
               return GridTile(
                   child: Transform.scale(
                       scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
                       child: SvgPicture.asset('assets/notehead_half.svg')));
             },
-//                padding: const EdgeInsets.all(4.0),
           ),
         ));
   }
 }
 
 class _MelodyToolbar extends StatelessWidget {
+  final MelodyViewMode melodyViewMode;
+  final bool editingMelody;
   final Melody melody;
   final Section currentSection;
+  final Color sectionColor;
+  final Function(MelodyReference) toggleMelodyReference;
+  final Function(MelodyReference, double) setReferenceVolume;
+  final VoidCallback toggleEditingMelody;
+  final Function(Melody, String) setMelodyName;
 
   MelodyReference get melodyReference => currentSection.referenceTo(melody);
 
-  const _MelodyToolbar({Key key, this.melody, this.currentSection}) : super(key: key);
+  bool get melodySelected => melody != null;
+
+  bool get melodyEnabled => melodySelected && melodyReference.playbackType != MelodyReference_PlaybackType.disabled;
+
+  const _MelodyToolbar(
+      {Key key,
+      this.melody,
+      this.currentSection,
+      this.toggleMelodyReference,
+      this.setReferenceVolume,
+      this.editingMelody,
+      this.sectionColor,
+      this.toggleEditingMelody,
+      this.setMelodyName,
+      this.melodyViewMode})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -162,26 +209,57 @@ class _MelodyToolbar extends StatelessWidget {
     return Container(
 //        color: Colors.white,
         child: Row(children: [
-          Expanded(
-              child: Padding(
-                  padding: EdgeInsets.only(left: 5),
-                  child: TextField(
-                    controller: (melody != null) ? (TextEditingController()..text = melody.name) : TextEditingController(),
-                    textCapitalization: TextCapitalization.words,
-                    onChanged: (melody != null)
-                        ? (value) {
-                            melody.name = value;
-                          }
-                        : null,
-                    decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: (melody != null) ? "Melody ${melody.id.substring(0, 5)}" : ""),
-                  ))),
-          RaisedButton(
-            onPressed: () {},
-            child: Icon(Icons.edit),
-          )
-        ]));
+      Expanded(
+          child: Padding(
+              padding: EdgeInsets.only(left: 5),
+              child: (melodyViewMode == MelodyViewMode.melody)
+                  ? TextField(
+                      controller:
+                          (melodySelected) ? (TextEditingController()..text = melody.name) : TextEditingController(),
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (melodySelected)
+                          ? (value) {
+                              melody.name = value;
+                            }
+                          : null,
+                      onEditingComplete: () {
+                        setMelodyName(melody, melody.name);
+                      },
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: (melodySelected) ? "Melody ${melody.id.substring(0, 5)}" : ""),
+                    )
+                  : Text(""))),
+      AnimatedContainer(
+          duration: animationDuration,
+          width: (melodyEnabled) ? 40 : 0,
+          height: 36,
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+            color: (editingMelody) ? sectionColor : null,
+            onPressed: (melodyEnabled)
+                ? () {
+                    toggleEditingMelody();
+                  }
+                : null,
+            padding: EdgeInsets.all(0),
+            child: SvgPicture.asset(
+              'assets/edit.svg',
+              fit: BoxFit.fill,
+            ),
+          )),
+      Container(
+          width: 40,
+          height: 36,
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+              onPressed: () {
+                toggleMelodyReference(melodyReference);
+              },
+              padding: EdgeInsets.all(0),
+              child: Icon(
+                  melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.do_not_disturb_on)))
+    ]));
   }
 }
 
@@ -196,15 +274,14 @@ class _PartToolbar extends StatelessWidget {
       width = width / 2;
     }
     return Container(
-      child: Row(children: [
-        Expanded(
+        child: Row(children: [
+      Expanded(
           child: Padding(
-            padding: EdgeInsets.only(left: 5),
-            child: Text( (part != null) ? part.instrument.name : "",
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
-      ]));
+              padding: EdgeInsets.only(left: 5),
+              child: Text((part != null) ? part.instrument.name : "",
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
+    ]));
   }
-
 }
 
 class _SectionToolbar extends StatelessWidget {
@@ -212,8 +289,10 @@ class _SectionToolbar extends StatelessWidget {
   final Section currentSection;
   final Color sectionColor;
   final MelodyViewMode melodyViewMode;
+  final Function(Section, String) setSectionName;
 
-  const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode}) : super(key: key);
+  const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode, this.setSectionName})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -224,28 +303,33 @@ class _SectionToolbar extends StatelessWidget {
     return Container(
 //        color: sectionColor,
         child: Row(children: [
-          Expanded(
-              child: Padding(
-                  padding: EdgeInsets.only(left: 5),
-                  child: TextField(
-                    style: TextStyle(fontWeight: FontWeight.w100),
-                    controller: (melodyViewMode == MelodyViewMode.section)
-                        ? (TextEditingController()..text = currentSection.name)
-                        : TextEditingController(),
-                    textCapitalization: TextCapitalization.words,
-                    onChanged: (melodyViewMode == MelodyViewMode.section)
-                        ? (value) {
-                            currentSection.name = value;
-                          }
-                        : null,
-                    decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: (melodyViewMode == MelodyViewMode.section)
-                            ? "Section ${currentSection.id.substring(0, 5)}"
-                            : ""),
-                  ))),
+      Expanded(
+          child: Padding(
+              padding: EdgeInsets.only(left: 5),
+              child: (melodyViewMode == MelodyViewMode.section)
+                  ? TextField(
+                      style: TextStyle(fontWeight: FontWeight.w100),
+                      controller: (melodyViewMode == MelodyViewMode.section)
+                          ? (TextEditingController()..text = currentSection.name)
+                          : TextEditingController(),
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (melodyViewMode == MelodyViewMode.section)
+                          ? (value) {
+                              currentSection.name = value;
+                            }
+                          : null,
+                      onEditingComplete: () {
+                        setSectionName(currentSection, currentSection.name);
+                      },
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: (melodyViewMode == MelodyViewMode.section)
+                              ? "Section ${currentSection.id.substring(0, 5)}"
+                              : ""),
+                    )
+                  : Text(""))),
 //        RaisedButton(onPressed: () {  },
 //          child: Icon(Icons.edit),)
-        ]));
+    ]));
   }
 }

@@ -31,8 +31,6 @@ const Map<int, Color> swatch = {
   900: Color.fromRGBO(0xF9, 0x37, 0x30, 1),
 };
 
-
-
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -67,19 +65,26 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
   MelodyViewDisplayMode melodyViewDisplayMode = MelodyViewDisplayMode.half;
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
+  bool _editingMelody = false;
+  bool get editingMelody => _editingMelody;
+  set editingMelody(value) {
+    _editingMelody = value;
+    if(value) _showMelodyView();
+  }
+
   MelodyViewMode get melodyViewMode => _melodyViewMode;
+
   set melodyViewMode(MelodyViewMode value) {
     _melodyViewMode = value;
-    if(value != MelodyViewMode.melody) {
+    if (value != MelodyViewMode.melody) {
       selectedMelody = null;
     }
-    if(value != MelodyViewMode.part) {
+    if (value != MelodyViewMode.part) {
       selectedPart = null;
     }
   }
@@ -94,9 +99,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
 
   double _melodyViewSizeFactor = 1.0;
+
   _showMelodyView() {
-    if(_interactionMode == InteractionMode.edit) {
-      if(melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+    if (_interactionMode == InteractionMode.edit) {
+      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
         _melodyViewSizeFactor = 0.5;
       } else {
         _melodyViewSizeFactor = 1;
@@ -111,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _melodyViewSizeFactor = 0;
       selectedMelody = null;
       selectedPart = null;
+      melodyViewMode = MelodyViewMode.none;
     });
   }
 
@@ -137,7 +144,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-
   get currentSection => _currentSection;
 
   set currentSection(Section section) {
@@ -150,6 +156,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Melody selectedMelody;
   Part selectedPart;
 
+  List<SectionList> _sectionLists = [];
+
   Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
 
   _selectOrDeselectMelody(Melody melody) {
@@ -160,7 +168,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _showMelodyView();
       } else {
         selectedMelody = null;
-        melodyViewMode = MelodyViewMode.none;
         _hideMelodyView();
       }
     });
@@ -174,8 +181,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         melodyViewMode = MelodyViewMode.part;
         _showMelodyView();
       } else {
-        selectedPart = null;
-        melodyViewMode = MelodyViewMode.none;
         _hideMelodyView();
       }
 //      if (selectedMelody != melody) {
@@ -183,6 +188,42 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //      } else {
 //        selectedMelody = null;
 //      }
+    });
+  }
+
+  _toggleReferenceDisabled(MelodyReference ref) {
+    if (ref.playbackType == MelodyReference_PlaybackType.disabled) {
+      setState(() {
+        ref.playbackType = MelodyReference_PlaybackType.playback_indefinitely;
+      });
+    } else {
+      setState(() {
+        ref.playbackType = MelodyReference_PlaybackType.disabled;
+      });
+    }
+  }
+
+  _setReferenceVolume(MelodyReference ref, double volume) {
+    setState(() {
+      ref.volume = volume;
+    });
+  }
+
+  _setPartVolume(Part part, double volume) {
+    setState(() {
+      part.instrument.volume = volume;
+    });
+  }
+
+  _setSectionName(Section section, String name) {
+    setState((){
+      section.name = name;
+    });
+  }
+
+  _setMelodyName(Melody melody, String name) {
+    setState(() {
+      melody.name = name;
     });
   }
 
@@ -202,9 +243,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _editMode() {
     setState(() {
-      _interactionMode = InteractionMode.edit;
-      melodyViewMode = MelodyViewMode.section;
-      _hideMelodyView();
+      if(_interactionMode == InteractionMode.edit) {
+        _selectSection(currentSection);
+      } else {
+        _interactionMode = InteractionMode.edit;
+        _hideMelodyView();
+      }
     });
   }
 
@@ -228,15 +272,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _selectSection(Section section) {
     setState(() {
-      if(currentSection == section) {
-        if(melodyViewMode != MelodyViewMode.section) {
+      if (currentSection == section) {
+        if (melodyViewMode != MelodyViewMode.section) {
           melodyViewMode = MelodyViewMode.section;
           _showMelodyView();
         } else {
-          if(!melodyViewVisible) {
+          if (!melodyViewVisible) {
             _showMelodyView();
           } else {
-            melodyViewMode = MelodyViewMode.none;
             _hideMelodyView();
           }
         }
@@ -373,15 +416,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                 showViewOptions: _showViewOptions,
                               ))
                         ]),
-                  SectionList(
-                    sectionColor: sectionColor,
-                    score: _score,
-                    setState: setState,
-                    scrollDirection: Axis.horizontal,
-                    visible: _interactionMode == InteractionMode.edit,
-                    currentSection: currentSection,
-                    selectSection: _selectSection,
-                  ),
+                  createSectionList(),
                   Expanded(child: _partsAndMelodiesAndMelodyView(context)),
                   AnimatedContainer(
                       duration: animationDuration,
@@ -409,6 +444,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             )));
   }
 
+  SectionList createSectionList() {
+    SectionList result = SectionList(
+      sectionColor: sectionColor,
+      score: _score,
+      setState: setState,
+      scrollDirection: Axis.horizontal,
+      visible: _interactionMode == InteractionMode.edit,
+      currentSection: currentSection,
+      selectSection: _selectSection,
+    );
+    _sectionLists.add(result);
+    return result;
+  }
+
   Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
@@ -417,8 +466,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _secondToolbarHeight -
         _colorboardHeight -
         _keyboardHeight +
-        8 - 36;
-    if(melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
+        8 -
+        36;
+    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
       height += 36;
     }
     _handleStatusBar(context);
@@ -426,46 +476,46 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Stack(children: [
       (context.isPortrait)
           ? Column(children: [
-              Expanded(
-                  child: PartMelodiesView(
-                currentSection: currentSection,
-                score: _score,
-                sectionColor: sectionColor,
-                setState: setState,
-                selectMelody: _selectOrDeselectMelody,
-                selectPart: _selectOrDeselectPart,
-                selectedMelody: selectedMelody,
-                setColorboardPart: _setColorboardPart,
-                setKeyboardPart: _setKeyboardPart,
-                colorboardPart: _colorboardPart,
-                keyboardPart: _keyboardPart,
-              )),
+              Expanded(child: _partMelodiesView(context)),
               AnimatedContainer(
-                  duration: animationDuration,
-                  height: height * _melodyViewSizeFactor,
-                  child: _melodyView(context))
+                curve: Curves.easeInOut,
+                duration: slowAnimationDuration,
+                padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
+                height: height * _melodyViewSizeFactor,
+                child: _melodyView(context))
             ])
           : Row(children: [
               AnimatedContainer(
-                  duration: animationDuration,
+                  curve: Curves.easeInOut,
+                  duration: slowAnimationDuration,
                   width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
-                  child: PartMelodiesView(
-                    score: _score,
-                    currentSection: currentSection,
-                    sectionColor: sectionColor,
-                    setState: setState,
-                    selectMelody: _selectOrDeselectMelody,
-                    selectPart: _selectOrDeselectPart,
-                    selectedMelody: selectedMelody,
-                    setColorboardPart: _setColorboardPart,
-                    setKeyboardPart: _setKeyboardPart,
-                    colorboardPart: _colorboardPart,
-                    keyboardPart: _keyboardPart,
-                  )),
-              Expanded(child: _melodyView(context))
+                  child: _partMelodiesView(context)),
+              Expanded(child: AnimatedContainer(duration:animationDuration,
+                padding:EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5), child:_melodyView(context)))
             ])
     ]);
   }
+
+  Widget _partMelodiesView(BuildContext context) {
+    return PartMelodiesView(
+      currentSection: currentSection,
+      score: _score,
+      sectionColor: sectionColor,
+      selectMelody: _selectOrDeselectMelody,
+      selectPart: _selectOrDeselectPart,
+      selectedMelody: selectedMelody,
+      toggleEditingMelody: () { setState(() { editingMelody = !editingMelody; }); },
+      toggleMelodyReference: _toggleReferenceDisabled,
+      setReferenceVolume: _setReferenceVolume,
+      setPartVolume: _setPartVolume,
+      setColorboardPart: _setColorboardPart,
+      setKeyboardPart: _setKeyboardPart,
+      colorboardPart: _colorboardPart,
+      keyboardPart: _keyboardPart,
+      editingMelody: editingMelody,
+    );
+  }
+
   Widget _melodyView(BuildContext context) {
     return MelodyView(
       melodyViewSizeFactor: _melodyViewSizeFactor,
@@ -474,10 +524,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       currentSection: currentSection,
       melody: selectedMelody,
       part: selectedPart,
-    sectionColor: sectionColor,
-    melodyViewDisplayMode: melodyViewDisplayMode,
-    toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
-    closeMelodyView: _hideMelodyView,);
+      sectionColor: sectionColor,
+      melodyViewDisplayMode: melodyViewDisplayMode,
+      toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
+      closeMelodyView: _hideMelodyView,
+      toggleMelodyReference: _toggleReferenceDisabled,
+      setReferenceVolume: _setReferenceVolume,
+      editingMelody: editingMelody,
+      toggleEditingMelody: () { setState(() { editingMelody = !editingMelody; }); },
+      setPartVolume: _setPartVolume,
+      setMelodyName: _setMelodyName,
+      setSectionName: _setSectionName,
+    );
   }
 
   _handleStatusBar(BuildContext context) {
@@ -487,7 +545,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    }
   }
 }
-
 
 class BeatScratchToolbar extends StatelessWidget {
   final VoidCallback viewMode;
@@ -542,32 +599,32 @@ class BeatScratchToolbar extends StatelessWidget {
                           value: null,
                           child: Text('MIDI Output Settings'),
                         ),
-                    PopupMenuItem(
-                      value: null,
-                      child: Row(children: [
-                        Checkbox(value: true, onChanged: null),
-                        Expanded(child:Text('Notation UI')),
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                          child: SvgPicture.asset(
-                            'assets/notehead_filled.svg',
-                            width: 20,
-                            height: 20,
-                          ))
-                      ]),
-                    ),
-                      PopupMenuItem(
+                        PopupMenuItem(
+                          value: null,
+                          child: Row(children: [
+                            Checkbox(value: true, onChanged: null),
+                            Expanded(child: Text('Notation UI')),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                child: SvgPicture.asset(
+                                  'assets/notehead_filled.svg',
+                                  width: 20,
+                                  height: 20,
+                                ))
+                          ]),
+                        ),
+                        PopupMenuItem(
                           value: null,
                           child: Row(children: [
                             Checkbox(value: false, onChanged: null),
-                            Expanded(child:Text('Colorblock UI')),
+                            Expanded(child: Text('Colorblock UI')),
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                              child: Image.asset(
-                                'assets/colorboard_vertical.png',
-                                width: 20,
-                                height: 20,
-                              ))
+                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                child: Image.asset(
+                                  'assets/colorboard_vertical.png',
+                                  width: 20,
+                                  height: 20,
+                                ))
                           ]),
                         ),
                         const PopupMenuItem(

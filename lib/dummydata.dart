@@ -6,7 +6,7 @@ import 'util.dart';
 
 var section1 = Section()
   ..id = uuid.v4()
-  ..name = "Section 1";
+  ..name = "";
 var score = Score()
   ..parts.addAll([
     Part()
@@ -89,14 +89,14 @@ var score = Score()
     section1,
     Section()
       ..id = uuid.v4()
-      ..name = "Section 2",
+      ..name = "",
     Section()
       ..id = uuid.v4()
-      ..name = "Section 3",
+      ..name = "",
     Section()
       ..id = uuid.v4()
-      ..name = "Section 4",
+      ..name = "",
     Section()
       ..id = uuid.v4()
-      ..name = "Section 5"
+      ..name = ""
   ]);
