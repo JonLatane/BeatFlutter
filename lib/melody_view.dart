@@ -158,7 +158,7 @@ class _MelodyViewState extends State<MelodyView> {
           child: GridView.builder(
             gridDelegate:
                 new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
-            itemCount: 400,
+            itemCount: 12,
             itemBuilder: (BuildContext context, int index) {
               return GridTile(
                   child: Transform.scale(
@@ -253,12 +253,12 @@ class _MelodyToolbar extends StatelessWidget {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: () {
+              onPressed: melodySelected ? () {
                 toggleMelodyReference(melodyReference);
-              },
+              } : null,
               padding: EdgeInsets.all(0),
               child: Icon(
-                  melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.do_not_disturb_on)))
+                  melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.not_interested)))
     ]));
   }
 }
@@ -279,6 +279,8 @@ class _PartToolbar extends StatelessWidget {
           child: Padding(
               padding: EdgeInsets.only(left: 5),
               child: Text((part != null) ? part.instrument.name : "",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
     ]));
   }

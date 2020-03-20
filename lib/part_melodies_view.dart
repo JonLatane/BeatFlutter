@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'animations/animations.dart';
 import 'ui_models.dart';
+import 'util.dart';
 import 'music_theory.dart';
 
 class PartMelodiesView extends StatefulWidget {
@@ -18,6 +19,7 @@ class PartMelodiesView extends StatefulWidget {
   final Melody selectedMelody;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
+  final VoidCallback hideMelodyView;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
   final Function(Part, double) setPartVolume;
@@ -41,7 +43,7 @@ class PartMelodiesView extends StatefulWidget {
       this.selectPart,
       this.toggleMelodyReference,
       this.setReferenceVolume,
-      this.setPartVolume, this.editingMelody, this.toggleEditingMelody});
+      this.setPartVolume, this.editingMelody, this.toggleEditingMelody, this.hideMelodyView});
 
   @override
   _PartMelodiesViewState createState() {
@@ -83,6 +85,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
               setColorboardPart: widget.setColorboardPart,
               selectPart: widget.selectPart,
               editingMelody: widget.editingMelody,
+              hideMelodyView: widget.hideMelodyView,
             ),
           )
         ]));
@@ -153,6 +156,7 @@ class _MelodiesView extends StatefulWidget {
   final Axis scrollDirection;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
+  final VoidCallback hideMelodyView;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
   final Function(Part, double) setPartVolume;
@@ -187,7 +191,7 @@ class _MelodiesView extends StatefulWidget {
     this.selectPart,
     this.toggleMelodyReference,
     this.setReferenceVolume,
-    this.setPartVolume, this.editingMelody, this.toggleEditingMelody,
+    this.setPartVolume, this.editingMelody, this.toggleEditingMelody, this.hideMelodyView,
   });
 
   @override
@@ -228,6 +232,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
   get editingMelody => widget.editingMelody;
 
   get toggleEditingMelody => widget.toggleEditingMelody;
+
+
+  get hideMelodyView => widget.hideMelodyView;
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
@@ -378,7 +385,11 @@ class _MelodiesViewState extends State<_MelodiesView> {
               pinned: false,
               expandedHeight: 50.0,
               flexibleSpace: FlatButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    setState(() {
+                      part.melodies.insert(0, Melody()..id = uuid.v4());
+                    });
+                  },
                   child: Icon(
                     Icons.add,
                     color: Colors.white,
@@ -404,6 +415,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         colorboardPart: colorboardPart,
                         keyboardPart: keyboardPart,
                         editingMelody: editingMelody,
+                        hideMelodyView: hideMelodyView,
                       );
                     },
                     childCount: _items.length,
@@ -414,7 +426,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 }
 
-class _MelodyReference extends StatelessWidget {
+class _MelodyReference extends StatefulWidget {
   _MelodyReference({
     this.melody,
     this.isFirst,
@@ -426,7 +438,9 @@ class _MelodyReference extends StatelessWidget {
     this.colorboardPart,
     this.keyboardPart,
     this.toggleMelodyReference,
-    this.setReferenceVolume, this.editingMelody, this.toggleEditingMelody,
+    this.setReferenceVolume,
+    this.editingMelody,
+    this.toggleEditingMelody, this.hideMelodyView,
   });
 
   final Melody melody;
@@ -437,17 +451,23 @@ class _MelodyReference extends StatelessWidget {
   final Melody selectedMelody;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
+  final VoidCallback hideMelodyView;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
   final Part colorboardPart;
   final Part keyboardPart;
   final bool editingMelody;
 
-  MelodyReference get reference => currentSection.referenceTo(melody);
+  @override
+  __MelodyReferenceState createState() => __MelodyReferenceState();
+}
+
+class __MelodyReferenceState extends State<_MelodyReference> with TickerProviderStateMixin {
+  MelodyReference get reference => widget.currentSection.referenceTo(widget.melody);
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
-    var color = melody == selectedMelody ? Colors.white : Color(0xFFDDDDDD);
+    var color = widget.melody == widget.selectedMelody ? Colors.white : Color(0xFFDDDDDD);
 
     if (state == ReorderableItemState.dragProxy || state == ReorderableItemState.dragProxyFinished) {
       // slightly transparent background white dragging (just like on iOS)
@@ -456,10 +476,10 @@ class _MelodyReference extends StatelessWidget {
       bool placeholder = state == ReorderableItemState.placeholder;
       decoration = BoxDecoration(
           border: Border(
-              top: isFirst && !placeholder
+              top: widget.isFirst && !placeholder
                   ? Divider.createBorderSide(context) //
                   : BorderSide.none,
-              bottom: isLast && placeholder
+              bottom: widget.isLast && placeholder
                   ? BorderSide.none //
                   : Divider.createBorderSide(context)),
           color: color);
@@ -473,23 +493,28 @@ class _MelodyReference extends StatelessWidget {
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
                 child: TextField(
-                  controller: TextEditingController()..text = melody.name,
+                  controller: TextEditingController()..text = widget.melody.name,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (value) {
-                    melody.name = value;
+                    widget.melody.name = value;
+                  },
+                  onTap: () {
+                    if(!context.isTabletOrLandscapey) {
+                      widget.hideMelodyView();
+                    }
                   },
                   decoration:
-                      InputDecoration(border: InputBorder.none, hintText: "Melody ${melody.id.substring(0, 5)}"),
+                      InputDecoration(border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
                 )),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
             ExpandedSection(
               child: Slider(
                   value: reference.volume,
-                  activeColor: sectionColor,
+                  activeColor: widget.sectionColor,
                   onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
                       ? null
                       : (value) {
-                          setReferenceVolume(reference, value);
+                          widget.setReferenceVolume(reference, value);
                         }),
               axis: Axis.vertical,
               expand: reference.playbackType != MelodyReference_PlaybackType.disabled,
@@ -504,11 +529,11 @@ class _MelodyReference extends StatelessWidget {
                     child: RaisedButton(
                         padding: EdgeInsets.all(0),
                         onPressed: () {
-                          toggleMelodyReference(reference);
+                          widget.toggleMelodyReference(reference);
                         },
                         color: (reference.playbackType == MelodyReference_PlaybackType.disabled)
                             ? Color(0xFFDDDDDD)
-                            : sectionColor,
+                            : widget.sectionColor,
                         child: Align(
                             alignment: Alignment.center,
                             child: Icon((reference.playbackType == MelodyReference_PlaybackType.disabled)
@@ -521,16 +546,16 @@ class _MelodyReference extends StatelessWidget {
                       child: RaisedButton(
                           padding: EdgeInsets.all(0),
                           onPressed: () {
-                            if(editingMelody && melody == selectedMelody) {
-                              toggleEditingMelody();
+                            if(widget.editingMelody && widget.melody == widget.selectedMelody) {
+                              widget.toggleEditingMelody();
                             } else {
-                              if(editingMelody) {
-                                toggleEditingMelody();
+                              if(widget.editingMelody) {
+                                widget.toggleEditingMelody();
                               }
-                              selectMelody(melody);
+                              widget.selectMelody(widget.melody);
                             }
                           },
-                          color: (melody == selectedMelody && !editingMelody) ? sectionColor : Color(0xFFDDDDDD),
+                          color: (widget.melody == widget.selectedMelody && !widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
                           child: Icon(Icons.remove_red_eye))),
                   AnimatedContainer(
                       duration: animationDuration,
@@ -538,12 +563,12 @@ class _MelodyReference extends StatelessWidget {
                       height: 36,
                       child: RaisedButton(
                           onPressed: () {
-                            if(melody != selectedMelody) {
-                              selectMelody(melody);
+                            if(widget.melody != widget.selectedMelody) {
+                              widget.selectMelody(widget.melody);
                             }
-                            toggleEditingMelody(); },
+                            widget.toggleEditingMelody(); },
                           padding: EdgeInsets.all(0),
-                          color: (melody == selectedMelody && editingMelody) ? sectionColor : Color(0xFFDDDDDD),
+                          color: (widget.melody == widget.selectedMelody && widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
                           child: SvgPicture.asset(
                             'assets/edit.svg',
                             fit: BoxFit.fill,
@@ -559,6 +584,8 @@ class _MelodyReference extends StatelessWidget {
         child: DelayedReorderableListener(
           child: content,
         ));
+    content = AnimatedSize(vsync: this, duration: animationDuration,
+    child: content);
 
     return content;
   }
@@ -566,7 +593,7 @@ class _MelodyReference extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReorderableItem(
-        key: Key(melody.id), //
+        key: Key(widget.melody.id), //
         childBuilder: _buildChild);
   }
 }

@@ -34,12 +34,12 @@ class CanvasToneDrawer {
   static const int BOTTOM = -39; // Top C on an 88-key piano
   static const int TOP = 48; // Bottom A, ditto
 
-  Paint alphaDrawerPaint;
+  Paint alphaDrawerPaint = Paint();
 
   /// Represent the bounds for whatever is to be drawn
   Rect bounds;
   bool renderVertically;
-  double axisLength;
+  double get axisLength => renderVertically ? bounds.height : bounds.width;
   double halfStepsOnScreen;
 
   int get highestPitch => TOP;
@@ -51,7 +51,9 @@ class CanvasToneDrawer {
   //  dip(value: double): Int
   //fun dip(value: Int): Int
   bool showSteps;
-  Chord chord;
+  Chord chord = Chord()
+    ..rootNote = NoteName()
+    ..extension_3 = 2047;
   double normalizedDevicePitch;
 
   /// Renders the dividers that separate A, A#, B, C, etc. visually to the user
