@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/expanded_section.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:flutter/material.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
@@ -43,7 +44,10 @@ class PartMelodiesView extends StatefulWidget {
       this.selectPart,
       this.toggleMelodyReference,
       this.setReferenceVolume,
-      this.setPartVolume, this.editingMelody, this.toggleEditingMelody, this.hideMelodyView});
+      this.setPartVolume,
+      this.editingMelody,
+      this.toggleEditingMelody,
+      this.hideMelodyView});
 
   @override
   _PartMelodiesViewState createState() {
@@ -55,11 +59,105 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   final ScrollController controller = ScrollController();
 
   Widget _buildAddButton() {
-    return Container(
-      width: 160,
-      child: FlatButton(onPressed: () {},
-      child: Icon(Icons.add),)
-    );
+    bool canAddPart = widget.score.parts.length < 5;
+    bool canAddDrumPart =
+        canAddPart && !(widget.score.parts.any((element) => element.instrument.type == InstrumentType.drum));
+    return Column(children: [
+      Expanded(
+          child: Container(
+              width: 320,
+              child: FlatButton(
+                color: Colors.brown,
+                onPressed: canAddDrumPart
+                    ? () {
+                        setState(() {
+                          widget.score.parts.add(Part()
+                            ..id = uuid.v4()
+                            ..instrument = (Instrument()
+                              ..name = "Drums"
+                              ..volume = 0.5
+                              ..type = InstrumentType.drum));
+                        });
+                      }
+                    : null,
+                child: Column(children: [
+                  Expanded(child: SizedBox()),
+                  Icon(
+                    Icons.add,
+                    color: canAddDrumPart ? Colors.white : Colors.black26,
+                  ),
+                  Text(
+                    "Add Drum Part",
+                    style: TextStyle(color: canAddDrumPart ? Colors.white : Colors.black26),
+                  ),
+                  Container(
+                      width: 270,
+                      padding: EdgeInsets.only(top: 5),
+                      child: Text(
+                        "Kits, whistles, gunshots, zips, zaps, crickets, screams, and more. SoundFonts can allow "
+                        "for virtually any patch. Drum Parts written using MIDI pitch values. Standards include: "
+                        "Kick = B1, Snare = D2, Hat = F#2."
+                        "\n\nMay only be used on the Keyboard.",
+                        style: TextStyle(
+                            color: canAddDrumPart ? Colors.white : Colors.black26,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w100),
+                      )),
+                  Expanded(child: SizedBox()),
+                ]),
+              ))),
+      Expanded(
+          child: Container(
+              width: 320,
+              child: FlatButton(
+                color: Colors.grey,
+                onPressed: canAddPart
+                    ? () {
+                        setState(() {
+                          widget.score.parts.add(Part()
+                            ..id = uuid.v4()
+                            ..instrument = (Instrument()
+                              ..name = widget.score.parts.any((part) => part.instrument.name == "Piano")
+                                  ? (widget.score.parts.any((part) => part.instrument.name == "Bass")
+                                      ? (widget.score.parts.any((part) => part.instrument.name == "Guitar")
+                                          ? (widget.score.parts
+                                                  .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
+                                              ? ("Picollo")
+                                              : "Muted Electric Jazz Guitar 1")
+                                          : "Guitar")
+                                      : "Bass")
+                                  : "Piano"
+                              ..volume = 0.5
+                              ..type = InstrumentType.harmonic));
+                        });
+                      }
+                    : null,
+                child: Column(children: [
+                  Expanded(child: SizedBox()),
+                  Icon(
+                    Icons.add,
+                    color: canAddPart ? Colors.white : Colors.black26,
+                  ),
+                  Text(
+                    "Add Harmonic Part",
+                    style: TextStyle(color: canAddPart ? Colors.white : Colors.black26),
+                  ),
+                  Container(
+                      width: 270,
+                      padding: EdgeInsets.only(top: 5),
+                      child: Text(
+                        "Pianos, guitars, voice, and all other instruments that play notes. Melodies in Harmonic Parts "
+                        "can be transformed to fit Harmonies. "
+                        "\n\nMay be used on the Keyboard or the Colorboard.",
+                        style: TextStyle(
+                            color: canAddPart ? Colors.white : Colors.black26,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w100),
+                      )),
+                  Expanded(child: SizedBox()),
+                ]),
+              ))),
+    ]);
   }
 
   Widget _buildPart(Part part) {
@@ -69,24 +167,28 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
         child: Column(children: [
           Expanded(
             child: _MelodiesView(
-              score: widget.score,
-              partPosition: widget.score.parts.indexOf(part),
-              sectionColor: widget.sectionColor,
-              selectMelody: widget.selectMelody,
-              toggleEditingMelody: widget.toggleEditingMelody,
-              toggleMelodyReference: widget.toggleMelodyReference,
-              setReferenceVolume: widget.setReferenceVolume,
-              setPartVolume: widget.setPartVolume,
-              currentSection: widget.currentSection,
-              selectedMelody: widget.selectedMelody,
-              colorboardPart: widget.colorboardPart,
-              keyboardPart: widget.keyboardPart,
-              setKeyboardPart: widget.setKeyboardPart,
-              setColorboardPart: widget.setColorboardPart,
-              selectPart: widget.selectPart,
-              editingMelody: widget.editingMelody,
-              hideMelodyView: widget.hideMelodyView,
-            ),
+                score: widget.score,
+                part: part,
+                sectionColor: widget.sectionColor,
+                selectMelody: widget.selectMelody,
+                toggleEditingMelody: widget.toggleEditingMelody,
+                toggleMelodyReference: widget.toggleMelodyReference,
+                setReferenceVolume: widget.setReferenceVolume,
+                setPartVolume: widget.setPartVolume,
+                currentSection: widget.currentSection,
+                selectedMelody: widget.selectedMelody,
+                colorboardPart: widget.colorboardPart,
+                keyboardPart: widget.keyboardPart,
+                setKeyboardPart: widget.setKeyboardPart,
+                setColorboardPart: widget.setColorboardPart,
+                selectPart: widget.selectPart,
+                editingMelody: widget.editingMelody,
+                hideMelodyView: widget.hideMelodyView,
+                removePart: (part) {
+                  setState(() {
+                    widget.score.parts.remove(part);
+                  });
+                }),
           )
         ]));
   }
@@ -96,10 +198,10 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
     return ImplicitlyAnimatedReorderableList<Part>(
       scrollDirection: Axis.horizontal,
       // The current items in the list.
-      items: widget.score.parts,
+      items: widget.score.parts + [null],
       // Called by the DiffUtil to decide whether two object represent the same item.
       // For example, if your items have unique ids, this method should check their id equality.
-      areItemsTheSame: (a, b) => a.id == b.id,
+      areItemsTheSame: (a, b) => (a ?? Part()).id == (b ?? Part()).id,
       onReorderFinished: (item, oldIndex, newIndex, newItems) {
         // Remember to update the underlying data when the list has been
         // reordered.
@@ -107,8 +209,13 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 //          if (newIndex > oldIndex) {
 //            newIndex -= 1;
 //          }
-          Part toMove = widget.score.parts.removeAt(oldIndex);
-          widget.score.parts.insert(newIndex, toMove);
+          if (oldIndex < widget.score.parts.length) {
+            if (newIndex >= widget.score.parts.length) {
+              newIndex = widget.score.parts.length - 1;
+            }
+            Part toMove = widget.score.parts.removeAt(oldIndex);
+            widget.score.parts.insert(newIndex, toMove);
+          }
 //          widget.score.parts
 //            ..clear()
 //            ..addAll(newItems);
@@ -119,24 +226,30 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
       itemBuilder: (context, animation, item, index) {
         // Specifiy a transition to be used by the ImplicitlyAnimatedList.
         // In this case a custom transition.
-        return Reorderable(
-            // Each item must have an unique key.
-            key: Key(item.id),
-            builder: (context, dragAnimation, inDrag) {
-              final t = dragAnimation.value;
-              final tile = _buildPart(item);
+        return item != null
+            ? Reorderable(
+                // Each item must have an unique key.
+                key: Key(item.id),
+                builder: (context, dragAnimation, inDrag) {
+                  final t = dragAnimation.value;
+                  final tile = _buildPart(item);
 //              if (t > 0.0) {
 //                return tile;
 //              }
 
-              return SizeFadeTransition(
-                sizeFraction: 0.7,
-                curve: Curves.easeInOut,
-                animation: animation,
-                child: tile,
-              );
-            });
+                  return SizeFadeTransition(
+                      sizeFraction: 0.7,
+                      curve: Curves.easeInOut,
+                      animation: animation,
+                      child: tile,
+                      axis: (dragAnimation.value > 0 || inDrag) ? Axis.vertical : Axis.horizontal);
+                })
+            : Reorderable(
+                // Each item must have an unique key.
+                key: Key("add"),
+                builder: (context, dragAnimation, inDrag) => _buildAddButton());
       },
+
       // An optional builder when an item was removed from the list.
       // If not specified, the List uses the itemBuilder with
       // the animation reversed.
@@ -152,7 +265,6 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 
 class _MelodiesView extends StatefulWidget {
   final Score score;
-  final int partPosition;
   final Axis scrollDirection;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
@@ -168,18 +280,18 @@ class _MelodiesView extends StatefulWidget {
   final Part keyboardPart;
   final Function(Part) setKeyboardPart;
   final Function(Part) setColorboardPart;
+  final Function(Part) removePart;
   final bool editingMelody;
-
-  Part get part => score.parts[partPosition];
+  final Part part;
 
   List<Melody> get _items {
-    return score.parts[partPosition].melodies;
+    return part.melodies;
   }
 
   _MelodiesView({
     this.score,
     this.scrollDirection,
-    this.partPosition,
+    this.part,
     this.sectionColor,
     this.currentSection,
     this.selectedMelody,
@@ -191,7 +303,11 @@ class _MelodiesView extends StatefulWidget {
     this.selectPart,
     this.toggleMelodyReference,
     this.setReferenceVolume,
-    this.setPartVolume, this.editingMelody, this.toggleEditingMelody, this.hideMelodyView,
+    this.setPartVolume,
+    this.editingMelody,
+    this.toggleEditingMelody,
+    this.hideMelodyView,
+    this.removePart,
   });
 
   @override
@@ -233,14 +349,16 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
   get toggleEditingMelody => widget.toggleEditingMelody;
 
-
   get hideMelodyView => widget.hideMelodyView;
+
+  bool isReordering = false;
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
   }
 
   bool _reorderCallback(Key item, Key newPosition) {
+    isReordering = true;
     int draggingIndex = _indexOfKey(item);
     int newPositionIndex = _indexOfKey(newPosition);
 
@@ -258,6 +376,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 
   void _reorderDone(Key item) {
+    isReordering = false;
     final draggedItem = _items[_indexOfKey(item)];
     debugPrint("Reordering finished for ${draggedItem.id}}");
   }
@@ -299,6 +418,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       case "useOnKeyboard":
                         setKeyboardPart(part);
                         break;
+                      case "removePart":
+                        widget.removePart(part);
+                        break;
                     }
                   },
                   itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
@@ -336,7 +458,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                                   height: 20,
                                 ))
                           ])),
-                    const PopupMenuItem<String>(value: "blah", child: Text('Remove Part')),
+                    const PopupMenuItem<String>(value: "removePart", child: Text('Remove Part')),
                   ],
                 ),
               ],
@@ -397,7 +519,86 @@ class _MelodiesViewState extends State<_MelodiesView> {
             ),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-                sliver: SliverList(
+                sliver:
+//                ImplicitlyAnimatedReorderableList<Melody>(
+//                  scrollDirection: Axis.vertical,
+//                  // The current items in the list.
+//                  items: widget.part.melodies,
+//                  // Called by the DiffUtil to decide whether two object represent the same item.
+//                  // For example, if your items have unique ids, this method should check their id equality.
+//                  areItemsTheSame: (Melody a, b) => a.id == b.id,
+//                  onReorderFinished: (item, oldIndex, newIndex, newItems) {
+//                    // Remember to update the underlying data when the list has been
+//                    // reordered.
+//                    setState(() {
+//                      if (oldIndex < widget.part.melodies.length) {
+//                        if (newIndex >= widget.part.melodies.length) {
+//                          newIndex = widget.part.melodies.length - 1;
+//                        }
+//                        Melody toMove = widget.part.melodies.removeAt(oldIndex);
+//                        widget.part.melodies.insert(newIndex, toMove);
+//                      }
+//                    });
+//                  },
+//                  // Called, as needed, to build list item widgets.
+//                  // List items are only built when they're scrolled into view.
+//                  itemBuilder: (context, animation, Melody item, index) {
+//                    // Specifiy a transition to be used by the ImplicitlyAnimatedList.
+//                    // In this case a custom transition.
+//                    return item != null
+//                        ? Reorderable(
+//                            // Each item must have an unique key.
+//                            key: Key(item.id),
+//                            builder: (context, dragAnimation, inDrag) {
+//                              final t = dragAnimation.value;
+//                              final tile = _MelodyReference(
+//                                melody: _items[index],
+//                                sectionColor: sectionColor,
+//                                currentSection: currentSection,
+//                                selectedMelody: selectedMelody,
+//                                selectMelody: selectMelody,
+//                                toggleEditingMelody: toggleEditingMelody,
+//                                toggleMelodyReference: toggleMelodyReference,
+//                                setReferenceVolume: setReferenceVolume,
+//                                // first and last attributes affect border drawn during dragging
+//                                isFirst: index == 0,
+//                                isLast: index == _items.length - 1,
+//                                colorboardPart: colorboardPart,
+//                                keyboardPart: keyboardPart,
+//                                editingMelody: editingMelody,
+//                                hideMelodyView: hideMelodyView,
+//                              );
+//
+//                              return SizeFadeTransition(
+//                                  sizeFraction: 0.7,
+//                                  curve: Curves.easeInOut,
+//                                  animation: animation,
+//                                  child: tile,
+//                                  axis: (t > 0 || inDrag) ? Axis.vertical : Axis.horizontal);
+//                            })
+//                        : Reorderable(
+//                            // Each item must have an unique key.
+//                            key: Key("add"),
+//                            builder: (context, dragAnimation, inDrag) => _MelodyReference(
+//                                  melody: _items[index],
+//                                  sectionColor: sectionColor,
+//                                  currentSection: currentSection,
+//                                  selectedMelody: selectedMelody,
+//                                  selectMelody: selectMelody,
+//                                  toggleEditingMelody: toggleEditingMelody,
+//                                  toggleMelodyReference: toggleMelodyReference,
+//                                  setReferenceVolume: setReferenceVolume,
+//                                  // first and last attributes affect border drawn during dragging
+//                                  isFirst: index == 0,
+//                                  isLast: index == _items.length - 1,
+//                                  colorboardPart: colorboardPart,
+//                                  keyboardPart: keyboardPart,
+//                                  editingMelody: editingMelody,
+//                                  hideMelodyView: hideMelodyView,
+//                                ));
+//                  },
+//                )),
+                SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
                       return _MelodyReference(
@@ -416,6 +617,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         keyboardPart: keyboardPart,
                         editingMelody: editingMelody,
                         hideMelodyView: hideMelodyView,
+                        isReordering: isReordering,
                       );
                     },
                     childCount: _items.length,
@@ -440,7 +642,8 @@ class _MelodyReference extends StatefulWidget {
     this.toggleMelodyReference,
     this.setReferenceVolume,
     this.editingMelody,
-    this.toggleEditingMelody, this.hideMelodyView,
+    this.toggleEditingMelody,
+    this.hideMelodyView, this.isReordering,
   });
 
   final Melody melody;
@@ -457,6 +660,7 @@ class _MelodyReference extends StatefulWidget {
   final Part colorboardPart;
   final Part keyboardPart;
   final bool editingMelody;
+  final bool isReordering;
 
   @override
   __MelodyReferenceState createState() => __MelodyReferenceState();
@@ -464,6 +668,7 @@ class _MelodyReference extends StatefulWidget {
 
 class __MelodyReferenceState extends State<_MelodyReference> with TickerProviderStateMixin {
   MelodyReference get reference => widget.currentSection.referenceTo(widget.melody);
+  AnimationController controller;
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
@@ -499,7 +704,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                     widget.melody.name = value;
                   },
                   onTap: () {
-                    if(!context.isTabletOrLandscapey) {
+                    if (!context.isTabletOrLandscapey) {
                       widget.hideMelodyView();
                     }
                   },
@@ -546,16 +751,18 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       child: RaisedButton(
                           padding: EdgeInsets.all(0),
                           onPressed: () {
-                            if(widget.editingMelody && widget.melody == widget.selectedMelody) {
+                            if (widget.editingMelody && widget.melody == widget.selectedMelody) {
                               widget.toggleEditingMelody();
                             } else {
-                              if(widget.editingMelody) {
+                              if (widget.editingMelody) {
                                 widget.toggleEditingMelody();
                               }
                               widget.selectMelody(widget.melody);
                             }
                           },
-                          color: (widget.melody == widget.selectedMelody && !widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
+                          color: (widget.melody == widget.selectedMelody && !widget.editingMelody)
+                              ? widget.sectionColor
+                              : Color(0xFFDDDDDD),
                           child: Icon(Icons.remove_red_eye))),
                   AnimatedContainer(
                       duration: animationDuration,
@@ -563,12 +770,15 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       height: 36,
                       child: RaisedButton(
                           onPressed: () {
-                            if(widget.melody != widget.selectedMelody) {
+                            if (widget.melody != widget.selectedMelody) {
                               widget.selectMelody(widget.melody);
                             }
-                            widget.toggleEditingMelody(); },
+                            widget.toggleEditingMelody();
+                          },
                           padding: EdgeInsets.all(0),
-                          color: (widget.melody == widget.selectedMelody && widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
+                          color: (widget.melody == widget.selectedMelody && widget.editingMelody)
+                              ? widget.sectionColor
+                              : Color(0xFFDDDDDD),
                           child: SvgPicture.asset(
                             'assets/edit.svg',
                             fit: BoxFit.fill,
@@ -584,8 +794,15 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
         child: DelayedReorderableListener(
           child: content,
         ));
-    content = AnimatedSize(vsync: this, duration: animationDuration,
-    child: content);
+//    content = AnimatedOpacity(
+//      duration: Duration(seconds: 3),
+//      opacity: opacityLevel,
+//      child: content);
+    controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
+    if(widget.isFirst && !widget.isReordering) {
+      content = SizeFadeTransition(sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
+    }
+    controller.forward();
 
     return content;
   }

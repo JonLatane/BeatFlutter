@@ -90,7 +90,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
             duration: animationDuration, width: (scrollingMode == ScrollingMode.sideScroll) ? 7 : 0, child: SizedBox()),
         Expanded(
             child: Container(
-                height: widget.height,
+                height: 150,
                 child: CustomPaint(
                   painter: ColorboardPainter(
                     scrollPositionNotifier: scrollPositionNotifier,
@@ -228,7 +228,6 @@ class ColorboardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     var bounds = Offset.zero & size;
     canvas.clipRect(bounds);
-    if (bounds.height > 10) {
       final ColorGuide colorGuide = ColorGuide()
         ..renderVertically = false
         ..alphaDrawerPaint = Paint()
@@ -239,7 +238,7 @@ class ColorboardPainter extends CustomPainter {
         ..nonRootPadding = 10
         ..normalizedDevicePitch = scrollPositionNotifier.value;
       colorGuide.drawColorGuide(canvas);
-    }
+
   }
 
   @override

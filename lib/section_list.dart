@@ -106,23 +106,15 @@ class _SectionListState extends State<SectionList> {
   Widget getList(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Section>(
       scrollDirection: widget.scrollDirection,
-      // The current items in the list.
       items: widget.score.sections,
-      // Called by the DiffUtil to decide whether two object represent the same item.
-      // For example, if your items have unique ids, this method should check their id equality.
       areItemsTheSame: (a, b) => a.id == b.id,
       onReorderFinished: (item, oldIndex, newIndex, newItems) {
-        // Remember to update the underlying data when the list has been
-        // reordered.
         widget.setState(() {
 //          if (newIndex > oldIndex) {
 //            newIndex -= 1;
 //          }
           Section toMove = widget.score.sections.removeAt(oldIndex);
           widget.score.sections.insert(newIndex, toMove);
-//          widget.score.parts
-//            ..clear()
-//            ..addAll(newItems);
         });
       },
       // Called, as needed, to build list item widgets.

@@ -4,9 +4,9 @@ packages:
   aeyrium_sensor:
     dependency: "direct main"
     description:
-      path: "../aeyrium-sensor"
-      relative: true
-    source: path
+      name: aeyrium_sensor
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "1.0.7"
   archive:
     dependency: transitive
@@ -99,6 +99,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "7.2.1"
+  firebase_auth:
+    dependency: "direct main"
+    description:
+      name: firebase_auth
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.15.5+3"
+  firebase_auth_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_auth_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.7"
+  firebase_auth_web:
+    dependency: transitive
+    description:
+      name: firebase_auth_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.2"
   firebase_core:
     dependency: "direct main"
     description:
@@ -183,7 +204,7 @@ packages:
       name: implicitly_animated_reorderable_list
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.7"
+    version: "0.1.10"
   js:
     dependency: transitive
     description:
@@ -271,9 +292,9 @@ packages:
   sensors:
     dependency: "direct main"
     description:
-      path: "../flutter-plugins/packages/sensors"
-      relative: true
-    source: path
+      name: sensors
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.4.1+10"
   sky_engine:
     dependency: transitive

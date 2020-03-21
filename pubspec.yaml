@@ -28,14 +28,14 @@ dependencies:
   uuid: ^2.0.4
   vibration: ^1.2.4
   flutter_reorderable_list: ^0.1.3
-  implicitly_animated_reorderable_list: 0.1.7
+  implicitly_animated_reorderable_list: 0.1.10
   firebase_core: ^0.4.4+3
-  aeyrium_sensor: #^1.0.7
-    path: ../aeyrium-sensor
-  sensors: #'>=0.4.1+10 <2.0.0'
-    path: ../flutter-plugins/packages/sensors
+  aeyrium_sensor: ^1.0.7
+#    path: ../aeyrium-sensor
+  sensors: '>=0.4.1+10 <2.0.0'
+#    path: ../flutter-plugins/packages/sensors
   #  firebase_analytics: ^5.0.2
-#  firebase_auth: ^0.15.5+2 TODO update to +3
+  firebase_auth: ^0.15.5+3
   cloud_firestore: 0.13.4+1
   #  reorderables: 0.2.12
 

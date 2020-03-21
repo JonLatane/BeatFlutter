@@ -10,7 +10,7 @@ class SizeFadeTransition extends StatefulWidget {
   const SizeFadeTransition({
     Key key,
     @required this.animation,
-    this.sizeFraction = 2 / 3,
+    this.sizeFraction = 0,
     this.curve = Curves.linear,
     this.axis = Axis.vertical,
     this.axisAlignment = 0.0,

@@ -318,8 +318,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     scaleStateController = PhotoViewScaleStateController();
-    _keyboardPart = _score.parts.firstWhere((part) => true);
-    _colorboardPart = _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic);
+    _keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
+    _colorboardPart = _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
   }
 
   @override
