@@ -204,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     } else {
       setState(() {
         ref.playbackType = MelodyReference_PlaybackType.disabled;
-        if(ref.melodyId == selectedMelody.id) {
+        if(selectedMelody != null && ref != null && ref.melodyId == selectedMelody.id) {
           editingMelody = false;
         }
       });
@@ -363,6 +363,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
+    var top = MediaQuery.of(context).size.height - _colorboardHeight - _keyboardHeight;
+    var bottom = MediaQuery.of(context).size.height;
+    var right = MediaQuery.of(context).size.width;
+    var left = 0.0;
+    SystemChannels.platform.invokeMethod("SystemGestures.setSystemGestureExclusionRects", <Map<String, int>>[
+      {"left":left.toInt(),  "top":top.toInt(), "right":10, "bottom":bottom.toInt()},
+      {"left":(right - 10).toInt(),  "top":top.toInt(), "right":right.toInt(), "bottom":bottom.toInt()},
+    ]);
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(

@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'music_theory.dart';
+import 'melody_renderer.dart';
 
 class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
@@ -57,11 +58,6 @@ class MelodyView extends StatefulWidget {
 }
 
 class _MelodyViewState extends State<MelodyView> {
-  double _startHorizontalScale = 1.0;
-  double _startVerticalScale = 1.0;
-  double _horizontalScale = 1.0;
-  double _verticalScale = 1.0;
-
   @override
   Widget build(context) {
     return Column(
@@ -138,35 +134,50 @@ class _MelodyViewState extends State<MelodyView> {
     );
   }
 
+  double _startHorizontalScale = 1.0;
+  double _startVerticalScale = 1.0;
+  double _horizontalScale = 1.0;
+  double _verticalScale = 1.0;
   Widget _mainMelody(BuildContext context) {
     return Container(
         color: Colors.white,
         child: GestureDetector(
-          onScaleStart: (details) => setState(() {
-            _startHorizontalScale = _horizontalScale;
-          }),
-          onScaleUpdate: (ScaleUpdateDetails details) {
-            setState(() {
-              if (details.horizontalScale > 0) {
-                _horizontalScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
-              }
-            });
-          },
-          onScaleEnd: (ScaleEndDetails details) {
-            //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
-          },
-          child: GridView.builder(
-            gridDelegate:
-                new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
-            itemCount: 12,
-            itemBuilder: (BuildContext context, int index) {
-              return GridTile(
-                  child: Transform.scale(
-                      scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
-                      child: SvgPicture.asset('assets/notehead_half.svg')));
+            onScaleStart: (details) => setState(() {
+                  _startHorizontalScale = _horizontalScale;
+                  _startVerticalScale = _verticalScale;
+                }),
+            onScaleUpdate: (ScaleUpdateDetails details) {
+              setState(() {
+                if (details.horizontalScale > 0) {
+                  _horizontalScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
+                }
+
+                if (details.horizontalScale > 0) {
+                  _verticalScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
+                }
+              });
             },
-          ),
-        ));
+            onScaleEnd: (ScaleEndDetails details) {
+              //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
+            },
+            child: MelodyRenderer(
+              score: widget.score,
+              section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
+              xScale: _horizontalScale,
+              yScale: _verticalScale,
+            )
+//          GridView.builder(
+//            gridDelegate:
+//                new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
+//            itemCount: 12,
+//            itemBuilder: (BuildContext context, int index) {
+//              return GridTile(
+//                  child: Transform.scale(
+//                      scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
+//                      child: SvgPicture.asset('assets/notehead_half.svg')));
+//            },
+//          ),
+            ));
   }
 }
 
@@ -253,9 +264,11 @@ class _MelodyToolbar extends StatelessWidget {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: melodySelected ? () {
-                toggleMelodyReference(melodyReference);
-              } : null,
+              onPressed: melodySelected
+                  ? () {
+                      toggleMelodyReference(melodyReference);
+                    }
+                  : null,
               padding: EdgeInsets.all(0),
               child: Icon(
                   melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.not_interested)))

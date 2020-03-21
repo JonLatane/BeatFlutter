@@ -80,7 +80,13 @@ extension ChordTheory on Chord {
   }
 }
 
+extension HarmonyTheory on Harmony {
+  int get beatCount => (length.toDouble() / subdivisionsPerBeat).ceil();
+}
+
 extension SectionTheory on Section {
+  int get beatCount => harmony.beatCount;
+
   MelodyReference referenceTo(Melody melody) => (melody != null) ? melodies.firstWhere(
       (element) => element.melodyId == melody.id,
       orElse: () => _defaultMelodyReference(melody)
@@ -94,4 +100,8 @@ extension SectionTheory on Section {
     melodies.add(result);
     return result;
   }
+}
+
+extension ScoreTheory on Score {
+  int get beatCount => sections.fold(0, (p,s) => p + s.beatCount);
 }

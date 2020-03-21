@@ -351,14 +351,15 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
   get hideMelodyView => widget.hideMelodyView;
 
-  bool isReordering = false;
+  Melody lastAddedMelody;
+
+
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
   }
 
   bool _reorderCallback(Key item, Key newPosition) {
-    isReordering = true;
     int draggingIndex = _indexOfKey(item);
     int newPositionIndex = _indexOfKey(newPosition);
 
@@ -376,7 +377,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 
   void _reorderDone(Key item) {
-    isReordering = false;
     final draggedItem = _items[_indexOfKey(item)];
     debugPrint("Reordering finished for ${draggedItem.id}}");
   }
@@ -508,8 +508,10 @@ class _MelodiesViewState extends State<_MelodiesView> {
               expandedHeight: 50.0,
               flexibleSpace: FlatButton(
                   onPressed: () {
+                    var newMelody = Melody()..id = uuid.v4();
+                    lastAddedMelody = newMelody;
                     setState(() {
-                      part.melodies.insert(0, Melody()..id = uuid.v4());
+                      part.melodies.insert(0, newMelody);
                     });
                   },
                   child: Icon(
@@ -617,7 +619,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         keyboardPart: keyboardPart,
                         editingMelody: editingMelody,
                         hideMelodyView: hideMelodyView,
-                        isReordering: isReordering,
+                        lastAddedMelody: lastAddedMelody,
+                        clearLastAddedMelody: () { lastAddedMelody = null; },
                       );
                     },
                     childCount: _items.length,
@@ -643,7 +646,7 @@ class _MelodyReference extends StatefulWidget {
     this.setReferenceVolume,
     this.editingMelody,
     this.toggleEditingMelody,
-    this.hideMelodyView, this.isReordering,
+    this.hideMelodyView, this.lastAddedMelody, this.clearLastAddedMelody,
   });
 
   final Melody melody;
@@ -660,7 +663,8 @@ class _MelodyReference extends StatefulWidget {
   final Part colorboardPart;
   final Part keyboardPart;
   final bool editingMelody;
-  final bool isReordering;
+  final Melody lastAddedMelody;
+  final Function() clearLastAddedMelody;
 
   @override
   __MelodyReferenceState createState() => __MelodyReferenceState();
@@ -799,8 +803,9 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //      opacity: opacityLevel,
 //      child: content);
     controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
-    if(widget.isFirst && !widget.isReordering) {
-      content = SizeFadeTransition(sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
+    if(widget.lastAddedMelody == widget.melody) {
+      widget.clearLastAddedMelody();
+      content = SizeFadeTransition(axis: Axis.horizontal, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
     }
     controller.forward();
 

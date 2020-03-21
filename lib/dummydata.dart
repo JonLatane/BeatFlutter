@@ -6,7 +6,13 @@ import 'util.dart';
 
 var section1 = Section()
   ..id = uuid.v4()
-  ..name = "";
+  ..name = ""
+  ..harmony = (
+    Harmony()
+      ..id = uuid.v4()
+      ..subdivisionsPerBeat = 1
+      ..length = 16
+  );
 var score = Score()
   ..sections.addAll([
     section1,

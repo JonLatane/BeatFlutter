@@ -1,6 +1,7 @@
 import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'drawing/drawing.dart';
 import 'package:sensors/sensors.dart';
@@ -37,7 +38,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     scrollPositionNotifier = ValueNotifier(0);
     _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
       if (scrollingMode != ScrollingMode.sideScroll) {
-        print("Sensor event: $event");
+//        print("Sensor event: $event");
         double normalizedPitch;
         var absoluteScrollPosition;
         switch (scrollingMode) {

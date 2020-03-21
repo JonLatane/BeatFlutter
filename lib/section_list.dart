@@ -66,7 +66,13 @@ class _SectionListState extends State<SectionList> {
                           widget.score.sections.indexOf(widget.currentSection) + 1,
                           Section()
                             ..id = uuid.v4()
-                            ..name = "");
+                            ..name = ""
+                            ..harmony = (
+                              Harmony()
+                                ..id = uuid.v4()
+                                ..subdivisionsPerBeat = 1
+                                ..length = 16
+                            ));
                       });
                     },
                   )
@@ -96,7 +102,12 @@ class _SectionListState extends State<SectionList> {
                           widget.score.sections.indexOf(widget.currentSection) + 1,
                           Section()
                             ..id = uuid.v4()
-                            ..name = "New Section");
+                            ..harmony = (
+                              Harmony()
+                                ..id = uuid.v4()
+                                ..subdivisionsPerBeat = 1
+                                ..length = 16
+                            ));
                     });
                   },
                 )
