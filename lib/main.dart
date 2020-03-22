@@ -268,18 +268,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _toggleKeyboard() {
     setState(() {
-      _showKeyboard = !_showKeyboard;
-      if(!_showKeyboard) {
+      if(_showKeyboardConfiguration) {
         _showKeyboardConfiguration = false;
+      } else {
+        _showKeyboard = !_showKeyboard;
+        if (!_showKeyboard) {
+          _showKeyboardConfiguration = false;
+        }
       }
     });
   }
 
   _toggleColorboard() {
     setState(() {
-      _showColorboard = !_showColorboard;
-      if(!_showColorboard) {
+      if(_showColorboardConfiguration) {
         _showColorboardConfiguration = false;
+      } else {
+        _showColorboard = !_showColorboard;
+        if(!_showColorboard) {
+          _showColorboardConfiguration = false;
+        }
       }
     });
   }
@@ -329,11 +337,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Future<bool> _onWillPop() async {
-    if (selectedMelody != null) {
+    if (_interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
       setState(() {
-        selectedMelody = null;
+        _hideMelodyView();
       });
       return false;
+    } else if(_showKeyboardConfiguration || _showColorboardConfiguration) {
+      setState(() {
+        _showKeyboardConfiguration = false;
+        _showColorboardConfiguration = false;
+      });
+    } else if(_showKeyboard || _showColorboard) {
+      setState(() {
+        _showKeyboard = false;
+        _showColorboard = false;
+      });
     } else {
       return (await showDialog(
         context: context,

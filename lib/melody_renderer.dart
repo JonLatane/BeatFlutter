@@ -49,40 +49,28 @@ class _MelodyRendererState extends State<MelodyRenderer> {
       slivers: [
         new CustomSliverToBoxAdapter(
           setVisibleRect: (rect) { _visibleRect = rect; },
-          child: _MelodyPaint(
-            score: widget.score,
-            section: widget.section,
-            xScale: widget.xScale,
-            yScale: widget.yScale,
-            visibleRect: () => _visibleRect,
-            width: width,
+          child: CustomPaint(
+            size: Size(width, 60.0),
+            painter: new _MelodyPainter(
+              score: widget.score,
+              section: widget.section,
+              xScale: widget.xScale,
+              yScale: widget.yScale,
+              visibleRect: () => _visibleRect,
+            ),
           ),
+//          child: _MelodyPaint(
+//            score: widget.score,
+//            section: widget.section,
+//            xScale: widget.xScale,
+//            yScale: widget.yScale,
+//            visibleRect: () => _visibleRect,
+//            width: width,
+//          ),
         )
       ],
     );
   }
-}
-
-class _MelodyPaint extends CustomPaint {
-  final Score score;
-  final Section section;
-  final double xScale;
-  final double yScale;
-  final double width;
-  final Rect Function() visibleRect;
-
-
-  _MelodyPaint({this.width, this.score, this.section, this.xScale, this.yScale,this.visibleRect,})
-      : super(
-          size: Size(width, 60.0),
-          painter: new _MelodyPainter(
-            score: score,
-            section: section,
-            xScale: xScale,
-            yScale: yScale,
-            visibleRect: visibleRect,
-          ),
-        );
 }
 
 class _MelodyPainter extends CustomPainter {
@@ -105,7 +93,7 @@ class _MelodyPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     var rect = Offset.zero & size;
-//    canvas.clipRect(rect);
+    canvas.clipRect(rect);
 
     // Extend drawing window to compensate for element sizes - avoids lines at either end "popping" into existence
     var extend = _tickPaint.strokeWidth / 2.0;
@@ -119,7 +107,7 @@ class _MelodyPainter extends CustomPainter {
 
     while (o1.dx < visibleRect().right + extend) {
       canvas.drawLine(o1, o2, _tickPaint);
-      double top = ((o1.dx * 59 % width)/ width) * rect.height;
+      double top = (((o1.dx * 2048) % width)/ width) * rect.height;
       drawFilledNotehead(canvas, Rect.fromLTRB(o1.dx, top, o1.dx + standardBeatWidth / 2, top + standardBeatWidth / 2));
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);

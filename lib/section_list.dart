@@ -61,19 +61,7 @@ class _SectionListState extends State<SectionList> {
                     padding: EdgeInsets.all(0),
                     onPressed: () {
                       print("inserting section");
-                      widget.setState(() {
-                        widget.score.sections.insert(
-                          widget.score.sections.indexOf(widget.currentSection) + 1,
-                          Section()
-                            ..id = uuid.v4()
-                            ..name = ""
-                            ..harmony = (
-                              Harmony()
-                                ..id = uuid.v4()
-                                ..subdivisionsPerBeat = 1
-                                ..length = 16
-                            ));
-                      });
+                      insertSection();
                     },
                   )
                 )
@@ -97,21 +85,26 @@ class _SectionListState extends State<SectionList> {
                   child: Icon(Icons.add),
                   onPressed: () {
                     print("inserting section");
-                    widget.setState(() {
-                      widget.score.sections.insert(
-                          widget.score.sections.indexOf(widget.currentSection) + 1,
-                          Section()
-                            ..id = uuid.v4()
-                            ..harmony = (
-                              Harmony()
-                                ..id = uuid.v4()
-                                ..subdivisionsPerBeat = 1
-                                ..length = 16
-                            ));
-                    });
+                    insertSection();
                   },
                 )
               ]));
+  }
+
+  insertSection() {
+    Section newSection = Section()
+      ..id = uuid.v4()
+      ..harmony = (
+        Harmony()
+          ..id = uuid.v4()
+          ..subdivisionsPerBeat = 1
+          ..length = 16
+      );
+    int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
+    widget.setState(() {
+      widget.score.sections.insert(currentSectionIndex + 1, newSection);
+      widget.selectSection(newSection);
+    });
   }
 
   Widget getList(BuildContext context) {

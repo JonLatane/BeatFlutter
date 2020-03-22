@@ -55,6 +55,14 @@ class ColorGuide extends CanvasToneDrawer {
                     toneBounds.bottom - drawPadding - extraPadding),
                 alphaDrawerPaint);
           }
+          if(tone.mod12 == 0) {
+//            alphaDrawerPaint.color = Colors.black;
+            TextSpan span = new TextSpan(text: (4 + (tone/12)).toInt().toString());
+            TextPainter tp = new TextPainter(strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w900),
+              text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
+            tp.layout();
+            tp.paint(canvas, new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4, toneBounds.bottom - 30));
+          }
         }
       });
     });

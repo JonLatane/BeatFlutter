@@ -32,7 +32,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   ValueNotifier<double> scrollPositionNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
-  double halfStepWidthInPx = 100;
+  double halfStepWidthInPx = 80;
 
   @override
   void initState() {
@@ -41,25 +41,26 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
-//        print("Sensor event: $event");
+          print("Sensor event: $event");
           double normalizedPitch;
-          var absoluteScrollPosition;
           switch (scrollingMode) {
             case ScrollingMode.pitch:
-              absoluteScrollPosition = event.pitch;
+              var absoluteScrollPosition = event.pitch;
               if (absoluteScrollPosition < 0) {
                 absoluteScrollPosition = -absoluteScrollPosition;
               }
               normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
               break;
             case ScrollingMode.roll:
-              absoluteScrollPosition = event.roll;
+//              var maxRoll = -1.45; // All the way to the right
+//              var minRoll = 1.45; // All the way to the left
+              normalizedPitch = (1.45 - event.roll) / 2.9;
               break;
             case ScrollingMode.sideScroll:
               break;
           }
 
-          double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch.toDouble()));
+          double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
           if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
             scrollPositionNotifier.value = newScrollPositionValue;
           }
@@ -79,14 +80,16 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     }
   }
 
-  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 20 : 0;
+  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
 
   @override
   Widget build(BuildContext context) {
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
+    print("physicalWidth=$physicalWidth");
     return Stack(children: [
               CustomScrollView(
+                key: Key("colorboard-$physicalWidth"),
                 scrollDirection: Axis.horizontal,
                 slivers: [
                   CustomSliverToBoxAdapter(
@@ -97,15 +100,20 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                       double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
                       if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
                         scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
+                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
                       }
                     },
                     child:
                     Column(children: [
                       AnimatedContainer(duration: animationDuration,
                         height: touchScrollAreaHeight, width: physicalWidth,
-                        color:widget.sectionColor, child: SizedBox()),
+                        color:widget.sectionColor, child: Align(alignment: Alignment.center,
+                          child: Container(height: 5, width: physicalWidth,
+                            color:Colors.black54))),
                       CustomPaint(
-                        size: Size(physicalWidth, 150),
+                        size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
+                        isComplex: true,
+                        willChange: true,
                         painter: _ColorboardPainter(
                             scrollPositionNotifier: scrollPositionNotifier,
                             halfStepsOnScreen: halfStepsOnScreen,
@@ -115,14 +123,19 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                   )
                 ]
               ),
-//      Expanded(child:Column(children: [
-//        AnimatedContainer(duration: animationDuration,
-//          height: touchScrollAreaHeight, child: SizedBox()),
-//        Expanded(child:Container(color: Colors.black12, child:GestureDetector()))
-//      ])),
+//      Touch-handling area with the GestureDetector
+        Column(children: [
+          AnimatedContainer(duration: animationDuration,
+            height: touchScrollAreaHeight, child: SizedBox()),
+          Expanded(child:Container(color: Colors.black12, child:GestureDetector()))
+        ]),
+//    Configuration layer
+    Column(children:[
+      AnimatedContainer(duration: animationDuration,
+        height: touchScrollAreaHeight, child: SizedBox()),
       AnimatedContainer(
           duration: animationDuration,
-          height: widget.height,
+          height: widget.height - touchScrollAreaHeight,
           color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
           child: widget.showConfiguration
               ? Row(children: [
@@ -191,14 +204,27 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                           padding: EdgeInsets.all(0),
                           onPressed: () {
                             setState(() {
-                              scrollingMode = ScrollingMode.pitch;
+                              switch(scrollingMode) {
+                                case ScrollingMode.sideScroll:
+                                  scrollingMode = ScrollingMode.pitch;
+                                  break;
+                                case ScrollingMode.pitch:
+                                  scrollingMode = ScrollingMode.roll;
+                                  break;
+                                case ScrollingMode.roll:
+                                  scrollingMode = ScrollingMode.pitch;
+                                  break;
+                              }
                             });
                           },
-                          color: (scrollingMode == ScrollingMode.pitch) ? widget.sectionColor : null,
+                          color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
                           child: Row(children: [
                             Expanded(child: SizedBox()),
-                            Text("+"),
-                            Text("Pitch"),
+//                            Text("+"),
+                            Text((scrollingMode == ScrollingMode.pitch) ? "Tilt"
+                              : (scrollingMode == ScrollingMode.roll) ? "Roll"
+                              : (scrollingMode == ScrollingMode.sideScroll) ? "Tilt"
+                              : "Wat"),
                             Expanded(child: SizedBox()),
                           ]))),
                   Expanded(
@@ -213,6 +239,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                                     ? () {
                                         setState(() {
                                           halfStepWidthInPx *= 1.1;
+                                          print("halfStepWidthInPx=$halfStepWidthInPx");
                                         });
                                       }
                                     : null,
@@ -225,6 +252,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                                     ? () {
                                         setState(() {
                                           halfStepWidthInPx /= 1.1;
+                                          print("halfStepWidthInPx=$halfStepWidthInPx");
                                         });
                                       }
                                     : null,
@@ -232,7 +260,8 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                         Expanded(child: SizedBox()),
                       ])),
                 ])
-              : SizedBox()),
+              : SizedBox())
+    ]),
     ]);
   }
 }
@@ -263,27 +292,27 @@ class _ColorboardPainter extends CustomPainter {
     colorGuide.drawColorGuide(canvas);
   }
 
-  @override
-  SemanticsBuilderCallback get semanticsBuilder {
-    return (Size size) {
-      // Annotate a rectangle containing the picture of the sun
-      // with the label "Sun". When text to speech feature is enabled on the
-      // device, a user will be able to locate the sun on this picture by
-      // touch.
-      var rect = Offset.zero & size;
-      var width = size.shortestSide * 0.4;
-      rect = const Alignment(0.8, -0.9).inscribe(Size(width, width), rect);
-      return [
-        CustomPainterSemantics(
-          rect: rect,
-          properties: SemanticsProperties(
-            label: 'Sun',
-            textDirection: TextDirection.ltr,
-          ),
-        ),
-      ];
-    };
-  }
+//  @override
+//  SemanticsBuilderCallback get semanticsBuilder {
+//    return (Size size) {
+//      // Annotate a rectangle containing the picture of the sun
+//      // with the label "Sun". When text to speech feature is enabled on the
+//      // device, a user will be able to locate the sun on this picture by
+//      // touch.
+//      var rect = Offset.zero & size;
+//      var width = size.shortestSide * 0.4;
+//      rect = const Alignment(0.8, -0.9).inscribe(Size(width, width), rect);
+//      return [
+//        CustomPainterSemantics(
+//          rect: rect,
+//          properties: SemanticsProperties(
+//            label: 'Sun',
+//            textDirection: TextDirection.ltr,
+//          ),
+//        ),
+//      ];
+//    };
+//  }
 
 // Since this Sky painter has no fields, it always paints
 // the same thing and semantics information is the same.
@@ -293,6 +322,6 @@ class _ColorboardPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ColorboardPainter oldDelegate) => true;
 
-  @override
-  bool shouldRebuildSemantics(_ColorboardPainter oldDelegate) => false;
+//  @override
+//  bool shouldRebuildSemantics(_ColorboardPainter oldDelegate) => false;
 }
