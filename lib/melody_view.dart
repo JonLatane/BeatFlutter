@@ -34,24 +34,23 @@ class MelodyView extends StatefulWidget {
   final Function(Section, String) setSectionName;
   final bool editingMelody;
 
-  MelodyView(
-      {this.melodyViewSizeFactor,
-      this.melodyViewMode,
-      this.score,
-      this.currentSection,
-      this.melody,
-      this.part,
-      this.sectionColor,
-      this.melodyViewDisplayMode,
-      this.toggleMelodyViewDisplayMode,
-      this.closeMelodyView,
-      this.toggleMelodyReference,
-      this.setReferenceVolume,
-      this.setPartVolume,
-      this.editingMelody,
-      this.toggleEditingMelody,
-      this.setMelodyName,
-      this.setSectionName});
+  MelodyView({this.melodyViewSizeFactor,
+    this.melodyViewMode,
+    this.score,
+    this.currentSection,
+    this.melody,
+    this.part,
+    this.sectionColor,
+    this.melodyViewDisplayMode,
+    this.toggleMelodyViewDisplayMode,
+    this.closeMelodyView,
+    this.toggleMelodyReference,
+    this.setReferenceVolume,
+    this.setPartVolume,
+    this.editingMelody,
+    this.toggleEditingMelody,
+    this.setMelodyName,
+    this.setSectionName});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -65,32 +64,32 @@ class _MelodyViewState extends State<MelodyView> {
         AnimatedContainer(
           duration: animationDuration,
           color: (widget.melodyViewMode == MelodyViewMode.section)
-              ? widget.sectionColor
-              : (widget.melodyViewMode == MelodyViewMode.melody)
-                  ? Colors.white
-                  : (widget.melodyViewMode == MelodyViewMode.part)
-                      ? ((widget.part != null && widget.part.instrument.type == InstrumentType.drum)
-                          ? Colors.brown
-                          : Colors.grey)
-                      : Colors.black,
+            ? widget.sectionColor
+            : (widget.melodyViewMode == MelodyViewMode.melody)
+            ? Colors.white
+            : (widget.melodyViewMode == MelodyViewMode.part)
+            ? ((widget.part != null && widget.part.instrument.type == InstrumentType.drum)
+            ? Colors.brown
+            : Colors.grey)
+            : Colors.black,
           child: Row(
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.only(left: 5),
                 child: AnimatedContainer(
-                    duration: animationDuration,
-                    width: 36,
-                    height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
-                    child: RaisedButton(
-                        onPressed: widget.toggleMelodyViewDisplayMode,
-                        padding: EdgeInsets.all(0),
-                        child: Icon((widget.melodyViewDisplayMode == MelodyViewDisplayMode.half)
-                            ? Icons.aspect_ratio
-                            : context.isPortrait ? Icons.border_horizontal : Icons.border_vertical))),
+                  duration: animationDuration,
+                  width: 36,
+                  height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
+                  child: RaisedButton(
+                    onPressed: widget.toggleMelodyViewDisplayMode,
+                    padding: EdgeInsets.all(0),
+                    child: Icon((widget.melodyViewDisplayMode == MelodyViewDisplayMode.half)
+                      ? Icons.aspect_ratio
+                      : context.isPortrait ? Icons.border_horizontal : Icons.border_vertical))),
               ),
               Expanded(
-                  child: Column(children: [
-                AnimatedContainer(
+                child: Column(children: [
+                  AnimatedContainer(
                     duration: animationDuration,
                     height: (widget.melodyViewMode == MelodyViewMode.section) ? 48 : 0,
                     child: _SectionToolbar(
@@ -99,11 +98,11 @@ class _MelodyViewState extends State<MelodyView> {
                       melodyViewMode: widget.melodyViewMode,
                       setSectionName: widget.setSectionName,
                     )),
-                AnimatedContainer(
+                  AnimatedContainer(
                     duration: animationDuration,
                     height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
                     child: _PartToolbar(part: widget.part)),
-                AnimatedContainer(
+                  AnimatedContainer(
                     duration: animationDuration,
                     height: (widget.melodyViewMode == MelodyViewMode.melody) ? 48 : 0,
                     child: _MelodyToolbar(
@@ -117,15 +116,15 @@ class _MelodyViewState extends State<MelodyView> {
                       toggleEditingMelody: widget.toggleEditingMelody,
                       setMelodyName: widget.setMelodyName,
                     )),
-              ])),
+                ])),
               Padding(
-                  padding: EdgeInsets.only(right: 5),
-                  child: AnimatedContainer(
-                      duration: animationDuration,
-                      width: 36,
-                      height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
-                      child: RaisedButton(
-                          onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: Icon(Icons.close))))
+                padding: EdgeInsets.only(right: 5),
+                child: AnimatedContainer(
+                  duration: animationDuration,
+                  width: 36,
+                  height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
+                  child: RaisedButton(
+                    onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: Icon(Icons.close))))
             ],
           ),
         ),
@@ -134,38 +133,49 @@ class _MelodyViewState extends State<MelodyView> {
     );
   }
 
+  Offset _previousOffset = Offset.zero;
+  Offset _offset = Offset.zero;
+  Offset _startFocalPoint = Offset.zero;
   double _startHorizontalScale = 1.0;
   double _startVerticalScale = 1.0;
   double _horizontalScale = 1.0;
   double _verticalScale = 1.0;
+
   Widget _mainMelody(BuildContext context) {
     return Container(
-        color: Colors.white,
-        child: GestureDetector(
-            onScaleStart: (details) => setState(() {
-                  _startHorizontalScale = _horizontalScale;
-                  _startVerticalScale = _verticalScale;
-                }),
-            onScaleUpdate: (ScaleUpdateDetails details) {
-              setState(() {
-                if (details.horizontalScale > 0) {
-                  _horizontalScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
-                }
+      color: Colors.white,
+      child: GestureDetector(
+        onScaleStart: (details) =>
+          setState(() {
+            _previousOffset = _offset;
+            _startFocalPoint = details.focalPoint;
+            _startHorizontalScale = _horizontalScale;
+            _startVerticalScale = _verticalScale;
+          }),
+        onScaleUpdate: (ScaleUpdateDetails details) {
+          setState(() {
+            if (details.horizontalScale > 0) {
+              _horizontalScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
+            }
+            if (details.horizontalScale > 0) {
+              _verticalScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
+            }
+            final Offset normalizedOffset =
+              (_startFocalPoint - _previousOffset) / _startHorizontalScale;
+            final Offset newOffset = details.focalPoint - normalizedOffset * _horizontalScale;
+            _offset = newOffset;
 
-                if (details.horizontalScale > 0) {
-                  _verticalScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
-                }
-              });
-            },
-            onScaleEnd: (ScaleEndDetails details) {
-              //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
-            },
-            child: MelodyRenderer(
-              score: widget.score,
-              section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
-              xScale: _horizontalScale,
-              yScale: _verticalScale,
-            )
+          });
+        },
+        onScaleEnd: (ScaleEndDetails details) {
+          //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
+        },
+        child: MelodyRenderer(
+          score: widget.score,
+          section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
+          xScale: _horizontalScale,
+          yScale: _verticalScale,
+        )
 //          GridView.builder(
 //            gridDelegate:
 //                new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
@@ -177,7 +187,7 @@ class _MelodyViewState extends State<MelodyView> {
 //                      child: SvgPicture.asset('assets/notehead_half.svg')));
 //            },
 //          ),
-            ));
+      ));
   }
 }
 
@@ -198,50 +208,53 @@ class _MelodyToolbar extends StatelessWidget {
 
   bool get melodyEnabled => melodySelected && melodyReference.playbackType != MelodyReference_PlaybackType.disabled;
 
-  const _MelodyToolbar(
-      {Key key,
-      this.melody,
-      this.currentSection,
-      this.toggleMelodyReference,
-      this.setReferenceVolume,
-      this.editingMelody,
-      this.sectionColor,
-      this.toggleEditingMelody,
-      this.setMelodyName,
-      this.melodyViewMode})
-      : super(key: key);
+  const _MelodyToolbar({Key key,
+    this.melody,
+    this.currentSection,
+    this.toggleMelodyReference,
+    this.setReferenceVolume,
+    this.editingMelody,
+    this.sectionColor,
+    this.toggleEditingMelody,
+    this.setMelodyName,
+    this.melodyViewMode})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+      .of(context)
+      .size
+      .width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
     return Container(
 //        color: Colors.white,
-        child: Row(children: [
-      Expanded(
+      child: Row(children: [
+        Expanded(
           child: Padding(
-              padding: EdgeInsets.only(left: 5),
-              child: (melodyViewMode == MelodyViewMode.melody)
-                  ? TextField(
-                      controller:
-                          (melodySelected) ? (TextEditingController()..text = melody.name) : TextEditingController(),
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (melodySelected)
-                          ? (value) {
-                              melody.name = value;
-                            }
-                          : null,
-                      onEditingComplete: () {
-                        setMelodyName(melody, melody.name);
-                      },
-                      decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: (melodySelected) ? "Melody ${melody.id.substring(0, 5)}" : ""),
-                    )
-                  : Text(""))),
-      AnimatedContainer(
+            padding: EdgeInsets.only(left: 5),
+            child: (melodyViewMode == MelodyViewMode.melody)
+              ? TextField(
+              controller:
+              (melodySelected) ? (TextEditingController()
+                ..text = melody.name) : TextEditingController(),
+              textCapitalization: TextCapitalization.words,
+              onChanged: (melodySelected)
+                ? (value) {
+                melody.name = value;
+              }
+                : null,
+              onEditingComplete: () {
+                setMelodyName(melody, melody.name);
+              },
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: (melodySelected) ? "Melody ${melody.id.substring(0, 5)}" : ""),
+            )
+              : Text(""))),
+        AnimatedContainer(
           duration: animationDuration,
           width: (melodyEnabled) ? 40 : 0,
           height: 36,
@@ -249,30 +262,30 @@ class _MelodyToolbar extends StatelessWidget {
           child: RaisedButton(
             color: (editingMelody) ? sectionColor : null,
             onPressed: (melodyEnabled)
-                ? () {
-                    toggleEditingMelody();
-                  }
-                : null,
+              ? () {
+              toggleEditingMelody();
+            }
+              : null,
             padding: EdgeInsets.all(0),
             child: SvgPicture.asset(
               'assets/edit.svg',
               fit: BoxFit.fill,
             ),
           )),
-      Container(
+        Container(
           width: 40,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: melodySelected
-                  ? () {
-                      toggleMelodyReference(melodyReference);
-                    }
-                  : null,
-              padding: EdgeInsets.all(0),
-              child: Icon(
-                  melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.not_interested)))
-    ]));
+            onPressed: melodySelected
+              ? () {
+              toggleMelodyReference(melodyReference);
+            }
+              : null,
+            padding: EdgeInsets.all(0),
+            child: Icon(
+              melodySelected ? (melodyEnabled ? Icons.volume_up : Icons.not_interested) : Icons.not_interested)))
+      ]));
   }
 }
 
@@ -282,20 +295,23 @@ class _PartToolbar extends StatelessWidget {
   const _PartToolbar({Key key, this.part}) : super(key: key);
 
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+      .of(context)
+      .size
+      .width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
     return Container(
-        child: Row(children: [
-      Expanded(
+      child: Row(children: [
+        Expanded(
           child: Padding(
-              padding: EdgeInsets.only(left: 5),
-              child: Text((part != null) ? part.instrument.name : "",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
-    ]));
+            padding: EdgeInsets.only(left: 5),
+            child: Text((part != null) ? part.instrument.name : "",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
+      ]));
   }
 }
 
@@ -307,44 +323,48 @@ class _SectionToolbar extends StatelessWidget {
   final Function(Section, String) setSectionName;
 
   const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode, this.setSectionName})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+      .of(context)
+      .size
+      .width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
     return Container(
 //        color: sectionColor,
-        child: Row(children: [
-      Expanded(
+      child: Row(children: [
+        Expanded(
           child: Padding(
-              padding: EdgeInsets.only(left: 5),
-              child: (melodyViewMode == MelodyViewMode.section)
-                  ? TextField(
-                      style: TextStyle(fontWeight: FontWeight.w100),
-                      controller: (melodyViewMode == MelodyViewMode.section)
-                          ? (TextEditingController()..text = currentSection.name)
-                          : TextEditingController(),
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (melodyViewMode == MelodyViewMode.section)
-                          ? (value) {
-                              currentSection.name = value;
-                            }
-                          : null,
-                      onEditingComplete: () {
-                        setSectionName(currentSection, currentSection.name);
-                      },
-                      decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: (melodyViewMode == MelodyViewMode.section)
-                              ? "Section ${currentSection.id.substring(0, 5)}"
-                              : ""),
-                    )
-                  : Text(""))),
+            padding: EdgeInsets.only(left: 5),
+            child: (melodyViewMode == MelodyViewMode.section)
+              ? TextField(
+              style: TextStyle(fontWeight: FontWeight.w100),
+              controller: (melodyViewMode == MelodyViewMode.section)
+                ? (TextEditingController()
+                ..text = currentSection.name)
+                : TextEditingController(),
+              textCapitalization: TextCapitalization.words,
+              onChanged: (melodyViewMode == MelodyViewMode.section)
+                ? (value) {
+                currentSection.name = value;
+              }
+                : null,
+              onEditingComplete: () {
+                setSectionName(currentSection, currentSection.name);
+              },
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: (melodyViewMode == MelodyViewMode.section)
+                  ? "Section ${currentSection.id.substring(0, 5)}"
+                  : ""),
+            )
+              : Text(""))),
 //        RaisedButton(onPressed: () {  },
 //          child: Icon(Icons.edit),)
-    ]));
+      ]));
   }
 }

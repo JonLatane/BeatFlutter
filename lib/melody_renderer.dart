@@ -107,7 +107,7 @@ class _MelodyPainter extends CustomPainter {
 
     while (o1.dx < visibleRect().right + extend) {
       canvas.drawLine(o1, o2, _tickPaint);
-      double top = (((o1.dx * 2048) % width)/ width) * rect.height;
+      double top = (((o1.dx * 29) % width)/ width) * rect.height;
       drawFilledNotehead(canvas, Rect.fromLTRB(o1.dx, top, o1.dx + standardBeatWidth / 2, top + standardBeatWidth / 2));
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);

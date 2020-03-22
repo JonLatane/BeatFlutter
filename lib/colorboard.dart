@@ -33,11 +33,14 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
   double halfStepWidthInPx = 80;
+  AnimationController orientationAnimationController;
+  Animation orientationAnimation;
 
   @override
   void initState() {
     super.initState();
     scrollPositionNotifier = ValueNotifier(0);
+    orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
@@ -62,7 +65,15 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
 
           double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
           if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
-            scrollPositionNotifier.value = newScrollPositionValue;
+            Animation animation;
+            animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
+              .animate(orientationAnimationController)
+              ..addListener(() {
+                scrollPositionNotifier.value = animation.value;
+//                setState(() {});
+              });
+            orientationAnimationController.forward(from: scrollPositionNotifier.value);
+//            scrollPositionNotifier.value = newScrollPositionValue;
           }
         }
       }));
