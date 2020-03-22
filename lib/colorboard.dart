@@ -24,54 +24,51 @@ class Colorboard extends StatefulWidget {
   _ColorboardState createState() => _ColorboardState();
 }
 
+Rect _visibleRect = Rect.zero;
+
 class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateMixin {
   bool useOrientation = true;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
   bool reverseScrolling = false;
-  ScrollingMode scrollingMode = ScrollingMode.pitch;
+  ScrollingMode scrollingMode = ScrollingMode.sideScroll;
   double halfStepWidthInPx = 100;
 
   @override
   void initState() {
     super.initState();
     scrollPositionNotifier = ValueNotifier(0);
-    _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
-      if (scrollingMode != ScrollingMode.sideScroll) {
+    try {
+      _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
+        if (scrollingMode != ScrollingMode.sideScroll) {
 //        print("Sensor event: $event");
-        double normalizedPitch;
-        var absoluteScrollPosition;
-        switch (scrollingMode) {
-          case ScrollingMode.pitch:
-            absoluteScrollPosition = event.pitch;
-            if (absoluteScrollPosition < 0) {
-              absoluteScrollPosition = -absoluteScrollPosition;
-            }
-            normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
-            break;
-          case ScrollingMode.roll:
-            absoluteScrollPosition = event.roll;
-            break;
-          case ScrollingMode.sideScroll:
-            break;
-        }
+          double normalizedPitch;
+          var absoluteScrollPosition;
+          switch (scrollingMode) {
+            case ScrollingMode.pitch:
+              absoluteScrollPosition = event.pitch;
+              if (absoluteScrollPosition < 0) {
+                absoluteScrollPosition = -absoluteScrollPosition;
+              }
+              normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
+              break;
+            case ScrollingMode.roll:
+              absoluteScrollPosition = event.roll;
+              break;
+            case ScrollingMode.sideScroll:
+              break;
+          }
 
-        scrollPositionNotifier.value = normalizedPitch.toDouble();
-      }
-    }));
-//    _streamSubscriptions.add(gyroscopeEvents.listen((event) {
-//      if(scrollingMode != ScrollingMode.sideScroll) {
-//        var absoluteScrollPosition;
-//        switch(scrollingMode) {
-//          case ScrollingMode.pitch: absoluteScrollPosition = event.x; break;
-//          case ScrollingMode.yaw: absoluteScrollPosition = event.y; break;
-//          case ScrollingMode.roll: absoluteScrollPosition = event.z; break;
-//          case ScrollingMode.sideScroll: break;
-//        }
-//        double normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 3.14));
-//        scrollPositionNotifier.value = normalizedPitch.toDouble();
-//      }
-//    }));
+          double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch.toDouble()));
+          if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
+            scrollPositionNotifier.value = newScrollPositionValue;
+          }
+        }
+      }));
+    } catch (MissingPluginException) {
+      // It's fine for this to not work on desktop
+      scrollingMode = ScrollingMode.sideScroll;
+    }
   }
 
   @override
@@ -82,26 +79,47 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     }
   }
 
+  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 20 : 0;
+
   @override
   Widget build(BuildContext context) {
-//    return CustomPaint(painter: ColorboardPainter(scrollPositionNotifier: scrollPositionNotifier));
+    double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
+    double physicalWidth = 88 * halfStepWidthInPx;
     return Stack(children: [
-      Row(children: [
-        AnimatedContainer(
-            duration: animationDuration, width: (scrollingMode == ScrollingMode.sideScroll) ? 7 : 0, child: SizedBox()),
-        Expanded(
-            child: Container(
-                height: 150,
-                child: CustomPaint(
-                  painter: ColorboardPainter(
-                    scrollPositionNotifier: scrollPositionNotifier,
-                    halfStepsOnScreen: MediaQuery.of(context).size.width / halfStepWidthInPx,
-                  ),
-                  willChange: true,
-                ))),
-        AnimatedContainer(
-            duration: animationDuration, width: (scrollingMode == ScrollingMode.sideScroll) ? 7 : 0, child: SizedBox()),
-      ]),
+              CustomScrollView(
+                scrollDirection: Axis.horizontal,
+                slivers: [
+                  CustomSliverToBoxAdapter(
+                    setVisibleRect: (rect) {
+                      _visibleRect = rect;
+                      _visibleRect =
+                          Rect.fromLTRB(rect.left, rect.top, rect.right, rect.bottom - touchScrollAreaHeight);
+                      double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
+                      if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
+                        scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
+                      }
+                    },
+                    child:
+                    Column(children: [
+                      AnimatedContainer(duration: animationDuration,
+                        height: touchScrollAreaHeight, width: physicalWidth,
+                        color:widget.sectionColor, child: SizedBox()),
+                      CustomPaint(
+                        size: Size(physicalWidth, 150),
+                        painter: _ColorboardPainter(
+                            scrollPositionNotifier: scrollPositionNotifier,
+                            halfStepsOnScreen: halfStepsOnScreen,
+                            visibleRect: () => _visibleRect),
+                      ),
+                    ]),
+                  )
+                ]
+              ),
+//      Expanded(child:Column(children: [
+//        AnimatedContainer(duration: animationDuration,
+//          height: touchScrollAreaHeight, child: SizedBox()),
+//        Expanded(child:Container(color: Colors.black12, child:GestureDetector()))
+//      ])),
       AnimatedContainer(
           duration: animationDuration,
           height: widget.height,
@@ -159,7 +177,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                   Expanded(
                       flex: context.isTabletOrLandscapey ? 3 : 2,
                       child: RaisedButton(
-                        padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.all(0),
                           onPressed: () {
                             setState(() {
                               scrollingMode = ScrollingMode.sideScroll;
@@ -170,7 +188,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                   Expanded(
                       flex: context.isTabletOrLandscapey ? 3 : 2,
                       child: RaisedButton(
-                        padding: EdgeInsets.all(0),
+                          padding: EdgeInsets.all(0),
                           onPressed: () {
                             setState(() {
                               scrollingMode = ScrollingMode.pitch;
@@ -178,10 +196,10 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                           },
                           color: (scrollingMode == ScrollingMode.pitch) ? widget.sectionColor : null,
                           child: Row(children: [
-                            Expanded(child:SizedBox()),
+                            Expanded(child: SizedBox()),
                             Text("+"),
                             Text("Pitch"),
-                            Expanded(child:SizedBox()),
+                            Expanded(child: SizedBox()),
                           ]))),
                   Expanded(
                       flex: context.isTabletOrLandscapey ? 3 : 1,
@@ -219,27 +237,30 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   }
 }
 
-class ColorboardPainter extends CustomPainter {
+class _ColorboardPainter extends CustomPainter {
   final ValueNotifier<double> scrollPositionNotifier;
   final double halfStepsOnScreen;
+  final Rect Function() visibleRect;
 
-  ColorboardPainter({this.scrollPositionNotifier, this.halfStepsOnScreen}) : super(repaint: scrollPositionNotifier);
+  _ColorboardPainter({this.scrollPositionNotifier, this.halfStepsOnScreen, this.visibleRect})
+      : super(repaint: scrollPositionNotifier);
 
   @override
   void paint(Canvas canvas, Size size) {
     var bounds = Offset.zero & size;
-    canvas.clipRect(bounds);
-      final ColorGuide colorGuide = ColorGuide()
-        ..renderVertically = false
-        ..alphaDrawerPaint = Paint()
-        ..halfStepsOnScreen = halfStepsOnScreen
-        ..bounds = bounds
-        ..drawnColorGuideAlpha = 255
-        ..drawPadding = 0
-        ..nonRootPadding = 10
-        ..normalizedDevicePitch = scrollPositionNotifier.value;
-      colorGuide.drawColorGuide(canvas);
-
+//    canvas.drawRect(visibleRect(), Paint());
+//    canvas.drawRect(bounds, Paint());
+//    canvas.clipRect(bounds);
+    final ColorGuide colorGuide = ColorGuide()
+      ..renderVertically = false
+      ..alphaDrawerPaint = Paint()
+      ..halfStepsOnScreen = halfStepsOnScreen
+      ..bounds = visibleRect()
+      ..drawnColorGuideAlpha = 255
+      ..drawPadding = 0
+      ..nonRootPadding = 10
+      ..normalizedDevicePitch = scrollPositionNotifier.value;
+    colorGuide.drawColorGuide(canvas);
   }
 
   @override
@@ -270,8 +291,8 @@ class ColorboardPainter extends CustomPainter {
 // from the constructor) then we would return true if any
 // of them differed from the same fields on the oldDelegate.
   @override
-  bool shouldRepaint(ColorboardPainter oldDelegate) => true;
+  bool shouldRepaint(_ColorboardPainter oldDelegate) => true;
 
   @override
-  bool shouldRebuildSemantics(ColorboardPainter oldDelegate) => false;
+  bool shouldRebuildSemantics(_ColorboardPainter oldDelegate) => false;
 }

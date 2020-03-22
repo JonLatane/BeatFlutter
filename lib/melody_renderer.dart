@@ -33,6 +33,7 @@ class MelodyRenderer extends StatefulWidget {
   _MelodyRendererState createState() => _MelodyRendererState();
 }
 
+Rect _visibleRect = Rect.zero;
 class _MelodyRendererState extends State<MelodyRenderer> {
   bool get isViewingSection => widget.section != null;
   int get numberOfBeats => isViewingSection ? widget.section.harmony.beatCount : widget.score.beatCount;
@@ -47,11 +48,13 @@ class _MelodyRendererState extends State<MelodyRenderer> {
       scrollDirection: Axis.horizontal,
       slivers: [
         new CustomSliverToBoxAdapter(
+          setVisibleRect: (rect) { _visibleRect = rect; },
           child: _MelodyPaint(
             score: widget.score,
             section: widget.section,
             xScale: widget.xScale,
             yScale: widget.yScale,
+            visibleRect: () => _visibleRect,
             width: width,
           ),
         )
@@ -66,9 +69,10 @@ class _MelodyPaint extends CustomPaint {
   final double xScale;
   final double yScale;
   final double width;
+  final Rect Function() visibleRect;
 
 
-  _MelodyPaint({this.width, this.score, this.section, this.xScale, this.yScale,})
+  _MelodyPaint({this.width, this.score, this.section, this.xScale, this.yScale,this.visibleRect,})
       : super(
           size: Size(width, 60.0),
           painter: new _MelodyPainter(
@@ -76,6 +80,7 @@ class _MelodyPaint extends CustomPaint {
             section: section,
             xScale: xScale,
             yScale: yScale,
+            visibleRect: visibleRect,
           ),
         );
 }
@@ -85,13 +90,14 @@ class _MelodyPainter extends CustomPainter {
   final Section section;
   final double xScale;
   final double yScale;
+  final Rect Function() visibleRect;
   bool get isViewingSection => section != null;
   int get numberOfBeats => isViewingSection ? section.harmony.beatCount : score.beatCount;
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
   double get width => standardBeatWidth * numberOfBeats;
-  Paint _tickPaint = Paint()..style = PaintingStyle.stroke;
+  Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
-  _MelodyPainter({this.score, this.section, this.xScale, this.yScale,}) {
+  _MelodyPainter({this.score, this.section, this.xScale, this.yScale,this.visibleRect, }) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
   }
@@ -105,15 +111,15 @@ class _MelodyPainter extends CustomPainter {
     var extend = _tickPaint.strokeWidth / 2.0;
 
     // Calculate from which Tick we should start drawing
-    var tick = ((_visibleRect.left - extend) / standardBeatWidth).ceil();
+    var tick = ((visibleRect().left - extend) / standardBeatWidth).floor();
 
     var startOffset = tick * standardBeatWidth;
     var o1 = new Offset(startOffset, 0.0);
     var o2 = new Offset(startOffset, rect.height);
 
-    while (o1.dx < _visibleRect.right + extend) {
+    while (o1.dx < visibleRect().right + extend) {
       canvas.drawLine(o1, o2, _tickPaint);
-      double top = (o1.dx / width) * rect.height;
+      double top = ((o1.dx * 59 % width)/ width) * rect.height;
       drawFilledNotehead(canvas, Rect.fromLTRB(o1.dx, top, o1.dx + standardBeatWidth / 2, top + standardBeatWidth / 2));
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
@@ -123,11 +129,13 @@ class _MelodyPainter extends CustomPainter {
   }
 
   drawFilledNotehead(Canvas canvas, Rect rect) {
-    canvas.drawRect(rect, _tickPaint);
+//    canvas.drawRect(rect, _tickPaint);
     canvas.save();
     canvas.translate(rect.center.dx, rect.center.dy);
-//    canvas.rotate(-0.58171824);
-    canvas.drawOval(rect.shift(rect.center), _tickPaint);
+    canvas.rotate(-0.58171824);
+    var target = rect.shift(-rect.center);
+    target = Rect.fromCenter(center: target.center, width: target.width, height: target.height * 0.7777777);
+    canvas.drawOval(target, _tickPaint);
     canvas.restore();
   }
 
@@ -136,54 +144,3 @@ class _MelodyPainter extends CustomPainter {
     return false;
   }
 }
-
-class CustomSliverToBoxAdapter extends SingleChildRenderObjectWidget {
-  const CustomSliverToBoxAdapter({
-    Key key,
-    Widget child,
-  }) : super(key: key, child: child);
-
-  @override
-  CustomRenderSliverToBoxAdapter createRenderObject(BuildContext context) => new CustomRenderSliverToBoxAdapter();
-}
-
-class CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
-  CustomRenderSliverToBoxAdapter({
-    RenderBox child,
-  }) : super(child: child);
-
-  @override
-  void performLayout() {
-    if (child == null) {
-      geometry = SliverGeometry.zero;
-      return;
-    }
-    child.layout(constraints.asBoxConstraints(), parentUsesSize: true);
-    double childExtent;
-    switch (constraints.axis) {
-      case Axis.horizontal:
-        childExtent = child.size.width;
-        break;
-      case Axis.vertical:
-        childExtent = child.size.height;
-        break;
-    }
-    assert(childExtent != null);
-    final double paintedChildSize = calculatePaintOffset(constraints, from: 0.0, to: childExtent);
-    assert(paintedChildSize.isFinite);
-    assert(paintedChildSize >= 0.0);
-    geometry = new SliverGeometry(
-      scrollExtent: childExtent,
-      paintExtent: paintedChildSize,
-      maxPaintExtent: childExtent,
-      hitTestExtent: paintedChildSize,
-      hasVisualOverflow: childExtent > constraints.remainingPaintExtent || constraints.scrollOffset > 0.0,
-    );
-    setChildParentData(child, constraints, geometry);
-
-    // Expose geometry
-    _visibleRect = new Rect.fromLTWH(constraints.scrollOffset, 0.0, geometry.paintExtent, child.size.height);
-  }
-}
-
-Rect _visibleRect = Rect.zero;

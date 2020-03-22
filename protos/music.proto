@@ -66,35 +66,10 @@ enum InstrumentType {
 }
 
 enum MelodyType {
-  // Uses MelodyAttacks and represents instrument data for touch editing
+  // Uses MelodicAttacks and represents instrument data for touch editing.
   melodic = 0;
-  // Uses MidiChanges and represents raw MIDI instrument data
+  // Uses MidiChanges and represents raw MIDI instrument data.
   midi = 1;
-}
-
-// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
-// and make touchable. A "rest" is any MelodyAttack with no tones. MelodyAttacks can represent a
-// traditional "music theory class" single-note melody, but expanded slightly so that we can have
-// multiple notes. Notes must all attack at once and release at once.
-//
-// To phrase it more simply, this way of breaking down melodies forces you to separate your
-// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
-message MelodyAttack {
-  repeated sint32 tones = 1;
-  float velocity = 2;
-}
-
-// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
-// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
-// recorded MIDI messages at playback time. Note that MIDI note names are a first-class citizen:
-// *in a MidiChange NOTE ON or NOTE OFF, C4 = 60. Elsewhere C4 = 0.
-//
-// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
-// and bass parts as a single "melody." But your music theory teach would berate you in class for
-// that. These are also harder to make editable by touch, but handy for recording MIDI performance
-// by a musician.
-message MidiChange {
-  bytes data = 1;
 }
 
 message Melody {
@@ -114,20 +89,46 @@ message Melody {
   // should match the Part's instrument type. Useful for letting the user copy/paste Melodies
   // between Parts.
   InstrumentType instrument_type = 6;
+  // The Melody notes/data, the type of which should match the MelodyType.
   oneof data {
-    MelodicData melodic_data = 7;
-    MidiData midi_data = 8;
+    MelodicData melodic_data = 100;
+    MidiData midi_data = 101;
   }
 }
 
 // Map of subdivisions to melody attacks.
 message MelodicData {
-  map<sint32,MelodyAttack> data = 1;
+  map<sint32,MelodicAttack> data = 1;
 }
 
 // Map of subdivisions to MIDI data.
 message MidiData {
   map<sint32,MidiChange> data = 1;
+}
+
+// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
+// and make touchable. A "rest" is any MelodicAttack with no tones. MelodicAttacks can represent a
+// traditional "music theory class" single-note melody, but expanded slightly so that we can have
+// multiple notes. Notes must all attack at once and release at once.
+//
+// To phrase it more simply, this way of breaking down melodies forces you to separate your
+// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
+message MelodicAttack {
+  repeated sint32 tones = 1;
+  float velocity = 2;
+}
+
+// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
+// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
+// recorded MIDI messages at playback time. Note that MIDI note names are a first-class citizen:
+// *in a MidiChange NOTE ON or NOTE OFF, C4 = 60. Elsewhere C4 = 0.
+//
+// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
+// and bass parts as a single "melody." But your music theory teach would berate you in class for
+// that. These are also harder to make editable by touch, but handy for recording MIDI performance
+// by a musician.
+message MidiChange {
+  bytes data = 1;
 }
 
 message Instrument {

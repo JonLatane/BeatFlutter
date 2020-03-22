@@ -68,7 +68,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
-  MelodyViewDisplayMode melodyViewDisplayMode = MelodyViewDisplayMode.half;
+  MelodyViewDisplayMode melodyViewDisplayMode = null;
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
   bool _editingMelody = false;
 
@@ -360,6 +360,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if(melodyViewDisplayMode == null) {
+      melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
+    }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));

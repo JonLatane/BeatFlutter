@@ -94,9 +94,8 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                       width: 270,
                       padding: EdgeInsets.only(top: 5),
                       child: Text(
-                        "Kits, whistles, gunshots, zips, zaps, crickets, screams, and more. SoundFonts can allow "
-                        "for virtually any patch. Drum Parts written using MIDI pitch values. Standards include: "
-                        "Kick = B1, Snare = D2, Hat = F#2."
+                        "Kits, whistles, gunshots, zips, zaps, crickets, screams, and more.   Drum Parts written using "
+                        "MIDI pitch values. Standards include: Kick = B1, Snare = D2, Hat = F#2."
                         "\n\nMay only be used on the Keyboard.",
                         style: TextStyle(
                             color: canAddDrumPart ? Colors.white : Colors.black26,
@@ -333,7 +332,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
   get setPartVolume => widget.setPartVolume;
 
-  get currentSection => widget.currentSection;
+  Section get currentSection => widget.currentSection;
 
   get selectedMelody => widget.selectedMelody;
 
@@ -346,6 +345,11 @@ class _MelodiesViewState extends State<_MelodiesView> {
   get sectionColor => widget.sectionColor;
 
   get editingMelody => widget.editingMelody;
+  set editingMelody(value) {
+    if(editingMelody != value) {
+      toggleEditingMelody();
+    }
+  }
 
   get toggleEditingMelody => widget.toggleEditingMelody;
 
@@ -512,6 +516,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     lastAddedMelody = newMelody;
                     setState(() {
                       part.melodies.insert(0, newMelody);
+                      selectMelody(newMelody);
+                      toggleMelodyReference(currentSection.referenceTo(newMelody));
+                      editingMelody = true;
                     });
                   },
                   child: Icon(
