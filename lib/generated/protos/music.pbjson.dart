@@ -82,21 +82,6 @@ const Harmony_DataEntry$json = const {
   '7': const {'7': true},
 };
 
-const MelodyAttack$json = const {
-  '1': 'MelodyAttack',
-  '2': const [
-    const {'1': 'tones', '3': 1, '4': 3, '5': 17, '10': 'tones'},
-    const {'1': 'velocity', '3': 2, '4': 1, '5': 2, '10': 'velocity'},
-  ],
-};
-
-const MidiChange$json = const {
-  '1': 'MidiChange',
-  '2': const [
-    const {'1': 'data', '3': 1, '4': 1, '5': 12, '10': 'data'},
-  ],
-};
-
 const Melody$json = const {
   '1': 'Melody',
   '2': const [
@@ -106,8 +91,8 @@ const Melody$json = const {
     const {'1': 'length', '3': 4, '4': 1, '5': 13, '10': 'length'},
     const {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
     const {'1': 'instrument_type', '3': 6, '4': 1, '5': 14, '6': '.InstrumentType', '10': 'instrumentType'},
-    const {'1': 'melodic_data', '3': 7, '4': 1, '5': 11, '6': '.MelodicData', '9': 0, '10': 'melodicData'},
-    const {'1': 'midi_data', '3': 8, '4': 1, '5': 11, '6': '.MidiData', '9': 0, '10': 'midiData'},
+    const {'1': 'melodic_data', '3': 100, '4': 1, '5': 11, '6': '.MelodicData', '9': 0, '10': 'melodicData'},
+    const {'1': 'midi_data', '3': 101, '4': 1, '5': 11, '6': '.MidiData', '9': 0, '10': 'midiData'},
   ],
   '8': const [
     const {'1': 'data'},
@@ -126,7 +111,7 @@ const MelodicData_DataEntry$json = const {
   '1': 'DataEntry',
   '2': const [
     const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
-    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodyAttack', '10': 'value'},
+    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodicAttack', '10': 'value'},
   ],
   '7': const {'7': true},
 };
@@ -146,6 +131,21 @@ const MidiData_DataEntry$json = const {
     const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MidiChange', '10': 'value'},
   ],
   '7': const {'7': true},
+};
+
+const MelodicAttack$json = const {
+  '1': 'MelodicAttack',
+  '2': const [
+    const {'1': 'tones', '3': 1, '4': 3, '5': 17, '10': 'tones'},
+    const {'1': 'velocity', '3': 2, '4': 1, '5': 2, '10': 'velocity'},
+  ],
+};
+
+const MidiChange$json = const {
+  '1': 'MidiChange',
+  '2': const [
+    const {'1': 'data', '3': 1, '4': 1, '5': 12, '10': 'data'},
+  ],
 };
 
 const Instrument$json = const {

@@ -164,72 +164,6 @@ class Harmony extends $pb.GeneratedMessage {
   $core.Map<$core.int, Chord> get data => $_getMap(3);
 }
 
-class MelodyAttack extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodyAttack', createEmptyInstance: create)
-    ..p<$core.int>(1, 'tones', $pb.PbFieldType.PS3)
-    ..a<$core.double>(2, 'velocity', $pb.PbFieldType.OF)
-    ..hasRequiredFields = false
-  ;
-
-  MelodyAttack._() : super();
-  factory MelodyAttack() => create();
-  factory MelodyAttack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MelodyAttack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  MelodyAttack clone() => MelodyAttack()..mergeFromMessage(this);
-  MelodyAttack copyWith(void Function(MelodyAttack) updates) => super.copyWith((message) => updates(message as MelodyAttack));
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static MelodyAttack create() => MelodyAttack._();
-  MelodyAttack createEmptyInstance() => create();
-  static $pb.PbList<MelodyAttack> createRepeated() => $pb.PbList<MelodyAttack>();
-  @$core.pragma('dart2js:noInline')
-  static MelodyAttack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodyAttack>(create);
-  static MelodyAttack _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<$core.int> get tones => $_getList(0);
-
-  @$pb.TagNumber(2)
-  $core.double get velocity => $_getN(1);
-  @$pb.TagNumber(2)
-  set velocity($core.double v) { $_setFloat(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasVelocity() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearVelocity() => clearField(2);
-}
-
-class MidiChange extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiChange', createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, 'data', $pb.PbFieldType.OY)
-    ..hasRequiredFields = false
-  ;
-
-  MidiChange._() : super();
-  factory MidiChange() => create();
-  factory MidiChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MidiChange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  MidiChange clone() => MidiChange()..mergeFromMessage(this);
-  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange));
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static MidiChange create() => MidiChange._();
-  MidiChange createEmptyInstance() => create();
-  static $pb.PbList<MidiChange> createRepeated() => $pb.PbList<MidiChange>();
-  @$core.pragma('dart2js:noInline')
-  static MidiChange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiChange>(create);
-  static MidiChange _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<$core.int> get data => $_getN(0);
-  @$pb.TagNumber(1)
-  set data($core.List<$core.int> v) { $_setBytes(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasData() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearData() => clearField(1);
-}
-
 enum Melody_Data {
   melodicData, 
   midiData, 
@@ -238,20 +172,20 @@ enum Melody_Data {
 
 class Melody extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, Melody_Data> _Melody_DataByTag = {
-    7 : Melody_Data.melodicData,
-    8 : Melody_Data.midiData,
+    100 : Melody_Data.melodicData,
+    101 : Melody_Data.midiData,
     0 : Melody_Data.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Melody', createEmptyInstance: create)
-    ..oo(0, [7, 8])
+    ..oo(0, [100, 101])
     ..aOS(1, 'id')
     ..aOS(2, 'name')
     ..a<$core.int>(3, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
     ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
     ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melodic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
     ..e<InstrumentType>(6, 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
-    ..aOM<MelodicData>(7, 'melodicData', subBuilder: MelodicData.create)
-    ..aOM<MidiData>(8, 'midiData', subBuilder: MidiData.create)
+    ..aOM<MelodicData>(100, 'melodicData', subBuilder: MelodicData.create)
+    ..aOM<MidiData>(101, 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false
   ;
 
@@ -327,32 +261,32 @@ class Melody extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearInstrumentType() => clearField(6);
 
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(100)
   MelodicData get melodicData => $_getN(6);
-  @$pb.TagNumber(7)
-  set melodicData(MelodicData v) { setField(7, v); }
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(100)
+  set melodicData(MelodicData v) { setField(100, v); }
+  @$pb.TagNumber(100)
   $core.bool hasMelodicData() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearMelodicData() => clearField(7);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(100)
+  void clearMelodicData() => clearField(100);
+  @$pb.TagNumber(100)
   MelodicData ensureMelodicData() => $_ensure(6);
 
-  @$pb.TagNumber(8)
+  @$pb.TagNumber(101)
   MidiData get midiData => $_getN(7);
-  @$pb.TagNumber(8)
-  set midiData(MidiData v) { setField(8, v); }
-  @$pb.TagNumber(8)
+  @$pb.TagNumber(101)
+  set midiData(MidiData v) { setField(101, v); }
+  @$pb.TagNumber(101)
   $core.bool hasMidiData() => $_has(7);
-  @$pb.TagNumber(8)
-  void clearMidiData() => clearField(8);
-  @$pb.TagNumber(8)
+  @$pb.TagNumber(101)
+  void clearMidiData() => clearField(101);
+  @$pb.TagNumber(101)
   MidiData ensureMidiData() => $_ensure(7);
 }
 
 class MelodicData extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodicData', createEmptyInstance: create)
-    ..m<$core.int, MelodyAttack>(1, 'data', entryClassName: 'MelodicData.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodyAttack.create)
+    ..m<$core.int, MelodicAttack>(1, 'data', entryClassName: 'MelodicData.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodicAttack.create)
     ..hasRequiredFields = false
   ;
 
@@ -372,7 +306,7 @@ class MelodicData extends $pb.GeneratedMessage {
   static MelodicData _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.Map<$core.int, MelodyAttack> get data => $_getMap(0);
+  $core.Map<$core.int, MelodicAttack> get data => $_getMap(0);
 }
 
 class MidiData extends $pb.GeneratedMessage {
@@ -398,6 +332,72 @@ class MidiData extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $core.Map<$core.int, MidiChange> get data => $_getMap(0);
+}
+
+class MelodicAttack extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodicAttack', createEmptyInstance: create)
+    ..p<$core.int>(1, 'tones', $pb.PbFieldType.PS3)
+    ..a<$core.double>(2, 'velocity', $pb.PbFieldType.OF)
+    ..hasRequiredFields = false
+  ;
+
+  MelodicAttack._() : super();
+  factory MelodicAttack() => create();
+  factory MelodicAttack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MelodicAttack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MelodicAttack clone() => MelodicAttack()..mergeFromMessage(this);
+  MelodicAttack copyWith(void Function(MelodicAttack) updates) => super.copyWith((message) => updates(message as MelodicAttack));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MelodicAttack create() => MelodicAttack._();
+  MelodicAttack createEmptyInstance() => create();
+  static $pb.PbList<MelodicAttack> createRepeated() => $pb.PbList<MelodicAttack>();
+  @$core.pragma('dart2js:noInline')
+  static MelodicAttack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodicAttack>(create);
+  static MelodicAttack _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get tones => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.double get velocity => $_getN(1);
+  @$pb.TagNumber(2)
+  set velocity($core.double v) { $_setFloat(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasVelocity() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVelocity() => clearField(2);
+}
+
+class MidiChange extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiChange', createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, 'data', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false
+  ;
+
+  MidiChange._() : super();
+  factory MidiChange() => create();
+  factory MidiChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiChange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiChange clone() => MidiChange()..mergeFromMessage(this);
+  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiChange create() => MidiChange._();
+  MidiChange createEmptyInstance() => create();
+  static $pb.PbList<MidiChange> createRepeated() => $pb.PbList<MidiChange>();
+  @$core.pragma('dart2js:noInline')
+  static MidiChange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiChange>(create);
+  static MidiChange _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get data => $_getN(0);
+  @$pb.TagNumber(1)
+  set data($core.List<$core.int> v) { $_setBytes(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasData() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearData() => clearField(1);
 }
 
 class Instrument extends $pb.GeneratedMessage {

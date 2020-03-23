@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'colors.dart';
 import 'util.dart';
 import 'ui_models.dart';
+import 'package:flutter/foundation.dart';
 import 'dummydata.dart';
 
 void main() => runApp(MyApp());
@@ -39,18 +41,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BeatFlutter',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: MaterialColor(0xFF212121, swatch),
-        platform: TargetPlatform.iOS,
-        fontFamily: 'VulfSans'),
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: MaterialColor(0xFF212121, swatch),
+          platform: TargetPlatform.iOS,
+          fontFamily: 'VulfSans'),
       home: MyHomePage(title: 'BeatFlutter'),
     );
   }
@@ -204,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     } else {
       setState(() {
         ref.playbackType = MelodyReference_PlaybackType.disabled;
-        if(selectedMelody != null && ref != null && ref.melodyId == selectedMelody.id) {
+        if (selectedMelody != null && ref != null && ref.melodyId == selectedMelody.id) {
           editingMelody = false;
         }
       });
@@ -268,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _toggleKeyboard() {
     setState(() {
-      if(_showKeyboardConfiguration) {
+      if (_showKeyboardConfiguration) {
         _showKeyboardConfiguration = false;
       } else {
         _showKeyboard = !_showKeyboard;
@@ -281,11 +283,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _toggleColorboard() {
     setState(() {
-      if(_showColorboardConfiguration) {
+      if (_showColorboardConfiguration) {
         _showColorboardConfiguration = false;
       } else {
         _showColorboard = !_showColorboard;
-        if(!_showColorboard) {
+        if (!_showColorboard) {
           _showColorboardConfiguration = false;
         }
       }
@@ -314,7 +316,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get _combineSecondAndMainToolbar => context.isTabletOrLandscapey;
 
   double get _secondToolbarHeight =>
-    (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
+      (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
 
   double get _colorboardHeight => _showColorboard ? 150 : 0;
 
@@ -327,7 +329,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
     scaleStateController = PhotoViewScaleStateController();
     _keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
-    _colorboardPart = _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
+    _colorboardPart =
+        _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
   }
 
   @override
@@ -342,43 +345,44 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _hideMelodyView();
       });
       return false;
-    } else if(_showKeyboardConfiguration || _showColorboardConfiguration) {
+    } else if (_showKeyboardConfiguration || _showColorboardConfiguration) {
       setState(() {
         _showKeyboardConfiguration = false;
         _showColorboardConfiguration = false;
       });
-    } else if(_showKeyboard || _showColorboard) {
+    } else if (_showKeyboard || _showColorboard) {
       setState(() {
         _showKeyboard = false;
         _showColorboard = false;
       });
     } else {
       return (await showDialog(
-        context: context,
-        builder: (context) =>
-        new AlertDialog(
-          title: new Text('Are you sure?'),
-          content: new Text('Do you want to exit BeatFlutter?'),
-          actions: <Widget>[
-            new FlatButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: new Text('No'),
+            context: context,
+            builder: (context) => new AlertDialog(
+              title: new Text('Are you sure?'),
+              content: new Text('Do you want to exit BeatFlutter?'),
+              actions: <Widget>[
+                new FlatButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: new Text('No'),
+                ),
+                new FlatButton(
+                  color: sectionColor,
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: new Text('Yes, exit'),
+                ),
+              ],
             ),
-            new FlatButton(
-              color: sectionColor,
-              onPressed: () => Navigator.of(context).pop(true),
-              child: new Text('Yes, exit'),
-            ),
-          ],
-        ),
-      )) ??
-        false;
+          )) ??
+          false;
     }
   }
 
+  bool showWebWarning = kIsWeb;
+
   @override
   Widget build(BuildContext context) {
-    if(melodyViewDisplayMode == null) {
+    if (melodyViewDisplayMode == null) {
       melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
     }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -389,141 +393,160 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var right = MediaQuery.of(context).size.width;
     var left = 0.0;
     SystemChannels.platform.invokeMethod("SystemGestures.setSystemGestureExclusionRects", <Map<String, int>>[
-      {"left":left.toInt(),  "top":top.toInt(), "right":10, "bottom":bottom.toInt()},
-      {"left":(right - 10).toInt(),  "top":top.toInt(), "right":right.toInt(), "bottom":bottom.toInt()},
+      {"left": left.toInt(), "top": top.toInt(), "right": 10, "bottom": bottom.toInt()},
+      {"left": (right - 10).toInt(), "top": top.toInt(), "right": right.toInt(), "bottom": bottom.toInt()},
     ]);
     return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
+        onWillPop: _onWillPop,
+        child: Scaffold(
 //            resizeToAvoidBottomPadding: false,
-        backgroundColor: Color(0xFF424242),
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(0.0), // here the desired height
-          child: AppBar(
-            // Here we take the value from the MyHomePage object that was created by
-            // the App.build method, and use it to set our appbar title.
-            //title: Row(Text(widget.title)])
-          )),
-        body: new GestureDetector(
-          onTap: () {
-            FocusScope.of(context).requestFocus(new FocusNode());
-          },
-          child: Stack(children: [
-            //Column(children: [
-            Flex(direction: Axis.vertical, children: <Widget>[
-              _combineSecondAndMainToolbar
-                ? Container(
-                height: 48,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(child: createBeatScratchToolbar()),
-                    Container(
-                      height: 36,
-                      child: AnimatedContainer(
-                        duration: animationDuration,
-                        width: context.isTabletOrLandscapey ||
-                          _interactionMode == InteractionMode.edit ||
-                          _showViewOptions
-                          ? MediaQuery
-                          .of(context)
-                          .size
-                          .width / 2
-                          : 0,
-                        child: createSecondToolbar()))
-                  ],
-                ))
-                : Column(children: <Widget>[
-                createBeatScratchToolbar(),
-                AnimatedContainer(
-                  duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
-              ]),
-              createSectionList(),
-              Expanded(child: _partsAndMelodiesAndMelodyView(context)),
-              AnimatedContainer(
-                curve: Curves.easeInOut,
-                duration: animationDuration,
-                height: _colorboardHeight,
-                width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-                color: Colors.white,
-                child: Colorboard(
-                  height: _colorboardHeight,
-                  showConfiguration: _showColorboardConfiguration,
-                  sectionColor: sectionColor,
-                )
+            backgroundColor: Color(0xFF424242),
+            appBar: PreferredSize(
+                preferredSize: Size.fromHeight(0.0), // here the desired height
+                child: AppBar(
+                    // Here we take the value from the MyHomePage object that was created by
+                    // the App.build method, and use it to set our appbar title.
+                    //title: Row(Text(widget.title)])
+                    )),
+            body: new GestureDetector(
+              onTap: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+              },
+              child: Stack(children: [
+                Column(children: [
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      height: showWebWarning ? 60 : 0,
+                      color: Color(0xFF212121),
+                      child: Row(children: [
+                        Padding(
+                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                            child: Column(children: [
+                              Align(
+                                  child: Text("BeatScratch",
+                                      style:
+                                          TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
+                              Align(
+                                  child: Text("Web",
+                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)))
+                            ])),
+                        Expanded(
+                            child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                                child: Text(
+                                    "is pre-Alpha software. MacOS and iOS ports are coming, and the Android app is on the Play Store.",
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
+                        RaisedButton(
+                            onPressed: () {
+                              setState(() {
+                                showWebWarning = false;
+                              });
+                            },
+                            child: Text("OK!")),
+                      ])),
+//            Flex(direction: Axis.vertical, children: <Widget>[
+                  _combineSecondAndMainToolbar
+                      ? Container(
+                          height: 48,
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(child: createBeatScratchToolbar()),
+                              Container(
+                                  height: 36,
+                                  child: AnimatedContainer(
+                                      duration: animationDuration,
+                                      width: context.isTabletOrLandscapey ||
+                                              _interactionMode == InteractionMode.edit ||
+                                              _showViewOptions
+                                          ? MediaQuery.of(context).size.width / 2
+                                          : 0,
+                                      child: createSecondToolbar()))
+                            ],
+                          ))
+                      : Column(children: <Widget>[
+                          createBeatScratchToolbar(),
+                          AnimatedContainer(
+                              duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
+                        ]),
+                  createSectionList(),
+                  Expanded(child: _partsAndMelodiesAndMelodyView(context)),
+                  AnimatedContainer(
+                      curve: Curves.easeInOut,
+                      duration: animationDuration,
+                      height: _colorboardHeight,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.white,
+                      child: Colorboard(
+                        height: _colorboardHeight,
+                        showConfiguration: _showColorboardConfiguration,
+                        sectionColor: sectionColor,
+                      )
 //                      Image.asset(
 //                        'assets/colorboard.png',
 //                        fit: BoxFit.fill,
 //                      )
-              ),
-              AnimatedContainer(
-                curve: Curves.easeInOut,
-                duration: animationDuration,
-                height: _keyboardHeight,
-                width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-                color: Colors.white,
-                child: Image.asset(
-                  'assets/piano.png',
-                  fit: BoxFit.fill,
-                )),
-            ])
-            //]),
-          ]),
-        )));
+                      ),
+                  AnimatedContainer(
+                      curve: Curves.easeInOut,
+                      duration: animationDuration,
+                      height: _keyboardHeight,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.white,
+                      child: Image.asset(
+                        'assets/piano.png',
+                        fit: BoxFit.fill,
+                      )),
+                ])
+                //]),
+              ]),
+            )));
   }
 
-  BeatScratchToolbar createBeatScratchToolbar() =>
-    BeatScratchToolbar(
-      sectionColor: sectionColor,
-      viewMode: _viewMode,
-      editMode: _editMode,
-      toggleViewOptions: _toggleViewOptions,
-      interactionMode: _interactionMode,
-      playing: _playing,
-      togglePlaying: () {
-        setState(() {
-          _playing = !_playing;
-        });
-      },
-      toggleSectionListDisplayMode: () {},
-    );
+  BeatScratchToolbar createBeatScratchToolbar() => BeatScratchToolbar(
+        sectionColor: sectionColor,
+        viewMode: _viewMode,
+        editMode: _editMode,
+        toggleViewOptions: _toggleViewOptions,
+        interactionMode: _interactionMode,
+        playing: _playing,
+        togglePlaying: () {
+          setState(() {
+            _playing = !_playing;
+          });
+        },
+        toggleSectionListDisplayMode: () {},
+      );
 
-  SecondToolbar createSecondToolbar() =>
-    SecondToolbar(
-      toggleKeyboard: _toggleKeyboard,
-      toggleKeyboardConfiguration: () {
-        setState(() {
-          _showKeyboard = true;
-          _showKeyboardConfiguration = !_showKeyboardConfiguration;
-        });
-      },
-      toggleColorboard: _toggleColorboard,
-      toggleColorboardConfiguration: () {
-        setState(() {
-          _showColorboard = true;
-          _showColorboardConfiguration = !_showColorboardConfiguration;
-        });
-      },
-      showKeyboard: _showKeyboard,
-      showColorboard: _showColorboard,
-      interactionMode: _interactionMode,
-      showViewOptions: _showViewOptions,
-      showColorboardConfiguration: _showColorboardConfiguration,
-      showKeyboardConfiguration: _showKeyboardConfiguration,
-      sectionColor: sectionColor,
-    );
+  SecondToolbar createSecondToolbar() => SecondToolbar(
+        toggleKeyboard: _toggleKeyboard,
+        toggleKeyboardConfiguration: () {
+          setState(() {
+            _showKeyboard = true;
+            _showKeyboardConfiguration = !_showKeyboardConfiguration;
+          });
+        },
+        toggleColorboard: _toggleColorboard,
+        toggleColorboardConfiguration: () {
+          setState(() {
+            _showColorboard = true;
+            _showColorboardConfiguration = !_showColorboardConfiguration;
+          });
+        },
+        showKeyboard: _showKeyboard,
+        showColorboard: _showColorboard,
+        interactionMode: _interactionMode,
+        showViewOptions: _showViewOptions,
+        showColorboardConfiguration: _showColorboardConfiguration,
+        showKeyboardConfiguration: _showKeyboardConfiguration,
+        sectionColor: sectionColor,
+      );
 
-  SectionList createSectionList() {
+  SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
       sectionColor: sectionColor,
       score: _score,
       setState: setState,
-      scrollDirection: Axis.horizontal,
+      scrollDirection: scrollDirection,
       visible: _interactionMode == InteractionMode.edit,
       currentSection: currentSection,
       selectSection: _selectSection,
@@ -535,13 +558,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
-      data.padding.top -
-      kToolbarHeight -
-      _secondToolbarHeight -
-      _colorboardHeight -
-      _keyboardHeight +
-      8 -
-      36;
+        data.padding.top -
+        kToolbarHeight -
+        _secondToolbarHeight -
+        _colorboardHeight -
+        _keyboardHeight +
+        8 -
+        36;
     if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
       height += 36;
     }
@@ -549,30 +572,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return Stack(children: [
       (context.isPortrait)
-        ? Column(children: [
-        Expanded(child: _partMelodiesView(context)),
-        AnimatedContainer(
-          curve: Curves.easeInOut,
-          duration: slowAnimationDuration,
-          padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
-          height: height * _melodyViewSizeFactor,
-          child: _melodyView(context))
-      ])
-        : Row(children: [
-        AnimatedContainer(
-          curve: Curves.easeInOut,
-          duration: slowAnimationDuration,
-          width: MediaQuery
-            .of(context)
-            .size
-            .width * (1 - _melodyViewSizeFactor),
-          child: _partMelodiesView(context)),
-        Expanded(
-          child: AnimatedContainer(
-            duration: animationDuration,
-            padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
-            child: _melodyView(context)))
-      ])
+          ? Column(children: [
+              Expanded(child: _partMelodiesView(context)),
+              AnimatedContainer(
+                  curve: Curves.easeInOut,
+                  duration: slowAnimationDuration,
+                  padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
+                  height: height * _melodyViewSizeFactor,
+                  child: _melodyView(context))
+            ])
+          : Row(children: [
+              AnimatedContainer(
+                  curve: Curves.easeInOut,
+                  duration: slowAnimationDuration,
+                  width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
+                  child: _partMelodiesView(context)),
+              Expanded(
+                  child: AnimatedContainer(
+                      duration: animationDuration,
+                      padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
+                      child: _melodyView(context)))
+            ])
     ]);
   }
 
@@ -647,132 +667,129 @@ class BeatScratchToolbar extends StatelessWidget {
   final InteractionMode interactionMode;
   final Color sectionColor;
 
-  const BeatScratchToolbar({Key key,
-    this.interactionMode,
-    this.viewMode,
-    this.editMode,
-    this.toggleViewOptions,
-    this.sectionColor,
-    this.playing,
-    this.togglePlaying,
-    this.toggleSectionListDisplayMode})
-    : super(key: key);
+  const BeatScratchToolbar(
+      {Key key,
+      this.interactionMode,
+      this.viewMode,
+      this.editMode,
+      this.toggleViewOptions,
+      this.sectionColor,
+      this.playing,
+      this.togglePlaying,
+      this.toggleSectionListDisplayMode})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      child: Row(children: [
-        Expanded(
-          child: PopupMenuButton(
+        height: 48,
+        child: Row(children: [
+          Expanded(
+              child: PopupMenuButton(
 //                        onPressed: _doNothing,
-            offset: Offset(0, MediaQuery
-              .of(context)
-              .size
-              .height),
-            onSelected: (result) {
-              //setState(() {});
-            },
-            itemBuilder: (BuildContext context) =>
-            [
-              const PopupMenuItem(
-                value: null,
-                child: Text('score name'),
-                enabled: false,
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('New Score'),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Open Score...'),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Duplicate Score...'),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Save Score'),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Copy Score'),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('MIDI Output Settings'),
-              ),
-              PopupMenuItem(
-                value: null,
-                child: Row(children: [
-                  Checkbox(value: true, onChanged: null),
-                  Expanded(child: Text('Notation UI')),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                    child: SvgPicture.asset(
-                      'assets/notehead_filled.svg',
-                      width: 20,
-                      height: 20,
-                    ))
-                ]),
-              ),
-              PopupMenuItem(
-                value: null,
-                child: Row(children: [
-                  Checkbox(value: false, onChanged: null),
-                  Expanded(child: Text('Colorblock UI')),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                    child: Image.asset(
-                      'assets/colorboard_vertical.png',
-                      width: 20,
-                      height: 20,
-                    ))
-                ]),
-              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Quit BeatScratch'),
-              ),
-            ],
-            padding: EdgeInsets.only(bottom: 10.0),
-            icon: SvgPicture.asset('assets/logo.svg'))),
-        Expanded(
-          child: FlatButton(
-            onPressed: () {
-              if (interactionMode == InteractionMode.view) {
-                togglePlaying();
-              } else {
-                toggleSectionListDisplayMode();
-              }
-            },
-            padding: EdgeInsets.all(0.0),
-            child: Icon(
-              (interactionMode == InteractionMode.view)
-                ? (playing ? Icons.stop : Icons.play_arrow)
-                : Icons.menu,
-              color: sectionColor))),
-        Expanded(
-          child: AnimatedContainer(
-            duration: animationDuration,
-            color: (interactionMode == InteractionMode.view) ? sectionColor : Colors.transparent,
-            child: FlatButton(
-              onPressed: (interactionMode == InteractionMode.view) ? toggleViewOptions : viewMode,
-              padding: EdgeInsets.all(0.0),
-              child: Icon(Icons.remove_red_eye,
-                color: (interactionMode == InteractionMode.view) ? Colors.white : sectionColor)))),
-        Expanded(
-          child: AnimatedContainer(
-            duration: animationDuration,
-            color: (interactionMode == InteractionMode.edit) ? sectionColor : Colors.transparent,
-            child: FlatButton(
-              onPressed: editMode,
-              padding: EdgeInsets.all(0.0),
-              child: Icon(Icons.edit,
-                color: (interactionMode == InteractionMode.edit) ? Colors.white : sectionColor))))
-      ]));
+                  offset: Offset(0, MediaQuery.of(context).size.height),
+                  onSelected: (result) {
+                    //setState(() {});
+                  },
+                  itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('score name'),
+                          enabled: false,
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('New Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Open Score...'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Duplicate Score...'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Save Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Copy Score'),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('MIDI Output Settings'),
+                        ),
+                        PopupMenuItem(
+                          value: null,
+                          child: Row(children: [
+                            Checkbox(value: true, onChanged: null),
+                            Expanded(child: Text('Notation UI')),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                child: PlatformSvg.asset(
+                                  'assets/notehead_filled.svg',
+                                  width: 20,
+                                  height: 20,
+                                ))
+                          ]),
+                        ),
+                        PopupMenuItem(
+                          value: null,
+                          child: Row(children: [
+                            Checkbox(value: false, onChanged: null),
+                            Expanded(child: Text('Colorblock UI')),
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                child: Image.asset(
+                                  'assets/colorboard_vertical.png',
+                                  width: 20,
+                                  height: 20,
+                                ))
+                          ]),
+                        ),
+                        const PopupMenuItem(
+                          value: null,
+                          child: Text('Quit BeatScratch'),
+                        ),
+                      ],
+                  padding: EdgeInsets.only(bottom: 10.0),
+                  icon: PlatformSvg.asset('assets/logo.svg'))),
+          Expanded(
+              child: FlatButton(
+                  onPressed: () {
+                    if (interactionMode == InteractionMode.view) {
+                      togglePlaying();
+                    } else {
+                      toggleSectionListDisplayMode();
+                    }
+                  },
+                  padding: EdgeInsets.all(0.0),
+                  child: Icon(
+                      (interactionMode == InteractionMode.view)
+                          ? (playing ? Icons.stop : Icons.play_arrow)
+                          : Icons.menu,
+                      color: sectionColor))),
+          Expanded(
+              child: AnimatedContainer(
+                  duration: animationDuration,
+                  color: (interactionMode == InteractionMode.view) ? sectionColor : Colors.transparent,
+                  child: FlatButton(
+                      onPressed: (interactionMode == InteractionMode.view) ? toggleViewOptions : viewMode,
+                      padding: EdgeInsets.all(0.0),
+                      child: Icon(Icons.remove_red_eye,
+                          color: (interactionMode == InteractionMode.view) ? Colors.white : sectionColor)))),
+          Expanded(
+              child: AnimatedContainer(
+                  duration: animationDuration,
+                  color: (interactionMode == InteractionMode.edit) ? sectionColor : Colors.transparent,
+                  child: FlatButton(
+                      onPressed: editMode,
+                      padding: EdgeInsets.all(0.0),
+                      child: Icon(Icons.edit,
+                          color: (interactionMode == InteractionMode.edit) ? Colors.white : sectionColor))))
+        ]));
   }
 }
 
@@ -789,74 +806,75 @@ class SecondToolbar extends StatelessWidget {
   final bool showViewOptions;
   final Color sectionColor;
 
-  const SecondToolbar({Key key,
-    this.toggleKeyboard,
-    this.toggleColorboard,
-    this.showKeyboard,
-    this.showColorboard,
-    this.interactionMode,
-    this.showViewOptions,
-    this.showKeyboardConfiguration,
-    this.showColorboardConfiguration, this.toggleKeyboardConfiguration, this.toggleColorboardConfiguration, this.sectionColor})
-    : super(key: key);
+  const SecondToolbar(
+      {Key key,
+      this.toggleKeyboard,
+      this.toggleColorboard,
+      this.showKeyboard,
+      this.showColorboard,
+      this.interactionMode,
+      this.showViewOptions,
+      this.showKeyboardConfiguration,
+      this.showColorboardConfiguration,
+      this.toggleKeyboardConfiguration,
+      this.toggleColorboardConfiguration,
+      this.sectionColor})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery
-      .of(context)
-      .size
-      .width;
+    var width = MediaQuery.of(context).size.width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
     return Row(children: [
       AnimatedContainer(
-        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
-        duration: animationDuration,
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
+          width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+          duration: animationDuration,
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
       AnimatedContainer(
-        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
-        duration: animationDuration,
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: RaisedButton(
-            child: Image.asset('assets/stop.png'),
-            onPressed: () => {},
-          ))),
+          width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+          duration: animationDuration,
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/stop.png'),
+                onPressed: () => {},
+              ))),
       Expanded(
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: RaisedButton(
-            padding: EdgeInsets.only(top: 7, bottom: 5),
-            child: Stack(children: [
-              SvgPicture.asset('assets/metronome.svg'),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
-              )
-            ]),
-            onPressed: () => {},
-          ))),
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                padding: EdgeInsets.only(top: 7, bottom: 5),
+                child: Stack(children: [
+                  PlatformSvg.asset('assets/metronome.svg'),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
+                  )
+                ]),
+                onPressed: () => {},
+              ))),
       Expanded(
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: RaisedButton(
-            child: Image.asset('assets/piano.png'),
-            onPressed: toggleKeyboard,
-            onLongPress: toggleKeyboardConfiguration,
-            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
-          ))),
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/piano.png'),
+                onPressed: toggleKeyboard,
+                onLongPress: toggleKeyboardConfiguration,
+                color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
+              ))),
       Expanded(
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: RaisedButton(
-            child: Image.asset('assets/colorboard.png'),
-            onPressed: toggleColorboard,
-            onLongPress: toggleColorboardConfiguration,
-            color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
-          )))
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: RaisedButton(
+                child: Image.asset('assets/colorboard.png'),
+                onPressed: toggleColorboard,
+                onLongPress: toggleColorboardConfiguration,
+                color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
+              )))
     ]);
   }
 }

@@ -111,7 +111,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                       double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
                       if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
                         scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
-                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
+//                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
                       }
                     },
                     child:

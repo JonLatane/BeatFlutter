@@ -1,17 +1,19 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/expanded_section.dart';
+import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
-import 'package:flutter/material.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+
 import 'animations/animations.dart';
+import 'instrument_picker.dart';
+import 'music_theory.dart';
 import 'ui_models.dart';
 import 'util.dart';
-import 'music_theory.dart';
 
 class PartMelodiesView extends StatefulWidget {
   final Score score;
@@ -59,13 +61,17 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   final ScrollController controller = ScrollController();
 
   Widget _buildAddButton() {
+    double width = widget.score.parts.isNotEmpty ? 320 : context.isTablet
+      ? min(600, MediaQuery.of(context).size.width/2)
+      : MediaQuery.of(context).size.width;
     bool canAddPart = widget.score.parts.length < 5;
     bool canAddDrumPart =
         canAddPart && !(widget.score.parts.any((element) => element.instrument.type == InstrumentType.drum));
     return Column(children: [
       Expanded(
-          child: Container(
-              width: 320,
+          child: AnimatedContainer(
+              duration: animationDuration,
+              width: width,
               child: FlatButton(
                 color: Colors.brown,
                 onPressed: canAddDrumPart
@@ -106,8 +112,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 ]),
               ))),
       Expanded(
-          child: Container(
-              width: 320,
+          child: AnimatedContainer(
+              duration: animationDuration,
+              width: width,
               child: FlatButton(
                 color: Colors.grey,
                 onPressed: canAddPart
@@ -425,6 +432,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       case "removePart":
                         widget.removePart(part);
                         break;
+                      case "setInstrument":
+                        showInstrumentPicker(context, sectionColor, widget.score, part, setState);
+                        break;
                     }
                   },
                   itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
@@ -708,7 +718,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
           Column(children: [
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                child: TextField(
+                child: Row(children:[
+                  Expanded(child:TextField(
                   controller: TextEditingController()..text = widget.melody.name,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (value) {
@@ -722,6 +733,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                   decoration:
                       InputDecoration(border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
                 )),
+                  Container(width:24, height: 24, child: FlatButton(padding: EdgeInsets.all(0), onPressed: (){}, child:Icon(Icons.menu)))
+                ])),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
             ExpandedSection(
               child: Slider(
@@ -790,13 +803,14 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           color: (widget.melody == widget.selectedMelody && widget.editingMelody)
                               ? widget.sectionColor
                               : Color(0xFFDDDDDD),
-                          child: SvgPicture.asset(
+                          child: PlatformSvg.asset(
                             'assets/edit.svg',
                             fit: BoxFit.fill,
                           ))),
                   Expanded(child: SizedBox()),
                 ]))
-          ])
+          ]),
+
         ]));
 
     // For android dragging mode, wrap the entire content in DelayedReorderableListener

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 //import 'sizeutil.dart';
@@ -89,7 +91,7 @@ class CanvasToneDrawer {
     double bottomMostPoint = lowestPitch +
       (normalizedDevicePitch * orientationRange);
     double halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
-    range(bottomMostNote, bottomMostNote + halfStepsOnScreen.toInt() + 2)
+    range(bottomMostNote, min(highestPitch + 1,bottomMostNote + halfStepsOnScreen.toInt() + 2))
       .forEach((tone) {
       // Tone may not be in chord...
       Rect visiblePitchBounds = renderVertically ?

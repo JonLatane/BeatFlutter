@@ -31,6 +31,7 @@ class SectionList extends StatefulWidget {
 }
 
 class _SectionListState extends State<SectionList> {
+  ScrollController _scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -59,10 +60,10 @@ class _SectionListState extends State<SectionList> {
                   child: RaisedButton(
                     child: Icon(Icons.add),
                     padding: EdgeInsets.all(0),
-                    onPressed: () {
+                    onPressed: widget.score.sections.length < 100 ? () {
                       print("inserting section");
                       insertSection();
-                    },
+                    } : null,
                   )
                 )
               ])
@@ -83,10 +84,10 @@ class _SectionListState extends State<SectionList> {
                 )),
                 RaisedButton(
                   child: Icon(Icons.add),
-                  onPressed: () {
+                  onPressed: widget.score.sections.length < 100 ? () {
                     print("inserting section");
                     insertSection();
-                  },
+                  } : null,
                 )
               ]));
   }
@@ -102,14 +103,19 @@ class _SectionListState extends State<SectionList> {
       );
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
     widget.setState(() {
-      widget.score.sections.insert(currentSectionIndex + 1, newSection);
-      widget.selectSection(newSection);
+      setState(() {
+        widget.score.sections.insert(currentSectionIndex + 1, newSection);
+        widget.selectSection(newSection);
+      });
     });
+    _scrollController.animateTo(_scrollController.offset + 150, duration: animationDuration, curve: Curves.easeInOut);
   }
 
   Widget getList(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Section>(
       scrollDirection: widget.scrollDirection,
+      spawnIsolate: false,
+      controller: _scrollController,
       items: widget.score.sections,
       areItemsTheSame: (a, b) => a.id == b.id,
       onReorderFinished: (item, oldIndex, newIndex, newItems) {
@@ -123,21 +129,22 @@ class _SectionListState extends State<SectionList> {
       },
       // Called, as needed, to build list item widgets.
       // List items are only built when they're scrolled into view.
-      itemBuilder: (context, animation, item, index) {
-        // Specifiy a transition to be used by the ImplicitlyAnimatedList.
+      itemBuilder: (context, animation, section, index) {
+        // Specify a transition to be used by the ImplicitlyAnimatedList.
         // In this case a custom transition.
         return Reorderable(
             // Each item must have an unique key.
-            key: Key(item.id),
+            key: Key(section.id),
             builder: (context, dragAnimation, inDrag) {
               final t = dragAnimation.value;
               final tile = Handle(
+                  key: Key("handle-${section.id}"),
                   delay: const Duration(milliseconds: 250),
                   child: _Section(
                     sectionColor: widget.sectionColor,
                     selectSection: widget.selectSection,
                     currentSection: widget.currentSection,
-                    section: item,
+                    section: section,
                   ));
 
               // If the item is in drag, only return the tile as the

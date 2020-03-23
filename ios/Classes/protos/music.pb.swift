@@ -179,10 +179,10 @@ extension InstrumentType: CaseIterable {
 enum MelodyType: SwiftProtobuf.Enum {
   typealias RawValue = Int
 
-  /// Uses MelodyAttacks and represents instrument data for touch editing
+  /// Uses MelodicAttacks and represents instrument data for touch editing.
   case melodic // = 0
 
-  /// Uses MidiChanges and represents raw MIDI instrument data
+  /// Uses MidiChanges and represents raw MIDI instrument data.
   case midi // = 1
   case UNRECOGNIZED(Int)
 
@@ -305,48 +305,6 @@ struct Harmony {
   init() {}
 }
 
-/// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
-/// and make touchable. A "rest" is any MelodyAttack with no tones. MelodyAttacks can represent a
-/// traditional "music theory class" single-note melody, but expanded slightly so that we can have
-/// multiple notes. Notes must all attack at once and release at once.
-///
-/// To phrase it more simply, this way of breaking down melodies forces you to separate your
-/// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
-struct MelodyAttack {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var tones: [Int32] = []
-
-  var velocity: Float = 0
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-/// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
-/// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
-/// recorded MIDI messages at playback time. Note that MIDI note names are a first-class citizen:
-/// *in a MidiChange NOTE ON or NOTE OFF, C4 = 60. Elsewhere C4 = 0.
-///
-/// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
-/// and bass parts as a single "melody." But your music theory teach would berate you in class for
-/// that. These are also harder to make editable by touch, but handy for recording MIDI performance
-/// by a musician.
-struct MidiChange {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var data: Data = SwiftProtobuf.Internal.emptyData
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Melody {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -392,6 +350,7 @@ struct Melody {
     set {_uniqueStorage()._instrumentType = newValue}
   }
 
+  /// The Melody notes/data, the type of which should match the MelodyType.
   var data: OneOf_Data? {
     get {return _storage._data}
     set {_uniqueStorage()._data = newValue}
@@ -415,6 +374,7 @@ struct Melody {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
+  /// The Melody notes/data, the type of which should match the MelodyType.
   enum OneOf_Data: Equatable {
     case melodicData(MelodicData)
     case midiData(MidiData)
@@ -441,7 +401,7 @@ struct MelodicData {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var data: Dictionary<Int32,MelodyAttack> = [:]
+  var data: Dictionary<Int32,MelodicAttack> = [:]
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -455,6 +415,48 @@ struct MidiData {
   // methods supported on all messages.
 
   var data: Dictionary<Int32,MidiChange> = [:]
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+/// A "classical" notion of a slice of a melody defined to be easy to analyze, draw on a screen
+/// and make touchable. A "rest" is any MelodicAttack with no tones. MelodicAttacks can represent a
+/// traditional "music theory class" single-note melody, but expanded slightly so that we can have
+/// multiple notes. Notes must all attack at once and release at once.
+///
+/// To phrase it more simply, this way of breaking down melodies forces you to separate your
+/// soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
+struct MelodicAttack {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var tones: [Int32] = []
+
+  var velocity: Float = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+/// Represents raw midi data (corresponding to a subidivision in a melody). Can include NOTE ON,
+/// NOTE OFF, knobby things, etc. Playback engine is responsible for modifying channel from original
+/// recorded MIDI messages at playback time. Note that MIDI note names are a first-class citizen:
+/// *in a MidiChange NOTE ON or NOTE OFF, C4 = 60. Elsewhere C4 = 0.
+///
+/// To phrase it more simply, this way of breaking down melodies will let you represent your soprano
+/// and bass parts as a single "melody." But your music theory teach would berate you in class for
+/// that. These are also harder to make editable by touch, but handy for recording MIDI performance
+/// by a musician.
+struct MidiChange {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var data: Data = SwiftProtobuf.Internal.emptyData
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -825,70 +827,6 @@ extension Harmony: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
   }
 }
 
-extension MelodyAttack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "MelodyAttack"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "tones"),
-    2: .same(proto: "velocity"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeRepeatedSInt32Field(value: &self.tones)
-      case 2: try decoder.decodeSingularFloatField(value: &self.velocity)
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.tones.isEmpty {
-      try visitor.visitPackedSInt32Field(value: self.tones, fieldNumber: 1)
-    }
-    if self.velocity != 0 {
-      try visitor.visitSingularFloatField(value: self.velocity, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: MelodyAttack, rhs: MelodyAttack) -> Bool {
-    if lhs.tones != rhs.tones {return false}
-    if lhs.velocity != rhs.velocity {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension MidiChange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "MidiChange"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "data"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularBytesField(value: &self.data)
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.data.isEmpty {
-      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: MidiChange, rhs: MidiChange) -> Bool {
-    if lhs.data != rhs.data {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "Melody"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -898,8 +836,8 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     4: .same(proto: "length"),
     5: .same(proto: "type"),
     6: .standard(proto: "instrument_type"),
-    7: .standard(proto: "melodic_data"),
-    8: .standard(proto: "midi_data"),
+    100: .standard(proto: "melodic_data"),
+    101: .standard(proto: "midi_data"),
   ]
 
   fileprivate class _StorageClass {
@@ -944,7 +882,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
         case 4: try decoder.decodeSingularUInt32Field(value: &_storage._length)
         case 5: try decoder.decodeSingularEnumField(value: &_storage._type)
         case 6: try decoder.decodeSingularEnumField(value: &_storage._instrumentType)
-        case 7:
+        case 100:
           var v: MelodicData?
           if let current = _storage._data {
             try decoder.handleConflictingOneOf()
@@ -952,7 +890,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._data = .melodicData(v)}
-        case 8:
+        case 101:
           var v: MidiData?
           if let current = _storage._data {
             try decoder.handleConflictingOneOf()
@@ -988,9 +926,9 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       }
       switch _storage._data {
       case .melodicData(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 100)
       case .midiData(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 101)
       case nil: break
       }
     }
@@ -1027,7 +965,7 @@ extension MelodicData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
-      case 1: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: &self.data)
+      case 1: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodicAttack>.self, value: &self.data)
       default: break
       }
     }
@@ -1035,7 +973,7 @@ extension MelodicData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.data.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodyAttack>.self, value: self.data, fieldNumber: 1)
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,MelodicAttack>.self, value: self.data, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -1070,6 +1008,70 @@ extension MidiData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
   }
 
   static func ==(lhs: MidiData, rhs: MidiData) -> Bool {
+    if lhs.data != rhs.data {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension MelodicAttack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MelodicAttack"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "tones"),
+    2: .same(proto: "velocity"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeRepeatedSInt32Field(value: &self.tones)
+      case 2: try decoder.decodeSingularFloatField(value: &self.velocity)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.tones.isEmpty {
+      try visitor.visitPackedSInt32Field(value: self.tones, fieldNumber: 1)
+    }
+    if self.velocity != 0 {
+      try visitor.visitSingularFloatField(value: self.velocity, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: MelodicAttack, rhs: MelodicAttack) -> Bool {
+    if lhs.tones != rhs.tones {return false}
+    if lhs.velocity != rhs.velocity {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension MidiChange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MidiChange"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "data"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularBytesField(value: &self.data)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.data.isEmpty {
+      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: MidiChange, rhs: MidiChange) -> Bool {
     if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

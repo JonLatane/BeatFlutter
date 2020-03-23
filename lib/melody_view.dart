@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/main.dart';
+import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'melodybeat.dart';
@@ -267,7 +268,7 @@ class _MelodyToolbar extends StatelessWidget {
             }
               : null,
             padding: EdgeInsets.all(0),
-            child: SvgPicture.asset(
+            child: PlatformSvg.asset(
               'assets/edit.svg',
               fit: BoxFit.fill,
             ),
