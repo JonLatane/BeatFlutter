@@ -728,10 +728,14 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                   decoration:
                       InputDecoration(border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
                 )),
-                  Container(width:24, height: 24, child: FlatButton(padding: EdgeInsets.all(0), onPressed: (){}, child:Icon(Icons.menu)))
+                  ReorderableListener(
+                    child:
+                  Container(width:24, height: 24, child:Icon(Icons.reorder)))
                 ])),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
-            ExpandedSection(
+            AnimatedContainer(
+              duration: animationDuration,
+              height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
               child: Slider(
                   value: reference.volume,
                   activeColor: widget.sectionColor,
@@ -740,8 +744,6 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       : (value) {
                           widget.setReferenceVolume(reference, value);
                         }),
-              axis: Axis.vertical,
-              expand: reference.playbackType != MelodyReference_PlaybackType.disabled,
             ),
             Align(
                 alignment: Alignment.centerRight,
@@ -808,12 +810,17 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 
         ]));
 
+
     // For android dragging mode, wrap the entire content in DelayedReorderableListener
+//    content = DelayedReorderableListener(
+//        child: content,
+//      );
+
     content = Padding(
-        padding: EdgeInsets.all(2),
-        child: DelayedReorderableListener(
-          child: content,
-        ));
+      padding: EdgeInsets.all(2),
+      child: content,
+      );
+
 //    content = AnimatedOpacity(
 //      duration: Duration(seconds: 3),
 //      opacity: opacityLevel,
@@ -822,8 +829,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
     if(_lastAddedMelody == widget.melody) {
       _lastAddedMelody = null;
       content = SizeFadeTransition(
-        key: Key("lastAdded"),
-        axis: Axis.horizontal, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
+//        key: Key("lastAdded"),
+        axis: Axis.vertical, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
     }
     controller.forward();
 

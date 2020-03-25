@@ -379,7 +379,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  bool showWebWarning = true;
+  bool showWebWarning = kIsWeb;
 
 
   _launchURL(String url) async {
