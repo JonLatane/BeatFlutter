@@ -102,7 +102,7 @@ class _SectionListState extends State<SectionList> {
           ..meter = (Meter()..defaultBeatsPerMeasure = 4)
           ..subdivisionsPerBeat = 4
           ..length = 64
-          ..data.addAll({0: cMaj7})
+          ..data.addAll({0: cChromatic})
       );
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
     widget.setState(() {

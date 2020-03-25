@@ -120,6 +120,7 @@ message MidiData {
 // soprano from your bass part. Unless they're singing the exact same rhythm the entire time.
 message MelodicAttack {
   repeated sint32 tones = 1;
+  // Valid range: 0 to 1.
   float velocity = 2;
 }
 

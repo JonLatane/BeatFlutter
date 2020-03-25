@@ -147,14 +147,14 @@ class _MelodyPainter extends CustomPainter {
       if(renderingSection == null) {
         int _beat = 0;
         Section candidate = score.sections[0];
-        while(_beat + candidate.harmony.beatCount < beat) {
+        while(_beat + candidate.harmony.beatCount <= beat) {
           _beat += candidate.harmony.beatCount;
           renderingSectionBeat -= candidate.harmony.beatCount;
         }
         renderingSection = candidate;
       }
       right = left + standardBeatWidth;
-      print("Drawing beat $beat");
+      print("Drawing beat $beat out of section ${renderingSection.id} as beat $renderingSectionBeat");
       canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
       double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),

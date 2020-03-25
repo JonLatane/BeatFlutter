@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -378,7 +379,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  bool showWebWarning = kIsWeb;
+  bool showWebWarning = true;
+
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -427,22 +437,33 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                       style:
                                           TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
                               Align(
-                                  child: Text("Web",
-                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)))
-                            ])),
+                                  child: Row(children:[
+                                    Text("Web",
+                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                                    Text("Preview",
+                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
+
+                             ])),
+                        ])),
                         Expanded(
                             child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                                 child: Text(
                                     "is pre-Alpha software. MacOS and iOS ports are coming, and the Android app is on the Play Store.",
                                     style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
-                        RaisedButton(
-                            onPressed: () {
-                              setState(() {
-                                showWebWarning = false;
-                              });
-                            },
-                            child: Text("OK!")),
+                        FlatButton(
+                          onPressed: () {
+                            _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
+                          },
+                          padding: EdgeInsets.all(0),
+                          child: Image.asset("assets/play_en_badge_web_generic.png")),
+                        Padding(padding:EdgeInsets.only(right:5), child:RaisedButton(
+                          onPressed: () {
+                            setState(() {
+                              showWebWarning = false;
+                            });
+                          },
+                          child: Text("OK!"))),
                       ])),
 //            Flex(direction: Axis.vertical, children: <Widget>[
                   _combineSecondAndMainToolbar
