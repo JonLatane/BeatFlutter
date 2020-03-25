@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:beatscratch_flutter_redux/drawing/harmony_beat.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'drawing/drawing.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -34,29 +36,38 @@ class MelodyRenderer extends StatefulWidget {
 }
 
 Rect _visibleRect = Rect.zero;
-class _MelodyRendererState extends State<MelodyRenderer> {
+
+class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStateMixin {
   bool get isViewingSection => widget.section != null;
   int get numberOfBeats => isViewingSection ? widget.section.harmony.beatCount : widget.score.beatCount;
   double get standardBeatWidth => unscaledStandardBeatWidth * widget.xScale;
   double get width => numberOfBeats * standardBeatWidth;
 
 
+  ScrollController verticalController = ScrollController();
+  static const double heightFactor = 1000;
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
+
+    return SingleChildScrollView(child:
+    Container(height: heightFactor * widget.yScale, child:CustomScrollView(
       scrollDirection: Axis.horizontal,
       slivers: [
         new CustomSliverToBoxAdapter(
           setVisibleRect: (rect) { _visibleRect = rect; },
-          child: CustomPaint(
-            size: Size(width, 60.0),
+          child:CustomPaint(
+            size: Size(width, heightFactor * widget.yScale),
             painter: new _MelodyPainter(
               score: widget.score,
               section: widget.section,
               xScale: widget.xScale,
               yScale: widget.yScale,
               visibleRect: () => _visibleRect,
+              staffReferences: [
+                _AccompanimentReference(),
+                _DrumTrackReference()
+              ]
             ),
           ),
 //          child: _MelodyPaint(
@@ -69,8 +80,26 @@ class _MelodyRendererState extends State<MelodyRenderer> {
 //          ),
         )
       ],
-    );
+    )));
   }
+}
+
+class _StaffReference {
+  final Part part;
+  final bool isAccompaniment = false;
+  double xPosition = 0.0;
+
+  _StaffReference(this.part);
+}
+
+class _AccompanimentReference extends _StaffReference {
+  @override bool isAccompaniment = true;
+  _AccompanimentReference() : super(null);
+}
+
+class _DrumTrackReference extends _StaffReference {
+  @override bool isAccompaniment = true;
+  _DrumTrackReference() : super(null);
 }
 
 class _MelodyPainter extends CustomPainter {
@@ -79,40 +108,70 @@ class _MelodyPainter extends CustomPainter {
   final double xScale;
   final double yScale;
   final Rect Function() visibleRect;
+  final List<_StaffReference> staffReferences;
   bool get isViewingSection => section != null;
   int get numberOfBeats => isViewingSection ? section.harmony.beatCount : score.beatCount;
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
   double get width => standardBeatWidth * numberOfBeats;
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
-  _MelodyPainter({this.score, this.section, this.xScale, this.yScale,this.visibleRect, }) {
+  _MelodyPainter({this.score, this.section, this.xScale, this.yScale,this.visibleRect, this.staffReferences, }) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
   }
+
+  double get harmonyHeight => 30 * yScale;
 
   @override
   void paint(Canvas canvas, Size size) {
     var rect = Offset.zero & size;
     canvas.clipRect(rect);
 
-    // Extend drawing window to compensate for element sizes - avoids lines at either end "popping" into existence
-    var extend = _tickPaint.strokeWidth / 2.0;
 
     // Calculate from which Tick we should start drawing
-    var tick = ((visibleRect().left - extend) / standardBeatWidth).floor();
+    int beat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
 
-    var startOffset = tick * standardBeatWidth;
-    var o1 = new Offset(startOffset, 0.0);
-    var o2 = new Offset(startOffset, rect.height);
+    final double startOffset = beat * standardBeatWidth;
+    double left = startOffset;
+    double right;
 
-    while (o1.dx < visibleRect().right + extend) {
-      canvas.drawLine(o1, o2, _tickPaint);
-      double top = (((o1.dx * 29) % width)/ width) * rect.height;
-      drawFilledNotehead(canvas, Rect.fromLTRB(o1.dx, top, o1.dx + standardBeatWidth / 2, top + standardBeatWidth / 2));
+    print("Drawing frame from beat=$beat");
+    while (left < visibleRect().right + standardBeatWidth) {
+      if(beat < 0) {
+        left += standardBeatWidth;
+        beat += 1;
+        continue;
+      }
+      int renderingSectionBeat = beat;
+      Section renderingSection = this.section;
+      if(renderingSection == null) {
+        int _beat = 0;
+        Section candidate = score.sections[0];
+        while(_beat + candidate.harmony.beatCount < beat) {
+          _beat += candidate.harmony.beatCount;
+          renderingSectionBeat -= candidate.harmony.beatCount;
+        }
+        renderingSection = candidate;
+      }
+      right = left + standardBeatWidth;
+      print("Drawing beat $beat");
+      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
+      double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
-      o1 = o1.translate(standardBeatWidth, 0.0);
-      o2 = o2.translate(standardBeatWidth, 0.0);
+      Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
+      HarmonyBeat harmonyDrawer = HarmonyBeat()
+        ..overallBounds = harmonyBounds
+        ..section = renderingSection
+        ..beatPosition = renderingSectionBeat
+        ..draw(canvas);
+      top = top + harmonyHeight;
+      drawFilledNotehead(canvas, Rect.fromLTRB(left, top, left + standardBeatWidth / 2, top + standardBeatWidth / 2));
+
+
+
+      left += standardBeatWidth;
+      beat += 1;
     }
   }
 

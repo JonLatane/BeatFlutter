@@ -58,7 +58,14 @@ const Chord$json = const {
   '2': const [
     const {'1': 'root_note', '3': 1, '4': 1, '5': 11, '6': '.NoteName', '10': 'rootNote'},
     const {'1': 'bass_note', '3': 2, '4': 1, '5': 11, '6': '.NoteName', '10': 'bassNote'},
-    const {'1': 'extension', '3': 3, '4': 1, '5': 13, '10': 'extension'},
+    const {'1': 'chroma', '3': 3, '4': 1, '5': 13, '10': 'chroma'},
+  ],
+};
+
+const Meter$json = const {
+  '1': 'Meter',
+  '2': const [
+    const {'1': 'default_beats_per_measure', '3': 1, '4': 1, '5': 13, '10': 'defaultBeatsPerMeasure'},
   ],
 };
 
@@ -68,7 +75,8 @@ const Harmony$json = const {
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     const {'1': 'subdivisions_per_beat', '3': 2, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
     const {'1': 'length', '3': 3, '4': 1, '5': 13, '10': 'length'},
-    const {'1': 'data', '3': 4, '4': 3, '5': 11, '6': '.Harmony.DataEntry', '10': 'data'},
+    const {'1': 'meter', '3': 4, '4': 1, '5': 11, '6': '.Meter', '10': 'meter'},
+    const {'1': 'data', '3': 100, '4': 3, '5': 11, '6': '.Harmony.DataEntry', '10': 'data'},
   ],
   '3': const [Harmony_DataEntry$json],
 };

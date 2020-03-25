@@ -58,7 +58,7 @@ class Chord extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Chord', createEmptyInstance: create)
     ..aOM<NoteName>(1, 'rootNote', subBuilder: NoteName.create)
     ..aOM<NoteName>(2, 'bassNote', subBuilder: NoteName.create)
-    ..a<$core.int>(3, 'extension', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, 'chroma', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -100,13 +100,44 @@ class Chord extends $pb.GeneratedMessage {
   NoteName ensureBassNote() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.int get extension_3 => $_getIZ(2);
+  $core.int get chroma => $_getIZ(2);
   @$pb.TagNumber(3)
-  set extension_3($core.int v) { $_setUnsignedInt32(2, v); }
+  set chroma($core.int v) { $_setUnsignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasExtension_3() => $_has(2);
+  $core.bool hasChroma() => $_has(2);
   @$pb.TagNumber(3)
-  void clearExtension_3() => clearField(3);
+  void clearChroma() => clearField(3);
+}
+
+class Meter extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Meter', createEmptyInstance: create)
+    ..a<$core.int>(1, 'defaultBeatsPerMeasure', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false
+  ;
+
+  Meter._() : super();
+  factory Meter() => create();
+  factory Meter.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Meter.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  Meter clone() => Meter()..mergeFromMessage(this);
+  Meter copyWith(void Function(Meter) updates) => super.copyWith((message) => updates(message as Meter));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Meter create() => Meter._();
+  Meter createEmptyInstance() => create();
+  static $pb.PbList<Meter> createRepeated() => $pb.PbList<Meter>();
+  @$core.pragma('dart2js:noInline')
+  static Meter getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Meter>(create);
+  static Meter _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get defaultBeatsPerMeasure => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set defaultBeatsPerMeasure($core.int v) { $_setUnsignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasDefaultBeatsPerMeasure() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDefaultBeatsPerMeasure() => clearField(1);
 }
 
 class Harmony extends $pb.GeneratedMessage {
@@ -114,7 +145,8 @@ class Harmony extends $pb.GeneratedMessage {
     ..aOS(1, 'id')
     ..a<$core.int>(2, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, 'length', $pb.PbFieldType.OU3)
-    ..m<$core.int, Chord>(4, 'data', entryClassName: 'Harmony.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Chord.create)
+    ..aOM<Meter>(4, 'meter', subBuilder: Meter.create)
+    ..m<$core.int, Chord>(100, 'data', entryClassName: 'Harmony.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Chord.create)
     ..hasRequiredFields = false
   ;
 
@@ -161,7 +193,18 @@ class Harmony extends $pb.GeneratedMessage {
   void clearLength() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.Map<$core.int, Chord> get data => $_getMap(3);
+  Meter get meter => $_getN(3);
+  @$pb.TagNumber(4)
+  set meter(Meter v) { setField(4, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasMeter() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearMeter() => clearField(4);
+  @$pb.TagNumber(4)
+  Meter ensureMeter() => $_ensure(3);
+
+  @$pb.TagNumber(100)
+  $core.Map<$core.int, Chord> get data => $_getMap(4);
 }
 
 enum Melody_Data {

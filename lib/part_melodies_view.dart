@@ -362,9 +362,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
   get hideMelodyView => widget.hideMelodyView;
 
-  Melody lastAddedMelody;
-
-
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
@@ -523,7 +520,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               flexibleSpace: FlatButton(
                   onPressed: () {
                     var newMelody = Melody()..id = uuid.v4();
-                    lastAddedMelody = newMelody;
+                    _lastAddedMelody = newMelody;
                     setState(() {
                       part.melodies.insert(0, newMelody);
                       selectMelody(newMelody);
@@ -636,8 +633,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         keyboardPart: keyboardPart,
                         editingMelody: editingMelody,
                         hideMelodyView: hideMelodyView,
-                        lastAddedMelody: lastAddedMelody,
-                        clearLastAddedMelody: () { lastAddedMelody = null; },
                       );
                     },
                     childCount: _items.length,
@@ -647,6 +642,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
         ));
   }
 }
+
+Melody _lastAddedMelody;
 
 class _MelodyReference extends StatefulWidget {
   _MelodyReference({
@@ -663,7 +660,7 @@ class _MelodyReference extends StatefulWidget {
     this.setReferenceVolume,
     this.editingMelody,
     this.toggleEditingMelody,
-    this.hideMelodyView, this.lastAddedMelody, this.clearLastAddedMelody,
+    this.hideMelodyView,
   });
 
   final Melody melody;
@@ -680,8 +677,6 @@ class _MelodyReference extends StatefulWidget {
   final Part colorboardPart;
   final Part keyboardPart;
   final bool editingMelody;
-  final Melody lastAddedMelody;
-  final Function() clearLastAddedMelody;
 
   @override
   __MelodyReferenceState createState() => __MelodyReferenceState();
@@ -824,15 +819,22 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //      opacity: opacityLevel,
 //      child: content);
     controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
-    if(widget.lastAddedMelody == widget.melody) {
-      widget.clearLastAddedMelody();
-      content = SizeFadeTransition(axis: Axis.horizontal, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
+    if(_lastAddedMelody == widget.melody) {
+      _lastAddedMelody = null;
+      content = SizeFadeTransition(
+        key: Key("lastAdded"),
+        axis: Axis.horizontal, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
     }
     controller.forward();
 
     return content;
   }
 
+
+  @override void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return ReorderableItem(

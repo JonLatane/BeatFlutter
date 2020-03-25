@@ -271,9 +271,9 @@ struct Chord {
   ///
   /// With music theory, the idea is that we can derive the Note (i.e., differentiate whether these
   /// should be a C# or Db) for all the tones in the extension based on the root_note and bass_note.
-  var `extension`: UInt32 {
-    get {return _storage._extension}
-    set {_uniqueStorage()._extension = newValue}
+  var chroma: UInt32 {
+    get {return _storage._chroma}
+    set {_uniqueStorage()._chroma = newValue}
   }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -283,26 +283,61 @@ struct Chord {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+struct Meter {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var defaultBeatsPerMeasure: UInt32 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 /// A Harmony is a rhythmic mapping of chords.
 struct Harmony {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var id: String = String()
+  var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  var subdivisionsPerBeat: UInt32 = 0
+  var subdivisionsPerBeat: UInt32 {
+    get {return _storage._subdivisionsPerBeat}
+    set {_uniqueStorage()._subdivisionsPerBeat = newValue}
+  }
 
   /// Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
-  var length: UInt32 = 0
+  var length: UInt32 {
+    get {return _storage._length}
+    set {_uniqueStorage()._length = newValue}
+  }
+
+  var meter: Meter {
+    get {return _storage._meter ?? Meter()}
+    set {_uniqueStorage()._meter = newValue}
+  }
+  /// Returns true if `meter` has been explicitly set.
+  var hasMeter: Bool {return _storage._meter != nil}
+  /// Clears the value of `meter`. Subsequent reads from it will return its default value.
+  mutating func clearMeter() {_uniqueStorage()._meter = nil}
 
   /// Must contain at least one entry with key less than Harmony length. Generally, should contain
   /// an entry at 0.
-  var data: Dictionary<Int32,Chord> = [:]
+  var data: Dictionary<Int32,Chord> {
+    get {return _storage._data}
+    set {_uniqueStorage()._data = newValue}
+  }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 struct Melody {
@@ -708,13 +743,13 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "root_note"),
     2: .standard(proto: "bass_note"),
-    3: .same(proto: "extension"),
+    3: .same(proto: "chroma"),
   ]
 
   fileprivate class _StorageClass {
     var _rootNote: NoteName? = nil
     var _bassNote: NoteName? = nil
-    var _extension: UInt32 = 0
+    var _chroma: UInt32 = 0
 
     static let defaultInstance = _StorageClass()
 
@@ -723,7 +758,7 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
     init(copying source: _StorageClass) {
       _rootNote = source._rootNote
       _bassNote = source._bassNote
-      _extension = source._extension
+      _chroma = source._chroma
     }
   }
 
@@ -741,7 +776,7 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
         switch fieldNumber {
         case 1: try decoder.decodeSingularMessageField(value: &_storage._rootNote)
         case 2: try decoder.decodeSingularMessageField(value: &_storage._bassNote)
-        case 3: try decoder.decodeSingularUInt32Field(value: &_storage._extension)
+        case 3: try decoder.decodeSingularUInt32Field(value: &_storage._chroma)
         default: break
         }
       }
@@ -756,8 +791,8 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
       if let v = _storage._bassNote {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
       }
-      if _storage._extension != 0 {
-        try visitor.visitSingularUInt32Field(value: _storage._extension, fieldNumber: 3)
+      if _storage._chroma != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._chroma, fieldNumber: 3)
       }
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -770,11 +805,40 @@ extension Chord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase
         let rhs_storage = _args.1
         if _storage._rootNote != rhs_storage._rootNote {return false}
         if _storage._bassNote != rhs_storage._bassNote {return false}
-        if _storage._extension != rhs_storage._extension {return false}
+        if _storage._chroma != rhs_storage._chroma {return false}
         return true
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Meter: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "Meter"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "default_beats_per_measure"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularUInt32Field(value: &self.defaultBeatsPerMeasure)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.defaultBeatsPerMeasure != 0 {
+      try visitor.visitSingularUInt32Field(value: self.defaultBeatsPerMeasure, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Meter, rhs: Meter) -> Bool {
+    if lhs.defaultBeatsPerMeasure != rhs.defaultBeatsPerMeasure {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -786,42 +850,88 @@ extension Harmony: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     1: .same(proto: "id"),
     2: .standard(proto: "subdivisions_per_beat"),
     3: .same(proto: "length"),
-    4: .same(proto: "data"),
+    4: .same(proto: "meter"),
+    100: .same(proto: "data"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _subdivisionsPerBeat: UInt32 = 0
+    var _length: UInt32 = 0
+    var _meter: Meter? = nil
+    var _data: Dictionary<Int32,Chord> = [:]
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _subdivisionsPerBeat = source._subdivisionsPerBeat
+      _length = source._length
+      _meter = source._meter
+      _data = source._data
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularUInt32Field(value: &self.subdivisionsPerBeat)
-      case 3: try decoder.decodeSingularUInt32Field(value: &self.length)
-      case 4: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,Chord>.self, value: &self.data)
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        switch fieldNumber {
+        case 1: try decoder.decodeSingularStringField(value: &_storage._id)
+        case 2: try decoder.decodeSingularUInt32Field(value: &_storage._subdivisionsPerBeat)
+        case 3: try decoder.decodeSingularUInt32Field(value: &_storage._length)
+        case 4: try decoder.decodeSingularMessageField(value: &_storage._meter)
+        case 100: try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,Chord>.self, value: &_storage._data)
+        default: break
+        }
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.subdivisionsPerBeat != 0 {
-      try visitor.visitSingularUInt32Field(value: self.subdivisionsPerBeat, fieldNumber: 2)
-    }
-    if self.length != 0 {
-      try visitor.visitSingularUInt32Field(value: self.length, fieldNumber: 3)
-    }
-    if !self.data.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,Chord>.self, value: self.data, fieldNumber: 4)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._subdivisionsPerBeat != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._subdivisionsPerBeat, fieldNumber: 2)
+      }
+      if _storage._length != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._length, fieldNumber: 3)
+      }
+      if let v = _storage._meter {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      }
+      if !_storage._data.isEmpty {
+        try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufSInt32,Chord>.self, value: _storage._data, fieldNumber: 100)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Harmony, rhs: Harmony) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.subdivisionsPerBeat != rhs.subdivisionsPerBeat {return false}
-    if lhs.length != rhs.length {return false}
-    if lhs.data != rhs.data {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._subdivisionsPerBeat != rhs_storage._subdivisionsPerBeat {return false}
+        if _storage._length != rhs_storage._length {return false}
+        if _storage._meter != rhs_storage._meter {return false}
+        if _storage._data != rhs_storage._data {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

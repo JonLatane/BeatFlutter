@@ -1,6 +1,7 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'dummydata.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -98,8 +99,10 @@ class _SectionListState extends State<SectionList> {
       ..harmony = (
         Harmony()
           ..id = uuid.v4()
-          ..subdivisionsPerBeat = 1
-          ..length = 16
+          ..meter = (Meter()..defaultBeatsPerMeasure = 4)
+          ..subdivisionsPerBeat = 4
+          ..length = 64
+          ..data.addAll({0: cMaj7})
       );
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
     widget.setState(() {

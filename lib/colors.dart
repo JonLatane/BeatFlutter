@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 var sectionColors = [
-  Color(0xFF59F9FF),
-  Color(0xFF884DF2),
-  Color(0xFFF93730),
-  Color(0xFF4AFBC1),
-  Color(0xFFF652F9),
+  ChordColor.major.color,
+  ChordColor.minor.color,
+  ChordColor.dominant.color,
+  ChordColor.augmented.color,
+  ChordColor.diminished.color,
 ];
 
 var chromaticSteps = [
@@ -22,3 +22,31 @@ var chromaticSteps = [
   Color(0xFFA03BDB),
   Color(0xFF2EBBB5),
 ];
+
+enum ChordColor { dominant, major, minor, augmented, diminished, none }
+
+extension ActualColors on ChordColor {
+  Color get color {
+    switch(this) {
+      case ChordColor.major:
+        return Color(0xFF59F9FF);
+        break;
+      case ChordColor.minor:
+        return Color(0xFF884DF2);
+        break;
+      case ChordColor.dominant:
+        return Color(0xFFF93730);
+        break;
+      case ChordColor.augmented:
+        return Color(0xFF4AFBC1);
+        break;
+      case ChordColor.diminished:
+        return Color(0xFFF652F9);
+        break;
+      case ChordColor.none:
+        return Colors.white;
+        break;
+    }
+    return Colors.white;
+  }
+}

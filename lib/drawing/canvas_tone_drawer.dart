@@ -55,7 +55,7 @@ class CanvasToneDrawer {
   bool showSteps;
   Chord chord = Chord()
     ..rootNote = NoteName()
-    ..extension_3 = 2047;
+    ..chroma = 2047;
   double normalizedDevicePitch;
 
   /// Renders the dividers that separate A, A#, B, C, etc. visually to the user

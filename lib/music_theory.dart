@@ -73,7 +73,7 @@ extension ChordTheory on Chord {
       return true;
     }
     int difference = (tone - root).mod12;
-    if((extension_3 << difference) & 0x0001 == 1) {
+    if((chroma << difference) & 0x0001 == 1) {
       return true;
     }
     return false;
@@ -82,6 +82,19 @@ extension ChordTheory on Chord {
 
 extension HarmonyTheory on Harmony {
   int get beatCount => (length.toDouble() / subdivisionsPerBeat).ceil();
+  Chord changeBefore(int subdivision) {
+    final int initialSubdivision = subdivision;
+    Chord result = data[subdivision];
+    while(result == null) {
+      subdivision = subdivision - 1;
+      if(subdivision < 0) {
+        subdivision += length;
+      }
+      result = data[subdivision];
+
+    }
+    return result;
+  }
 }
 
 extension SectionTheory on Section {
