@@ -749,8 +749,8 @@ class BeatScratchToolbar extends StatelessWidget {
                             Expanded(child: Text('Notation UI')),
                             Padding(
                                 padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                child: PlatformSvg.asset(
-                                  'assets/notehead_filled.svg',
+                                child: Image.asset(
+                                  'assets/notehead_filled.png',
                                   width: 20,
                                   height: 20,
                                 ))
@@ -776,7 +776,7 @@ class BeatScratchToolbar extends StatelessWidget {
                         ),
                       ],
                   padding: EdgeInsets.only(bottom: 10.0),
-                  icon: PlatformSvg.asset('assets/logo.svg'))),
+                  icon: Image.asset('assets/logo.png'))),
           Expanded(
               child: FlatButton(
                   onPressed: () {
@@ -870,7 +870,10 @@ class SecondToolbar extends StatelessWidget {
               child: RaisedButton(
                 padding: EdgeInsets.only(top: 7, bottom: 5),
                 child: Stack(children: [
-                  PlatformSvg.asset('assets/metronome.svg'),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Image.asset('assets/metronome.png'),
+                  ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),

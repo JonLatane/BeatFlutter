@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
@@ -111,7 +113,12 @@ class _SectionListState extends State<SectionList> {
         widget.selectSection(newSection);
       });
     });
-    _scrollController.animateTo(_scrollController.offset + 150, duration: animationDuration, curve: Curves.easeInOut);
+    int index = score.sections.indexOf(newSection);
+    if(widget.scrollDirection == Axis.horizontal) {
+      double position = 150.0 * (index - 1);
+      position = min(_scrollController.position.maxScrollExtent + 300, position);
+      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+    }
   }
 
   Widget getList(BuildContext context) {
@@ -198,9 +205,12 @@ class _SectionState extends State<_Section> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
+        width: 150,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: FlatButton(
           child: Text(hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontWeight: FontWeight.w100,
             color: hasName ? Colors.black : Colors.grey),
           ),

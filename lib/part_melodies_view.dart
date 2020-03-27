@@ -800,8 +800,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           color: (widget.melody == widget.selectedMelody && widget.editingMelody)
                               ? widget.sectionColor
                               : Color(0xFFDDDDDD),
-                          child: PlatformSvg.asset(
-                            'assets/edit.svg',
+                          child: Image.asset(
+                            'assets/edit.png',
                             fit: BoxFit.fill,
                           ))),
                   Expanded(child: SizedBox()),

@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:beatscratch_flutter_redux/drawing/harmony_beat.dart';
+import 'package:beatscratch_flutter_redux/drawing/harmony_beat_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -21,7 +22,7 @@ import 'music_theory.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui' as ui;
 
-const double unscaledStandardBeatWidth = 20.0;
+const double unscaledStandardBeatWidth = 60.0;
 
 class MelodyRenderer extends StatefulWidget {
   final Score score;
@@ -45,7 +46,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
 
   ScrollController verticalController = ScrollController();
-  static const double heightFactor = 1000;
+  static const double heightFactor = 800;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +121,7 @@ class _MelodyPainter extends CustomPainter {
     _tickPaint.strokeWidth = 2.0;
   }
 
-  double get harmonyHeight => 30 * yScale;
+  double get harmonyHeight => min(100,30 * yScale);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -160,7 +161,7 @@ class _MelodyPainter extends CustomPainter {
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
       Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
-      HarmonyBeat harmonyDrawer = HarmonyBeat()
+      HarmonyBeatRenderer harmonyDrawer = HarmonyBeatRenderer()
         ..overallBounds = harmonyBounds
         ..section = renderingSection
         ..beatPosition = renderingSectionBeat

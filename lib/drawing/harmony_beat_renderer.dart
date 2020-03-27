@@ -66,7 +66,7 @@ extension _HarmonyColor on Chord {
   }
 }
 
-class HarmonyBeat {
+class HarmonyBeatRenderer {
   Section section;
 
   Harmony get harmony => section?.harmony;

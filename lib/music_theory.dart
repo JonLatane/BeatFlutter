@@ -118,3 +118,15 @@ extension SectionTheory on Section {
 extension ScoreTheory on Score {
   int get beatCount => sections.fold(0, (p,s) => p + s.beatCount);
 }
+
+class NoteSpecification {
+  final NoteName noteName;
+  final int octave;
+
+  NoteSpecification({this.noteName, this.octave});
+
+  NoteSpecification.name({NoteLetter letter, NoteSign sign, int octave}) : this(
+    noteName: (NoteName()..noteLetter = letter..noteSign = sign),
+    octave: octave
+  );
+}

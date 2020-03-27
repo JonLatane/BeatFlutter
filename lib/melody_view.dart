@@ -268,8 +268,8 @@ class _MelodyToolbar extends StatelessWidget {
             }
               : null,
             padding: EdgeInsets.all(0),
-            child: PlatformSvg.asset(
-              'assets/edit.svg',
+            child: Image.asset(
+              'assets/edit.png',
               fit: BoxFit.fill,
             ),
           )),
