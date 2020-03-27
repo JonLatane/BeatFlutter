@@ -325,6 +325,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   PhotoViewScaleStateController scaleStateController;
 
+  bool verticalSectionList = false;
+  double get verticalSectionListWidth => _interactionMode == InteractionMode.edit && verticalSectionList ? 150 : 0;
+  double get horizontalSectionListHeight => _interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
+
   @override
   void initState() {
     super.initState();
@@ -394,6 +398,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     if (melodyViewDisplayMode == null) {
       melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
+      verticalSectionList = context.isTablet;
     }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
@@ -489,8 +494,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           AnimatedContainer(
                               duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
                         ]),
-                  createSectionList(),
-                  Expanded(child: _partsAndMelodiesAndMelodyView(context)),
+                  AnimatedContainer(duration:animationDuration, curve: Curves.easeInOut,height:horizontalSectionListHeight, child:
+                  createSectionList(scrollDirection: Axis.horizontal)),
+                  Expanded(child: Row(children:[
+                  AnimatedContainer(duration:animationDuration, curve: Curves.easeInOut,width:verticalSectionListWidth, child: createSectionList(scrollDirection: Axis.vertical)),
+                    Expanded(child:_partsAndMelodiesAndMelodyView(context))
+                  ])),
                   AnimatedContainer(
                       curve: Curves.easeInOut,
                       duration: animationDuration,
@@ -535,7 +544,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _playing = !_playing;
           });
         },
-        toggleSectionListDisplayMode: () {},
+        toggleSectionListDisplayMode: () { setState(() { verticalSectionList = !verticalSectionList; });},
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
@@ -568,7 +577,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       score: _score,
       setState: setState,
       scrollDirection: scrollDirection,
-      visible: _interactionMode == InteractionMode.edit,
       currentSection: currentSection,
       selectSection: _selectSection,
     );
@@ -585,7 +593,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _colorboardHeight -
         _keyboardHeight +
         8 -
-        36;
+        horizontalSectionListHeight;
+    double width = data.size.width - verticalSectionListWidth;
     if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
       height += 36;
     }
@@ -606,7 +615,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               AnimatedContainer(
                   curve: Curves.easeInOut,
                   duration: slowAnimationDuration,
-                  width: MediaQuery.of(context).size.width * (1 - _melodyViewSizeFactor),
+                  width: width * (1 - _melodyViewSizeFactor),
                   child: _partMelodiesView(context)),
               Expanded(
                   child: AnimatedContainer(

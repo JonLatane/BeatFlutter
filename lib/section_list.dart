@@ -11,7 +11,6 @@ import 'animations/size_fade_transition.dart';
 
 class SectionList extends StatefulWidget {
   final Axis scrollDirection;
-  final bool visible;
   final Score score;
   final Color sectionColor;
   final Section currentSection;
@@ -21,7 +20,6 @@ class SectionList extends StatefulWidget {
   const SectionList(
       {Key key,
       this.scrollDirection,
-      this.visible,
       this.score,
       this.currentSection,
       this.selectSection,
@@ -37,26 +35,9 @@ class _SectionListState extends State<SectionList> {
   ScrollController _scrollController = ScrollController();
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-        duration: animationDuration,
-        height: (widget.scrollDirection == Axis.vertical) ? MediaQuery.of(context).size.height : (widget.visible) ? 36 : 0,
-        width: (widget.scrollDirection == Axis.horizontal) ? MediaQuery.of(context).size.width : (widget.visible) ? 36 : 0,
-        child: (widget.scrollDirection == Axis.horizontal)
+    return  (widget.scrollDirection == Axis.horizontal)
             ? Row(children: [
-                Expanded(
-                    child: Padding(padding: EdgeInsets.all(2), child: getList(context)
-//            ListView.builder(
-//              scrollDirection: scrollDirection,
-//              itemBuilder: (context, position) {
-//                return RaisedButton(
-//                  color: (currentSection == score.sections[position]) ? sectionColor : Colors.white,
-//                  child: Text(score.sections[position].name, style: TextStyle(fontWeight: FontWeight.w100),),
-//                  onPressed: () => {selectSection(score.sections[position])},
-//                );
-//              },
-//              itemCount: score.sections.length,
-//            )
-                        )),
+                Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
                 Container(
                   width: 41, height: 36,
                   padding: EdgeInsets.only(right: 5),
@@ -72,27 +53,15 @@ class _SectionListState extends State<SectionList> {
               ])
             : Column(children: [
                 Expanded(
-                    child: ListView.builder(
-                  scrollDirection: widget.scrollDirection,
-                  itemBuilder: (context, position) {
-                    return RaisedButton(
-                      color: (widget.currentSection == widget.score.sections[position]) ? Colors.white : Colors.grey,
-                      child: Text(widget.score.sections[position].name),
-                      onPressed: () => {
-                        //selectSection(score.sections[position])
-                      },
-                    );
-                  },
-                  itemCount: widget.score.sections.length,
-                )),
-                RaisedButton(
+                    child: getList(context)),
+                Row(children:[Expanded(child:RaisedButton(
                   child: Icon(Icons.add),
                   onPressed: widget.score.sections.length < 100 ? () {
                     print("inserting section");
                     insertSection();
                   } : null,
-                )
-              ]));
+                ))])
+              ]);
   }
 
   insertSection() {
@@ -118,6 +87,8 @@ class _SectionListState extends State<SectionList> {
       double position = 150.0 * (index - 1);
       position = min(_scrollController.position.maxScrollExtent + 300, position);
       _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+    } else {
+
     }
   }
 
@@ -159,11 +130,11 @@ class _SectionListState extends State<SectionList> {
 
               // If the item is in drag, only return the tile as the
               // SizeFadeTransition would clip the shadow.
-              if (t > 0.0) {
+              if (t > 0.0 || inDrag) {
                 return SizeFadeTransition(
                     sizeFraction: 0.7,
                     curve: Curves.easeInOut,
-//                axis: scrollDirection,
+                    axis: widget.scrollDirection == Axis.horizontal ? Axis.vertical : Axis.horizontal,
                     animation: animation,
                     child: tile);
               }
