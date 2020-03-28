@@ -42,7 +42,7 @@ class _SectionListState extends State<SectionList> {
                   width: 41, height: 36,
                   padding: EdgeInsets.only(right: 5),
                   child: RaisedButton(
-                    child: Icon(Icons.add),
+                    child: Image.asset("assets/add.png"),
                     padding: EdgeInsets.all(0),
                     onPressed: widget.score.sections.length < 100 ? () {
                       print("inserting section");
@@ -54,13 +54,13 @@ class _SectionListState extends State<SectionList> {
             : Column(children: [
                 Expanded(
                     child: getList(context)),
-                Row(children:[Expanded(child:RaisedButton(
-                  child: Icon(Icons.add),
+                Row(children:[Expanded(child:Container(height:36, child:RaisedButton(
+                  child: Image.asset("assets/add.png"),
                   onPressed: widget.score.sections.length < 100 ? () {
                     print("inserting section");
                     insertSection();
                   } : null,
-                ))])
+                )))])
               ]);
   }
 
@@ -88,7 +88,9 @@ class _SectionListState extends State<SectionList> {
       position = min(_scrollController.position.maxScrollExtent + 300, position);
       _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
     } else {
-
+      double position = 36.0 * (index - 1);
+      position = min(_scrollController.position.maxScrollExtent + 72, position);
+      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
     }
   }
 

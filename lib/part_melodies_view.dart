@@ -32,6 +32,7 @@ class PartMelodiesView extends StatefulWidget {
   final Function(Part) setColorboardPart;
   final Function(Part) selectPart;
   final bool editingMelody;
+  final double availableWidth;
 
   PartMelodiesView(
       {this.score,
@@ -49,7 +50,7 @@ class PartMelodiesView extends StatefulWidget {
       this.setPartVolume,
       this.editingMelody,
       this.toggleEditingMelody,
-      this.hideMelodyView});
+      this.hideMelodyView, this.availableWidth});
 
   @override
   _PartMelodiesViewState createState() {
@@ -62,8 +63,8 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 
   Widget _buildAddButton() {
     double width = widget.score.parts.isNotEmpty ? 320 : context.isTablet
-      ? min(600, MediaQuery.of(context).size.width/2)
-      : MediaQuery.of(context).size.width;
+      ? min(600, widget.availableWidth/2)
+      : widget.availableWidth;
     bool canAddPart = widget.score.parts.length < 5;
     bool canAddDrumPart =
         canAddPart && !(widget.score.parts.any((element) => element.instrument.type == InstrumentType.drum));

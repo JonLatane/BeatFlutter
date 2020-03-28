@@ -1,0 +1,233 @@
+
+
+import 'dart:ui';
+
+import 'package:beatscratch_flutter_redux/ui_models.dart';
+import 'package:flutter/material.dart';
+import 'ui_models.dart';
+import 'util.dart';
+
+class BeatScratchToolbar extends StatelessWidget {
+  final VoidCallback viewMode;
+  final VoidCallback editMode;
+  final VoidCallback toggleViewOptions;
+  final bool playing;
+  final VoidCallback togglePlaying;
+  final VoidCallback toggleSectionListDisplayMode;
+  final InteractionMode interactionMode;
+  final Color sectionColor;
+
+  const BeatScratchToolbar(
+    {Key key,
+      this.interactionMode,
+      this.viewMode,
+      this.editMode,
+      this.toggleViewOptions,
+      this.sectionColor,
+      this.playing,
+      this.togglePlaying,
+      this.toggleSectionListDisplayMode})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      child: Row(children: [
+        Expanded(
+          child: PopupMenuButton(
+//                        onPressed: _doNothing,
+            offset: Offset(0, MediaQuery.of(context).size.height),
+            onSelected: (result) {
+              //setState(() {});
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: null,
+                child: Text('score name'),
+                enabled: false,
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('New Score'),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('Open Score...'),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('Duplicate Score...'),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('Save Score'),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('Copy Score'),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('MIDI Output Settings'),
+              ),
+              PopupMenuItem(
+                value: null,
+                child: Row(children: [
+                  Checkbox(value: true, onChanged: null),
+                  Expanded(child: Text('Notation UI')),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                    child: Image.asset(
+                      'assets/notehead_filled.png',
+                      width: 20,
+                      height: 20,
+                    ))
+                ]),
+              ),
+              PopupMenuItem(
+                value: null,
+                child: Row(children: [
+                  Checkbox(value: false, onChanged: null),
+                  Expanded(child: Text('Colorblock UI')),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                    child: Image.asset(
+                      'assets/colorboard_vertical.png',
+                      width: 20,
+                      height: 20,
+                    ))
+                ]),
+              ),
+              const PopupMenuItem(
+                value: null,
+                child: Text('Quit BeatScratch'),
+              ),
+            ],
+            padding: EdgeInsets.only(bottom: 10.0),
+            icon: Image.asset('assets/logo.png'))),
+        Expanded(
+          child: FlatButton(
+            onPressed: () {
+              if (interactionMode == InteractionMode.view) {
+                togglePlaying();
+              } else {
+                toggleSectionListDisplayMode();
+              }
+            },
+            padding: EdgeInsets.all(0.0),
+            child: Icon(
+              (interactionMode == InteractionMode.view)
+                ? (playing ? Icons.stop : Icons.play_arrow)
+                : Icons.menu,
+              color: sectionColor))),
+        Expanded(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            color: (interactionMode == InteractionMode.view) ? sectionColor : Colors.transparent,
+            child: FlatButton(
+              onPressed: (interactionMode == InteractionMode.view) ? toggleViewOptions : viewMode,
+              padding: EdgeInsets.all(0.0),
+              child: Icon(Icons.remove_red_eye,
+                color: (interactionMode == InteractionMode.view) ? Colors.white : sectionColor)))),
+        Expanded(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            color: (interactionMode == InteractionMode.edit) ? sectionColor : Colors.transparent,
+            child: FlatButton(
+              onPressed: editMode,
+              padding: EdgeInsets.all(0.0),
+              child: Icon(Icons.edit,
+                color: (interactionMode == InteractionMode.edit) ? Colors.white : sectionColor))))
+      ]));
+  }
+}
+
+class SecondToolbar extends StatelessWidget {
+  final VoidCallback toggleKeyboard;
+  final VoidCallback toggleColorboard;
+  final VoidCallback toggleKeyboardConfiguration;
+  final VoidCallback toggleColorboardConfiguration;
+  final bool showKeyboard;
+  final bool showKeyboardConfiguration;
+  final bool showColorboard;
+  final bool showColorboardConfiguration;
+  final InteractionMode interactionMode;
+  final bool showViewOptions;
+  final Color sectionColor;
+
+  const SecondToolbar(
+    {Key key,
+      this.toggleKeyboard,
+      this.toggleColorboard,
+      this.showKeyboard,
+      this.showColorboard,
+      this.interactionMode,
+      this.showViewOptions,
+      this.showKeyboardConfiguration,
+      this.showColorboardConfiguration,
+      this.toggleKeyboardConfiguration,
+      this.toggleColorboardConfiguration,
+      this.sectionColor})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+    if (context.isTabletOrLandscapey) {
+      width = width / 2;
+    }
+    return Row(children: [
+      AnimatedContainer(
+        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+        duration: animationDuration,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
+      AnimatedContainer(
+        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+        duration: animationDuration,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: RaisedButton(
+            child: Image.asset('assets/stop.png'),
+            onPressed: () => {},
+          ))),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: RaisedButton(
+            padding: EdgeInsets.only(top: 7, bottom: 5),
+            child: Stack(children: [
+              Align(
+                alignment: Alignment.center,
+                child: Image.asset('assets/metronome.png'),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
+              )
+            ]),
+            onPressed: () => {},
+          ))),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: RaisedButton(
+            child: Image.asset('assets/piano.png'),
+            onPressed: toggleKeyboard,
+            onLongPress: toggleKeyboardConfiguration,
+            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
+          ))),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: RaisedButton(
+            child: Image.asset('assets/colorboard.png'),
+            onPressed: toggleColorboard,
+            onLongPress: toggleColorboardConfiguration,
+            color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
+          )))
+    ]);
+  }
+}
