@@ -19,6 +19,9 @@ class ColorGuide extends CanvasToneDrawer {
   int drawnColorGuideAlpha;
 
   drawColorGuide(Canvas canvas) {
+    if(colorGuideAlpha == 0) {
+      return;
+    }
     alphaDrawerPaint.preserveColor(() {
       var halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
       visiblePitches.forEach((visiblePitch) {

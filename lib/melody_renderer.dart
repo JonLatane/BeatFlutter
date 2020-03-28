@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:beatscratch_flutter_redux/drawing/harmony_beat_renderer.dart';
+import 'package:beatscratch_flutter_redux/drawing/melody/colorblock_melody_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -161,12 +162,30 @@ class _MelodyPainter extends CustomPainter {
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
       Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
-      HarmonyBeatRenderer harmonyDrawer = HarmonyBeatRenderer()
+      HarmonyBeatRenderer()
         ..overallBounds = harmonyBounds
         ..section = renderingSection
         ..beatPosition = renderingSectionBeat
         ..draw(canvas);
       top = top + harmonyHeight;
+
+      Rect melodyBounds = Rect.fromLTRB(left, top, right, visibleRect().bottom);
+      renderingSection.melodies.forEach((melodyReference) {
+        Melody melody = score.melodyReferencedBy(melodyReference);
+        ColorblockMelodyRenderer()
+          ..overallBounds = melodyBounds
+          ..section = renderingSection
+          ..beatPosition = renderingSectionBeat
+          ..section = renderingSection
+          ..colorblockAlpha = 1
+          ..drawPadding = 3
+          ..nonRootPadding = 3
+          ..drawnColorGuideAlpha = 255
+          ..isUserChoosingHarmonyChord = false
+          ..isMelodyReferenceEnabled = true
+          ..melody = melody
+          ..draw(canvas);
+      });
       drawFilledNotehead(canvas, Rect.fromLTRB(left, top, left + standardBeatWidth / 2, top + standardBeatWidth / 2));
 
 

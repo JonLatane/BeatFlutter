@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/dummydata.dart';
 import 'package:beatscratch_flutter_redux/expanded_section.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
@@ -520,7 +521,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               expandedHeight: 50.0,
               flexibleSpace: FlatButton(
                   onPressed: () {
-                    var newMelody = Melody()..id = uuid.v4();
+                    var newMelody = odeToJoy();// Melody()..id = uuid.v4();
                     _lastAddedMelody = newMelody;
                     setState(() {
                       part.melodies.insert(0, newMelody);
