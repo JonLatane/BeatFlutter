@@ -67,14 +67,7 @@ class _SectionListState extends State<SectionList> {
   insertSection() {
     Section newSection = Section()
       ..id = uuid.v4()
-      ..harmony = (
-        Harmony()
-          ..id = uuid.v4()
-          ..meter = (Meter()..defaultBeatsPerMeasure = 4)
-          ..subdivisionsPerBeat = 4
-          ..length = 64
-          ..data.addAll({0: cChromatic, 32: cMinor})
-      );
+      ..harmony = defaultHarmony();
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
     widget.setState(() {
       setState(() {

@@ -62,7 +62,7 @@ class CanvasToneDrawer {
   renderSteps(Canvas canvas) {
     alphaDrawerPaint.color = Colors.black87;
     if (showSteps) {
-      var linePosition = startPoint - 12 * halfStepWidth;
+      var linePosition = startPoint;// - 12 * halfStepWidth;
       while (linePosition < axisLength) {
         if (renderVertically) {
           canvas.drawLine(

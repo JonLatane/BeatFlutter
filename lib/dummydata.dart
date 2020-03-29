@@ -11,6 +11,7 @@ Chord cMinor = Chord()
   ..rootNote = (NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural)
   ..chroma = 274;
 MelodicAttack _note(int tone) => MelodicAttack()..tones.add(tone)..velocity = 1;
+
 Melody odeToJoy() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.melodic
@@ -22,17 +23,19 @@ Melody odeToJoy() => Melody()
     16: _note(0), 18: _note(0), 20: _note(2), 22: _note(4), 24: _note(4), 27: _note(2), 28: _note(2)
   }))
 ;
+
+Harmony defaultHarmony() =>
+  Harmony()
+    ..id = uuid.v4()
+    ..meter = (Meter()..defaultBeatsPerMeasure = 4)
+    ..subdivisionsPerBeat = 4
+    ..length = 64
+    ..data.addAll({0: cChromatic, 32: cMinor});
+
 var section1 = Section()
   ..id = uuid.v4()
   ..name = ""
-  ..harmony = (
-    Harmony()
-      ..id = uuid.v4()
-      ..meter = (Meter()..defaultBeatsPerMeasure = 4)
-      ..subdivisionsPerBeat = 4
-      ..length = 64
-      ..data.addAll({0: cChromatic, 32: cMinor})
-  );
+  ..harmony = defaultHarmony();
 var score = Score()
   ..sections.addAll([
     section1,

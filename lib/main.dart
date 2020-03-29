@@ -401,6 +401,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
       verticalSectionList = context.isTablet;
     }
+    if(context.isLandscape) {
+      SystemChrome.setEnabledSystemUIOverlays([]);
+    } else {
+      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
@@ -415,7 +420,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
-//            resizeToAvoidBottomPadding: false,
+            resizeToAvoidBottomPadding: false,
             backgroundColor: Color(0xFF424242),
             appBar: PreferredSize(
                 preferredSize: Size.fromHeight(0.0), // here the desired height

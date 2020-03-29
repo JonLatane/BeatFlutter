@@ -45,18 +45,18 @@ int major7 = int.parse("00000000001", radix: 2);
 
 extension _HarmonyColor on Chord {
   Color get uiColor {
-    return ChordColor.major.color;
+//    return ChordColor.major.color;
     ChordColor chordColor = ChordColor.none;
-    if (this.chroma & minor3 == minor3) {
+    if (this.chroma & minor3 == minor3 && this.chroma & major3 != major3) {
       if (this.chroma & dim5 == dim5) {
         chordColor = ChordColor.diminished;
       } else {
         chordColor = ChordColor.minor;
       }
     } else if (this.chroma & major3 == major3) {
-      if (this.chroma & minor7 == minor7) {
+      if (this.chroma & minor7 == minor7 && this.chroma & major7 != major7) {
         chordColor = ChordColor.dominant;
-      } else if (this.chroma & aug5 == aug5) {
+      } else if (this.chroma & aug5 == aug5 && this.chroma & p5 != p5) {
         chordColor = ChordColor.augmented;
       } else {
         chordColor = ChordColor.major;

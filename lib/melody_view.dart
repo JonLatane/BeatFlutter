@@ -174,6 +174,7 @@ class _MelodyViewState extends State<MelodyView> {
         child: MelodyRenderer(
           score: widget.score,
           section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
+          focusedMelody: widget.melody,
           xScale: _horizontalScale,
           yScale: _verticalScale,
         )

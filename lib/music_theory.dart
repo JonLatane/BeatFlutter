@@ -125,11 +125,11 @@ extension ChordTheory on Chord {
   bool containsTone(int tone) {
     tone = tone.mod12;
     int root = rootNote.tone;
-    if (root == 0) {
+    if (root == tone) {
       return true;
     }
     int difference = (tone - root).mod12;
-    if ((chroma << difference) & 0x0001 == 1) {
+    if ((chroma >> difference) & 0x0001 == 1) {
       return true;
     }
     return false;
@@ -173,7 +173,12 @@ extension SectionTheory on Section {
 extension ScoreTheory on Score {
   int get beatCount => sections.fold(0, (p, s) => p + s.beatCount);
   Melody melodyReferencedBy(MelodyReference ref) =>
-    parts.fold(null, (previousValue, part) => previousValue ?? part.melodies.firstWhere((melody) => melody.id == ref.melodyId));
+    parts.fold(null, (previousValue, part) =>
+      previousValue ?? part.melodies.firstWhere(
+          (melody) => melody.id == ref.melodyId,
+          orElse: () => null
+      )
+    );
 }
 
 class NoteSpecification {

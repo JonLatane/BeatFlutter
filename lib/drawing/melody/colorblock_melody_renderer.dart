@@ -15,18 +15,16 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     canvas.save();
     canvas.translate(0, bounds.top);
     renderSteps(canvas);
-    canvas.restore();
-    if(melody != null) {
-      double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0/3;
-      drawColorblockMelody(
-        canvas: canvas,
-        stepNoteAlpha: (0xAA * colorblockAlpha * alphaMultiplier).toInt(),
-        drawRhythm: true,
-        alphaSource: colorblockAlpha * alphaMultiplier
-      );
-    }
+    double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0/3;
+    drawColorblockMelody(
+      canvas: canvas,
+      stepNoteAlpha: (0xAA * colorblockAlpha * alphaMultiplier).toInt(),
+      drawRhythm: true,
+      alphaSource: colorblockAlpha * alphaMultiplier
+    );
 
-    drawColorblockMelody(canvas: canvas, stepNoteAlpha: 255, drawRhythm: true, );
+    canvas.restore();
+
 
 // Draw a background if no melody is focused
 //if(focusedMelody == null) {
@@ -57,22 +55,6 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
 drawColorblockMelody({Canvas canvas, int stepNoteAlpha, bool drawRhythm = false, bool drawColorGuide = true, double alphaSource = 1})
   {
     iterateSubdivisions(() {
-      if(!drawColorGuide) {
-        colorGuideAlpha = 0;
-      } else if(isCurrentlyPlayingBeat || isSelectedBeatInHarmony) {
-        colorGuideAlpha = 255;
-      } else if(isUserChoosingHarmonyChord && !isSelectedBeatInHarmony) {
-        colorGuideAlpha = 69;
-      } else if(melody.instrumentType == InstrumentType.drum) {
-        colorGuideAlpha = 0;
-      } else {
-        colorGuideAlpha = 155;
-      }
-      colorGuideAlpha = (colorGuideAlpha * alphaSource).toInt();
-      canvas.save();
-//      canvas.translate(bounds.left, 0);
-      this.drawColorGuide(canvas);
-      canvas.restore();
       drawColorblockNotes(canvas: canvas, elementPosition: elementPosition, drawAlpha: stepNoteAlpha, alphaSource: alphaSource);
       if(drawRhythm) {
         this.drawRhythm(canvas, alphaSource);
@@ -83,6 +65,7 @@ drawColorblockMelody({Canvas canvas, int stepNoteAlpha, bool drawRhythm = false,
       bounds = Rect.fromLTRB(overallWidth, bounds.top, overallWidth, bounds.bottom);
       this.drawRhythm(canvas, alphaSource);
     }
+    print("hi");
 }
 
 
