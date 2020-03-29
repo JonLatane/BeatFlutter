@@ -12,7 +12,10 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   draw(Canvas canvas) {
     alphaDrawerPaint.strokeWidth = 0;
     bounds = overallBounds;
+    canvas.save();
+    canvas.translate(0, bounds.top);
     renderSteps(canvas);
+    canvas.restore();
     if(melody != null) {
       double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0/3;
       drawColorblockMelody(
@@ -66,7 +69,10 @@ drawColorblockMelody({Canvas canvas, int stepNoteAlpha, bool drawRhythm = false,
         colorGuideAlpha = 155;
       }
       colorGuideAlpha = (colorGuideAlpha * alphaSource).toInt();
+      canvas.save();
+//      canvas.translate(bounds.left, 0);
       this.drawColorGuide(canvas);
+      canvas.restore();
       drawColorblockNotes(canvas: canvas, elementPosition: elementPosition, drawAlpha: stepNoteAlpha, alphaSource: alphaSource);
       if(drawRhythm) {
         this.drawRhythm(canvas, alphaSource);
@@ -95,8 +101,8 @@ drawColorblockMelody({Canvas canvas, int stepNoteAlpha, bool drawRhythm = false,
     }
 
     if (tones.isNotEmpty) {
-      double leftMargin = (isChange) ? drawPadding : 0;
-      double rightMargin = (nextElement != null) ? drawPadding : 0;
+      double leftMargin = (isChange) ? drawPadding.toDouble() : 0.0;
+      double rightMargin = (nextElement != null) ? drawPadding.toDouble() : 0.0;
       tones.forEach((tone) {
         int realTone = tone; // + melody.offsetUnder(chord)
         double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;

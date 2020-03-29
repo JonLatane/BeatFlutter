@@ -170,7 +170,11 @@ class _MelodyPainter extends CustomPainter {
       top = top + harmonyHeight;
 
       Rect melodyBounds = Rect.fromLTRB(left, top, right, visibleRect().bottom);
+      canvas.drawRect(melodyBounds, Paint()..color = Colors.brown);
       renderingSection.melodies.forEach((melodyReference) {
+        if(melodyReference.playbackType == MelodyReference_PlaybackType.disabled) {
+          return;
+        }
         Melody melody = score.melodyReferencedBy(melodyReference);
         ColorblockMelodyRenderer()
           ..overallBounds = melodyBounds

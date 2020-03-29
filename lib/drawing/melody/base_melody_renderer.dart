@@ -60,9 +60,9 @@ class BaseMelodyRenderer extends ColorGuide {
     elementPosition = beatPosition * melody.subdivisionsPerBeat;
     subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
       bounds = Rect.fromLTRB(
-        overallWidth * elementIndex / elementCount,
+        overallBounds.left + overallWidth * elementIndex / elementCount,
         overallBounds.top,
-        (overallWidth * (elementIndex + 1) / elementCount),
+        overallBounds.left + (overallWidth * (elementIndex + 1) / elementCount),
         overallBounds.bottom
       );
       isCurrentlyPlayingBeat = false;
