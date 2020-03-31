@@ -119,7 +119,7 @@ extension ChordTheory on Chord {
         }
       }
     });
-    print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
+//    print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
     return result ?? rootNote.tone;
   }
 

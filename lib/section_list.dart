@@ -33,41 +33,48 @@ class SectionList extends StatefulWidget {
 
 class _SectionListState extends State<SectionList> {
   ScrollController _scrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
-    return  (widget.scrollDirection == Axis.horizontal)
-            ? Row(children: [
-                Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
-                Container(
-                  width: 41, height: 36,
-                  padding: EdgeInsets.only(right: 5),
-                  child: RaisedButton(
-                    child: Image.asset("assets/add.png"),
-                    padding: EdgeInsets.all(0),
-                    onPressed: widget.score.sections.length < 100 ? () {
-                      print("inserting section");
-                      insertSection();
-                    } : null,
-                  )
-                )
-              ])
-            : Column(children: [
-                Expanded(
-                    child: getList(context)),
-                Row(children:[Expanded(child:Container(height:36, child:RaisedButton(
+    return (widget.scrollDirection == Axis.horizontal)
+        ? Row(children: [
+            Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
+            Container(
+                width: 37,
+                height: 32,
+                padding: EdgeInsets.only(right: 5),
+                child: RaisedButton(
                   child: Image.asset("assets/add.png"),
-                  onPressed: widget.score.sections.length < 100 ? () {
-                    print("inserting section");
-                    insertSection();
-                  } : null,
-                )))])
-              ]);
+                  padding: EdgeInsets.all(2),
+                  onPressed: widget.score.sections.length < 100
+                      ? () {
+                          print("inserting section");
+                          insertSection();
+                        }
+                      : null,
+                ))
+          ])
+        : Column(children: [
+            Expanded(child: getList(context)),
+            Row(children: [
+              Expanded(
+                  child: Container(
+                      height: 36,
+                      child: RaisedButton(
+                        child: Image.asset("assets/add.png"),
+                        onPressed: widget.score.sections.length < 100
+                            ? () {
+                                print("inserting section");
+                                insertSection();
+                              }
+                            : null,
+                      )))
+            ])
+          ]);
   }
 
   insertSection() {
-    Section newSection = Section()
-      ..id = uuid.v4()
-      ..harmony = defaultHarmony();
+    Section newSection = defaultSection();
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
     widget.setState(() {
       setState(() {
@@ -75,8 +82,8 @@ class _SectionListState extends State<SectionList> {
         widget.selectSection(newSection);
       });
     });
-    int index = score.sections.indexOf(newSection);
-    if(widget.scrollDirection == Axis.horizontal) {
+    int index = widget.score.sections.indexOf(newSection);
+    if (widget.scrollDirection == Axis.horizontal) {
       double position = 150.0 * (index - 1);
       position = min(_scrollController.position.maxScrollExtent + 300, position);
       _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
@@ -113,15 +120,13 @@ class _SectionListState extends State<SectionList> {
             key: Key(section.id),
             builder: (context, dragAnimation, inDrag) {
               final t = dragAnimation.value;
-              final tile = Handle(
-                  key: Key("handle-${section.id}"),
-                  delay: const Duration(milliseconds: 250),
-                  child: _Section(
-                    sectionColor: widget.sectionColor,
-                    selectSection: widget.selectSection,
-                    currentSection: widget.currentSection,
-                    section: section,
-                  ));
+              final tile = _Section(
+                sectionColor: widget.sectionColor,
+                selectSection: widget.selectSection,
+                currentSection: widget.currentSection,
+                scrollDirection: widget.scrollDirection,
+                section: section,
+              );
 
               // If the item is in drag, only return the tile as the
               // SizeFadeTransition would clip the shadow.
@@ -134,7 +139,11 @@ class _SectionListState extends State<SectionList> {
                     child: tile);
               }
               return SizeFadeTransition(
-                  sizeFraction: 0.7, curve: Curves.easeInOut, axis: widget.scrollDirection, animation: animation, child: tile);
+                  sizeFraction: 0.7,
+                  curve: Curves.easeInOut,
+                  axis: widget.scrollDirection,
+                  animation: animation,
+                  child: tile);
             });
       },
       // An optional builder when an item was removed from the list.
@@ -155,8 +164,11 @@ class _Section extends StatefulWidget {
   final Section section;
   final Color sectionColor;
   final Function(Section) selectSection;
+  final Axis scrollDirection;
 
-  const _Section({Key key, this.section, this.selectSection, this.currentSection, this.sectionColor}) : super(key: key);
+  const _Section(
+      {Key key, this.section, this.selectSection, this.currentSection, this.sectionColor, this.scrollDirection})
+      : super(key: key);
 
   @override
   _SectionState createState() => _SectionState();
@@ -172,14 +184,32 @@ class _SectionState extends State<_Section> {
     return AnimatedContainer(
         duration: animationDuration,
         width: 150,
+        height: 36,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: FlatButton(
-          child: Text(hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.w100,
-            color: hasName ? Colors.black : Colors.grey),
-          ),
+          padding: EdgeInsets.only(left: 5, right: 5),
+          child: Row(children: [
+            Expanded(
+                child: Align(
+              alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
+              child: Text(
+                hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: 13, fontWeight: FontWeight.w100, color: hasName ? Colors.black : Colors.grey),
+              ),
+            )),
+            Handle(
+                key: Key("handle-${widget.section.id}"),
+                delay: const Duration(milliseconds: 0),
+                child: Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(
+                      Icons.reorder,
+                      size: 24,
+                    )))
+          ]),
           onPressed: () {
             widget.selectSection(widget.section);
           },

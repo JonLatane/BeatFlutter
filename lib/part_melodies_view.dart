@@ -51,7 +51,8 @@ class PartMelodiesView extends StatefulWidget {
       this.setPartVolume,
       this.editingMelody,
       this.toggleEditingMelody,
-      this.hideMelodyView, this.availableWidth});
+      this.hideMelodyView,
+      this.availableWidth});
 
   @override
   _PartMelodiesViewState createState() {
@@ -63,9 +64,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   final ScrollController controller = ScrollController();
 
   Widget _buildAddButton() {
-    double width = widget.score.parts.isNotEmpty ? 320 : context.isTablet
-      ? min(600, widget.availableWidth/2)
-      : widget.availableWidth;
+    double width = widget.score.parts.isNotEmpty
+        ? 320
+        : context.isTablet ? min(600, widget.availableWidth / 2) : widget.availableWidth;
     bool canAddPart = widget.score.parts.length < 5;
     bool canAddDrumPart =
         canAddPart && !(widget.score.parts.any((element) => element.instrument.type == InstrumentType.drum));
@@ -79,12 +80,16 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 onPressed: canAddDrumPart
                     ? () {
                         setState(() {
-                          widget.score.parts.add(Part()
+                          Part part = Part()
                             ..id = uuid.v4()
                             ..instrument = (Instrument()
-                              ..name = "Drums"
-                              ..volume = 0.5
-                              ..type = InstrumentType.drum));
+                            ..name = "Drums"
+                            ..volume = 0.5
+                            ..type = InstrumentType.drum);
+                          widget.score.parts.add(part);
+                          if(widget.keyboardPart == null) {
+                            widget.setKeyboardPart(part);
+                          }
                         });
                       }
                     : null,
@@ -122,21 +127,28 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 onPressed: canAddPart
                     ? () {
                         setState(() {
-                          widget.score.parts.add(Part()
+                          Part part = Part()
                             ..id = uuid.v4()
                             ..instrument = (Instrument()
                               ..name = widget.score.parts.any((part) => part.instrument.name == "Piano")
-                                  ? (widget.score.parts.any((part) => part.instrument.name == "Bass")
-                                      ? (widget.score.parts.any((part) => part.instrument.name == "Guitar")
-                                          ? (widget.score.parts
-                                                  .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
-                                              ? ("Picollo")
-                                              : "Muted Electric Jazz Guitar 1")
-                                          : "Guitar")
-                                      : "Bass")
-                                  : "Piano"
+                                ? (widget.score.parts.any((part) => part.instrument.name == "Bass")
+                                ? (widget.score.parts.any((part) => part.instrument.name == "Guitar")
+                                ? (widget.score.parts
+                                .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
+                                ? ("Picollo")
+                                : "Muted Electric Jazz Guitar 1")
+                                : "Guitar")
+                                : "Bass")
+                                : "Piano"
                               ..volume = 0.5
-                              ..type = InstrumentType.harmonic));
+                              ..type = InstrumentType.harmonic);
+                          widget.score.parts.add(part);
+                          if(widget.keyboardPart == null) {
+                            widget.setKeyboardPart(part);
+                          }
+                          if(widget.colorboardPart == null) {
+                            widget.setColorboardPart(part);
+                          }
                         });
                       }
                     : null,
@@ -204,7 +216,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   @override
   Widget build(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Part>(
-      key: Key(widget.score.parts.map((e) => e.id).toString()),
+//      key: Key(widget.score.parts.map((e) => e.id).toString()),
       scrollDirection: Axis.horizontal,
       // The current items in the list.
       items: widget.score.parts + [null],
@@ -355,8 +367,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
   get sectionColor => widget.sectionColor;
 
   get editingMelody => widget.editingMelody;
+
   set editingMelody(value) {
-    if(editingMelody != value) {
+    if (editingMelody != value) {
       toggleEditingMelody();
     }
   }
@@ -364,7 +377,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
   get toggleEditingMelody => widget.toggleEditingMelody;
 
   get hideMelodyView => widget.hideMelodyView;
-
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
@@ -408,99 +420,40 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     duration: animationDuration,
                     width: (keyboardPart == part) ? 24 : 0,
                     height: 24,
-                    child: Opacity(opacity: 0.5, child: Image.asset('assets/piano.png'))),
+                    child: Opacity(opacity: 0.5, child: Padding(padding:EdgeInsets.all(2), child:Image.asset('assets/piano.png')))),
                 AnimatedContainer(
                     duration: animationDuration,
                     width: (colorboardPart == part) ? 24 : 0,
                     height: 24,
                     child: Opacity(opacity: 0.5, child: Image.asset('assets/colorboard.png'))),
-       PopupMenuButton<String>(
-                  child: Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: Handle(
-                      delay: Duration.zero,
-                      child:Icon(Icons.menu)),
-                  ),
-                  initialValue: "nothing",
-                  onSelected: (String selected) {
-                    switch (selected) {
-                      case "useOnColorboard":
-                        setColorboardPart(part);
-                        break;
-                      case "useOnKeyboard":
-                        setKeyboardPart(part);
-                        break;
-                      case "removePart":
-                        widget.removePart(part);
-                        break;
-                      case "setInstrument":
-                        showInstrumentPicker(context, sectionColor, widget.score, part, setState);
-                        break;
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
-                    PopupMenuItem<String>(
-                        enabled: part.instrument.type != InstrumentType.drum,
-                        value: "setInstrument",
-                        child: Text('Choose Instrument')),
-                    PopupMenuItem<String>(
-                        value: "useOnKeyboard",
-                        child: Row(children: [
-                          Checkbox(value: keyboardPart == part, onChanged: null),
-                          Expanded(child: Text('Use on Keyboard')),
-                          Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                              child: Image.asset(
-                                'assets/piano.png',
-                                width: 20,
-                                height: 20,
-                              ))
-                        ])),
-                    if (part.instrument.type != InstrumentType.drum)
-                      PopupMenuItem<String>(
-                          value: "useOnColorboard",
-                          child: Row(children: [
-                            Checkbox(value: colorboardPart == part, onChanged: null),
-                            Expanded(
-                                child: Text(
-                              'Use on Colorboard',
-                            )),
-                            Padding(
-                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                child: Image.asset(
-                                  'assets/colorboard.png',
-                                  width: 20,
-                                  height: 20,
-                                ))
-                          ])),
-                    const PopupMenuItem<String>(value: "removePart", child: Text('Remove Part')),
-                  ],
-                ),
+                Padding(
+                    padding: EdgeInsets.only(right: 5),
+                    child:
+                        Handle(key: Key("handle-part-${part.id}"), delay: Duration.zero, child: Icon(Icons.reorder))),
               ],
               pinned: true,
               expandedHeight: 100.0,
               flexibleSpace: FlexibleSpaceBar(
 //                stretchModes: [StretchMode.fadeTitle],
-                centerTitle: false,
-                titlePadding: EdgeInsets.all(0),
+                  centerTitle: false,
+                  titlePadding: EdgeInsets.all(0),
 //                titlePadding: EdgeInsets.only(left: 8, bottom: 15),
 //                titlePadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-                title: FlatButton(
-                        onPressed: () {
-                          selectPart(part);
-                        },
-                        child: Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Padding(
-                                padding: EdgeInsets.only(bottom: 18),
-                                child: Text(
-                                  part.instrument.name,
-                                  style: TextStyle(color: Colors.white, fontSize: 15),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ))))),
-              ),
+                  title: FlatButton(
+                      onPressed: () {
+                        selectPart(part);
+                      },
+                      child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Padding(
+                              padding: EdgeInsets.only(bottom: 18),
+                              child: Text(
+                                part.instrument.name,
+                                style: TextStyle(color: Colors.white, fontSize: 15),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ))))),
+            ),
             SliverAppBar(
               backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
               floating: true,
@@ -520,7 +473,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               expandedHeight: 50.0,
               flexibleSpace: FlatButton(
                   onPressed: () {
-                    var newMelody = odeToJoy();// Melody()..id = uuid.v4();
+                    var newMelody = odeToJoy(); // Melody()..id = uuid.v4();
                     _lastAddedMelody = newMelody;
                     setState(() {
                       part.melodies.insert(0, newMelody);
@@ -615,7 +568,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
 //                                ));
 //                  },
 //                )),
-                SliverList(
+                    SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
                       return _MelodyReference(
@@ -707,68 +660,64 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
           color: color);
     }
 
+    toggleMelody() {
+      if (widget.editingMelody && widget.melody == widget.selectedMelody) {
+        widget.toggleEditingMelody();
+      } else {
+        if (widget.editingMelody) {
+          widget.toggleEditingMelody();
+        }
+        widget.selectMelody(widget.melody);
+      }
+    }
+
     Widget content = Container(
         decoration: decoration,
         padding: EdgeInsets.only(bottom: 5),
-        child: Stack(children: [
+        child:FlatButton(onPressed: toggleMelody, padding: EdgeInsets.zero, child:
+        Stack(children: [
           Column(children: [
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                child: Row(children:[
-                  Expanded(child:TextField(
-                  controller: TextEditingController()..text = widget.melody.name,
-                  textCapitalization: TextCapitalization.words,
-                  onChanged: (value) {
-                    widget.melody.name = value;
-                  },
-                  onTap: () {
-                    if (!context.isTabletOrLandscapey) {
-                      widget.hideMelodyView();
-                    }
-                  },
-                  decoration:
-                      InputDecoration(border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
-                )),
-                  ReorderableListener(
-                    child:
-                  Container(width:24, height: 24, child:PopupMenuButton<String>(
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                      child: Icon(Icons.menu),
-                    ),
-                    initialValue: "nothing",
-                    onSelected: (String selected) {
-                      switch (selected) {
-                        case "deleteMelody":
-                          break;
+                child: Row(children: [
+                  Expanded(
+                      child: TextField(
+                    controller: TextEditingController()..text = widget.melody.name,
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (value) {
+                      widget.melody.name = value;
+                    },
+                    onTap: () {
+                      if (!context.isTabletOrLandscapey) {
+                        widget.hideMelodyView();
                       }
                     },
-                    itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
-                      PopupMenuItem<String>(
-                        enabled: true,
-                        value: "deleteMelody",
-                        child: Text('Remove Melody')),
-                    ],
-                  )))
-                ])),
+                    decoration: InputDecoration(
+                        border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
+                  )),
+                  ReorderableListener(
+                      child: Container(
+                          width: 24,
+                          height: 24,
+//                          padding: EdgeInsets.only(right:0),
+                          child: Icon(Icons.reorder))
+                )])),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
             AnimatedOpacity(
-              duration: animationDuration,
-              opacity: reference.playbackType != MelodyReference_PlaybackType.disabled ? 1 : 0,
-              child:
-              AnimatedContainer(
                 duration: animationDuration,
-                height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
-                child: Slider(
-                  value: reference.volume,
-                  activeColor: widget.sectionColor,
-                  onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
-                    ? null
-                    : (value) {
-                    widget.setReferenceVolume(reference, value);
-                  }),
-              )),
+                opacity: reference.playbackType != MelodyReference_PlaybackType.disabled ? 1 : 0,
+                child: AnimatedContainer(
+                  duration: animationDuration,
+                  height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
+                  child: Slider(
+                      value: reference.volume,
+                      activeColor: widget.sectionColor,
+                      onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
+                          ? null
+                          : (value) {
+                              widget.setReferenceVolume(reference, value);
+                            }),
+                )),
             Align(
                 alignment: Alignment.centerRight,
                 child: Row(children: [
@@ -795,16 +744,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       height: 36,
                       child: RaisedButton(
                           padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            if (widget.editingMelody && widget.melody == widget.selectedMelody) {
-                              widget.toggleEditingMelody();
-                            } else {
-                              if (widget.editingMelody) {
-                                widget.toggleEditingMelody();
-                              }
-                              widget.selectMelody(widget.melody);
-                            }
-                          },
+                          onPressed: toggleMelody,
                           color: (widget.melody == widget.selectedMelody && !widget.editingMelody)
                               ? widget.sectionColor
                               : Color(0xFFDDDDDD),
@@ -831,9 +771,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                   Expanded(child: SizedBox()),
                 ]))
           ]),
-
-        ]));
-
+        ])));
 
     // For android dragging mode, wrap the entire content in DelayedReorderableListener
 //    content = DelayedReorderableListener(
@@ -843,29 +781,34 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
     content = Padding(
       padding: EdgeInsets.all(2),
       child: content,
-      );
+    );
 
 //    content = AnimatedOpacity(
 //      duration: Duration(seconds: 3),
 //      opacity: opacityLevel,
 //      child: content);
     controller = AnimationController(vsync: this, duration: Duration(seconds: 1));
-    if(_lastAddedMelody == widget.melody) {
+    if (_lastAddedMelody == widget.melody) {
       _lastAddedMelody = null;
       content = SizeFadeTransition(
 //        key: Key("lastAdded"),
-        axis: Axis.vertical, sizeFraction: 0.0, curve: Curves.easeInOut, animation: controller, child: content);
+          axis: Axis.vertical,
+          sizeFraction: 0.0,
+          curve: Curves.easeInOut,
+          animation: controller,
+          child: content);
     }
     controller.forward();
 
     return content;
   }
 
-
-  @override void dispose() {
+  @override
+  void dispose() {
     controller.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return ReorderableItem(

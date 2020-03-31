@@ -47,6 +47,19 @@ message Chord {
   uint32 chroma = 3;
 }
 
+message Tempo {
+  float bpm = 1;
+  enum Transition {
+    // Indicates the Section should be played at the same tempo throughout. If the next Section
+    // has a different bpm, the change will be sudden with no gradual speed up/slow down.
+    a_tempo = 0;
+    // Indicates the Section should start at the indicated bpm, and linearly increase or
+    // decrease bpm to match the bpm of the next Section
+    linear = 1;
+  }
+  Transition transition = 2;
+}
+
 message Meter {
   uint32 default_beats_per_measure = 1;
 }
@@ -57,7 +70,6 @@ message Harmony {
   uint32 subdivisions_per_beat = 2;
   // Length in subdivisions (so, length in beats is length / subdivisions_per_beat)
   uint32 length = 3;
-  Meter meter = 4;
   // Must contain at least one entry with key less than Harmony length. Generally, should contain
   // an entry at 0.
   map<sint32, Chord> data = 100;
@@ -168,8 +180,9 @@ message Section {
   string id = 1;
   string name = 2;
   Harmony harmony = 3;
-  // Maps Part.ids to melodies
-  repeated MelodyReference melodies = 4;
+  Meter meter = 4;
+  Tempo tempo = 5;
+  repeated MelodyReference melodies = 100;
 }
 
 message Score {

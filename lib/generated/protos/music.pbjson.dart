@@ -62,6 +62,23 @@ const Chord$json = const {
   ],
 };
 
+const Tempo$json = const {
+  '1': 'Tempo',
+  '2': const [
+    const {'1': 'bpm', '3': 1, '4': 1, '5': 2, '10': 'bpm'},
+    const {'1': 'transition', '3': 2, '4': 1, '5': 14, '6': '.Tempo.Transition', '10': 'transition'},
+  ],
+  '4': const [Tempo_Transition$json],
+};
+
+const Tempo_Transition$json = const {
+  '1': 'Transition',
+  '2': const [
+    const {'1': 'a_tempo', '2': 0},
+    const {'1': 'linear', '2': 1},
+  ],
+};
+
 const Meter$json = const {
   '1': 'Meter',
   '2': const [
@@ -75,7 +92,6 @@ const Harmony$json = const {
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     const {'1': 'subdivisions_per_beat', '3': 2, '4': 1, '5': 13, '10': 'subdivisionsPerBeat'},
     const {'1': 'length', '3': 3, '4': 1, '5': 13, '10': 'length'},
-    const {'1': 'meter', '3': 4, '4': 1, '5': 11, '6': '.Meter', '10': 'meter'},
     const {'1': 'data', '3': 100, '4': 3, '5': 11, '6': '.Harmony.DataEntry', '10': 'data'},
   ],
   '3': const [Harmony_DataEntry$json],
@@ -202,7 +218,9 @@ const Section$json = const {
     const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'harmony', '3': 3, '4': 1, '5': 11, '6': '.Harmony', '10': 'harmony'},
-    const {'1': 'melodies', '3': 4, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
+    const {'1': 'meter', '3': 4, '4': 1, '5': 11, '6': '.Meter', '10': 'meter'},
+    const {'1': 'tempo', '3': 5, '4': 1, '5': 11, '6': '.Tempo', '10': 'tempo'},
+    const {'1': 'melodies', '3': 100, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
   ],
 };
 

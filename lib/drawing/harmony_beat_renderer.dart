@@ -70,6 +70,7 @@ class HarmonyBeatRenderer {
   Section section;
 
   Harmony get harmony => section?.harmony;
+  Meter get meter => section?.meter;
   int beatPosition = 0;
 
   List<int> get subdivisionRange => rangeList(beatPosition * harmony.subdivisionsPerBeat,
@@ -92,7 +93,7 @@ class HarmonyBeatRenderer {
       subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
         bounds = Rect.fromLTRB(overallBounds.left + overallWidth * elementIndex / elementCount, overallBounds.top,
           overallBounds.left + overallWidth * (elementIndex + 1) / elementCount, overallBounds.bottom);
-        print("Drawing beat $beatPosition subdivision $elementIndex onto $bounds");
+//        print("Drawing beat $beatPosition subdivision $elementIndex onto $bounds");
         bool isPlaying = false;
         /*section == BeatClockPaletteConsumer.section &&
   viewModel.paletteViewModel.playbackTick?.convertPatternIndex(
@@ -131,14 +132,14 @@ class HarmonyBeatRenderer {
     double leftOffset = 1;
     if (elementIndex % harmony.subdivisionsPerBeat == 0) {
       leftOffset = 3;
-      if ((beatPosition % harmony.meter.defaultBeatsPerMeasure) == 0) {
+      if ((beatPosition % meter.defaultBeatsPerMeasure) == 0) {
         leftOffset = 6;
       }
     }
     double rightOffset = 1;
     if (elementIndex % harmony.subdivisionsPerBeat == harmony.subdivisionsPerBeat - 1) {
       leftOffset = 3;
-      if ((beatPosition) % harmony.meter.defaultBeatsPerMeasure == harmony.meter.defaultBeatsPerMeasure - 1) {
+      if ((beatPosition) % meter.defaultBeatsPerMeasure == meter.defaultBeatsPerMeasure - 1) {
         leftOffset = 6;
       }
     }

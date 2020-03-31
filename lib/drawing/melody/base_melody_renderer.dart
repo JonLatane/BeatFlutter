@@ -26,7 +26,7 @@ class BaseMelodyRenderer extends ColorGuide {
 
 
   Harmony get harmony => section.harmony;
-  Meter get meter => harmony.meter;
+  Meter get meter => section.meter;
   List<int> get subdivisionRange => rangeList(beatPosition * melody.subdivisionsPerBeat,
     min(melody.length, (beatPosition + 1) * melody.subdivisionsPerBeat));
 
@@ -70,7 +70,7 @@ class BaseMelodyRenderer extends ColorGuide {
   }
 
   drawRhythm(Canvas canvas, double alphaSource) {
-    print("drawing rhythm at $elementPosition");
+//    print("drawing rhythm at $elementPosition");
     drawTimewiseLineRelativeToBounds(
       canvas: canvas,
       strokeWidth: (elementPosition % melody.subdivisionsPerBeat == 0) ? 2 : 1,

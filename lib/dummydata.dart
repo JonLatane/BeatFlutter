@@ -27,16 +27,12 @@ Melody odeToJoy() => Melody()
 Harmony defaultHarmony() =>
   Harmony()
     ..id = uuid.v4()
-    ..meter = (Meter()..defaultBeatsPerMeasure = 4)
     ..subdivisionsPerBeat = 4
     ..length = 64
     ..data.addAll({0: cChromatic, 32: cMinor});
 
-var section1 = Section()
+Section defaultSection() => Section()
   ..id = uuid.v4()
-  ..name = ""
+  ..meter = (Meter()..defaultBeatsPerMeasure = 4)
+  ..tempo = (Tempo()..bpm = 123)
   ..harmony = defaultHarmony();
-var score = Score()
-  ..sections.addAll([
-    section1,
-  ]);

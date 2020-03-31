@@ -85,6 +85,21 @@ class MelodyType extends $pb.ProtobufEnum {
   const MelodyType._($core.int v, $core.String n) : super(v, n);
 }
 
+class Tempo_Transition extends $pb.ProtobufEnum {
+  static const Tempo_Transition a_tempo = Tempo_Transition._(0, 'a_tempo');
+  static const Tempo_Transition linear = Tempo_Transition._(1, 'linear');
+
+  static const $core.List<Tempo_Transition> values = <Tempo_Transition> [
+    a_tempo,
+    linear,
+  ];
+
+  static final $core.Map<$core.int, Tempo_Transition> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static Tempo_Transition valueOf($core.int value) => _byValue[value];
+
+  const Tempo_Transition._($core.int v, $core.String n) : super(v, n);
+}
+
 class MelodyReference_PlaybackType extends $pb.ProtobufEnum {
   static const MelodyReference_PlaybackType disabled = MelodyReference_PlaybackType._(0, 'disabled');
   static const MelodyReference_PlaybackType playback_indefinitely = MelodyReference_PlaybackType._(1, 'playback_indefinitely');

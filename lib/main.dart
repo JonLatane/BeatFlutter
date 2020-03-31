@@ -69,11 +69,17 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+var section1 = defaultSection();
+var score = Score()
+  ..sections.addAll([
+    section1,
+  ]);
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
   MelodyViewDisplayMode melodyViewDisplayMode = null;
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
+  RenderingMode _renderingMode = RenderingMode.notation;
   bool _editingMelody = false;
 
   bool get editingMelody => _editingMelody;
@@ -361,6 +367,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _showKeyboard = false;
         _showColorboard = false;
       });
+    } else if (_interactionMode == InteractionMode.edit) {
+      _viewMode();
     } else {
       return (await showDialog(
             context: context,
@@ -551,23 +559,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
         },
         toggleSectionListDisplayMode: () { setState(() { verticalSectionList = !verticalSectionList; });},
+        renderingMode: _renderingMode,
+        setRenderingMode: (renderingMode) { setState((){ _renderingMode = renderingMode; });},
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
-        toggleKeyboard: _toggleKeyboard,
-        toggleKeyboardConfiguration: () {
+        toggleKeyboard: _keyboardPart != null ? _toggleKeyboard : null,
+        toggleKeyboardConfiguration: _keyboardPart != null ? () {
           setState(() {
             _showKeyboard = true;
             _showKeyboardConfiguration = !_showKeyboardConfiguration;
           });
-        },
-        toggleColorboard: _toggleColorboard,
-        toggleColorboardConfiguration: () {
+        } : null,
+        toggleColorboard: _colorboardPart != null ? _toggleColorboard : null,
+        toggleColorboardConfiguration: _colorboardPart != null ? () {
           setState(() {
             _showColorboard = true;
             _showColorboardConfiguration = !_showColorboardConfiguration;
           });
-        },
+        } : null,
         showKeyboard: _showKeyboard,
         showColorboard: _showColorboard,
         interactionMode: _interactionMode,
@@ -681,6 +691,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setPartVolume: _setPartVolume,
       setMelodyName: _setMelodyName,
       setSectionName: _setSectionName,
+      setKeyboardPart: _setKeyboardPart,
+      setColorboardPart: _setColorboardPart,
+      colorboardPart: _colorboardPart,
+      keyboardPart: _keyboardPart,
     );
   }
 

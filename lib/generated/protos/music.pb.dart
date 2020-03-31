@@ -109,6 +109,47 @@ class Chord extends $pb.GeneratedMessage {
   void clearChroma() => clearField(3);
 }
 
+class Tempo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Tempo', createEmptyInstance: create)
+    ..a<$core.double>(1, 'bpm', $pb.PbFieldType.OF)
+    ..e<Tempo_Transition>(2, 'transition', $pb.PbFieldType.OE, defaultOrMaker: Tempo_Transition.a_tempo, valueOf: Tempo_Transition.valueOf, enumValues: Tempo_Transition.values)
+    ..hasRequiredFields = false
+  ;
+
+  Tempo._() : super();
+  factory Tempo() => create();
+  factory Tempo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Tempo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  Tempo clone() => Tempo()..mergeFromMessage(this);
+  Tempo copyWith(void Function(Tempo) updates) => super.copyWith((message) => updates(message as Tempo));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Tempo create() => Tempo._();
+  Tempo createEmptyInstance() => create();
+  static $pb.PbList<Tempo> createRepeated() => $pb.PbList<Tempo>();
+  @$core.pragma('dart2js:noInline')
+  static Tempo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Tempo>(create);
+  static Tempo _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.double get bpm => $_getN(0);
+  @$pb.TagNumber(1)
+  set bpm($core.double v) { $_setFloat(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasBpm() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearBpm() => clearField(1);
+
+  @$pb.TagNumber(2)
+  Tempo_Transition get transition => $_getN(1);
+  @$pb.TagNumber(2)
+  set transition(Tempo_Transition v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasTransition() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTransition() => clearField(2);
+}
+
 class Meter extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Meter', createEmptyInstance: create)
     ..a<$core.int>(1, 'defaultBeatsPerMeasure', $pb.PbFieldType.OU3)
@@ -145,7 +186,6 @@ class Harmony extends $pb.GeneratedMessage {
     ..aOS(1, 'id')
     ..a<$core.int>(2, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, 'length', $pb.PbFieldType.OU3)
-    ..aOM<Meter>(4, 'meter', subBuilder: Meter.create)
     ..m<$core.int, Chord>(100, 'data', entryClassName: 'Harmony.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Chord.create)
     ..hasRequiredFields = false
   ;
@@ -192,19 +232,8 @@ class Harmony extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearLength() => clearField(3);
 
-  @$pb.TagNumber(4)
-  Meter get meter => $_getN(3);
-  @$pb.TagNumber(4)
-  set meter(Meter v) { setField(4, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasMeter() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearMeter() => clearField(4);
-  @$pb.TagNumber(4)
-  Meter ensureMeter() => $_ensure(3);
-
   @$pb.TagNumber(100)
-  $core.Map<$core.int, Chord> get data => $_getMap(4);
+  $core.Map<$core.int, Chord> get data => $_getMap(3);
 }
 
 enum Melody_Data {
@@ -637,7 +666,9 @@ class Section extends $pb.GeneratedMessage {
     ..aOS(1, 'id')
     ..aOS(2, 'name')
     ..aOM<Harmony>(3, 'harmony', subBuilder: Harmony.create)
-    ..pc<MelodyReference>(4, 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
+    ..aOM<Meter>(4, 'meter', subBuilder: Meter.create)
+    ..aOM<Tempo>(5, 'tempo', subBuilder: Tempo.create)
+    ..pc<MelodyReference>(100, 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
     ..hasRequiredFields = false
   ;
 
@@ -686,7 +717,29 @@ class Section extends $pb.GeneratedMessage {
   Harmony ensureHarmony() => $_ensure(2);
 
   @$pb.TagNumber(4)
-  $core.List<MelodyReference> get melodies => $_getList(3);
+  Meter get meter => $_getN(3);
+  @$pb.TagNumber(4)
+  set meter(Meter v) { setField(4, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasMeter() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearMeter() => clearField(4);
+  @$pb.TagNumber(4)
+  Meter ensureMeter() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  Tempo get tempo => $_getN(4);
+  @$pb.TagNumber(5)
+  set tempo(Tempo v) { setField(5, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasTempo() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearTempo() => clearField(5);
+  @$pb.TagNumber(5)
+  Tempo ensureTempo() => $_ensure(4);
+
+  @$pb.TagNumber(100)
+  $core.List<MelodyReference> get melodies => $_getList(5);
 }
 
 class Score extends $pb.GeneratedMessage {

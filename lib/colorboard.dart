@@ -217,13 +217,13 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                             setState(() {
                               switch(scrollingMode) {
                                 case ScrollingMode.sideScroll:
-                                  scrollingMode = ScrollingMode.pitch;
+                                  scrollingMode = ScrollingMode.roll;
                                   break;
                                 case ScrollingMode.pitch:
                                   scrollingMode = ScrollingMode.roll;
                                   break;
                                 case ScrollingMode.roll:
-                                  scrollingMode = ScrollingMode.pitch;
+//                                  scrollingMode = ScrollingMode.pitch;
                                   break;
                               }
                             });
@@ -234,7 +234,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
 //                            Text("+"),
                             Text((scrollingMode == ScrollingMode.pitch) ? "Tilt"
                               : (scrollingMode == ScrollingMode.roll) ? "Roll"
-                              : (scrollingMode == ScrollingMode.sideScroll) ? "Tilt"
+                              : (scrollingMode == ScrollingMode.sideScroll) ? "Roll"
                               : "Wat"),
                             Expanded(child: SizedBox()),
                           ]))),

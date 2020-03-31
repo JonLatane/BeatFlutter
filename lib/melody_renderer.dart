@@ -194,7 +194,6 @@ class _MelodyPainter extends CustomPainter {
         }
         renderingSection = candidate;
       }
-      print("rendering from section ${renderingSection.name}");
       Harmony renderingHarmony = renderingSection.harmony;
       right = left + standardBeatWidth;
       String sectionName = renderingSection.name;

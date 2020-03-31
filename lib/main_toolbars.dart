@@ -16,6 +16,8 @@ class BeatScratchToolbar extends StatelessWidget {
   final VoidCallback toggleSectionListDisplayMode;
   final InteractionMode interactionMode;
   final Color sectionColor;
+  final RenderingMode renderingMode;
+  final Function(RenderingMode) setRenderingMode;
 
   const BeatScratchToolbar(
     {Key key,
@@ -26,7 +28,7 @@ class BeatScratchToolbar extends StatelessWidget {
       this.sectionColor,
       this.playing,
       this.togglePlaying,
-      this.toggleSectionListDisplayMode})
+      this.toggleSectionListDisplayMode, this.setRenderingMode, this.renderingMode})
     : super(key: key);
 
   @override
@@ -38,7 +40,18 @@ class BeatScratchToolbar extends StatelessWidget {
           child: PopupMenuButton(
 //                        onPressed: _doNothing,
             offset: Offset(0, MediaQuery.of(context).size.height),
-            onSelected: (result) {
+            onSelected: (value) {
+              switch(value) {
+                case "notationUi":
+                  setRenderingMode(RenderingMode.notation);
+                  break;
+                case "colorblockUi":
+                  setRenderingMode(RenderingMode.colorblock);
+                  break;
+                case "about":
+                  showAbout(context);
+                  break;
+              }
               //setState(() {});
             },
             itemBuilder: (BuildContext context) => [
@@ -72,9 +85,9 @@ class BeatScratchToolbar extends StatelessWidget {
                 child: Text('MIDI Output Settings'),
               ),
               PopupMenuItem(
-                value: null,
+                value: "notationUi",
                 child: Row(children: [
-                  Checkbox(value: true, onChanged: null),
+                  Checkbox(value: renderingMode == RenderingMode.notation, onChanged: null),
                   Expanded(child: Text('Notation UI')),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
@@ -86,9 +99,9 @@ class BeatScratchToolbar extends StatelessWidget {
                 ]),
               ),
               PopupMenuItem(
-                value: null,
+                value: "colorblockUi",
                 child: Row(children: [
-                  Checkbox(value: false, onChanged: null),
+                  Checkbox(value: renderingMode == RenderingMode.colorblock, onChanged: null),
                   Expanded(child: Text('Colorblock UI')),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
@@ -99,6 +112,10 @@ class BeatScratchToolbar extends StatelessWidget {
                     ))
                 ]),
               ),
+//              const PopupMenuItem(
+//                value: "about",
+//                child: Text('About BeatScratch'),
+//              ),
               const PopupMenuItem(
                 value: null,
                 child: Text('Quit BeatScratch'),
@@ -140,6 +157,29 @@ class BeatScratchToolbar extends StatelessWidget {
               child: Icon(Icons.edit,
                 color: (interactionMode == InteractionMode.edit) ? Colors.white : sectionColor))))
       ]));
+  }
+
+  showAbout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('About BeatScratch'),
+        content: Column(children:[
+          Padding(padding:EdgeInsets.only(bottom:5), child:Text("Icons provided by:")),
+          Row(children:[
+            Image.asset("assets/piano.png", width: 24, height: 24,),
+            Text("Piano by André Luiz Gollo from the Noun Project")
+          ]),
+        ]),
+        actions: <Widget>[
+          FlatButton(
+            color: sectionColor,
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -214,19 +254,19 @@ class SecondToolbar extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: RaisedButton(
-            child: Image.asset('assets/piano.png'),
+            child: Image.asset('assets/piano.png', width: 28, height: 28),
             onPressed: toggleKeyboard,
             onLongPress: toggleKeyboardConfiguration,
-            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
+            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : null,
           ))),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: RaisedButton(
-            child: Image.asset('assets/colorboard.png'),
+            child: AnimatedOpacity(duration: animationDuration, opacity: toggleColorboard != null ? 1 : 0.25, child: Image.asset('assets/colorboard.png')),
             onPressed: toggleColorboard,
             onLongPress: toggleColorboardConfiguration,
-            color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
+            color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : null,
           )))
     ]);
   }

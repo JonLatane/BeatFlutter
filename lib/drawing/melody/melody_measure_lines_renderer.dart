@@ -14,7 +14,7 @@ class MelodyMeasureLinesRenderer extends BaseMelodyRenderer {
   draw(Canvas canvas, double strokeWidth) {
     canvas.save();
     canvas.translate(0, bounds.top);
-    if(beatPosition % harmony.meter.defaultBeatsPerMeasure == 0) {
+    if(beatPosition % meter.defaultBeatsPerMeasure == 0) {
       drawTimewiseLineRelativeToBounds(
         canvas: canvas,
         strokeWidth: strokeWidth,
