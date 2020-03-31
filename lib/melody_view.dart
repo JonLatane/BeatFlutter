@@ -38,6 +38,9 @@ class MelodyView extends StatefulWidget {
   final Function(Part) setColorboardPart;
   final Part colorboardPart;
   final Part keyboardPart;
+  final Function(Part) deletePart;
+  final Function(Melody) deleteMelody;
+  final Function(Section) deleteSection;
 
   MelodyView(
       {this.melodyViewSizeFactor,
@@ -60,7 +63,7 @@ class MelodyView extends StatefulWidget {
       this.setKeyboardPart,
       this.setColorboardPart,
       this.colorboardPart,
-      this.keyboardPart});
+      this.keyboardPart, this.deletePart, this.deleteMelody, this.deleteSection});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -107,6 +110,8 @@ class _MelodyViewState extends State<MelodyView> {
                       sectionColor: widget.sectionColor,
                       melodyViewMode: widget.melodyViewMode,
                       setSectionName: widget.setSectionName,
+                      deleteSection: widget.deleteSection,
+                      canDeleteSection: widget.score.sections.length > 1,
                     )),
                 AnimatedContainer(
                     duration: animationDuration,
@@ -117,6 +122,7 @@ class _MelodyViewState extends State<MelodyView> {
                       setColorboardPart: widget.setColorboardPart,
                       colorboardPart: widget.colorboardPart,
                       keyboardPart: widget.keyboardPart,
+                      deletePart: widget.deletePart
                     )),
                 AnimatedContainer(
                     duration: animationDuration,
@@ -131,6 +137,7 @@ class _MelodyViewState extends State<MelodyView> {
                       sectionColor: widget.sectionColor,
                       toggleEditingMelody: widget.toggleEditingMelody,
                       setMelodyName: widget.setMelodyName,
+                      deleteMelody: widget.deleteMelody,
                     )),
               ])),
               Padding(
@@ -215,6 +222,7 @@ class _MelodyToolbar extends StatefulWidget {
   final Function(MelodyReference, double) setReferenceVolume;
   final VoidCallback toggleEditingMelody;
   final Function(Melody, String) setMelodyName;
+  final Function(Melody) deleteMelody;
 
   const _MelodyToolbar(
       {Key key,
@@ -226,7 +234,7 @@ class _MelodyToolbar extends StatefulWidget {
       this.sectionColor,
       this.toggleEditingMelody,
       this.setMelodyName,
-      this.melodyViewMode})
+      this.melodyViewMode, this.deleteMelody})
       : super(key: key);
 
   @override
@@ -239,13 +247,19 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
   bool get melodySelected => widget.melody != null;
 
   bool get melodyEnabled => melodySelected && melodyReference.playbackType != MelodyReference_PlaybackType.disabled;
-  bool isConfirmingDelete = false;
+
+  Melody confirmingDeleteFor;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.melody;
 
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
+    }
+
+    if(confirmingDeleteFor != null && confirmingDeleteFor != widget.melody) {
+      confirmingDeleteFor = null;
     }
     return Container(
 //        color: Colors.white,
@@ -320,7 +334,8 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
             child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  widget.deleteMelody(confirmingDeleteFor);
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -337,7 +352,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
             child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -350,7 +365,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
             child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = true;
+                  confirmingDeleteFor = widget.melody;
                 });
               },
               padding: EdgeInsets.zero,
@@ -365,9 +380,10 @@ class _PartToolbar extends StatefulWidget {
   final Function(Part) setColorboardPart;
   final Part colorboardPart;
   final Part keyboardPart;
+  final Function(Part) deletePart;
 
   const _PartToolbar(
-      {Key key, this.part, this.setKeyboardPart, this.setColorboardPart, this.colorboardPart, this.keyboardPart})
+      {Key key, this.part, this.setKeyboardPart, this.setColorboardPart, this.colorboardPart, this.keyboardPart, this.deletePart})
       : super(key: key);
 
   @override
@@ -375,14 +391,19 @@ class _PartToolbar extends StatefulWidget {
 }
 
 class __PartToolbarState extends State<_PartToolbar> {
-  bool isConfirmingDelete = false;
+  Part confirmingDeleteFor;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.part;
 
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
+    if(confirmingDeleteFor != null && confirmingDeleteFor != widget.part) {
+      confirmingDeleteFor = null;
+    }
     return Container(
+        key: Key("part-toolbar-${widget.part?.id}"),
         child: Row(children: [
       AnimatedContainer(
           duration: animationDuration,
@@ -479,7 +500,8 @@ class __PartToolbarState extends State<_PartToolbar> {
           child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  widget.deletePart(widget.part);
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -496,7 +518,7 @@ class __PartToolbarState extends State<_PartToolbar> {
           child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -509,7 +531,7 @@ class __PartToolbarState extends State<_PartToolbar> {
           child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = true;
+                  confirmingDeleteFor = widget.part;
                 });
               },
               padding: EdgeInsets.zero,
@@ -520,12 +542,14 @@ class __PartToolbarState extends State<_PartToolbar> {
 
 class _SectionToolbar extends StatefulWidget {
   // This widget is the root of your application.
+  final bool canDeleteSection;
   final Section currentSection;
   final Color sectionColor;
   final MelodyViewMode melodyViewMode;
   final Function(Section, String) setSectionName;
+  final Function(Section) deleteSection;
 
-  const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode, this.setSectionName})
+  const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode, this.setSectionName, this.deleteSection, this.canDeleteSection})
       : super(key: key);
 
   @override
@@ -533,13 +557,17 @@ class _SectionToolbar extends StatefulWidget {
 }
 
 class __SectionToolbarState extends State<_SectionToolbar> {
-  bool isConfirmingDelete = false;
+  Section confirmingDeleteFor;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.currentSection;
 
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
+    }
+    if(confirmingDeleteFor != null && confirmingDeleteFor != widget.currentSection) {
+      confirmingDeleteFor = null;
     }
     return Container(
 //        color: sectionColor,
@@ -598,7 +626,8 @@ class __SectionToolbarState extends State<_SectionToolbar> {
           child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  widget.deleteSection(confirmingDeleteFor);
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -615,7 +644,7 @@ class __SectionToolbarState extends State<_SectionToolbar> {
           child: RaisedButton(
               onPressed: () {
                 setState(() {
-                  isConfirmingDelete = false;
+                  confirmingDeleteFor = null;
                 });
               },
               padding: EdgeInsets.zero,
@@ -626,11 +655,11 @@ class __SectionToolbarState extends State<_SectionToolbar> {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: () {
+              onPressed: widget.canDeleteSection ? () {
                 setState(() {
-                  isConfirmingDelete = true;
+                  confirmingDeleteFor = widget.currentSection;
                 });
-              },
+              } : null,
               padding: EdgeInsets.zero,
               child: Padding(padding: EdgeInsets.all(2), child: Image.asset("assets/trash.png")))),
     ]));

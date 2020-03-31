@@ -695,6 +695,53 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setColorboardPart: _setColorboardPart,
       colorboardPart: _colorboardPart,
       keyboardPart: _keyboardPart,
+      deletePart: (part) { setState(() {
+        if(part == this.selectedPart) {
+          int index = this._score.parts.indexOf(part);
+          if(index > 0) {
+            index = index - 1;
+          } else {
+            index = index + 1;
+          }
+          if(index < this._score.parts.length) {
+            this.selectedPart = this._score.parts[index];
+          } else {
+            this.selectedPart = null;
+            this.melodyViewMode = MelodyViewMode.section;
+          }
+        }
+        score.parts.remove(part);
+      } ); },
+      deleteMelody: (melody) { setState(() {
+        if(melody == this.selectedMelody) {
+          Part part = this._score.parts.firstWhere((part) => part.melodies.contains(melody));
+          int index = part.melodies.indexOf(melody);
+          if(index > 0) {
+            index = index - 1;
+          } else {
+            index = index + 1;
+          }
+          if(index < part.melodies.length) {
+            this.selectedMelody = part.melodies[index];
+          } else {
+            this.selectedMelody = null;
+            this._selectOrDeselectPart(part);
+          }
+        }
+        score.parts.forEach((part) { part.melodies.remove(melody); });
+      } ); },
+      deleteSection: (section) { setState(() {
+        if(section == this.currentSection) {
+          int index = this._score.sections.indexOf(section);
+          if(index > 0) {
+            index = index - 1;
+          } else {
+            index = index + 1;
+          }
+          this.currentSection = this._score.sections[index];
+        }
+        score.sections.remove(section);
+      } ); },
     );
   }
 

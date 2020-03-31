@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -19,7 +20,8 @@ class ColorGuide extends CanvasToneDrawer {
   int drawnColorGuideAlpha;
 
   drawColorGuide(Canvas canvas) {
-    if(colorGuideAlpha == 0) {
+    //TODO enable drawing Melody colorguides on web
+    if(colorGuideAlpha == 0 || (kIsWeb && renderVertically)) {
       return;
     }
     alphaDrawerPaint.preserveColor(() {
