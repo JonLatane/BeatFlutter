@@ -170,7 +170,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 
   Widget _buildPart(Part part) {
     return Container(
-        key: Key(part.id),
+        key: Key("part-container-${part.id}"),
         width: 160,
         child: Column(children: [
           Expanded(
@@ -204,6 +204,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   @override
   Widget build(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Part>(
+      key: Key(widget.score.parts.map((e) => e.id).toString()),
       scrollDirection: Axis.horizontal,
       // The current items in the list.
       items: widget.score.parts + [null],
@@ -231,13 +232,13 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
       },
       // Called, as needed, to build list item widgets.
       // List items are only built when they're scrolled into view.
-      itemBuilder: (context, animation, item, index) {
+      itemBuilder: (context, animation, Part item, index) {
         // Specifiy a transition to be used by the ImplicitlyAnimatedList.
         // In this case a custom transition.
         return item != null
             ? Reorderable(
                 // Each item must have an unique key.
-                key: Key(item.id),
+                key: Key("part-reorderable-${item.id}"),
                 builder: (context, dragAnimation, inDrag) {
                   final t = dragAnimation.value;
                   final tile = _buildPart(item);
@@ -413,11 +414,13 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     width: (colorboardPart == part) ? 24 : 0,
                     height: 24,
                     child: Opacity(opacity: 0.5, child: Image.asset('assets/colorboard.png'))),
-                PopupMenuButton<String>(
+       PopupMenuButton<String>(
                   child: Container(
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: Icon(Icons.menu),
+                    child: Handle(
+                      delay: Duration.zero,
+                      child:Icon(Icons.menu)),
                   ),
                   initialValue: "nothing",
                   onSelected: (String selected) {
@@ -483,11 +486,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 titlePadding: EdgeInsets.all(0),
 //                titlePadding: EdgeInsets.only(left: 8, bottom: 15),
 //                titlePadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-                title: Handle(
-                    delay: const Duration(milliseconds: 250),
-                    child: FlatButton(
+                title: FlatButton(
                         onPressed: () {
-                          print("hi");
                           selectPart(part);
                         },
                         child: Align(
@@ -501,7 +501,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
                                   overflow: TextOverflow.ellipsis,
                                 ))))),
               ),
-            ),
             SliverAppBar(
               backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
               floating: true,
@@ -732,21 +731,44 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                 )),
                   ReorderableListener(
                     child:
-                  Container(width:24, height: 24, child:Icon(Icons.reorder)))
+                  Container(width:24, height: 24, child:PopupMenuButton<String>(
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Icon(Icons.menu),
+                    ),
+                    initialValue: "nothing",
+                    onSelected: (String selected) {
+                      switch (selected) {
+                        case "deleteMelody":
+                          break;
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+                      PopupMenuItem<String>(
+                        enabled: true,
+                        value: "deleteMelody",
+                        child: Text('Remove Melody')),
+                    ],
+                  )))
                 ])),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
-            AnimatedContainer(
+            AnimatedOpacity(
               duration: animationDuration,
-              height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
-              child: Slider(
+              opacity: reference.playbackType != MelodyReference_PlaybackType.disabled ? 1 : 0,
+              child:
+              AnimatedContainer(
+                duration: animationDuration,
+                height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
+                child: Slider(
                   value: reference.volume,
                   activeColor: widget.sectionColor,
                   onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
-                      ? null
-                      : (value) {
-                          widget.setReferenceVolume(reference, value);
-                        }),
-            ),
+                    ? null
+                    : (value) {
+                    widget.setReferenceVolume(reference, value);
+                  }),
+              )),
             Align(
                 alignment: Alignment.centerRight,
                 child: Row(children: [

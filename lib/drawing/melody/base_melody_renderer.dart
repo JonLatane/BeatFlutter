@@ -9,6 +9,7 @@ import '../canvas_tone_drawer.dart';
 import '../../music_theory.dart';
 
 class BaseMelodyRenderer extends ColorGuide {
+  @override final bool renderVertically = true;
   Rect overallBounds;
   Melody melody;
   int elementPosition;
@@ -18,8 +19,14 @@ class BaseMelodyRenderer extends ColorGuide {
   bool isUserChoosingHarmonyChord;
   bool isMelodyReferenceEnabled;
   int beatPosition = 0;
+  // Used for notation. Logically, if an octave is to have the same "scale" chromatically or diatonically, the letter
+  // step must be 12/7 of the half step in size.
+  double get letterStepSize => halfStepWidth * 12 / 7;
+  bool get isFinalBeat => (beatPosition + 1) % meter.defaultBeatsPerMeasure == 0;
+
 
   Harmony get harmony => section.harmony;
+  Meter get meter => harmony.meter;
   List<int> get subdivisionRange => rangeList(beatPosition * melody.subdivisionsPerBeat,
     min(melody.length, (beatPosition + 1) * melody.subdivisionsPerBeat));
 
@@ -33,7 +40,8 @@ class BaseMelodyRenderer extends ColorGuide {
     return result;
   }
 
-  drawHorizontalLineInBounds(
+  ///doesn't work for [renderVertically]=false.
+  drawTimewiseLineRelativeToBounds(
   {Canvas canvas, bool leftSide = true, double alphaSource = 1, double strokeWidth = 1, double startY, double stopY}) {
     double oldStrokeWidth = alphaDrawerPaint.strokeWidth;
     alphaDrawerPaint.preserveColor(() {
@@ -45,12 +53,29 @@ class BaseMelodyRenderer extends ColorGuide {
     });
   }
 
+  drawPitchwiseLine({Canvas canvas, double pointOnToneAxis, double left, double right }) {
+    if (renderVertically) {
+      canvas.drawLine(
+        Offset(left ?? bounds.left, pointOnToneAxis),
+        Offset(right ?? bounds.right, pointOnToneAxis,),
+        alphaDrawerPaint
+      );
+    } else {
+      canvas.drawLine(
+        Offset(pointOnToneAxis, bounds.top),
+        Offset(pointOnToneAxis, bounds.bottom,),
+        alphaDrawerPaint
+      );
+    }
+  }
+
   drawRhythm(Canvas canvas, double alphaSource) {
-    drawHorizontalLineInBounds(
+    print("drawing rhythm at $elementPosition");
+    drawTimewiseLineRelativeToBounds(
       canvas: canvas,
-      strokeWidth: (elementPosition % melody.subdivisionsPerBeat == 0) ? 5 : 1,
-      startY: bounds.top,
-      stopY: bounds.bottom
+      strokeWidth: (elementPosition % melody.subdivisionsPerBeat == 0) ? 2 : 1,
+      startY: 0,
+      stopY: bounds.height
     );
   }
 
@@ -76,7 +101,17 @@ class BaseMelodyRenderer extends ColorGuide {
   //      ?.contains(elementPosition.convertPatternIndex(melody, harmony))
   //      ?: false
       block();
-      elementPosition++;
+      this.elementPosition++;
     });
   }
+
+  double centerOfTone(int tone) => startPoint - (bottomMostNote + tone - 9.5) * halfStepWidth;
+
+  double pointFor({NoteLetter letter, int octave}) {
+    double middleC = centerOfTone(0);
+    double result = middleC - letterStepSize * (((octave - 4) * 7) + letter.value);
+    return result;
+  }
+
+  double pointForNote(NoteSpecification note) => pointFor(letter: note.noteName.noteLetter, octave: note.octave);
 }

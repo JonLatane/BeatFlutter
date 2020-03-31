@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:beatscratch_flutter_redux/drawing/harmony_beat_renderer.dart';
 import 'package:beatscratch_flutter_redux/drawing/melody/colorblock_melody_renderer.dart';
 import 'package:beatscratch_flutter_redux/drawing/melody/melody_color_guide.dart';
+import 'package:beatscratch_flutter_redux/drawing/melody/melody_staff_lines_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -137,6 +138,7 @@ class _MelodyPainter extends CustomPainter {
 
   double get width => standardBeatWidth * numberOfBeats;
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
+  int get colorGuideAlpha => 50;
 
   _MelodyPainter(
       {this.score,
@@ -165,6 +167,9 @@ class _MelodyPainter extends CustomPainter {
     double left = startOffset;
     double right;
 
+    MelodyStaffLinesRenderer()
+      ..bounds = visibleRect()//Rect.fromLTRB(visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
+      ..draw(canvas);
     if (drawContinuousColorGuide) {
       this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
     }
@@ -189,10 +194,14 @@ class _MelodyPainter extends CustomPainter {
         }
         renderingSection = candidate;
       }
-      print("rendering from section ${renderingSection.name} - section=${this.section}");
+      print("rendering from section ${renderingSection.name}");
       Harmony renderingHarmony = renderingSection.harmony;
       right = left + standardBeatWidth;
-      print("Drawing beat $renderingBeat out of section ${renderingSection.id} as beat $renderingSectionBeat");
+      String sectionName = renderingSection.name;
+      if(sectionName == null || sectionName.isEmpty) {
+        sectionName = renderingSection.id;
+      }
+      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
       canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
       double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
@@ -221,7 +230,7 @@ class _MelodyPainter extends CustomPainter {
           ..section = renderingSection
           ..drawPadding = 3
           ..nonRootPadding = 3
-          ..drawnColorGuideAlpha = 255
+          ..drawnColorGuideAlpha = colorGuideAlpha
           ..isUserChoosingHarmonyChord = false
           ..isMelodyReferenceEnabled = true
           ..melody = colorGuideMelody
@@ -302,7 +311,7 @@ class _MelodyPainter extends CustomPainter {
             ..chord = renderingChord
             ..drawPadding = 0
             ..nonRootPadding = 0
-            ..drawnColorGuideAlpha = 255
+            ..drawnColorGuideAlpha = colorGuideAlpha
             ..drawColorGuide(canvas);
           chordLeft = left;
         }
@@ -322,7 +331,7 @@ class _MelodyPainter extends CustomPainter {
       ..chord = renderingChord
       ..drawPadding = 0
       ..nonRootPadding = 0
-      ..drawnColorGuideAlpha = 255
+      ..drawnColorGuideAlpha = colorGuideAlpha
       ..drawColorGuide(canvas);
   }
 

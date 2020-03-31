@@ -291,11 +291,17 @@ class _MelodyToolbar extends StatelessWidget {
   }
 }
 
-class _PartToolbar extends StatelessWidget {
+class _PartToolbar extends StatefulWidget {
   final Part part;
 
   const _PartToolbar({Key key, this.part}) : super(key: key);
 
+  @override
+  __PartToolbarState createState() => __PartToolbarState();
+}
+
+class __PartToolbarState extends State<_PartToolbar> {
+  bool isConfirmingDelete = false;
   Widget build(BuildContext context) {
     var width = MediaQuery
       .of(context)
@@ -309,15 +315,26 @@ class _PartToolbar extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(left: 5),
-            child: Text((part != null) ? part.instrument.name : "",
+            child: Text((widget.part != null) ? widget.part.instrument.name : "",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600))))
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600)))),
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 0 : 41, height: 36, padding: EdgeInsets.only(right:5), child: RaisedButton(onPressed: () {}, padding: EdgeInsets.zero,
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+        child:Icon(Icons.view_list)))),
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 128 : 0, height:36, padding: EdgeInsets.only(right:5), child: Align(alignment: Alignment.center, child:
+        Text("Really delete?", maxLines: 1, overflow: TextOverflow.fade, style: TextStyle(color: Colors.white)))),
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 48  : 0, height:36, padding: EdgeInsets.only(right:5), child:
+          RaisedButton(onPressed: () {setState(() {isConfirmingDelete = false;});}, padding: EdgeInsets.zero, child: Text("Yes", maxLines: 1, overflow: TextOverflow.fade,))),
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 48  : 0, height:36, padding: EdgeInsets.only(right:5), child:
+        RaisedButton(onPressed: () {setState(() {isConfirmingDelete = false;});}, padding: EdgeInsets.zero, child: Text("No", maxLines: 1, overflow: TextOverflow.fade))),
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 0 :  41, height:36, padding: EdgeInsets.only(right:5), child:
+          RaisedButton(onPressed: () {setState(() {isConfirmingDelete = true;});}, padding: EdgeInsets.zero, child: Padding(padding:EdgeInsets.all(2), child:Image.asset("assets/trash.png")))),
       ]));
   }
 }
 
-class _SectionToolbar extends StatelessWidget {
+class _SectionToolbar extends StatefulWidget {
   // This widget is the root of your application.
   final Section currentSection;
   final Color sectionColor;
@@ -327,6 +344,12 @@ class _SectionToolbar extends StatelessWidget {
   const _SectionToolbar({Key key, this.currentSection, this.sectionColor, this.melodyViewMode, this.setSectionName})
     : super(key: key);
 
+  @override
+  __SectionToolbarState createState() => __SectionToolbarState();
+}
+
+class __SectionToolbarState extends State<_SectionToolbar> {
+  bool isConfirmingDelete = false;
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery
@@ -342,31 +365,41 @@ class _SectionToolbar extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(left: 5),
-            child: (melodyViewMode == MelodyViewMode.section)
+            child: (widget.melodyViewMode == MelodyViewMode.section)
               ? TextField(
               style: TextStyle(fontWeight: FontWeight.w100),
-              controller: (melodyViewMode == MelodyViewMode.section)
+              controller: (widget.melodyViewMode == MelodyViewMode.section)
                 ? (TextEditingController()
-                ..text = currentSection.name)
+                ..text = widget.currentSection.name)
                 : TextEditingController(),
               textCapitalization: TextCapitalization.words,
-              onChanged: (melodyViewMode == MelodyViewMode.section)
+              onChanged: (widget.melodyViewMode == MelodyViewMode.section)
                 ? (value) {
-                currentSection.name = value;
+                widget.currentSection.name = value;
               }
                 : null,
               onEditingComplete: () {
-                setSectionName(currentSection, currentSection.name);
+                widget.setSectionName(widget.currentSection, widget.currentSection.name);
               },
               decoration: InputDecoration(
                 border: InputBorder.none,
-                hintText: (melodyViewMode == MelodyViewMode.section)
-                  ? "Section ${currentSection.id.substring(0, 5)}"
+                hintText: (widget.melodyViewMode == MelodyViewMode.section)
+                  ? "Section ${widget.currentSection.id.substring(0, 5)}"
                   : ""),
             )
               : Text(""))),
-//        RaisedButton(onPressed: () {  },
-//          child: Icon(Icons.edit),)
+
+        AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 0 : 41, height: 36, padding: EdgeInsets.only(right:5), child: RaisedButton(onPressed: () {}, padding: EdgeInsets.zero,
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
+            child:Icon(Icons.control_point_duplicate)))),
+          AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 128 : 0, height:36, padding: EdgeInsets.only(right:5), child: Align(alignment: Alignment.center, child:
+          Text("Really delete?", maxLines: 1, overflow: TextOverflow.fade, style: TextStyle(color: Colors.white)))),
+          AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 48  : 0, height:36, padding: EdgeInsets.only(right:5), child:
+            RaisedButton(onPressed: () {setState(() {isConfirmingDelete = false;});}, padding: EdgeInsets.zero, child: Text("Yes", maxLines: 1, overflow: TextOverflow.fade,))),
+          AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 48  : 0, height:36, padding: EdgeInsets.only(right:5), child:
+          RaisedButton(onPressed: () {setState(() {isConfirmingDelete = false;});}, padding: EdgeInsets.zero, child: Text("No", maxLines: 1, overflow: TextOverflow.fade))),
+          AnimatedContainer(duration: animationDuration, width: isConfirmingDelete ? 0 :  41, height:36, padding: EdgeInsets.only(right:5), child:
+            RaisedButton(onPressed: () {setState(() {isConfirmingDelete = true;});}, padding: EdgeInsets.zero, child: Padding(padding:EdgeInsets.all(2), child:Image.asset("assets/trash.png")))),
       ]));
   }
 }

@@ -18,7 +18,7 @@ class PlatformChannelPlugin : MethodChannel.MethodCallHandler {
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "getPlatformVersion") {
       try {
-        result.success(getMyPerson().toByteArray())
+        result.success(null)
       } catch (e: Exception) {
         result.error("Cannot serialize data", null, null)
       }
@@ -27,44 +27,44 @@ class PlatformChannelPlugin : MethodChannel.MethodCallHandler {
     }
   }
 }
-
-fun getMyPerson(): PersonOuterClass.Person {
-  return PersonOuterClass.Person.newBuilder()
-    .setName("TruongSinh")
-    .addAllSupervisorOf(listOf(
-      PersonOuterClass.Person.newBuilder()
-        .setName("Jane Dane")
-        .addAllAddresses(listOf(
-          PersonOuterClass.UsaAddress.newBuilder()
-            .setStreetNameAndNumber("1 Infinity Loop")
-            .setCity("Cupertino")
-            .setState(PersonOuterClass.UsaState.CA)
-            .setPostCode(95014)
-            .build(),
-          PersonOuterClass.UsaAddress.newBuilder()
-            .setStreetNameAndNumber("1 Microsoft Way")
-            .setCity("Redmond")
-            .setState(PersonOuterClass.UsaState.WA)
-            .setPostCode(98052)
-            .build()
-        ))
-        .build(),
-      PersonOuterClass.Person.newBuilder()
-        .setName("Joe Doe")
-        .addAllAddresses(listOf(
-          PersonOuterClass.UsaAddress.newBuilder()
-            .setStreetNameAndNumber("1 Infinity Loop")
-            .setCity("Cupertino")
-            .setState(PersonOuterClass.UsaState.CA)
-            .setPostCode(95014)
-            .build(),
-          PersonOuterClass.UsaAddress.newBuilder()
-            .setStreetNameAndNumber("1 Microsoft Way")
-            .setCity("Redmond")
-            .setState(PersonOuterClass.UsaState.WA)
-            .setPostCode(98052)
-            .build()
-        ))
-        .build()
-    ))
-    .build()
+//
+//fun getMyPerson(): PersonOuterClass.Person {
+//  return PersonOuterClass.Person.newBuilder()
+//    .setName("TruongSinh")
+//    .addAllSupervisorOf(listOf(
+//      PersonOuterClass.Person.newBuilder()
+//        .setName("Jane Dane")
+//        .addAllAddresses(listOf(
+//          PersonOuterClass.UsaAddress.newBuilder()
+//            .setStreetNameAndNumber("1 Infinity Loop")
+//            .setCity("Cupertino")
+//            .setState(PersonOuterClass.UsaState.CA)
+//            .setPostCode(95014)
+//            .build(),
+//          PersonOuterClass.UsaAddress.newBuilder()
+//            .setStreetNameAndNumber("1 Microsoft Way")
+//            .setCity("Redmond")
+//            .setState(PersonOuterClass.UsaState.WA)
+//            .setPostCode(98052)
+//            .build()
+//        ))
+//        .build(),
+//      PersonOuterClass.Person.newBuilder()
+//        .setName("Joe Doe")
+//        .addAllAddresses(listOf(
+//          PersonOuterClass.UsaAddress.newBuilder()
+//            .setStreetNameAndNumber("1 Infinity Loop")
+//            .setCity("Cupertino")
+//            .setState(PersonOuterClass.UsaState.CA)
+//            .setPostCode(95014)
+//            .build(),
+//          PersonOuterClass.UsaAddress.newBuilder()
+//            .setStreetNameAndNumber("1 Microsoft Way")
+//            .setCity("Redmond")
+//            .setState(PersonOuterClass.UsaState.WA)
+//            .setPostCode(98052)
+//            .build()
+//        ))
+//        .build()
+//    ))
+//    .build()

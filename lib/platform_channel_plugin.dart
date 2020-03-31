@@ -17,12 +17,20 @@ class PlatformChannelPlugin {
     _channel.invokeMethod('pushPart', part.writeToBuffer());
   }
 
+  static void deletePart(Part part) {
+    _channel.invokeMethod('deletePart', part.id);
+  }
+
   static void pushMelody(Part part, Melody melody) {
     _channel.invokeMethod('pushMelody', [part.id, melody.writeToBuffer()]);
   }
 
   static void updateMelody(Melody melody) {
     _channel.invokeMethod('updateMelody', melody.writeToBuffer());
+  }
+
+  static void deleteMelody(Melody melody) {
+    _channel.invokeMethod('deleteMelody', melody.id);
   }
 
   static void playNote(int tone, int velocity, Part part) {

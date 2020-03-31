@@ -119,6 +119,7 @@ extension ChordTheory on Chord {
         }
       }
     });
+    print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
     return result ?? rootNote.tone;
   }
 
@@ -128,7 +129,7 @@ extension ChordTheory on Chord {
     if (root == tone) {
       return true;
     }
-    int difference = (tone - root).mod12;
+    int difference = (tone - root).mod12 - 1;
     if ((chroma >> difference) & 0x0001 == 1) {
       return true;
     }
@@ -148,6 +149,33 @@ extension HarmonyTheory on Harmony {
         subdivision += length;
       }
       result = data[subdivision];
+    }
+    return result;
+  }
+}
+
+extension MelodyTheory on Melody {
+  MelodicAttack melodicAttackBefore(int subdivision) {
+    final int initialSubdivision = subdivision;
+    MelodicAttack result = melodicData.data[subdivision];
+    while (result == null) {
+      subdivision = subdivision - 1;
+      if (subdivision < 0) {
+        subdivision += length;
+      }
+      result = melodicData.data[subdivision];
+    }
+    return result;
+  }
+  MidiChange midiChangeBefore(int subdivision) {
+    final int initialSubdivision = subdivision;
+    MidiChange result = midiData.data[subdivision];
+    while (result == null) {
+      subdivision = subdivision - 1;
+      if (subdivision < 0) {
+        subdivision += length;
+      }
+      result = midiData.data[subdivision];
     }
     return result;
   }
@@ -187,7 +215,7 @@ class NoteSpecification {
 
   NoteSpecification({this.noteName, this.octave});
 
-  NoteSpecification.name({NoteLetter letter, NoteSign sign, int octave})
+  NoteSpecification.name({NoteLetter letter, NoteSign sign = NoteSign.natural, int octave})
       : this(
             noteName: (NoteName()
               ..noteLetter = letter

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 class MelodyColorGuide extends BaseMelodyRenderer {
   @override bool showSteps = true;
-  @override bool renderVertically = true;
   @override double normalizedDevicePitch = 0;
 
   @override double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
