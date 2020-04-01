@@ -89,6 +89,22 @@ enum MelodyType {
   midi = 1;
 }
 
+enum MelodyInterpretationType {
+  fixed = 0;
+  relative_to_c = 1;
+  relative_to_c_sharp = 2;
+  relative_to_d = 3;
+  relative_to_d_sharp = 4;
+  relative_to_e = 5;
+  relative_to_f = 6;
+  relative_to_f_sharp = 7;
+  relative_to_g = 8;
+  relative_to_g_harp = 9;
+  relative_to_a = 10;
+  relative_to_a_sharp = 11;
+  relative_to_b = 12;
+}
+
 message Melody {
   // Unique identifier for a Melody. Should be kept unique within a given Score.
   string id = 1;
@@ -106,6 +122,7 @@ message Melody {
   // should match the Part's instrument type. Useful for letting the user copy/paste Melodies
   // between Parts.
   InstrumentType instrument_type = 6;
+  MelodyInterpretationType interpretation_type = 7;
   // The Melody notes/data, the type of which should match the MelodyType.
   oneof data {
     MelodicData melodic_data = 100;

@@ -256,6 +256,7 @@ class Melody extends $pb.GeneratedMessage {
     ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
     ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melodic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
     ..e<InstrumentType>(6, 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
+    ..e<MelodyInterpretationType>(7, 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
     ..aOM<MelodicData>(100, 'melodicData', subBuilder: MelodicData.create)
     ..aOM<MidiData>(101, 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false
@@ -333,27 +334,36 @@ class Melody extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearInstrumentType() => clearField(6);
 
+  @$pb.TagNumber(7)
+  MelodyInterpretationType get interpretationType => $_getN(6);
+  @$pb.TagNumber(7)
+  set interpretationType(MelodyInterpretationType v) { setField(7, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasInterpretationType() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearInterpretationType() => clearField(7);
+
   @$pb.TagNumber(100)
-  MelodicData get melodicData => $_getN(6);
+  MelodicData get melodicData => $_getN(7);
   @$pb.TagNumber(100)
   set melodicData(MelodicData v) { setField(100, v); }
   @$pb.TagNumber(100)
-  $core.bool hasMelodicData() => $_has(6);
+  $core.bool hasMelodicData() => $_has(7);
   @$pb.TagNumber(100)
   void clearMelodicData() => clearField(100);
   @$pb.TagNumber(100)
-  MelodicData ensureMelodicData() => $_ensure(6);
+  MelodicData ensureMelodicData() => $_ensure(7);
 
   @$pb.TagNumber(101)
-  MidiData get midiData => $_getN(7);
+  MidiData get midiData => $_getN(8);
   @$pb.TagNumber(101)
   set midiData(MidiData v) { setField(101, v); }
   @$pb.TagNumber(101)
-  $core.bool hasMidiData() => $_has(7);
+  $core.bool hasMidiData() => $_has(8);
   @$pb.TagNumber(101)
   void clearMidiData() => clearField(101);
   @$pb.TagNumber(101)
-  MidiData ensureMidiData() => $_ensure(7);
+  MidiData ensureMidiData() => $_ensure(8);
 }
 
 class MelodicData extends $pb.GeneratedMessage {

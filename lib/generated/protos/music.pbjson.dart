@@ -45,6 +45,25 @@ const MelodyType$json = const {
   ],
 };
 
+const MelodyInterpretationType$json = const {
+  '1': 'MelodyInterpretationType',
+  '2': const [
+    const {'1': 'fixed', '2': 0},
+    const {'1': 'relative_to_c', '2': 1},
+    const {'1': 'relative_to_c_sharp', '2': 2},
+    const {'1': 'relative_to_d', '2': 3},
+    const {'1': 'relative_to_d_sharp', '2': 4},
+    const {'1': 'relative_to_e', '2': 5},
+    const {'1': 'relative_to_f', '2': 6},
+    const {'1': 'relative_to_f_sharp', '2': 7},
+    const {'1': 'relative_to_g', '2': 8},
+    const {'1': 'relative_to_g_harp', '2': 9},
+    const {'1': 'relative_to_a', '2': 10},
+    const {'1': 'relative_to_a_sharp', '2': 11},
+    const {'1': 'relative_to_b', '2': 12},
+  ],
+};
+
 const NoteName$json = const {
   '1': 'NoteName',
   '2': const [
@@ -115,6 +134,7 @@ const Melody$json = const {
     const {'1': 'length', '3': 4, '4': 1, '5': 13, '10': 'length'},
     const {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
     const {'1': 'instrument_type', '3': 6, '4': 1, '5': 14, '6': '.InstrumentType', '10': 'instrumentType'},
+    const {'1': 'interpretation_type', '3': 7, '4': 1, '5': 14, '6': '.MelodyInterpretationType', '10': 'interpretationType'},
     const {'1': 'melodic_data', '3': 100, '4': 1, '5': 11, '6': '.MelodicData', '9': 0, '10': 'melodicData'},
     const {'1': 'midi_data', '3': 101, '4': 1, '5': 11, '6': '.MidiData', '9': 0, '10': 'midiData'},
   ],

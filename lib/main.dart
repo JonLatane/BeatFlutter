@@ -1,5 +1,6 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
@@ -412,6 +413,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       throw 'Could not launch $url';
     }
   }
+
+//  final GoogleSignIn _googleSignIn = GoogleSignIn();
+//  final FirebaseAuth _auth = FirebaseAuth.instance;
+//  Future<FirebaseUser> _handleSignIn() async {
+//    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+//    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+//
+//    final AuthCredential credential = GoogleAuthProvider.getCredential(
+//      accessToken: googleAuth.accessToken,
+//      idToken: googleAuth.idToken,
+//    );
+//
+//    final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
+//    print("signed in " + user.displayName);
+//    return user;
+//  }
 
   @override
   Widget build(BuildContext context) {

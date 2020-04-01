@@ -220,6 +220,90 @@ extension MelodyType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+enum MelodyInterpretationType: SwiftProtobuf.Enum {
+  typealias RawValue = Int
+  case fixed // = 0
+  case relativeToC // = 1
+  case relativeToCSharp // = 2
+  case relativeToD // = 3
+  case relativeToDSharp // = 4
+  case relativeToE // = 5
+  case relativeToF // = 6
+  case relativeToFSharp // = 7
+  case relativeToG // = 8
+  case relativeToGHarp // = 9
+  case relativeToA // = 10
+  case relativeToASharp // = 11
+  case relativeToB // = 12
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .fixed
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .fixed
+    case 1: self = .relativeToC
+    case 2: self = .relativeToCSharp
+    case 3: self = .relativeToD
+    case 4: self = .relativeToDSharp
+    case 5: self = .relativeToE
+    case 6: self = .relativeToF
+    case 7: self = .relativeToFSharp
+    case 8: self = .relativeToG
+    case 9: self = .relativeToGHarp
+    case 10: self = .relativeToA
+    case 11: self = .relativeToASharp
+    case 12: self = .relativeToB
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .fixed: return 0
+    case .relativeToC: return 1
+    case .relativeToCSharp: return 2
+    case .relativeToD: return 3
+    case .relativeToDSharp: return 4
+    case .relativeToE: return 5
+    case .relativeToF: return 6
+    case .relativeToFSharp: return 7
+    case .relativeToG: return 8
+    case .relativeToGHarp: return 9
+    case .relativeToA: return 10
+    case .relativeToASharp: return 11
+    case .relativeToB: return 12
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension MelodyInterpretationType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [MelodyInterpretationType] = [
+    .fixed,
+    .relativeToC,
+    .relativeToCSharp,
+    .relativeToD,
+    .relativeToDSharp,
+    .relativeToE,
+    .relativeToF,
+    .relativeToFSharp,
+    .relativeToG,
+    .relativeToGHarp,
+    .relativeToA,
+    .relativeToASharp,
+    .relativeToB,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 /// Describes notes as pitch classes (i.e. without octave)
 struct NoteName {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -420,6 +504,11 @@ struct Melody {
   var instrumentType: InstrumentType {
     get {return _storage._instrumentType}
     set {_uniqueStorage()._instrumentType = newValue}
+  }
+
+  var interpretationType: MelodyInterpretationType {
+    get {return _storage._interpretationType}
+    set {_uniqueStorage()._interpretationType = newValue}
   }
 
   /// The Melody notes/data, the type of which should match the MelodyType.
@@ -758,6 +847,24 @@ extension MelodyType: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension MelodyInterpretationType: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "fixed"),
+    1: .same(proto: "relative_to_c"),
+    2: .same(proto: "relative_to_c_sharp"),
+    3: .same(proto: "relative_to_d"),
+    4: .same(proto: "relative_to_d_sharp"),
+    5: .same(proto: "relative_to_e"),
+    6: .same(proto: "relative_to_f"),
+    7: .same(proto: "relative_to_f_sharp"),
+    8: .same(proto: "relative_to_g"),
+    9: .same(proto: "relative_to_g_harp"),
+    10: .same(proto: "relative_to_a"),
+    11: .same(proto: "relative_to_a_sharp"),
+    12: .same(proto: "relative_to_b"),
+  ]
+}
+
 extension NoteName: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = "NoteName"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -997,6 +1104,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     4: .same(proto: "length"),
     5: .same(proto: "type"),
     6: .standard(proto: "instrument_type"),
+    7: .standard(proto: "interpretation_type"),
     100: .standard(proto: "melodic_data"),
     101: .standard(proto: "midi_data"),
   ]
@@ -1008,6 +1116,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     var _length: UInt32 = 0
     var _type: MelodyType = .melodic
     var _instrumentType: InstrumentType = .harmonic
+    var _interpretationType: MelodyInterpretationType = .fixed
     var _data: Melody.OneOf_Data?
 
     static let defaultInstance = _StorageClass()
@@ -1021,6 +1130,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       _length = source._length
       _type = source._type
       _instrumentType = source._instrumentType
+      _interpretationType = source._interpretationType
       _data = source._data
     }
   }
@@ -1043,6 +1153,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
         case 4: try decoder.decodeSingularUInt32Field(value: &_storage._length)
         case 5: try decoder.decodeSingularEnumField(value: &_storage._type)
         case 6: try decoder.decodeSingularEnumField(value: &_storage._instrumentType)
+        case 7: try decoder.decodeSingularEnumField(value: &_storage._interpretationType)
         case 100:
           var v: MelodicData?
           if let current = _storage._data {
@@ -1085,6 +1196,9 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       if _storage._instrumentType != .harmonic {
         try visitor.visitSingularEnumField(value: _storage._instrumentType, fieldNumber: 6)
       }
+      if _storage._interpretationType != .fixed {
+        try visitor.visitSingularEnumField(value: _storage._interpretationType, fieldNumber: 7)
+      }
       switch _storage._data {
       case .melodicData(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 100)
@@ -1107,6 +1221,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
         if _storage._length != rhs_storage._length {return false}
         if _storage._type != rhs_storage._type {return false}
         if _storage._instrumentType != rhs_storage._instrumentType {return false}
+        if _storage._interpretationType != rhs_storage._interpretationType {return false}
         if _storage._data != rhs_storage._data {return false}
         return true
       }
