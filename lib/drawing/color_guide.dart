@@ -21,7 +21,7 @@ class ColorGuide extends CanvasToneDrawer {
 
   drawColorGuide(Canvas canvas) {
     //TODO enable drawing Melody colorguides on web
-    if(colorGuideAlpha == 0 || (kIsWeb && renderVertically)) {
+    if(colorGuideAlpha == 0) {
       return;
     }
     alphaDrawerPaint.preserveColor(() {
@@ -39,7 +39,7 @@ class ColorGuide extends CanvasToneDrawer {
                   toneBounds.right - drawPadding - extraPadding, toneBounds.bottom),
               alphaDrawerPaint);
           if (tone == toneInChord) {
-            alphaDrawerPaint.color = Color(0x11212121);
+            alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
                 Rect.fromLTRB(toneBounds.left, toneBounds.top - .183 * halfStepPhysicalDistance, toneBounds.right,
                     toneBounds.bottom + .183 * halfStepPhysicalDistance),
@@ -51,7 +51,7 @@ class ColorGuide extends CanvasToneDrawer {
                   toneBounds.bottom - drawPadding - extraPadding),
               alphaDrawerPaint);
           if (tone == toneInChord) {
-            alphaDrawerPaint.color = Color(0x11212121);
+            alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
                 Rect.fromLTRB(
                     toneBounds.left + .183 * halfStepPhysicalDistance,

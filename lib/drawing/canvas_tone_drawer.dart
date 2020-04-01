@@ -58,29 +58,7 @@ class CanvasToneDrawer {
     ..chroma = 2047;
   double normalizedDevicePitch;
 
-  /// Renders the dividers that separate A, A#, B, C, etc. visually to the user
-  renderSteps(Canvas canvas) {
-    alphaDrawerPaint.color = Colors.black87;
-    if (showSteps) {
-      var linePosition = startPoint;// - 12 * halfStepWidth;
-      while (linePosition < axisLength) {
-        if (renderVertically) {
-          canvas.drawLine(
-            Offset(bounds.left, linePosition),
-            Offset(bounds.right, linePosition),
-            Paint()
-          );
-        } else {
-          canvas.drawLine(
-            Offset(linePosition, bounds.top),
-            Offset(linePosition, bounds.bottom),
-            Paint()
-          );
-        }
-        linePosition += halfStepWidth;
-      }
-    }
-  }
+
 
   List<VisiblePitch> get visiblePitches {
     List<VisiblePitch> result = List();

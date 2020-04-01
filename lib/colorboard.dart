@@ -39,8 +39,8 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    scrollPositionNotifier = ValueNotifier(0);
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
+    scrollPositionNotifier = ValueNotifier(0);
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
@@ -97,7 +97,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
-    print("physicalWidth=$physicalWidth");
+//    print("physicalWidth=$physicalWidth");
     return Stack(children: [
               CustomScrollView(
                 key: Key("colorboard-$physicalWidth"),

@@ -18,25 +18,45 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     bounds = overallBounds;
     canvas.save();
     canvas.translate(0, bounds.top);
-    renderSteps(canvas);
+    _renderSteps(canvas);
     double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0 / 3;
     _drawColorblockMelody(
         canvas: canvas,
-        stepNoteAlpha: (0xAA * colorblockAlpha * alphaMultiplier).toInt(),
-        drawRhythm: true,
-        alphaSource: colorblockAlpha * alphaMultiplier);
+        alpha: colorblockAlpha * alphaMultiplier,);
 
     canvas.restore();
   }
 
-  _drawColorblockMelody(
-      {Canvas canvas, int stepNoteAlpha, bool drawRhythm = false, bool drawColorGuide = true, double alphaSource = 1}) {
-    iterateSubdivisions(() {
-      _drawColorblockNotes(
-          canvas: canvas, elementPosition: elementPosition, drawAlpha: stepNoteAlpha, alphaSource: alphaSource);
-      if (drawRhythm) {
-        this.drawRhythm(canvas, alphaSource);
+  /// Renders the dividers that separate A, A#, B, C, etc. visually to the user
+  _renderSteps(Canvas canvas) {
+    alphaDrawerPaint.color = Colors.black87.withAlpha((colorblockAlpha * 255 * 0.8).toInt());
+    if (showSteps) {
+      var linePosition = startPoint;// - 12 * halfStepWidth;
+      while (linePosition < axisLength) {
+        if (renderVertically) {
+          canvas.drawLine(
+            Offset(bounds.left, linePosition),
+            Offset(bounds.right, linePosition),
+            alphaDrawerPaint
+          );
+        } else {
+          canvas.drawLine(
+            Offset(linePosition, bounds.top),
+            Offset(linePosition, bounds.bottom),
+            alphaDrawerPaint
+          );
+        }
+        linePosition += halfStepWidth;
       }
+    }
+  }
+
+  _drawColorblockMelody(
+      {Canvas canvas, double alpha}) {
+    iterateSubdivisions(() {
+      _drawColorblockNotes(canvas: canvas, elementPosition: elementPosition, alpha: alpha);
+      drawRhythm(canvas, alpha);
+
     });
 //    if (drawRhythm) {
 //      double overallWidth = overallBounds.right - overallBounds.left;
@@ -45,12 +65,12 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
 //    }
   }
 
-  _drawColorblockNotes({Canvas canvas, int elementPosition, int drawAlpha = 0xAA, double alphaSource}) {
+  _drawColorblockNotes({Canvas canvas, int elementPosition, double alpha}) {
     MelodicAttack element = melody.melodicData.data[elementPosition % melody.length];
     MelodicAttack nextElement = melody.melodicData.data[elementPosition % melody.length];
     bool isChange = element != null;
     alphaDrawerPaint.color =
-        ((isChange) ? Color(0xAA212121) : Color(0xAA424242)).withAlpha((alphaSource * drawAlpha).toInt());
+        ((isChange) ? Color(0xAA212121) : Color(0xAA424242)).withAlpha((alpha * 255).toInt());
 
     List<int> tones = [];
     if (element != null) {

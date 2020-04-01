@@ -20,6 +20,7 @@ class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
   final MelodyViewMode melodyViewMode;
   final MelodyViewDisplayMode melodyViewDisplayMode;
+  final RenderingMode renderingMode;
   final Score score;
   final Section currentSection;
   final Melody melody;
@@ -63,7 +64,7 @@ class MelodyView extends StatefulWidget {
       this.setKeyboardPart,
       this.setColorboardPart,
       this.colorboardPart,
-      this.keyboardPart, this.deletePart, this.deleteMelody, this.deleteSection});
+      this.keyboardPart, this.deletePart, this.deleteMelody, this.deleteSection, this.renderingMode});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -95,10 +96,14 @@ class _MelodyViewState extends State<MelodyView> {
                     height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
                     child: RaisedButton(
                         onPressed: widget.toggleMelodyViewDisplayMode,
-                        padding: EdgeInsets.all(0),
-                        child: Icon((widget.melodyViewDisplayMode == MelodyViewDisplayMode.half)
-                            ? Icons.aspect_ratio
-                            : context.isPortrait ? Icons.border_horizontal : Icons.border_vertical))),
+                        padding: EdgeInsets.all(7),
+                        child: widget.melodyViewDisplayMode == MelodyViewDisplayMode.half
+                                ? Image.asset("assets/split_full.png")
+                                : context.isPortrait
+                                  ? Image.asset("assets/split_horizontal.png")
+                                  : Image.asset("assets/split_vertical.png")
+                    )
+                ),
               ),
               Expanded(
                   child: Column(children: [
@@ -194,6 +199,7 @@ class _MelodyViewState extends State<MelodyView> {
               score: widget.score,
               section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
               focusedMelody: widget.melody,
+              renderingMode: widget.renderingMode,
               xScale: _horizontalScale,
               yScale: _verticalScale,
             )
@@ -249,8 +255,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
   bool get melodyEnabled => melodySelected && melodyReference.playbackType != MelodyReference_PlaybackType.disabled;
 
   Melody confirmingDeleteFor;
-  bool get isConfirmingDelete => confirmingDeleteFor == widget.melody;
-
+  bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.melody;
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -325,7 +330,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
             child: Align(
               alignment: Alignment.center,
               child: Text("Really delete?",
-                maxLines: 1, overflow: TextOverflow.fade, style: TextStyle(color: Colors.black)))),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.black)))),
           AnimatedContainer(
             duration: animationDuration,
             width: isConfirmingDelete ? 48 : 0,
@@ -342,7 +347,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
               child: Text(
                 "Yes",
                 maxLines: 1,
-                overflow: TextOverflow.fade,
+                overflow: TextOverflow.ellipsis,
               ))),
           AnimatedContainer(
             duration: animationDuration,
@@ -356,7 +361,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
                 });
               },
               padding: EdgeInsets.zero,
-              child: Text("No", maxLines: 1, overflow: TextOverflow.fade))),
+              child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
           AnimatedContainer(
             duration: animationDuration,
             width: isConfirmingDelete ? 0 : 41,
@@ -369,7 +374,7 @@ class __MelodyToolbarState extends State<_MelodyToolbar> {
                 });
               },
               padding: EdgeInsets.zero,
-              child: Padding(padding: EdgeInsets.all(2), child: Image.asset("assets/trash.png")))),
+              child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
   }
 }
@@ -392,7 +397,7 @@ class _PartToolbar extends StatefulWidget {
 
 class __PartToolbarState extends State<_PartToolbar> {
   Part confirmingDeleteFor;
-  bool get isConfirmingDelete => confirmingDeleteFor == widget.part;
+  bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.part;
 
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -491,7 +496,7 @@ class __PartToolbarState extends State<_PartToolbar> {
           child: Align(
               alignment: Alignment.center,
               child: Text("Really delete?",
-                  maxLines: 1, overflow: TextOverflow.fade, style: TextStyle(color: Colors.white)))),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
@@ -508,7 +513,7 @@ class __PartToolbarState extends State<_PartToolbar> {
               child: Text(
                 "Yes",
                 maxLines: 1,
-                overflow: TextOverflow.fade,
+                overflow: TextOverflow.ellipsis,
               ))),
       AnimatedContainer(
           duration: animationDuration,
@@ -522,7 +527,7 @@ class __PartToolbarState extends State<_PartToolbar> {
                 });
               },
               padding: EdgeInsets.zero,
-              child: Text("No", maxLines: 1, overflow: TextOverflow.fade))),
+              child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,
@@ -535,7 +540,7 @@ class __PartToolbarState extends State<_PartToolbar> {
                 });
               },
               padding: EdgeInsets.zero,
-              child: Padding(padding: EdgeInsets.all(2), child: Image.asset("assets/trash.png")))),
+              child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
   }
 }
@@ -558,7 +563,7 @@ class _SectionToolbar extends StatefulWidget {
 
 class __SectionToolbarState extends State<_SectionToolbar> {
   Section confirmingDeleteFor;
-  bool get isConfirmingDelete => confirmingDeleteFor == widget.currentSection;
+  bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.currentSection;
 
   @override
   Widget build(BuildContext context) {
@@ -617,7 +622,7 @@ class __SectionToolbarState extends State<_SectionToolbar> {
           child: Align(
               alignment: Alignment.center,
               child: Text("Really delete?",
-                  maxLines: 1, overflow: TextOverflow.fade, style: TextStyle(color: Colors.white)))),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
@@ -634,7 +639,7 @@ class __SectionToolbarState extends State<_SectionToolbar> {
               child: Text(
                 "Yes",
                 maxLines: 1,
-                overflow: TextOverflow.fade,
+                overflow: TextOverflow.ellipsis,
               ))),
       AnimatedContainer(
           duration: animationDuration,
@@ -648,7 +653,7 @@ class __SectionToolbarState extends State<_SectionToolbar> {
                 });
               },
               padding: EdgeInsets.zero,
-              child: Text("No", maxLines: 1, overflow: TextOverflow.fade))),
+              child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,
@@ -661,7 +666,7 @@ class __SectionToolbarState extends State<_SectionToolbar> {
                 });
               } : null,
               padding: EdgeInsets.zero,
-              child: Padding(padding: EdgeInsets.all(2), child: Image.asset("assets/trash.png")))),
+              child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
   }
 }

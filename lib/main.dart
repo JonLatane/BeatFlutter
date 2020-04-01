@@ -74,6 +74,7 @@ var score = Score()
   ..sections.addAll([
     section1,
   ]);
+
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode _interactionMode = InteractionMode.view;
@@ -149,13 +150,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _setKeyboardPart(Part part) {
     setState(() {
+      bool wasAssignedByPartCreation = _keyboardPart == null;
       _keyboardPart = part;
+      if (part != null && !wasAssignedByPartCreation) {
+        _showKeyboard = true;
+      }
     });
   }
 
   _setColorboardPart(Part part) {
     setState(() {
+      bool wasAssignedByPartCreation = _colorboardPart == null;
       _colorboardPart = part;
+      if (part != null && !wasAssignedByPartCreation) {
+        _showColorboard = true;
+      }
     });
   }
 
@@ -333,7 +342,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   PhotoViewScaleStateController scaleStateController;
 
   bool verticalSectionList = false;
+
   double get verticalSectionListWidth => _interactionMode == InteractionMode.edit && verticalSectionList ? 150 : 0;
+
   double get horizontalSectionListHeight => _interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
   @override
@@ -394,7 +405,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool showWebWarning = kIsWeb;
 
-
   _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -409,7 +419,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
       verticalSectionList = context.isTablet;
     }
-    if(context.isLandscape) {
+    if (context.isLandscape) {
       SystemChrome.setEnabledSystemUIOverlays([]);
     } else {
       SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
@@ -456,33 +466,52 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                       style:
                                           TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
                               Align(
-                                  child: Row(children:[
-                                    Text("Web",
-                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                                    Text("Preview",
-                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
-
-                             ])),
-                        ])),
+                                  child: Row(children: [
+                                Text("Web",
+                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                                Text("Preview",
+                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
+                              ])),
+                            ])),
                         Expanded(
                             child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                                 child: Text(
-                                    "is pre-Alpha software. MacOS and iOS ports are coming, and the Android app is on the Play Store.",
+                                    "is pre-Alpha software. macOS and iOS ports are coming, and the Android app is on the Play Store.",
                                     style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
                         FlatButton(
-                          onPressed: () {
-                            _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
-                          },
-                          padding: EdgeInsets.all(0),
-                          child: Image.asset("assets/play_en_badge_web_generic.png")),
-                        Padding(padding:EdgeInsets.only(right:5), child:RaisedButton(
-                          onPressed: () {
-                            setState(() {
-                              showWebWarning = false;
-                            });
-                          },
-                          child: Text("OK!"))),
+                            onPressed: () {
+                              _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
+                            },
+                            padding: EdgeInsets.all(0),
+                            child: Image.asset("assets/play_en_badge_web_generic.png")),
+                        Container(
+                            width: 120,
+                            height: 40,
+                            padding: EdgeInsets.only(right: 5),
+                            child: FlatButton(
+                                color: Colors.white,
+                                onPressed: () {
+                                  _launchURL("https://beatscratch.io/assets/BeatFlutter.zip");
+                                },
+                                padding: EdgeInsets.all(0),
+                                child: Stack(children:[
+                                  Align(alignment: Alignment.bottomRight, child:
+                                  Padding(padding: EdgeInsets.only(right:5, bottom:2), child:
+                                  Text("macOS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)))),
+                                  Align(alignment: Alignment.topLeft, child:
+                                  Padding(padding: EdgeInsets.only(top:2, left:5), child:
+                                  Text("Download For", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
+                                ]))),
+                        Padding(
+                            padding: EdgeInsets.only(right: 5),
+                            child: RaisedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    showWebWarning = false;
+                                  });
+                                },
+                                child: Text("OK!"))),
                       ])),
 //            Flex(direction: Axis.vertical, children: <Widget>[
                   _combineSecondAndMainToolbar
@@ -508,11 +537,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           AnimatedContainer(
                               duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
                         ]),
-                  AnimatedContainer(duration:animationDuration, curve: Curves.easeInOut,height:horizontalSectionListHeight, child:
-                  createSectionList(scrollDirection: Axis.horizontal)),
-                  Expanded(child: Row(children:[
-                  AnimatedContainer(duration:animationDuration, curve: Curves.easeInOut,width:verticalSectionListWidth, child: createSectionList(scrollDirection: Axis.vertical)),
-                    Expanded(child:_partsAndMelodiesAndMelodyView(context))
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      curve: Curves.easeInOut,
+                      height: horizontalSectionListHeight,
+                      child: createSectionList(scrollDirection: Axis.horizontal)),
+                  Expanded(
+                      child: Row(children: [
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        curve: Curves.easeInOut,
+                        width: verticalSectionListWidth,
+                        child: createSectionList(scrollDirection: Axis.vertical)),
+                    Expanded(child: _partsAndMelodiesAndMelodyView(context))
                   ])),
                   AnimatedContainer(
                       curve: Curves.easeInOut,
@@ -558,26 +595,38 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _playing = !_playing;
           });
         },
-        toggleSectionListDisplayMode: () { setState(() { verticalSectionList = !verticalSectionList; });},
+        toggleSectionListDisplayMode: () {
+          setState(() {
+            verticalSectionList = !verticalSectionList;
+          });
+        },
         renderingMode: _renderingMode,
-        setRenderingMode: (renderingMode) { setState((){ _renderingMode = renderingMode; });},
+        setRenderingMode: (renderingMode) {
+          setState(() {
+            _renderingMode = renderingMode;
+          });
+        },
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
         toggleKeyboard: _keyboardPart != null ? _toggleKeyboard : null,
-        toggleKeyboardConfiguration: _keyboardPart != null ? () {
-          setState(() {
-            _showKeyboard = true;
-            _showKeyboardConfiguration = !_showKeyboardConfiguration;
-          });
-        } : null,
+        toggleKeyboardConfiguration: _keyboardPart != null
+            ? () {
+                setState(() {
+                  _showKeyboard = true;
+                  _showKeyboardConfiguration = !_showKeyboardConfiguration;
+                });
+              }
+            : null,
         toggleColorboard: _colorboardPart != null ? _toggleColorboard : null,
-        toggleColorboardConfiguration: _colorboardPart != null ? () {
-          setState(() {
-            _showColorboard = true;
-            _showColorboardConfiguration = !_showColorboardConfiguration;
-          });
-        } : null,
+        toggleColorboardConfiguration: _colorboardPart != null
+            ? () {
+                setState(() {
+                  _showColorboard = true;
+                  _showColorboardConfiguration = !_showColorboardConfiguration;
+                });
+              }
+            : null,
         showKeyboard: _showKeyboard,
         showColorboard: _showColorboard,
         interactionMode: _interactionMode,
@@ -609,11 +658,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _colorboardHeight -
         _keyboardHeight +
         8 -
-        36;
+        horizontalSectionListHeight;
     double width = data.size.width - verticalSectionListWidth;
-    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
-      height += 36;
-    }
+//    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
+//      height += 36;
+//    }
     _handleStatusBar(context);
 
     return Stack(children: [
@@ -678,6 +727,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       part: selectedPart,
       sectionColor: sectionColor,
       melodyViewDisplayMode: melodyViewDisplayMode,
+      renderingMode: _renderingMode,
       toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
       closeMelodyView: _hideMelodyView,
       toggleMelodyReference: _toggleReferenceDisabled,
@@ -695,53 +745,70 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setColorboardPart: _setColorboardPart,
       colorboardPart: _colorboardPart,
       keyboardPart: _keyboardPart,
-      deletePart: (part) { setState(() {
-        if(part == this.selectedPart) {
-          int index = this._score.parts.indexOf(part);
-          if(index > 0) {
-            index = index - 1;
-          } else {
-            index = index + 1;
+      deletePart: (part) {
+        setState(() {
+          if (part == this.selectedPart) {
+            int index = this._score.parts.indexOf(part);
+            if (index > 0) {
+              index = index - 1;
+            } else {
+              index = index + 1;
+            }
+            if (index < this._score.parts.length) {
+              this.selectedPart = this._score.parts[index];
+            } else {
+              this.selectedPart = null;
+              this.melodyViewMode = MelodyViewMode.section;
+            }
           }
-          if(index < this._score.parts.length) {
-            this.selectedPart = this._score.parts[index];
-          } else {
-            this.selectedPart = null;
-            this.melodyViewMode = MelodyViewMode.section;
+          if (part == this._keyboardPart) {
+            this._keyboardPart = null;
           }
-        }
-        score.parts.remove(part);
-      } ); },
-      deleteMelody: (melody) { setState(() {
-        if(melody == this.selectedMelody) {
-          Part part = this._score.parts.firstWhere((part) => part.melodies.contains(melody));
-          int index = part.melodies.indexOf(melody);
-          if(index > 0) {
-            index = index - 1;
-          } else {
-            index = index + 1;
+          if (part == this._colorboardPart) {
+            this._colorboardPart = null;
           }
-          if(index < part.melodies.length) {
-            this.selectedMelody = part.melodies[index];
-          } else {
-            this.selectedMelody = null;
-            this._selectOrDeselectPart(part);
+          score.parts.remove(part);
+        });
+      },
+      deleteMelody: (melody) {
+        setState(() {
+          if (melody == this.selectedMelody) {
+            Part part = this._score.parts.firstWhere((part) => part.melodies.contains(melody));
+            int index = part.melodies.indexOf(melody);
+            if (index > 0) {
+              index = index - 1;
+            } else {
+              index = index + 1;
+            }
+            if (index < part.melodies.length) {
+              this.selectedMelody = part.melodies[index];
+            } else {
+              this.selectedMelody = null;
+              this._selectOrDeselectPart(part);
+            }
           }
-        }
-        score.parts.forEach((part) { part.melodies.remove(melody); });
-      } ); },
-      deleteSection: (section) { setState(() {
-        if(section == this.currentSection) {
-          int index = this._score.sections.indexOf(section);
-          if(index > 0) {
-            index = index - 1;
-          } else {
-            index = index + 1;
+          score.parts.forEach((part) {
+            part.melodies.remove(melody);
+          });
+          score.sections.forEach((section) {
+            section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
+          });
+        });
+      },
+      deleteSection: (section) {
+        setState(() {
+          if (section == this.currentSection) {
+            int index = this._score.sections.indexOf(section);
+            if (index > 0) {
+              index = index - 1;
+            } else {
+              index = index + 1;
+            }
+            this.currentSection = this._score.sections[index];
           }
-          this.currentSection = this._score.sections[index];
-        }
-        score.sections.remove(section);
-      } ); },
+          score.sections.remove(section);
+        });
+      },
     );
   }
 

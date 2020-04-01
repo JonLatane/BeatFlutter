@@ -33,10 +33,11 @@ class MelodyRenderer extends StatefulWidget {
   final Score score;
   final Section section;
   final Melody focusedMelody;
+  final RenderingMode renderingMode;
   final double xScale;
   final double yScale;
 
-  const MelodyRenderer({Key key, this.score, this.section, this.xScale, this.yScale, this.focusedMelody})
+  const MelodyRenderer({Key key, this.score, this.section, this.xScale, this.yScale, this.focusedMelody, this.renderingMode})
       : super(key: key);
 
   @override
@@ -57,12 +58,42 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   ScrollController verticalController = ScrollController();
   static const double heightFactor = 800;
 
+  AnimationController configurationChangeAnimationController;
+  ValueNotifier<double> colorblockOpacityNotifier;
+  ValueNotifier<double> notationOpacityNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    configurationChangeAnimationController = AnimationController(vsync: this,
+      duration: Duration(milliseconds: 500));
+    if(colorblockOpacityNotifier == null) colorblockOpacityNotifier = ValueNotifier(0);
+    if(notationOpacityNotifier == null) notationOpacityNotifier = ValueNotifier(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     String key = widget.score.id;
     if(widget.section != null) {
       key = widget.section.toString();
     }
+    double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
+    double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
+    Animation animation1;
+    animation1 = Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
+      .animate(configurationChangeAnimationController)
+      ..addListener(() {
+        colorblockOpacityNotifier.value = animation1.value;
+//                setState(() {});
+      });
+    Animation animation2;
+    animation2 = Tween<double>(begin: notationOpacityNotifier.value, end: notationOpacityValue)
+      .animate(configurationChangeAnimationController)
+      ..addListener(() {
+        notationOpacityNotifier.value = animation2.value;
+//                setState(() {});
+      });
+    configurationChangeAnimationController.forward(from:0);
     return SingleChildScrollView(
         key: Key(key),
         child: Container(
@@ -82,6 +113,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         xScale: widget.xScale,
                         yScale: widget.yScale,
                         focusedMelody: widget.focusedMelody,
+                        colorblockOpacityNotifier: colorblockOpacityNotifier,
+                        notationOpacityNotifier: notationOpacityNotifier,
                         visibleRect: () => _visibleRect,
                         staffReferences: [_AccompanimentReference(), _DrumTrackReference()]),
                   ),
@@ -129,6 +162,8 @@ class _MelodyPainter extends CustomPainter {
   final double yScale;
   final Rect Function() visibleRect;
   final List<_StaffReference> staffReferences;
+  final ValueNotifier<double> colorblockOpacityNotifier;
+  final ValueNotifier<double> notationOpacityNotifier;
 
   bool get isViewingSection => section != null;
 
@@ -138,16 +173,13 @@ class _MelodyPainter extends CustomPainter {
 
   double get width => standardBeatWidth * numberOfBeats;
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
-  int get colorGuideAlpha => 50;
+  int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
   _MelodyPainter(
-      {this.score,
-      this.section,
-      this.xScale,
-      this.yScale,
-      this.visibleRect,
-      this.staffReferences,
-      this.focusedMelody}) {
+      {this.score, this.section, this.xScale, this.yScale, this.visibleRect, this.staffReferences, this.focusedMelody,
+        this.colorblockOpacityNotifier, this.notationOpacityNotifier}) : super(
+    repaint: Listenable.merge([colorblockOpacityNotifier, notationOpacityNotifier])
+  ) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
   }
@@ -174,7 +206,7 @@ class _MelodyPainter extends CustomPainter {
       this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
     }
 
-    print("Drawing frame from beat=$renderingBeat");
+    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
     while (left < visibleRect().right + standardBeatWidth) {
       if (renderingBeat < 0) {
         left += standardBeatWidth;
@@ -190,9 +222,18 @@ class _MelodyPainter extends CustomPainter {
         while (_beat + candidate.beatCount <= renderingBeat) {
           _beat += candidate.beatCount;
           renderingSectionBeat -= candidate.beatCount;
-          candidate = score.sections[++sectionIndex];
+          sectionIndex += 1;
+          if(sectionIndex < score.sections.length) {
+            candidate = score.sections[sectionIndex];
+          } else {
+            candidate = null;
+            break;
+          }
         }
         renderingSection = candidate;
+      }
+      if(renderingSection == null) {
+        break;
       }
       Harmony renderingHarmony = renderingSection.harmony;
       right = left + standardBeatWidth;
@@ -200,8 +241,8 @@ class _MelodyPainter extends CustomPainter {
       if(sectionName == null || sectionName.isEmpty) {
         sectionName = renderingSection.id;
       }
-      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
-      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
+//      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
+//      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
       double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
@@ -215,42 +256,48 @@ class _MelodyPainter extends CustomPainter {
 
       Rect melodyBounds = Rect.fromLTRB(left, top, right, visibleRect().bottom);
       if (!drawContinuousColorGuide) {
-        Melody colorGuideMelody = focusedMelody;
-        if (colorGuideMelody == null) {
-          colorGuideMelody = Melody()
-            ..id = uuid.v4()
-            ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
-            ..length = renderingHarmony.length;
+        try {
+          Melody colorGuideMelody = focusedMelody;
+          if (colorGuideMelody == null) {
+            colorGuideMelody = Melody()
+              ..id = uuid.v4()
+              ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
+              ..length = renderingHarmony.length;
+          }
+          MelodyColorGuide()
+            ..overallBounds = melodyBounds
+            ..section = renderingSection
+            ..beatPosition = renderingSectionBeat
+            ..section = renderingSection
+            ..drawPadding = 3
+            ..nonRootPadding = 3
+            ..drawnColorGuideAlpha = colorGuideAlpha
+            ..isUserChoosingHarmonyChord = false
+            ..isMelodyReferenceEnabled = true
+            ..melody = colorGuideMelody
+            ..drawColorGuide(canvas);
+        } catch(t) {
+          print("failed to draw colorguide: $t");
         }
-        MelodyColorGuide()
-          ..overallBounds = melodyBounds
-          ..section = renderingSection
-          ..beatPosition = renderingSectionBeat
-          ..section = renderingSection
-          ..drawPadding = 3
-          ..nonRootPadding = 3
-          ..drawnColorGuideAlpha = colorGuideAlpha
-          ..isUserChoosingHarmonyChord = false
-          ..isMelodyReferenceEnabled = true
-          ..melody = colorGuideMelody
-          ..drawColorGuide(canvas);
       }
       renderingSection.melodies
         .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
         .forEach((melodyReference) {
         Melody melody = score.melodyReferencedBy(melodyReference);
-        ColorblockMelodyRenderer()
-          ..overallBounds = melodyBounds
-          ..section = renderingSection
-          ..beatPosition = renderingSectionBeat
-          ..section = renderingSection
-          ..colorblockAlpha = 1.0
-          ..drawPadding = 3
-          ..nonRootPadding = 3
-          ..isUserChoosingHarmonyChord = false
-          ..isMelodyReferenceEnabled = true
-          ..melody = melody
-          ..draw(canvas);
+        if(melody != null) {
+          ColorblockMelodyRenderer()
+            ..overallBounds = melodyBounds
+            ..section = renderingSection
+            ..beatPosition = renderingSectionBeat
+            ..section = renderingSection
+            ..colorblockAlpha = colorblockOpacityNotifier.value
+            ..drawPadding = 3
+            ..nonRootPadding = 3
+            ..isUserChoosingHarmonyChord = false
+            ..isMelodyReferenceEnabled = true
+            ..melody = melody
+            ..draw(canvas);
+        }
       });
       drawFilledNotehead(canvas, Rect.fromLTRB(left, top, left + standardBeatWidth / 2, top + standardBeatWidth / 2));
 
@@ -301,17 +348,21 @@ class _MelodyPainter extends CustomPainter {
         }
         if (renderingChord != chordAtSubdivision) {
           Rect renderingRect = Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
-          ColorGuide()
-            ..renderVertically = true
-            ..alphaDrawerPaint = Paint()
-            ..halfStepsOnScreen = 88
-            ..normalizedDevicePitch = 0
-            ..bounds = renderingRect
-            ..chord = renderingChord
-            ..drawPadding = 0
-            ..nonRootPadding = 0
-            ..drawnColorGuideAlpha = colorGuideAlpha
-            ..drawColorGuide(canvas);
+          try {
+            ColorGuide()
+              ..renderVertically = true
+              ..alphaDrawerPaint = Paint()
+              ..halfStepsOnScreen = 88
+              ..normalizedDevicePitch = 0
+              ..bounds = renderingRect
+              ..chord = renderingChord
+              ..drawPadding = 0
+              ..nonRootPadding = 0
+              ..drawnColorGuideAlpha = colorGuideAlpha
+              ..drawColorGuide(canvas);
+          } catch(t) {
+            print("failed to draw colorguide: $t");
+          }
           chordLeft = left;
         }
         renderingChord = chordAtSubdivision;
@@ -321,17 +372,21 @@ class _MelodyPainter extends CustomPainter {
       renderingBeat += 1;
     }
     Rect renderingRect = Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
-    ColorGuide()
-      ..renderVertically = true
-      ..alphaDrawerPaint = Paint()
-      ..halfStepsOnScreen = 88
-      ..normalizedDevicePitch = 0
-      ..bounds = renderingRect
-      ..chord = renderingChord
-      ..drawPadding = 0
-      ..nonRootPadding = 0
-      ..drawnColorGuideAlpha = colorGuideAlpha
-      ..drawColorGuide(canvas);
+    try {
+      ColorGuide()
+        ..renderVertically = true
+        ..alphaDrawerPaint = Paint()
+        ..halfStepsOnScreen = 88
+        ..normalizedDevicePitch = 0
+        ..bounds = renderingRect
+        ..chord = renderingChord
+        ..drawPadding = 0
+        ..nonRootPadding = 0
+        ..drawnColorGuideAlpha = colorGuideAlpha
+        ..drawColorGuide(canvas);
+    } catch(t) {
+      print("failed to draw colorguide: $t");
+    }
   }
 
   drawFilledNotehead(Canvas canvas, Rect rect) {

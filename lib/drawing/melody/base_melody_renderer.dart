@@ -42,10 +42,10 @@ class BaseMelodyRenderer extends ColorGuide {
 
   ///doesn't work for [renderVertically]=false.
   drawTimewiseLineRelativeToBounds(
-  {Canvas canvas, bool leftSide = true, double alphaSource = 1, double strokeWidth = 1, double startY, double stopY}) {
+  {Canvas canvas, bool leftSide = true, double alpha = 1, double strokeWidth = 1, double startY, double stopY}) {
     double oldStrokeWidth = alphaDrawerPaint.strokeWidth;
     alphaDrawerPaint.preserveColor(() {
-      alphaDrawerPaint.color = Color(0xFF000000).withAlpha((alphaSource * 255).toInt());
+      alphaDrawerPaint.color = Color(0xFF000000).withAlpha((alpha * 255).toInt());
       alphaDrawerPaint.strokeWidth = strokeWidth;
       double x = (leftSide) ? bounds.left : bounds.right;
       canvas.drawLine(Offset(x, startY), Offset(x, stopY), alphaDrawerPaint);
@@ -75,7 +75,8 @@ class BaseMelodyRenderer extends ColorGuide {
       canvas: canvas,
       strokeWidth: (elementPosition % melody.subdivisionsPerBeat == 0) ? 2 : 1,
       startY: 0,
-      stopY: bounds.height
+      stopY: bounds.height,
+      alpha: alphaSource
     );
   }
 
