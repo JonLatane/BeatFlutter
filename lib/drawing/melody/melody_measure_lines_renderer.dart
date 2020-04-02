@@ -23,17 +23,21 @@ class MelodyMeasureLinesRenderer extends BaseMelodyRenderer {
     if(beatPosition % meter.defaultBeatsPerMeasure == 0) {
       canvas.save();
       canvas.translate(0, bounds.top);
-      print("drawing measure line");
-      NoteSpecification highestDiatonicNote = clefs.expand((clef) => clef.notes).maxBy((e) => e.diatonicValue);
-      NoteSpecification lowestDiatonicNote = clefs.expand((clef) => clef.notes).minBy((e) => e.diatonicValue);
-      drawTimewiseLineRelativeToBounds(
-        canvas: canvas,
-        leftSide: true,
-        alpha: notationAlpha,
-        strokeWidth: strokeWidth,
-        startY: pointForNote(highestDiatonicNote),
-        stopY: pointForNote(lowestDiatonicNote),
-      );
+      try {
+        print("drawing measure line");
+        NoteSpecification highestDiatonicNote = clefs.expand((clef) => clef.notes).maxBy((e) => e.diatonicValue);
+        NoteSpecification lowestDiatonicNote = clefs.expand((clef) => clef.notes).minBy((e) => e.diatonicValue);
+        drawTimewiseLineRelativeToBounds(
+          canvas: canvas,
+          leftSide: true,
+          alpha: notationAlpha,
+          strokeWidth: strokeWidth,
+          startY: pointForNote(highestDiatonicNote),
+          stopY: pointForNote(lowestDiatonicNote),
+        );
+      } catch(e) {
+        print(e);
+      }
       canvas.restore();
     }
   }

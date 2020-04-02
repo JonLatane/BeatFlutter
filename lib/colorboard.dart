@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,8 @@ import 'dart:async';
 import 'dart:math';
 import 'ui_models.dart';
 import 'util.dart';
+import 'dart:io' show Platform;
+
 
 class Colorboard extends StatefulWidget {
   final double height;
@@ -213,7 +216,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                       flex: context.isTabletOrLandscapey ? 3 : 2,
                       child: RaisedButton(
                           padding: EdgeInsets.all(0),
-                          onPressed: () {
+                          onPressed: (Platform.isAndroid || Platform.isIOS) ? () {
                             setState(() {
                               switch(scrollingMode) {
                                 case ScrollingMode.sideScroll:
@@ -227,7 +230,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                                   break;
                               }
                             });
-                          },
+                          } : null,
                           color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
                           child: Row(children: [
                             Expanded(child: SizedBox()),

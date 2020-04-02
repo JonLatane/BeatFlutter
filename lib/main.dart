@@ -626,6 +626,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             renderingMode = value;
           });
         },
+        showMidiInputSettings: () {
+          setState(() {
+            if(keyboardPart != null) {
+              showKeyboard = true;
+              _showKeyboardConfiguration = true;
+            }
+            if(colorboardPart != null) {
+              showColorboard = true;
+              _showColorboardConfiguration = true;
+            }
+          });
+        },
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(

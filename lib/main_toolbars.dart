@@ -18,6 +18,7 @@ class BeatScratchToolbar extends StatelessWidget {
   final Color sectionColor;
   final RenderingMode renderingMode;
   final Function(RenderingMode) setRenderingMode;
+  final VoidCallback showMidiInputSettings;
 
   const BeatScratchToolbar(
     {Key key,
@@ -28,7 +29,7 @@ class BeatScratchToolbar extends StatelessWidget {
       this.sectionColor,
       this.playing,
       this.togglePlaying,
-      this.toggleSectionListDisplayMode, this.setRenderingMode, this.renderingMode})
+      this.toggleSectionListDisplayMode, this.setRenderingMode, this.renderingMode, this.showMidiInputSettings})
     : super(key: key);
 
   @override
@@ -47,6 +48,9 @@ class BeatScratchToolbar extends StatelessWidget {
                   break;
                 case "colorblockUi":
                   setRenderingMode(RenderingMode.colorblock);
+                  break;
+                case "midiSettings":
+                  showMidiInputSettings();
                   break;
                 case "about":
                   showAbout(context);
@@ -81,8 +85,8 @@ class BeatScratchToolbar extends StatelessWidget {
                 child: Text('Copy Score'),
               ),
               const PopupMenuItem(
-                value: null,
-                child: Text('MIDI Output Settings'),
+                value: "midiSettings",
+                child: Text('MIDI Settings'),
               ),
               PopupMenuItem(
                 value: "notationUi",
