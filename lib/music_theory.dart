@@ -39,6 +39,11 @@ extension NoteLetterTheory on NoteLetter {
         }
     }
   }
+
+  NoteLetter operator +(int increment) =>
+    NoteLetter.values.firstWhere(
+        (letter) => letter.value == (value + increment) % 7
+    );
 }
 
 extension NoteSignTheory on NoteSign {
@@ -46,40 +51,50 @@ extension NoteSignTheory on NoteSign {
     switch (this) {
 //      case NoteSign.none: { return 0; }
       case NoteSign.natural:
-        {
-          return 0;
-        }
+        return 0;
       case NoteSign.sharp:
-        {
-          return 1;
-        }
+        return 1;
       case NoteSign.flat:
-        {
-          return -1;
-        }
+        return -1;
       case NoteSign.double_sharp:
-        {
-          return 2;
-        }
+        return 2;
       case NoteSign.double_flat:
-        {
-          return -2;
-        }
+        return -2;
       default:
-        {
-          throw FormatException();
-        }
+        throw FormatException();
+    }
+  }
+
+  String get simpleString {
+    switch (this) {
+//      case NoteSign.none: { return 0; }
+      case NoteSign.natural:
+        return "";
+      case NoteSign.sharp:
+        return "#";
+      case NoteSign.flat:
+        return "b";
+      case NoteSign.double_sharp:
+        return "##";
+      case NoteSign.double_flat:
+        return "bb";
+      default:
+        throw FormatException();
     }
   }
 }
 
 extension NoteTheory on NoteName {
   int get tone => noteLetter.tone + noteSign.toneOffset;
+
+  int get mod12 => tone.mod12;
+
+  NoteLetter get letter => noteLetter;
+
+  NoteSign get sign => noteSign;
 }
 
 extension NoteConversions on int {
-  List<NoteName> get noteNames => [];
-
   int get mod12 {
     int result = this;
     result = result % 12;
@@ -155,6 +170,19 @@ extension HarmonyTheory on Harmony {
 }
 
 extension MelodyTheory on Melody {
+  int offsetUnder(Chord chord) {
+    int result = 0;
+    if (interpretationType != MelodyInterpretationType.fixed) {
+      int root = chord.rootNote.tone.mod12;
+      if (root > 6) {
+        result = root - 12;
+      } else {
+        result = root;
+      }
+    }
+    return result;
+  }
+
   MelodicAttack melodicAttackBefore(int subdivision) {
     final int initialSubdivision = subdivision;
     MelodicAttack result = melodicData.data[subdivision];
@@ -167,6 +195,7 @@ extension MelodyTheory on Melody {
     }
     return result;
   }
+
   MidiChange midiChangeBefore(int subdivision) {
     final int initialSubdivision = subdivision;
     MidiChange result = midiData.data[subdivision];
@@ -184,7 +213,8 @@ extension MelodyTheory on Melody {
 extension SectionTheory on Section {
   int get beatCount => harmony.beatCount;
 
-  MelodyReference referenceTo(Melody melody) => (melody != null)
+  MelodyReference referenceTo(Melody melody) =>
+    (melody != null)
       ? melodies.firstWhere((element) => element.melodyId == melody.id, orElse: () => _defaultMelodyReference(melody))
       : null;
 
@@ -200,25 +230,12 @@ extension SectionTheory on Section {
 
 extension ScoreTheory on Score {
   int get beatCount => sections.fold(0, (p, s) => p + s.beatCount);
+
   Melody melodyReferencedBy(MelodyReference ref) =>
     parts.fold(null, (previousValue, part) =>
-      previousValue ?? part.melodies.firstWhere(
-          (melody) => melody.id == ref.melodyId,
-          orElse: () => null
-      )
+    previousValue ?? part.melodies.firstWhere(
+        (melody) => melody.id == ref.melodyId,
+      orElse: () => null
+    )
     );
-}
-
-class NoteSpecification {
-  final NoteName noteName;
-  final int octave;
-
-  NoteSpecification({this.noteName, this.octave});
-
-  NoteSpecification.name({NoteLetter letter, NoteSign sign = NoteSign.natural, int octave})
-      : this(
-            noteName: (NoteName()
-              ..noteLetter = letter
-              ..noteSign = sign),
-            octave: octave);
 }

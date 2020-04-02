@@ -1,6 +1,6 @@
 import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/music_theory.dart';
+import 'package:beatscratch_flutter_redux/music_notation_theory.dart';
 import 'package:flutter/material.dart';
 
 enum Clef { treble, bass, tenor_treble }
@@ -47,8 +47,11 @@ class MelodyStaffLinesRenderer extends BaseMelodyRenderer {
   List<Clef> clefs = [Clef.treble, Clef.bass];
 
   draw(Canvas canvas) {
+    canvas.save();
+    canvas.translate(0, bounds.top);
     clefs.expand((clef) => clef.notes).forEach((note) {
       drawPitchwiseLine(canvas: canvas, pointOnToneAxis: pointForNote(note));
     });
+    canvas.restore();
   }
 }

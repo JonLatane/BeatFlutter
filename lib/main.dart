@@ -78,21 +78,11 @@ var score = Score()
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
-  InteractionMode _interactionMode = InteractionMode.view;
-  MelodyViewDisplayMode melodyViewDisplayMode = null;
+  InteractionMode interactionMode = InteractionMode.view;
+  MelodyViewDisplayMode melodyViewDisplayMode;
+  
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
-  RenderingMode _renderingMode = RenderingMode.notation;
-  bool _editingMelody = false;
-
-  bool get editingMelody => _editingMelody;
-
-  set editingMelody(value) {
-    _editingMelody = value;
-    if (value) _showMelodyView();
-  }
-
   MelodyViewMode get melodyViewMode => _melodyViewMode;
-
   set melodyViewMode(MelodyViewMode value) {
     _melodyViewMode = value;
     if (value != MelodyViewMode.melody) {
@@ -102,23 +92,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       selectedPart = null;
     }
   }
+  RenderingMode renderingMode = RenderingMode.notation;
+  
+  bool _editingMelody = false;
+  bool get editingMelody => _editingMelody;
+  set editingMelody(value) {
+    _editingMelody = value;
+    if (value) _showMelodyView();
+  }
+
 
   Section _currentSection = section1;
-  bool _showViewOptions = false;
-  bool _showKeyboard = false;
+  bool showViewOptions = false;
+  bool showKeyboard = false;
   bool _showKeyboardConfiguration = false;
-  bool _showColorboard = false;
+  bool showColorboard = false;
   bool _showColorboardConfiguration = false;
-  Part _keyboardPart;
-  Part _colorboardPart;
-  bool _playing = false;
+  Part keyboardPart;
+  Part colorboardPart;
+  bool playing = false;
 
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
 
   double _melodyViewSizeFactor = 1.0;
 
   _showMelodyView() {
-    if (_interactionMode == InteractionMode.edit) {
+    if (interactionMode == InteractionMode.edit) {
       if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
         _melodyViewSizeFactor = 0.5;
       } else {
@@ -151,20 +150,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _setKeyboardPart(Part part) {
     setState(() {
-      bool wasAssignedByPartCreation = _keyboardPart == null;
-      _keyboardPart = part;
+      bool wasAssignedByPartCreation = keyboardPart == null;
+      keyboardPart = part;
       if (part != null && !wasAssignedByPartCreation) {
-        _showKeyboard = true;
+        showKeyboard = true;
       }
     });
   }
 
   _setColorboardPart(Part part) {
     setState(() {
-      bool wasAssignedByPartCreation = _colorboardPart == null;
-      _colorboardPart = part;
+      bool wasAssignedByPartCreation = colorboardPart == null;
+      colorboardPart = part;
       if (part != null && !wasAssignedByPartCreation) {
-        _showColorboard = true;
+        showColorboard = true;
       }
     });
   }
@@ -259,9 +258,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _viewMode() {
     setState(() {
-      _interactionMode = InteractionMode.view;
+      interactionMode = InteractionMode.view;
       if (!context.isTabletOrLandscapey) {
-        _showViewOptions = false;
+        showViewOptions = false;
       }
       melodyViewMode = MelodyViewMode.score;
       selectedMelody = null;
@@ -271,10 +270,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _editMode() {
     setState(() {
-      if (_interactionMode == InteractionMode.edit) {
+      if (interactionMode == InteractionMode.edit) {
         _selectSection(currentSection);
       } else {
-        _interactionMode = InteractionMode.edit;
+        interactionMode = InteractionMode.edit;
         _hideMelodyView();
       }
     });
@@ -282,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _toggleViewOptions() {
     setState(() {
-      _showViewOptions = !_showViewOptions;
+      showViewOptions = !showViewOptions;
     });
   }
 
@@ -291,8 +290,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (_showKeyboardConfiguration) {
         _showKeyboardConfiguration = false;
       } else {
-        _showKeyboard = !_showKeyboard;
-        if (!_showKeyboard) {
+        showKeyboard = !showKeyboard;
+        if (!showKeyboard) {
           _showKeyboardConfiguration = false;
         }
       }
@@ -304,8 +303,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (_showColorboardConfiguration) {
         _showColorboardConfiguration = false;
       } else {
-        _showColorboard = !_showColorboard;
-        if (!_showColorboard) {
+        showColorboard = !showColorboard;
+        if (!showColorboard) {
           _showColorboardConfiguration = false;
         }
       }
@@ -334,26 +333,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get _combineSecondAndMainToolbar => context.isTabletOrLandscapey;
 
   double get _secondToolbarHeight =>
-      (_combineSecondAndMainToolbar) ? 0 : _interactionMode == InteractionMode.edit || _showViewOptions ? 36 : 0;
+      (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
 
-  double get _colorboardHeight => _showColorboard ? 150 : 0;
+  double get _colorboardHeight => showColorboard ? 150 : 0;
 
-  double get _keyboardHeight => _showKeyboard ? 150 : 0;
+  double get _keyboardHeight => showKeyboard ? 150 : 0;
 
   PhotoViewScaleStateController scaleStateController;
 
   bool verticalSectionList = false;
 
-  double get verticalSectionListWidth => _interactionMode == InteractionMode.edit && verticalSectionList ? 150 : 0;
+  double get verticalSectionListWidth => interactionMode == InteractionMode.edit && verticalSectionList ? 150 : 0;
 
-  double get horizontalSectionListHeight => _interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
+  double get horizontalSectionListHeight => interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
   @override
   void initState() {
     super.initState();
     scaleStateController = PhotoViewScaleStateController();
-    _keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
-    _colorboardPart =
+    keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
+    colorboardPart =
         _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
   }
 
@@ -364,7 +363,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Future<bool> _onWillPop() async {
-    if (_interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
+    if (interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
       setState(() {
         _hideMelodyView();
       });
@@ -374,12 +373,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _showKeyboardConfiguration = false;
         _showColorboardConfiguration = false;
       });
-    } else if (_showKeyboard || _showColorboard) {
+    } else if (showKeyboard || showColorboard) {
       setState(() {
-        _showKeyboard = false;
-        _showColorboard = false;
+        showKeyboard = false;
+        showColorboard = false;
       });
-    } else if (_interactionMode == InteractionMode.edit) {
+    } else if (interactionMode == InteractionMode.edit) {
       _viewMode();
     } else {
       return (await showDialog(
@@ -402,6 +401,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           )) ??
           false;
     }
+  }
+  
+  _confirmExit() {
+    
   }
 
   bool showWebWarning = kIsWeb;
@@ -542,8 +545,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   child: AnimatedContainer(
                                       duration: animationDuration,
                                       width: context.isTabletOrLandscapey ||
-                                              _interactionMode == InteractionMode.edit ||
-                                              _showViewOptions
+                                              interactionMode == InteractionMode.edit ||
+                                              showViewOptions
                                           ? MediaQuery.of(context).size.width / 2
                                           : 0,
                                       child: createSecondToolbar()))
@@ -605,11 +608,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         viewMode: _viewMode,
         editMode: _editMode,
         toggleViewOptions: _toggleViewOptions,
-        interactionMode: _interactionMode,
-        playing: _playing,
+        interactionMode: interactionMode,
+        playing: playing,
         togglePlaying: () {
           setState(() {
-            _playing = !_playing;
+            playing = !playing;
           });
         },
         toggleSectionListDisplayMode: () {
@@ -617,37 +620,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             verticalSectionList = !verticalSectionList;
           });
         },
-        renderingMode: _renderingMode,
-        setRenderingMode: (renderingMode) {
+        renderingMode: renderingMode,
+        setRenderingMode: (value) {
           setState(() {
-            _renderingMode = renderingMode;
+            renderingMode = value;
           });
         },
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
-        toggleKeyboard: _keyboardPart != null ? _toggleKeyboard : null,
-        toggleKeyboardConfiguration: _keyboardPart != null
+        toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
+        toggleKeyboardConfiguration: keyboardPart != null
             ? () {
                 setState(() {
-                  _showKeyboard = true;
+                  showKeyboard = true;
                   _showKeyboardConfiguration = !_showKeyboardConfiguration;
                 });
               }
             : null,
-        toggleColorboard: _colorboardPart != null ? _toggleColorboard : null,
-        toggleColorboardConfiguration: _colorboardPart != null
+        toggleColorboard: colorboardPart != null ? _toggleColorboard : null,
+        toggleColorboardConfiguration: colorboardPart != null
             ? () {
                 setState(() {
-                  _showColorboard = true;
+                  showColorboard = true;
                   _showColorboardConfiguration = !_showColorboardConfiguration;
                 });
               }
             : null,
-        showKeyboard: _showKeyboard,
-        showColorboard: _showColorboard,
-        interactionMode: _interactionMode,
-        showViewOptions: _showViewOptions,
+        showKeyboard: showKeyboard,
+        showColorboard: showColorboard,
+        interactionMode: interactionMode,
+        showViewOptions: showViewOptions,
         showColorboardConfiguration: _showColorboardConfiguration,
         showKeyboardConfiguration: _showKeyboardConfiguration,
         sectionColor: sectionColor,
@@ -726,8 +729,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setPartVolume: _setPartVolume,
       setColorboardPart: _setColorboardPart,
       setKeyboardPart: _setKeyboardPart,
-      colorboardPart: _colorboardPart,
-      keyboardPart: _keyboardPart,
+      colorboardPart: colorboardPart,
+      keyboardPart: keyboardPart,
       editingMelody: editingMelody,
       hideMelodyView: _hideMelodyView,
       availableWidth: availableWidth,
@@ -744,7 +747,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       part: selectedPart,
       sectionColor: sectionColor,
       melodyViewDisplayMode: melodyViewDisplayMode,
-      renderingMode: _renderingMode,
+      renderingMode: renderingMode,
       toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
       closeMelodyView: _hideMelodyView,
       toggleMelodyReference: _toggleReferenceDisabled,
@@ -760,8 +763,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setSectionName: _setSectionName,
       setKeyboardPart: _setKeyboardPart,
       setColorboardPart: _setColorboardPart,
-      colorboardPart: _colorboardPart,
-      keyboardPart: _keyboardPart,
+      colorboardPart: colorboardPart,
+      keyboardPart: keyboardPart,
       deletePart: (part) {
         setState(() {
           if (part == this.selectedPart) {
@@ -778,11 +781,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               this.melodyViewMode = MelodyViewMode.section;
             }
           }
-          if (part == this._keyboardPart) {
-            this._keyboardPart = null;
+          if (part == this.keyboardPart) {
+            this.keyboardPart = null;
           }
-          if (part == this._colorboardPart) {
-            this._colorboardPart = null;
+          if (part == this.colorboardPart) {
+            this.colorboardPart = null;
           }
           score.parts.remove(part);
         });

@@ -89,20 +89,50 @@ enum MelodyType {
   midi = 1;
 }
 
+// Indicates how a Melody should be interpreted when referenced in a Section under a Harmony.
 enum MelodyInterpretationType {
-  fixed = 0;
-  relative_to_c = 1;
-  relative_to_c_sharp = 2;
-  relative_to_d = 3;
-  relative_to_d_sharp = 4;
-  relative_to_e = 5;
-  relative_to_f = 6;
-  relative_to_f_sharp = 7;
-  relative_to_g = 8;
-  relative_to_g_harp = 9;
-  relative_to_a = 10;
-  relative_to_a_sharp = 11;
-  relative_to_b = 12;
+  // Notes of the Melody should be played as-is
+  fixed_nonadaptive = 0;
+  // Notes of the Melody should be played, adjusting to the nearest tone in the Chord,
+  // favoring a move down over a move up when two tones in the Chord are above/below the indicated
+  // tone.
+  fixed = 1;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of C.
+  relative_to_c = 2;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of C#.
+  relative_to_c_sharp = 3;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of D.
+  relative_to_d = 4;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of D#.
+  relative_to_d_sharp = 5;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of E.
+  relative_to_e = 6;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of F.
+  relative_to_f = 7;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of F#.
+  relative_to_f_sharp = 8;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of G.
+  relative_to_g = 9;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of G#.
+  relative_to_g_sharp = 10;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of A.
+  relative_to_a = 11;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of A#.
+  relative_to_a_sharp = 12;
+  // Notes of the Melody should be played, adapting to the chord as in the case of "fixed", but
+  // should also transpose up/down to the Chord's root. Melody is built assuming a root of B.
+  relative_to_b = 13;
 }
 
 message Melody {

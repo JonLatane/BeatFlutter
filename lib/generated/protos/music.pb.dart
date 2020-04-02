@@ -256,7 +256,7 @@ class Melody extends $pb.GeneratedMessage {
     ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
     ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melodic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
     ..e<InstrumentType>(6, 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
-    ..e<MelodyInterpretationType>(7, 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
+    ..e<MelodyInterpretationType>(7, 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed_nonadaptive, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
     ..aOM<MelodicData>(100, 'melodicData', subBuilder: MelodicData.create)
     ..aOM<MidiData>(101, 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false

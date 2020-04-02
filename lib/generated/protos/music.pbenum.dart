@@ -86,21 +86,23 @@ class MelodyType extends $pb.ProtobufEnum {
 }
 
 class MelodyInterpretationType extends $pb.ProtobufEnum {
-  static const MelodyInterpretationType fixed = MelodyInterpretationType._(0, 'fixed');
-  static const MelodyInterpretationType relative_to_c = MelodyInterpretationType._(1, 'relative_to_c');
-  static const MelodyInterpretationType relative_to_c_sharp = MelodyInterpretationType._(2, 'relative_to_c_sharp');
-  static const MelodyInterpretationType relative_to_d = MelodyInterpretationType._(3, 'relative_to_d');
-  static const MelodyInterpretationType relative_to_d_sharp = MelodyInterpretationType._(4, 'relative_to_d_sharp');
-  static const MelodyInterpretationType relative_to_e = MelodyInterpretationType._(5, 'relative_to_e');
-  static const MelodyInterpretationType relative_to_f = MelodyInterpretationType._(6, 'relative_to_f');
-  static const MelodyInterpretationType relative_to_f_sharp = MelodyInterpretationType._(7, 'relative_to_f_sharp');
-  static const MelodyInterpretationType relative_to_g = MelodyInterpretationType._(8, 'relative_to_g');
-  static const MelodyInterpretationType relative_to_g_harp = MelodyInterpretationType._(9, 'relative_to_g_harp');
-  static const MelodyInterpretationType relative_to_a = MelodyInterpretationType._(10, 'relative_to_a');
-  static const MelodyInterpretationType relative_to_a_sharp = MelodyInterpretationType._(11, 'relative_to_a_sharp');
-  static const MelodyInterpretationType relative_to_b = MelodyInterpretationType._(12, 'relative_to_b');
+  static const MelodyInterpretationType fixed_nonadaptive = MelodyInterpretationType._(0, 'fixed_nonadaptive');
+  static const MelodyInterpretationType fixed = MelodyInterpretationType._(1, 'fixed');
+  static const MelodyInterpretationType relative_to_c = MelodyInterpretationType._(2, 'relative_to_c');
+  static const MelodyInterpretationType relative_to_c_sharp = MelodyInterpretationType._(3, 'relative_to_c_sharp');
+  static const MelodyInterpretationType relative_to_d = MelodyInterpretationType._(4, 'relative_to_d');
+  static const MelodyInterpretationType relative_to_d_sharp = MelodyInterpretationType._(5, 'relative_to_d_sharp');
+  static const MelodyInterpretationType relative_to_e = MelodyInterpretationType._(6, 'relative_to_e');
+  static const MelodyInterpretationType relative_to_f = MelodyInterpretationType._(7, 'relative_to_f');
+  static const MelodyInterpretationType relative_to_f_sharp = MelodyInterpretationType._(8, 'relative_to_f_sharp');
+  static const MelodyInterpretationType relative_to_g = MelodyInterpretationType._(9, 'relative_to_g');
+  static const MelodyInterpretationType relative_to_g_sharp = MelodyInterpretationType._(10, 'relative_to_g_sharp');
+  static const MelodyInterpretationType relative_to_a = MelodyInterpretationType._(11, 'relative_to_a');
+  static const MelodyInterpretationType relative_to_a_sharp = MelodyInterpretationType._(12, 'relative_to_a_sharp');
+  static const MelodyInterpretationType relative_to_b = MelodyInterpretationType._(13, 'relative_to_b');
 
   static const $core.List<MelodyInterpretationType> values = <MelodyInterpretationType> [
+    fixed_nonadaptive,
     fixed,
     relative_to_c,
     relative_to_c_sharp,
@@ -110,7 +112,7 @@ class MelodyInterpretationType extends $pb.ProtobufEnum {
     relative_to_f,
     relative_to_f_sharp,
     relative_to_g,
-    relative_to_g_harp,
+    relative_to_g_sharp,
     relative_to_a,
     relative_to_a_sharp,
     relative_to_b,

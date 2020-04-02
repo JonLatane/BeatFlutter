@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/rendering.dart';
@@ -79,4 +81,38 @@ class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
     // Expose geometry
     setVisibleRect(Rect.fromLTWH(constraints.scrollOffset, 0.0, geometry.paintExtent, child.size.height));
   }
+
+}
+
+extension Iterables<E> on Iterable<E> {
+  Map<K, List<E>> groupBy<K>(K Function(E) keyFunction) => fold(
+    <K, List<E>>{},
+      (Map<K, List<E>> map, E element) =>
+    map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
+
+  E maxBy(int Function(E) valueFunction) => reduce((value, element) {
+    if(value == null) {
+      return element;
+    }
+    if(valueFunction(element) > valueFunction(value)) {
+      return element;
+    }
+    return value;
+  });
+
+  E minBy(int Function(E) valueFunction) => reduce((value, element) {
+    if(value == null) {
+      return element;
+    }
+    if(valueFunction(element) < valueFunction(value)) {
+      return element;
+    }
+    return value;
+  });
+}
+
+extension FancyIterable on Iterable<int> {
+  int get maximum => reduce(max);
+
+  int get minimum => reduce(min);
 }

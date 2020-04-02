@@ -3,7 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:beatscratch_flutter_redux/drawing/harmony_beat_renderer.dart';
-import 'package:beatscratch_flutter_redux/drawing/melody/colorblock_melody_renderer.dart';
+import 'package:beatscratch_flutter_redux/drawing/melody/melody.dart';
 import 'package:beatscratch_flutter_redux/drawing/melody/melody_color_guide.dart';
 import 'package:beatscratch_flutter_redux/drawing/melody/melody_staff_lines_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
@@ -199,10 +199,16 @@ class _MelodyPainter extends CustomPainter {
     double left = startOffset;
     double right;
 
-    MelodyStaffLinesRenderer()
-      ..bounds = visibleRect()//Rect.fromLTRB(visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
-      ..draw(canvas);
-    if (drawContinuousColorGuide) {
+
+    if(notationOpacityNotifier.value > 0) {
+      MelodyStaffLinesRenderer()
+        ..alphaDrawerPaint = (Paint()
+          ..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
+        ..bounds = Rect.fromLTRB(
+          visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
+        ..draw(canvas);
+    }
+    if (drawContinuousColorGuide && colorGuideAlpha > 0) {
       this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
     }
 
@@ -241,7 +247,7 @@ class _MelodyPainter extends CustomPainter {
       if(sectionName == null || sectionName.isEmpty) {
         sectionName = renderingSection.id;
       }
-//      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
+      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
 //      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
       double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
@@ -264,18 +270,20 @@ class _MelodyPainter extends CustomPainter {
               ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
               ..length = renderingHarmony.length;
           }
-          MelodyColorGuide()
-            ..overallBounds = melodyBounds
-            ..section = renderingSection
-            ..beatPosition = renderingSectionBeat
-            ..section = renderingSection
-            ..drawPadding = 3
-            ..nonRootPadding = 3
-            ..drawnColorGuideAlpha = colorGuideAlpha
-            ..isUserChoosingHarmonyChord = false
-            ..isMelodyReferenceEnabled = true
-            ..melody = colorGuideMelody
-            ..drawColorGuide(canvas);
+//          if(colorblockOpacityNotifier.value > 0) {
+            MelodyColorGuide()
+              ..overallBounds = melodyBounds
+              ..section = renderingSection
+              ..beatPosition = renderingSectionBeat
+              ..section = renderingSection
+              ..drawPadding = 3
+              ..nonRootPadding = 3
+              ..drawnColorGuideAlpha = colorGuideAlpha
+              ..isUserChoosingHarmonyChord = false
+              ..isMelodyReferenceEnabled = true
+              ..melody = colorGuideMelody
+              ..drawColorGuide(canvas);
+//          }
         } catch(t) {
           print("failed to draw colorguide: $t");
         }
@@ -285,21 +293,57 @@ class _MelodyPainter extends CustomPainter {
         .forEach((melodyReference) {
         Melody melody = score.melodyReferencedBy(melodyReference);
         if(melody != null) {
-          ColorblockMelodyRenderer()
-            ..overallBounds = melodyBounds
-            ..section = renderingSection
-            ..beatPosition = renderingSectionBeat
-            ..section = renderingSection
-            ..colorblockAlpha = colorblockOpacityNotifier.value
-            ..drawPadding = 3
-            ..nonRootPadding = 3
-            ..isUserChoosingHarmonyChord = false
-            ..isMelodyReferenceEnabled = true
-            ..melody = melody
-            ..draw(canvas);
+          try {
+            if(colorblockOpacityNotifier.value > 0) {
+              ColorblockMelodyRenderer()
+                ..overallBounds = melodyBounds
+                ..section = renderingSection
+                ..beatPosition = renderingSectionBeat
+                ..section = renderingSection
+                ..colorblockAlpha = colorblockOpacityNotifier.value
+                ..drawPadding = 3
+                ..nonRootPadding = 3
+                ..isUserChoosingHarmonyChord = false
+                ..isMelodyReferenceEnabled = true
+                ..melody = melody
+                ..draw(canvas);
+            }
+          } catch(e) {
+            print("exception rendering colorblock: $e");
+          }
+          try {
+            if(notationOpacityNotifier.value > 0) {
+              NotationMelodyRenderer()
+                ..overallBounds = melodyBounds
+                ..section = renderingSection
+                ..beatPosition = renderingSectionBeat
+                ..section = renderingSection
+                ..notationAlpha = notationOpacityNotifier.value
+                ..drawPadding = 3
+                ..nonRootPadding = 3
+                ..isUserChoosingHarmonyChord = false
+                ..isMelodyReferenceEnabled = true
+                ..melody = melody
+                ..draw(canvas, true);
+            }
+          } catch(e) {
+            print("exception rendering notation: $e");
+          }
         }
       });
-      drawFilledNotehead(canvas, Rect.fromLTRB(left, top, left + standardBeatWidth / 2, top + standardBeatWidth / 2));
+
+      try {
+        if(notationOpacityNotifier.value > 0) {
+          MelodyMeasureLinesRenderer()
+            ..section = renderingSection
+            ..beatPosition = renderingSectionBeat
+            ..notationAlpha = notationOpacityNotifier.value
+            ..overallBounds = melodyBounds
+            ..draw(canvas, 1);
+        }
+      } catch(e) {
+        print("exception rendering measure lines: $e");
+      }
 
       left += standardBeatWidth;
       renderingBeat += 1;
@@ -389,16 +433,6 @@ class _MelodyPainter extends CustomPainter {
     }
   }
 
-  drawFilledNotehead(Canvas canvas, Rect rect) {
-//    canvas.drawRect(rect, _tickPaint);
-    canvas.save();
-    canvas.translate(rect.center.dx, rect.center.dy);
-    canvas.rotate(-0.58171824);
-    var target = rect.shift(-rect.center);
-    target = Rect.fromCenter(center: target.center, width: target.width, height: target.height * 0.7777777);
-    canvas.drawOval(target, _tickPaint);
-    canvas.restore();
-  }
 
   @override
   bool shouldRepaint(_MelodyPainter oldDelegate) {
