@@ -70,11 +70,8 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-var section1 = defaultSection();
-var score = Score()
-  ..sections.addAll([
-    section1,
-  ]);
+Score score = defaultScore();
+Section section1 = score.sections[0];
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;

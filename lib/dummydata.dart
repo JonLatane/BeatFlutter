@@ -36,3 +36,9 @@ Section defaultSection() => Section()
   ..meter = (Meter()..defaultBeatsPerMeasure = 4)
   ..tempo = (Tempo()..bpm = 123)
   ..harmony = defaultHarmony();
+
+Score defaultScore() => Score()
+  ..id = uuid.v4()
+  ..sections.addAll([
+    defaultSection(),
+  ]);
