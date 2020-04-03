@@ -1,0 +1,70 @@
+{
+  "variant": {
+    "module": {
+      "rootBuildGradleFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android",
+      "sdkFolder": "/Users/jonlatane/Library/Android/sdk",
+      "isNativeCompilerSettingsCacheEnabled": false,
+      "isBuildOnlyTargetAbiEnabled": true,
+      "splitsAbiFilterSet": [],
+      "intermediatesFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates",
+      "gradleModulePathName": ":app",
+      "moduleRootFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app",
+      "makeFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/src/main/cpp/CMakeLists.txt",
+      "buildSystem": "CMAKE",
+      "compilerSettingsCacheFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/.cxx",
+      "cxxFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx",
+      "ndkFolder": "/Users/jonlatane/Library/Android/sdk/ndk/20.0.5594570",
+      "ndkVersion": "20.0.5594570",
+      "ndkSupportedAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "ndkDefaultAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "cmakeToolchainFile": "."
+    },
+    "buildSystemArgumentList": [],
+    "cFlagList": [],
+    "cppFlagsList": [],
+    "variantName": "release",
+    "soFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/release/lib",
+    "objFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/release/obj",
+    "jsonFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release",
+    "gradleBuildOutputFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release",
+    "isDebuggableEnabled": false,
+    "validAbiList": [
+      "ARMEABI_V7A",
+      "ARM64_V8A",
+      "X86",
+      "X86_64"
+    ],
+    "buildTargetSet": []
+  },
+  "abi": "ARM64_V8A",
+  "abiPlatformVersion": 24,
+  "cxxBuildFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a",
+  "jsonFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/android_gradle_build.json",
+  "gradleBuildOutputFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a",
+  "objFolder": "/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/release/obj/arm64-v8a",
+  "buildCommandFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/build_command.txt",
+  "buildOutputFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/build_output.txt",
+  "modelOutputFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/build_model.json",
+  "cmake": {
+    "cmakeListsWrapperFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/CMakeLists.txt",
+    "toolchainWrapperFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/android_gradle_build.toolchain.cmake",
+    "buildGenerationStateFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/build_generation_state.json",
+    "cacheKeyFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/compiler_cache_key.json",
+    "compilerCacheUseFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/compiler_cache_use.json",
+    "compilerCacheWriteFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/compiler_cache_write.json",
+    "toolchainSettingsFromCacheFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cxx/release/arm64-v8a/compiler_settings_cache.cmake",
+    "cmakeWrappingBaseFolder": "."
+  },
+  "jsonGenerationLoggingRecordFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/json_generation_record.json",
+  "compileCommandsJsonFile": "/Users/jonlatane/Development/beatscratch_flutter_redux/android/app/.cxx/cmake/release/arm64-v8a/compile_commands.json"
+}

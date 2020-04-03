@@ -36,12 +36,12 @@ object MidiDevices {
 	}
 
 	fun refreshInstruments(){
-//		BeatClockPaletteConsumer.palette?.parts
-//			?.mapNotNull { it.instrument as? MIDIInstrument }
-//			?.forEach {
-//				it.sendSelectInstrument()
-//			} ?: Unit
-//		AndroidMidi.flushSendStream()
+		BeatScratchPlugin.currentScore?.partsList
+			?.map { it.instrument }
+			?.forEach {
+				it.sendSelectInstrument()
+			} ?: Unit
+		AndroidMidi.flushSendStream()
 	}
 
 	@RequiresApi(Build.VERSION_CODES.M)

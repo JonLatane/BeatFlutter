@@ -1,15 +1,25 @@
 package io.beatscratch.beatscratch_flutter_redux;
 
-import android.app.Application
-import android.os.Build
+import android.content.Intent
+import io.flutter.app.FlutterApplication
 import org.beatscratch.models.Music
 
-class MainApplication : Application() {
+class MainApplication : FlutterApplication() {
+
   override fun onCreate() {
     super.onCreate()
     instance = this
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      MidiDevices.initialize(this)
+    MidiDevices.initialize(this)
+  }
+  
+  fun startPlaybackService() {
+    try {
+      Intent(instance, PlaybackService::class.java).let {
+        it.action = PlaybackService.Companion.Action.STARTFOREGROUND_ACTION
+        startService(it)
+      }
+    } catch(t: Throwable) {
+      logE("startPlaybackService failed", t)
     }
   }
 

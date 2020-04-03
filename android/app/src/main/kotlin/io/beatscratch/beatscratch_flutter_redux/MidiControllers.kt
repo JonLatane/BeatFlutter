@@ -43,19 +43,19 @@ object MidiControllers {
 						if(AndroidMidi.isPlayingFromExternalDevice) {
 							//BeatClockPaletteConsumer.tickPosition++
 							//doAsync {
-							BeatClockPaletteConsumer.tick()
+							BeatClockScoreConsumer.tick()
 							//}
 						}
 					}
 					msg[byteIndex] == MidiConstants.PLAY                                             -> {
 						//info("Received play")
-						BeatClockPaletteConsumer.tickPosition = 0
+						BeatClockScoreConsumer.tickPosition = 0
 						AndroidMidi.isPlayingFromExternalDevice = true
 					}
 					msg[byteIndex] == MidiConstants.STOP                                             -> {
 						//info("Received stop")
 						AndroidMidi.isPlayingFromExternalDevice = false
-						BeatClockPaletteConsumer.tickPosition = 0
+						BeatClockScoreConsumer.tickPosition = 0
 					}
 					msg[byteIndex] == MidiConstants.SYNC                                             -> {
 						//info("Received sync")

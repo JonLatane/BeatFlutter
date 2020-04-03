@@ -16,14 +16,14 @@ internal class PlaybackThread : Thread() {
         if (!stopped) {
           val start = System.currentTimeMillis()
           val tickTime: Long = (60000L / (bpm * subdivisionsPerBeat)).toLong()
-          logV("Tick @${BeatClockPaletteConsumer.tickPosition} (T:${System.currentTimeMillis()}")
-          BeatClockPaletteConsumer.tick()
+          logV("Tick @${BeatClockScoreConsumer.tickPosition} (T:${System.currentTimeMillis()}")
+          BeatClockScoreConsumer.tick()
           while(System.currentTimeMillis() < start + tickTime) {
             sleep(1L)
           }
         } else {
 //          BeatClockPaletteConsumer.viewModel?.editModeToolbar?.playButton?.imageResource = R.drawable.icons8_play_100
-          BeatClockPaletteConsumer.clearActiveAttacks()
+          BeatClockScoreConsumer.clearActiveAttacks()
           AndroidMidi.flushSendStream()
           synchronized(PlaybackThread) {
             (PlaybackThread as Object).wait()

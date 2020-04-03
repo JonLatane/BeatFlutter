@@ -10,7 +10,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_DEFAULT
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.Companion.currentSection
-import kotlin.system.exitProcess
 
 
 class PlaybackService : Service() {
@@ -60,7 +59,7 @@ class PlaybackService : Service() {
       }
       Action.REWIND_ACTION          -> {
         logI("Clicked Rewind")
-        BeatClockPaletteConsumer.tickPosition = 0
+        BeatClockScoreConsumer.tickPosition = 0
       }
       Action.PAUSE_ACTION           -> {
         logI("Clicked Pause")
@@ -70,12 +69,12 @@ class PlaybackService : Service() {
       Action.STOP_ACTION            -> {
         logI("Clicked Stop")
         playbackThread.stopped = true
-        BeatClockPaletteConsumer.tickPosition = 0
+        BeatClockScoreConsumer.tickPosition = 0
 //        BeatClockPaletteConsumer.viewModel?.playbackTick = 0
-        BeatClockPaletteConsumer.clearActiveAttacks()
+        BeatClockScoreConsumer.clearActiveAttacks()
         AndroidMidi.flushSendStream()
-        AndroidMidi.send(byteArrayOf(123.toByte()))// All notes off
-        AndroidMidi.send(byteArrayOf(0xFF.toByte()))// Midi reset
+        AndroidMidi.sendImmediately(byteArrayOf(123.toByte()))// All notes off
+        AndroidMidi.sendImmediately(byteArrayOf(0xFF.toByte()))// Midi reset
         showNotification()
       }
       Action.STOPFOREGROUND_ACTION  -> {
@@ -99,7 +98,7 @@ class PlaybackService : Service() {
     logI("In onDestroy")
     playbackThread.terminated = true
 //    AudioTrackCache.releaseAll()
-    AndroidMidi.send(byteArrayOf(0xFF.toByte()))// Midi reset
+    AndroidMidi.sendImmediately(byteArrayOf(0xFF.toByte()))// Midi reset
 //    AndroidMidi.ONBOARD_DRIVER.stop()
   }
 

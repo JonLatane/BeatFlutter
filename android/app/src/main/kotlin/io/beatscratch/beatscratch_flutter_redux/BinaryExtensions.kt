@@ -30,3 +30,6 @@ fun ByteArray.hexString(offset: Int, count: Int): String {
 
 val Byte.hexString get() = String.format("%02X ", this)
 val Int.hexString get() = String.format("%02X ", this)
+
+val Float.to127Int
+	get() = Math.min(127, Math.max(0, Math.round(this * 127)))

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:quiver/iterables.dart';
 import 'drawing/sizeutil.dart';
 import 'generated/protos/music.pb.dart';
 import 'util.dart';
@@ -42,3 +43,38 @@ Score defaultScore() => Score()
   ..sections.addAll([
     defaultSection(),
   ]);
+
+extension MidiThings on Score {
+  bool usesChannel(int channel) => parts.any((part) => part.instrument.midiChannel == channel);
+}
+Part newPartFor(Score score) {
+  Part part = Part()
+    ..id = uuid.v4()
+    ..instrument = (Instrument()
+      ..name = score.parts.any((part) => part.instrument.name == "Piano")
+        ? (score.parts.any((part) => part.instrument.name == "Bass")
+        ? (score.parts.any((part) => part.instrument.name == "Guitar")
+        ? (score.parts
+        .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
+        ? ("Picollo")
+        : "Muted Electric Jazz Guitar 1")
+        : "Guitar")
+        : "Bass")
+        : "Piano"
+      ..midiChannel = (range(0,8).toList() + range(10,15).toList())
+        .firstWhere((channel) => !score.usesChannel(channel))
+      ..volume = 0.5
+      ..type = InstrumentType.harmonic);
+  return part;
+}
+
+Part newDrumPart() {
+  Part part = Part()
+    ..id = uuid.v4()
+    ..instrument = (Instrument()
+      ..name = "Drums"
+      ..volume = 0.5
+      ..midiChannel = 9
+      ..type = InstrumentType.drum);
+  return part;
+}

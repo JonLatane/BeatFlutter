@@ -11,33 +11,16 @@ import 'ui_models.dart';
 import 'util.dart';
 import 'music_theory.dart';
 
-showInstrumentPicker(BuildContext context, Color sectionColor, Score score, Part part, Function(VoidCallback) setState) {
-  var blah = showDialog(
-    context: context,
-    builder: (context) => new AlertDialog(
-      title: Text('Part Configuration'),
-      content: _PartConfiguration(part: part, superSetState: setState,),
-      actions: <Widget>[
-        new FlatButton(
-          color: sectionColor,
-          onPressed: () => Navigator.of(context).pop(true),
-          child: new Text('Done'),
-        ),
-      ],
-    ),
-  );
-}
-
-class _PartConfiguration extends StatefulWidget {
+class PartConfiguration extends StatefulWidget {
   final Part part;
   final Function(VoidCallback) superSetState;
 
-  const _PartConfiguration({Key key, this.part, this.superSetState}) : super(key: key);
+  const PartConfiguration({Key key, this.part, this.superSetState}) : super(key: key);
   @override
-  __PartConfigurationState createState() => __PartConfigurationState();
+  _PartConfigurationState createState() => _PartConfigurationState();
 }
 
-class __PartConfigurationState extends State<_PartConfiguration> {
+class _PartConfigurationState extends State<PartConfiguration> {
 
   @override
   Widget build(BuildContext context) {

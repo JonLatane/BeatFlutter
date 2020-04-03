@@ -172,7 +172,7 @@ extension HarmonyTheory on Harmony {
 extension MelodyTheory on Melody {
   int offsetUnder(Chord chord) {
     int result = 0;
-    if (interpretationType != MelodyInterpretationType.fixed) {
+    if (interpretationType != MelodyInterpretationType.fixed && interpretationType != MelodyInterpretationType.fixed_nonadaptive) {
       int root = chord.rootNote.tone.mod12;
       if (root > 6) {
         result = root - 12;

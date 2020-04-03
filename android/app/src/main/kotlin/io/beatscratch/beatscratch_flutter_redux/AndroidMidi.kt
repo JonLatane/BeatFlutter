@@ -38,7 +38,7 @@ object AndroidMidi {
 
 	val sendStream = ByteArrayOutputStream(2048)
 	fun flushSendStream() {
-		send (
+		sendImmediately (
 			synchronized(sendStream) {
 				sendStream.toByteArray().copyOf().also {
 					sendStream.reset()
@@ -46,7 +46,9 @@ object AndroidMidi {
 			}
 		)
 	}
-	fun send(bytes: ByteArray) {
+	fun sendToStream(bytes: ByteArray) = sendStream.write(bytes)
+
+	fun sendImmediately(bytes: ByteArray) {
 		if(sendToInternalFluidSynth) {
 			FLUIDSYNTH.send(bytes, 0, bytes.size, System.currentTimeMillis())
 		}

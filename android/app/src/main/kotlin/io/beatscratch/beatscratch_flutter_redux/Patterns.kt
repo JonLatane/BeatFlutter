@@ -6,57 +6,57 @@ import kotlin.math.floor
 interface Patterns {
   companion object : Patterns
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromMelody: Music.Melody,
     toMelody: Music.Melody
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromMelody.subdivisionsPerBeat,
     toSubdivisionsPerBeat = toMelody.subdivisionsPerBeat
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromMelody: Music.Melody,
     toHarmony: Music.Harmony
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromMelody.subdivisionsPerBeat,
     toSubdivisionsPerBeat = toHarmony.subdivisionsPerBeat
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromHarmony: Music.Harmony,
     toMelody: Music.Melody
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromHarmony.subdivisionsPerBeat,
     toSubdivisionsPerBeat = toMelody.subdivisionsPerBeat
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromHarmony: Music.Harmony,
     toHarmony: Music.Harmony
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromHarmony.subdivisionsPerBeat,
     toSubdivisionsPerBeat = toHarmony.subdivisionsPerBeat
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromSubdivisionsPerBeat: Int,
     toMelody: Music.Melody
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromSubdivisionsPerBeat,
     toSubdivisionsPerBeat = toMelody.subdivisionsPerBeat,
     toLength = toMelody.length
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromSubdivisionsPerBeat: Int,
     toHarmony: Music.Harmony
-  ): Int = convertPatternIndex(
+  ): Int = convertSubdivisionPosition(
     fromSubdivisionsPerBeat = fromSubdivisionsPerBeat,
     toSubdivisionsPerBeat = toHarmony.subdivisionsPerBeat,
     toLength = toHarmony.length
   )
 
-  fun Int.convertPatternIndex(
+  fun Int.convertSubdivisionPosition(
     fromSubdivisionsPerBeat: Int,
     toSubdivisionsPerBeat: Int,
     toLength: Int = Int.MAX_VALUE

@@ -1,5 +1,6 @@
 package io.beatscratch.beatscratch_flutter_redux
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
@@ -29,6 +30,8 @@ class MainActivity : FlutterActivity() {
 
       }
     })
+    MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "BeatScratchPlugin")
+      .setMethodCallHandler(BeatScratchPlugin())
 //                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
 //        } else { // In portrait
 ////        }
@@ -43,7 +46,7 @@ class MainActivity : FlutterActivity() {
 
   override fun onResume() {
     super.onResume()
-    println("onResume was called")
+    MainApplication.instance.startPlaybackService()
   }
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {

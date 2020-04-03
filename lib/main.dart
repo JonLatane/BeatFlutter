@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'beatscratch_plugin.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -105,8 +106,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showKeyboardConfiguration = false;
   bool showColorboard = false;
   bool _showColorboardConfiguration = false;
-  Part keyboardPart;
-  Part colorboardPart;
+  
+  Part _keyboardPart;
+  Part get keyboardPart => _keyboardPart;
+  set keyboardPart(Part part) {
+    _keyboardPart = part;
+//    BeatScratchPlugin.setKeyboardPart(part);
+  }
+  
+  Part _colorboardPart;
+  Part get colorboardPart => _colorboardPart;
+  set colorboardPart(Part part) {
+    _colorboardPart = part;
+//    BeatScratchPlugin.setColorboardPart(part);
+  }
   bool playing = false;
 
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
@@ -347,6 +360,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    BeatScratchPlugin.pushScore(score);
     scaleStateController = PhotoViewScaleStateController();
     keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
@@ -575,6 +589,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       width: MediaQuery.of(context).size.width,
                       color: Colors.white,
                       child: Colorboard(
+                        part: colorboardPart,
                         height: _colorboardHeight,
                         showConfiguration: _showColorboardConfiguration,
                         sectionColor: sectionColor,
@@ -797,6 +812,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             this.colorboardPart = null;
           }
           score.parts.remove(part);
+
+          BeatScratchPlugin.deletePart(part);
         });
       },
       deleteMelody: (melody) {

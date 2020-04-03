@@ -5,10 +5,12 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import org.beatscratch.models.Music
+import org.beatscratch.models.Music.Part
+import org.beatscratch.models.Music.Score
 
 class BeatScratchPlugin : MethodChannel.MethodCallHandler {
   companion object {
-    var currentScore: Music.Score? = null
+    var currentScore: Score? = null
       set(value) {
         field = value
         MidiDevices.refreshInstruments()
@@ -23,8 +25,8 @@ class BeatScratchPlugin : MethodChannel.MethodCallHandler {
         //MidiDevices.refreshInstruments()
       }
     var tickPosition: Int = 0
-    var keyboardPart: Music.Part? = null
-    var colorboardPart: Music.Part? = null
+    var keyboardPart: Part? = null
+    var colorboardPart: Part? = null
 
     //TODO probs port to a new Midi-centric proto?
     enum class PlaybackMode { SECTION, PALETTE }
@@ -37,14 +39,69 @@ class BeatScratchPlugin : MethodChannel.MethodCallHandler {
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
-    if (call.method == "getPlatformVersion") {
-      try {
-        result.success(null)
-      } catch (e: Exception) {
-        result.error("Cannot serialize data", null, null)
+    when(call.method) {
+      "sendMIDI" -> {
+        logI("sendMIDI: Kotlin BeatScratchPlugin.onMethodCall")
+        AndroidMidi.sendImmediately(call.arguments as ByteArray)
       }
-    } else {
-      result.notImplemented()
+      "pushScore" -> {
+        logI("pushScore: Kotlin BeatScratchPlugin.onMethodCall")
+        try {
+          val score: Score = Score.parseFrom(call.arguments as ByteArray)
+          currentScore = score
+          currentSection = score.sectionsList[0]
+          logI("deserialized score successfully: $score")
+        } catch (e: Throwable) {
+          logE("Failed to deserialize score", e)
+          result.error("deserialize", "Failed to deserialize score", e)
+        }
+      }
+      "pushPart" -> {
+        logI("pushPart: Kotlin BeatScratchPlugin.onMethodCall")
+        try {
+          val part: Part = Part.parseFrom(call.arguments as ByteArray)
+          logI("deserialized part successfully: $part")
+          currentScore?.let { score ->
+            val currentIndex: Int? = score.partsList.indexOfFirst { it.id == part.id }.takeIf { it >= 0 }
+            if (currentIndex != null) {
+              logI("updating existing part at $currentIndex")
+              // TODO a proper merge of sorts?
+              score.partsList.removeAt(currentIndex)
+              score.partsList.add(currentIndex, part)
+            } else {
+              logI("adding new part")
+              score.partsList.add(part)
+            }
+          }
+          part.instrument.sendSelectInstrument()
+          AndroidMidi.flushSendStream()
+        } catch (e: Throwable) {
+          logE("Failed to deserialize part", e)
+          result.error("deserialize", "Failed to deserialize part", e)
+        }
+      }
+      "deletePart" -> {
+        try {
+          val partId = call.arguments as String
+          currentScore?.partsList?.removeIf { it.id == partId }
+          result.success(null)
+        } catch (e: Exception) {
+          result.error("Cannot serialize data", null, e)
+        }
+      }
+      "playNote" -> {
+        try {
+          val args: List<Any> = call.arguments as List<Any>
+          val tone = args[0] as Int
+          val velocity = args[1] as Int
+          val partId = args[2] as String
+          val part: Part? = currentScore?.partsList?.first { it.id == partId }
+          result.success(null)
+        } catch (e: Exception) {
+          result.error("Cannot serialize data", null, e)
+        }
+      }
+      else -> result.notImplemented()
     }
   }
 }

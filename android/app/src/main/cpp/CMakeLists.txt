@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-link_directories(../../../jniLibs/${ANDROID_ABI})
+link_directories(../jniLibs/${ANDROID_ABI})
 set(fluidsynth_sources
         fluidsynth.h
         native-lib.cpp # This line needs to be removed; It's only for testing purposes

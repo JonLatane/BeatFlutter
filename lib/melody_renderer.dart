@@ -212,7 +212,7 @@ class _MelodyPainter extends CustomPainter {
       this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
     }
 
-    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
+//    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
     while (left < visibleRect().right + standardBeatWidth) {
       if (renderingBeat < 0) {
         left += standardBeatWidth;
@@ -247,7 +247,7 @@ class _MelodyPainter extends CustomPainter {
       if(sectionName == null || sectionName.isEmpty) {
         sectionName = renderingSection.id;
       }
-      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
+//      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
 //      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
       double top = visibleRect().top;
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),

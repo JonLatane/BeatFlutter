@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'beatscratch_plugin.dart';
 import 'drawing/drawing.dart';
 import 'package:sensors/sensors.dart';
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'dart:async';
 import 'dart:math';
+import 'generated/protos/music.pb.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'dart:io' show Platform;
@@ -19,8 +21,9 @@ class Colorboard extends StatefulWidget {
   final bool showConfiguration;
   final Function() hideConfiguration;
   final Color sectionColor;
+  final Part part;
 
-  const Colorboard({Key key, this.height, this.showConfiguration, this.hideConfiguration, this.sectionColor})
+  const Colorboard({Key key, this.height, this.showConfiguration, this.hideConfiguration, this.sectionColor, this.part})
       : super(key: key);
 
   @override
@@ -33,6 +36,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   bool useOrientation = true;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
+  ValueNotifier<Set<int>> pressedNotesNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
   double halfStepWidthInPx = 80;
@@ -44,6 +48,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
+    pressedNotesNotifier = ValueNotifier(Set());
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
@@ -95,6 +100,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   }
 
   double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
+  Map<int, int> _pointerIdsToTones = Map();
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +135,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                         isComplex: true,
                         willChange: true,
                         painter: _ColorboardPainter(
+                            pressedNotesNotifier: pressedNotesNotifier,
                             scrollPositionNotifier: scrollPositionNotifier,
                             halfStepsOnScreen: halfStepsOnScreen,
                             visibleRect: () => _visibleRect),
@@ -141,7 +148,26 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
         Column(children: [
           AnimatedContainer(duration: animationDuration,
             height: touchScrollAreaHeight, child: SizedBox()),
-          Expanded(child:Container(color: Colors.black12, child:GestureDetector()))
+          Expanded(child:Listener(
+            onPointerDown: (event) {
+              int tone = 0; // TODO calculate actual tones
+              _pointerIdsToTones[event.pointer] = tone;
+              print("pressed tone $tone");
+              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              try {
+                BeatScratchPlugin.playNote(tone, 127, widget.part);
+              } catch(t) {}
+            },
+            onPointerUp: (event) {
+              int tone = _pointerIdsToTones.remove(event.pointer);
+              print("released tone $tone");
+              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              try {
+                BeatScratchPlugin.stopNote(tone, 127, widget.part);
+              } catch (t) {}
+            },
+            child: Container(color: Colors.black12)
+          ))
         ]),
 //    Configuration layer
     Column(children:[
@@ -282,11 +308,12 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
 
 class _ColorboardPainter extends CustomPainter {
   final ValueNotifier<double> scrollPositionNotifier;
+  final ValueNotifier<Set<int>> pressedNotesNotifier;
   final double halfStepsOnScreen;
   final Rect Function() visibleRect;
 
-  _ColorboardPainter({this.scrollPositionNotifier, this.halfStepsOnScreen, this.visibleRect})
-      : super(repaint: scrollPositionNotifier);
+  _ColorboardPainter({this.pressedNotesNotifier, this.scrollPositionNotifier, this.halfStepsOnScreen, this.visibleRect})
+      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier]));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -302,6 +329,7 @@ class _ColorboardPainter extends CustomPainter {
       ..drawnColorGuideAlpha = 255
       ..drawPadding = 0
       ..nonRootPadding = 10
+      ..pressedNotes = pressedNotesNotifier.value
       ..normalizedDevicePitch = scrollPositionNotifier.value;
     colorGuide.drawColorGuide(canvas);
   }

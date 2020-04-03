@@ -1,5 +1,6 @@
 package io.beatscratch.beatscratch_flutter_redux
 
+import io.beatscratch.beatscratch_flutter_redux.AndroidMidi.sendToStream
 import org.beatscratch.models.Music
 import kotlin.experimental.or
 
@@ -12,10 +13,6 @@ val Music.Instrument.tones: MutableList<Int> get() = channelToneMap
 val byte2 = ByteArray(2)
 val byte3 = ByteArray(3)
 
-fun send(data: ByteArray) {
-  AndroidMidi.sendStream.write(data)
-}
-
 fun Music.Instrument.play(tone: Int, velocity: Int) {// Construct a note ON message for the middle C at maximum velocity on channel 1:
   //sendSelectInstrument(instrument)
   byte3[0] = MidiConstants.NOTE_ON or channel  // STATUS byte: note On, 0x00 = channel 1
@@ -23,7 +20,7 @@ fun Music.Instrument.play(tone: Int, velocity: Int) {// Construct a note ON mess
   byte3[2] = velocity.toByte()  // DATA byte: maximum velocity = 127
 
   // Send the MIDI byte3 to the synthesizer.
-  send(byte3)
+  sendToStream(byte3)
   tones.add(tone)
 }
 
@@ -50,7 +47,7 @@ private fun Music.Instrument.doStop(tone: Int) {
   byte3[2] = 0x00.toByte()  // 0x00 = the minimum velocity (0)
 
   // Send the MIDI byte3 to the synthesizer.
-  send(byte3)
+  sendToStream(byte3)
 }
 fun Music.Instrument.sendSelectInstrument() {
   // Write Bank MSB Control Change
@@ -59,7 +56,7 @@ fun Music.Instrument.sendSelectInstrument() {
     byte3[0] = (MidiConstants.CONTROL_CHANGE or channel)
     byte3[1] = MidiConstants.CONTROL_MSB
     byte3[2] = msb
-    send(byte3)
+    sendToStream(byte3)
   }
 
   // Write Bank LSB Control Change
@@ -68,16 +65,16 @@ fun Music.Instrument.sendSelectInstrument() {
     byte3[0] = (MidiConstants.CONTROL_CHANGE or channel)
     byte3[1] = MidiConstants.CONTROL_LSB
     byte3[2] = lsb
-    send(byte3)
+    sendToStream(byte3)
   }
 
   // Then send Program Change
   byte2[0] = (MidiConstants.PROGRAM_CHANGE or channel)  // STATUS byte: Change, 0x00 = channel 1
   byte2[1] = if (drumTrack) 0 else midiInstrument.toByte()
-  send(byte2)
+  sendToStream(byte2)
 
   byte3[0] = (MidiConstants.CONTROL_CHANGE or channel)
   byte3[1] = MidiConstants.CONTROL_VOLUME
   byte3[2] = (volume * 127).toByte()
-  send(byte3)
+  sendToStream(byte3)
 }

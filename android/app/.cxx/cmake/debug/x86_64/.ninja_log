@@ -1,0 +1,11 @@
+# ninja log v5
+0	85	0	CMakeFiles/fluidsynthjni.dir/native-lib.cpp.o	e92c86a52b5cd6fb
+85	192	0	/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/debug/obj/x86_64/libfluidsynthjni.so	713cb267024a7fa5
+0	95	0	CMakeFiles/fluidsynthjni.dir/native-lib.cpp.o	e92c86a52b5cd6fb
+95	200	0	/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/debug/obj/x86_64/libfluidsynthjni.so	713cb267024a7fa5
+1	119	0	CMakeFiles/fluidsynthjni.dir/native-lib.cpp.o	e92c86a52b5cd6fb
+119	225	0	/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/debug/obj/x86_64/libfluidsynthjni.so	713cb267024a7fa5
+0	85	0	CMakeFiles/fluidsynthjni.dir/native-lib.cpp.o	e92c86a52b5cd6fb
+85	186	0	/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/debug/obj/x86_64/libfluidsynthjni.so	713cb267024a7fa5
+0	107	0	CMakeFiles/fluidsynthjni.dir/native-lib.cpp.o	e92c86a52b5cd6fb
+108	225	0	/Users/jonlatane/Development/beatscratch_flutter_redux/build/app/intermediates/cmake/debug/obj/x86_64/libfluidsynthjni.so	713cb267024a7fa5

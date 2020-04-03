@@ -9,8 +9,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'package:unification/unification.dart';
 
 import 'animations/animations.dart';
+import 'beatscratch_plugin.dart';
 import 'instrument_picker.dart';
 import 'music_theory.dart';
 import 'ui_models.dart';
@@ -80,13 +82,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 onPressed: canAddDrumPart
                     ? () {
                         setState(() {
-                          Part part = Part()
-                            ..id = uuid.v4()
-                            ..instrument = (Instrument()
-                            ..name = "Drums"
-                            ..volume = 0.5
-                            ..type = InstrumentType.drum);
+                          Part part = newDrumPart();
                           widget.score.parts.add(part);
+//                          BeatScratchPlugin.pushPart(part);
                           if(widget.keyboardPart == null) {
                             widget.setKeyboardPart(part);
                           }
@@ -127,22 +125,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 onPressed: canAddPart
                     ? () {
                         setState(() {
-                          Part part = Part()
-                            ..id = uuid.v4()
-                            ..instrument = (Instrument()
-                              ..name = widget.score.parts.any((part) => part.instrument.name == "Piano")
-                                ? (widget.score.parts.any((part) => part.instrument.name == "Bass")
-                                ? (widget.score.parts.any((part) => part.instrument.name == "Guitar")
-                                ? (widget.score.parts
-                                .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
-                                ? ("Picollo")
-                                : "Muted Electric Jazz Guitar 1")
-                                : "Guitar")
-                                : "Bass")
-                                : "Piano"
-                              ..volume = 0.5
-                              ..type = InstrumentType.harmonic);
+                          Part part = newPartFor(widget.score);
                           widget.score.parts.add(part);
+                          BeatScratchPlugin.pushPart(part);
                           if(widget.keyboardPart == null) {
                             widget.setKeyboardPart(part);
                           }
@@ -252,7 +237,6 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 // Each item must have an unique key.
                 key: Key("part-reorderable-${item.id}"),
                 builder: (context, dragAnimation, inDrag) {
-                  final t = dragAnimation.value;
                   final tile = _buildPart(item);
 //              if (t > 0.0) {
 //                return tile;

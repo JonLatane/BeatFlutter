@@ -1,12 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-//import 'sizeutil.dart';
-import '../generated/protos/music.pb.dart';
-import 'package:unification/unification.dart';
-import '../music_theory.dart';
 import '../colors.dart';
+import '../music_theory.dart';
 import 'canvas_tone_drawer.dart';
 
 extension WithAlpha on Color {
@@ -18,6 +13,7 @@ class ColorGuide extends CanvasToneDrawer {
   int drawPadding;
   int nonRootPadding;
   int drawnColorGuideAlpha;
+  Set<int> pressedNotes = Set();
 
   drawColorGuide(Canvas canvas) {
     //TODO enable drawing Melody colorguides on web
@@ -41,11 +37,18 @@ class ColorGuide extends CanvasToneDrawer {
           if (tone == toneInChord) {
             alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(toneBounds.left, toneBounds.top - .183 * halfStepPhysicalDistance, toneBounds.right,
-                    toneBounds.bottom + .183 * halfStepPhysicalDistance),
-                alphaDrawerPaint);
+              Rect.fromLTRB(toneBounds.left, toneBounds.top - .183 * halfStepPhysicalDistance, toneBounds.right,
+                toneBounds.bottom + .183 * halfStepPhysicalDistance),
+              alphaDrawerPaint);
           }
-        } else {
+          if (pressedNotes.contains(tone)) {
+            alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.3).toInt());
+            canvas.drawRect(
+              Rect.fromLTRB(toneBounds.left, toneBounds.top - .183 * halfStepPhysicalDistance, toneBounds.right,
+                toneBounds.bottom + .183 * halfStepPhysicalDistance),
+              alphaDrawerPaint);
+          }
+        } else { // Horizontal rendering
           canvas.drawRect(
               Rect.fromLTRB(toneBounds.left, toneBounds.top + drawPadding + extraPadding, toneBounds.right,
                   toneBounds.bottom - drawPadding - extraPadding),
@@ -53,12 +56,22 @@ class ColorGuide extends CanvasToneDrawer {
           if (tone == toneInChord) {
             alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(
-                    toneBounds.left + .183 * halfStepPhysicalDistance,
-                    toneBounds.top + drawPadding + extraPadding,
-                    toneBounds.right - .183 * halfStepPhysicalDistance,
-                    toneBounds.bottom - drawPadding - extraPadding),
-                alphaDrawerPaint);
+              Rect.fromLTRB(
+                toneBounds.left + .183 * halfStepPhysicalDistance,
+                toneBounds.top + drawPadding + extraPadding,
+                toneBounds.right - .183 * halfStepPhysicalDistance,
+                toneBounds.bottom - drawPadding - extraPadding),
+              alphaDrawerPaint);
+          }
+          if (pressedNotes.contains(tone)) {
+            alphaDrawerPaint.color = Color(0x11212121).withAlpha((drawnColorGuideAlpha * 0.3).toInt());
+            canvas.drawRect(
+              Rect.fromLTRB(
+                toneBounds.left + .183 * halfStepPhysicalDistance,
+                toneBounds.top + drawPadding + extraPadding,
+                toneBounds.right - .183 * halfStepPhysicalDistance,
+                toneBounds.bottom - drawPadding - extraPadding),
+              alphaDrawerPaint);
           }
           if(tone.mod12 == 0) {
 //            alphaDrawerPaint.color = Colors.black;
