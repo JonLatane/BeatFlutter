@@ -55,7 +55,7 @@ class BeatScratchPlugin {
     ByteWriter writer = ByteWriter();
     NoteOnEvent()
       ..noteNumber = tone + 60
-      ..velocity = 127
+      ..velocity = velocity
       ..channel = part.instrument.midiChannel
       ..writeEvent(writer);
     sendMIDI(writer.buffer);
@@ -65,7 +65,7 @@ class BeatScratchPlugin {
     ByteWriter writer = ByteWriter();
     NoteOffEvent()
       ..noteNumber = tone + 60
-      ..velocity = 127
+      ..velocity = velocity
       ..channel = part.instrument.midiChannel
       ..writeEvent(writer);
     sendMIDI(writer.buffer);

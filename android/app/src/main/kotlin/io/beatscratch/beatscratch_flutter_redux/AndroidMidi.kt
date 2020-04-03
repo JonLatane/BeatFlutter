@@ -3,20 +3,27 @@ package io.beatscratch.beatscratch_flutter_redux
 import android.content.pm.PackageManager
 import fluidsynth.FluidSynthMidiReceiver
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.*
+
 
 /**
- * Singleton interface to both the Sonivox synthesizer ([ONBOARD_DRIVER])
+ * Singleton interface to both the FluidSynth synthesizer ([FLUIDSYNTH])
  * and native MIDI android devices (via [PackageManager.FEATURE_MIDI]).
  */
 object AndroidMidi {
 	internal var isPlayingFromExternalDevice = false
 	internal var lastMidiSyncTime: Long? = null
 	init {
-		System.loadLibrary("fluidsynthjni")
+		GlobalScope.launch {
+			val start = System.currentTimeMillis()
+			System.loadLibrary("fluidsynthjni")
+			println("it took ${System.currentTimeMillis() - start}ms to load fluidsynthjni")
+			resetFluidSynth()
+		}
 	}
-	private var FLUIDSYNTH = FluidSynthMidiReceiver(MainApplication.instance)
+	private var FLUIDSYNTH: FluidSynthMidiReceiver? = null
 	fun resetFluidSynth() {
-		FLUIDSYNTH.nativeLibJNI.destroy()
+		FLUIDSYNTH?.nativeLibJNI?.destroy()
 		FLUIDSYNTH = FluidSynthMidiReceiver(MainApplication.instance)
 		MidiDevices.refreshInstruments()
 	}
@@ -50,7 +57,7 @@ object AndroidMidi {
 
 	fun sendImmediately(bytes: ByteArray) {
 		if(sendToInternalFluidSynth) {
-			FLUIDSYNTH.send(bytes, 0, bytes.size, System.currentTimeMillis())
+			FLUIDSYNTH?.send(bytes, 0, bytes.size, System.currentTimeMillis())
 		}
 		if (
 			MainApplication.instance.packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)
@@ -62,7 +69,7 @@ object AndroidMidi {
 
 	private fun deactivateUnusedDevices() {
 		if(!sendToInternalFluidSynth) {
-			stopMidiReceiver { FLUIDSYNTH.send(it, 0, it.size) }
+			stopMidiReceiver { FLUIDSYNTH?.send(it, 0, it.size) }
 
 		}
 		if (
