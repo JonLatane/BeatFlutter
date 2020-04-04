@@ -1,10 +1,14 @@
 
 import 'dart:typed_data';
+import 'dart:js' as js;
 
 import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:dart_midi/src/byte_writer.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 
 /// The native platform side of the app is expected to maintain one [Score].
 /// We can push [Part]s and [Melody]s to it. [pushScore] should be the first thing called
@@ -74,7 +78,12 @@ class BeatScratchPlugin {
 
   static void sendMIDI(List<int> bytes) {
     print("invoking sendMIDI");
-    _channel.invokeMethod('sendMIDI', Uint8List.fromList(bytes));
+    if(kIsWeb) {
+      js.context.callMethod('sendMIDI', bytes);
+//      js.context.callMethod('sendMIDI', bytes);
+    } else {
+      _channel.invokeMethod('sendMIDI', Uint8List.fromList(bytes));
+    }
   }
 
   static Future<String> getScoreId() => _channel.invokeMethod<String>("getScoreId");
