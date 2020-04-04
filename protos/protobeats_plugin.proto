@@ -6,3 +6,7 @@ message SendPartMIDI {
   string part_id = 1;
   bytes data = 2;
 }
+
+message MidiSynthesizer {
+  string id = 1;
+}

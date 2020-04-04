@@ -170,22 +170,29 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
               double dy = MediaQuery.of(context).size.height - event.position.dy;
               double maxDy = widget.height - touchScrollAreaHeight;
               double velocityRatio = min(dy, maxDy) / maxDy;
-              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
+//              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
               int velocity = (velocityRatio * 127).toInt();
               int oldTone = _pointerIdsToTones[event.pointer];
               if(tone != oldTone) {
+                print("moving tone $oldTone to $tone");
                 try {
                   BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
-                } catch (t) {}
-                _pointerIdsToTones[event.pointer] = tone;
-                print("moved tone $tone");
-                pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-                try {
+                  _pointerIdsToTones[event.pointer] = tone;
+                  pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
                   BeatScratchPlugin.playNote(tone, velocity, widget.part);
-                } catch(t) {}
+                } catch(t) {
+                  print(t);
+                }
               }
             },
             onPointerUp: (event) {
+              int tone = _pointerIdsToTones.remove(event.pointer);
+              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              try {
+                BeatScratchPlugin.stopNote(tone, 127, widget.part);
+              } catch (t) {}
+            },
+            onPointerCancel: (event) {
               int tone = _pointerIdsToTones.remove(event.pointer);
               pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
               try {
