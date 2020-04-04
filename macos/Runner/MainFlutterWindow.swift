@@ -30,22 +30,22 @@ class MainFlutterWindow: NSWindow {
         print("Couldn't start engine")
     }
     
-    let channel = FlutterMethodChannel.init(name: "BeatScratchPlugin", binaryMessenger: flutterViewController.engine.binaryMessenger)
-    channel.setMethodCallHandler { (call, result) in
-        print(call.method)
-        switch call.method {
-        case "sendMIDI":
-            sampler.startNote(36, withVelocity:90, onChannel:0)
-
-            let args = call.arguments as! FlutterStandardTypedData
-            sampler.sendMIDISysExEvent(args.data)
-            result(nil)
-            break
-        default:
-            result(FlutterMethodNotImplemented)
-            break
-        }
-    }
+//    let channel = FlutterMethodChannel.init(name: "BeatScratchPlugin", binaryMessenger: flutterViewController.engine.binaryMessenger)
+//    channel.setMethodCallHandler { (call, result) in
+//        print(call.method)
+//        switch call.method {
+//        case "sendMIDI":
+//            sampler.startNote(36, withVelocity:90, onChannel:0)
+//
+//            let args = call.arguments as! FlutterStandardTypedData
+//            sampler.sendMIDISysExEvent(args.data)
+//            result(nil)
+//            break
+//        default:
+//            result(FlutterMethodNotImplemented)
+//            break
+//        }
+//    }
 
     super.awakeFromNib()
   }
