@@ -408,6 +408,8 @@ class _MelodyPainter extends CustomPainter {
       try {
         if (notationOpacityNotifier.value > 0) {
           NotationMelodyRenderer()
+            ..xScale = xScale
+            ..yScale = yScale
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat

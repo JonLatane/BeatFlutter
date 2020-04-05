@@ -229,6 +229,7 @@ message Section {
   Harmony harmony = 3;
   Meter meter = 4;
   Tempo tempo = 5;
+  NoteName key = 6;
   repeated MelodyReference melodies = 100;
 }
 

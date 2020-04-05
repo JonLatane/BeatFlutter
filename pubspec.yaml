@@ -42,6 +42,7 @@ dependencies:
   cloud_firestore: 0.13.4+2
   dart_midi: 1.0.1
   quiver: ^2.1.3
+  path_drawing: 0.4.1
 
   #  reorderables: 0.2.12
 
