@@ -111,6 +111,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Part get keyboardPart => _keyboardPart;
   set keyboardPart(Part part) {
     _keyboardPart = part;
+    if(part == null) {
+      showKeyboard = false;
+    }
 //    BeatScratchPlugin.setKeyboardPart(part);
   }
   
@@ -118,6 +121,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Part get colorboardPart => _colorboardPart;
   set colorboardPart(Part part) {
     _colorboardPart = part;
+    if(part == null) {
+      showColorboard = false;
+    }
 //    BeatScratchPlugin.setColorboardPart(part);
   }
   bool playing = false;
