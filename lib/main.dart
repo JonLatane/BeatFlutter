@@ -101,12 +101,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
 
   Section _currentSection = section1;
+  get currentSection => _currentSection;
+  set currentSection(Section section) {
+    _currentSection = section;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: sectionColor,
+    ));
+  }
+
+  int _currentBeat = 0;
+  int get currentBeat => _currentBeat;
+  set currentBeat(int beat) {
+    _currentBeat = beat;
+//    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+//      statusBarColor: sectionColor,
+//    ));
+  }
   bool showViewOptions = false;
   bool showKeyboard = false;
   bool _showKeyboardConfiguration = false;
-  bool showColorboard = false;
+  bool showColorboard = true;
   bool _showColorboardConfiguration = false;
-  
   Part _keyboardPart;
   Part get keyboardPart => _keyboardPart;
   set keyboardPart(Part part) {
@@ -126,6 +141,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
 //    BeatScratchPlugin.setColorboardPart(part);
   }
+
+  ValueNotifier<Set<int>> colorboardNotesNotifier;
+  ValueNotifier<Set<int>> keyboardNotesNotifier;
+
   bool playing = false;
 
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
@@ -182,15 +201,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         showColorboard = true;
       }
     });
-  }
-
-  get currentSection => _currentSection;
-
-  set currentSection(Section section) {
-    _currentSection = section;
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: sectionColor,
-    ));
   }
 
   Melody selectedMelody;
@@ -371,6 +381,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
         _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
+
+    colorboardNotesNotifier = ValueNotifier(Set());
+    keyboardNotesNotifier = ValueNotifier(Set());
   }
 
   @override
@@ -599,6 +612,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         height: _colorboardHeight,
                         showConfiguration: _showColorboardConfiguration,
                         sectionColor: sectionColor,
+                        pressedNotesNotifier: colorboardNotesNotifier,
                       )
 //                      Image.asset(
 //                        'assets/colorboard.png',
@@ -773,6 +787,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       melodyViewMode: melodyViewMode,
       score: _score,
       currentSection: currentSection,
+      currentBeat: currentBeat,
+      colorboardNotesNotifier: colorboardNotesNotifier,
+      keyboardNotesNotifier: keyboardNotesNotifier,
       melody: selectedMelody,
       part: selectedPart,
       sectionColor: sectionColor,

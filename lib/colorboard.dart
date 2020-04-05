@@ -22,8 +22,9 @@ class Colorboard extends StatefulWidget {
   final Function() hideConfiguration;
   final Color sectionColor;
   final Part part;
+  final ValueNotifier<Set<int>> pressedNotesNotifier;
 
-  const Colorboard({Key key, this.height, this.showConfiguration, this.hideConfiguration, this.sectionColor, this.part})
+  const Colorboard({Key key, this.height, this.showConfiguration, this.hideConfiguration, this.sectionColor, this.part, this.pressedNotesNotifier})
       : super(key: key);
 
   @override
@@ -36,7 +37,6 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   bool useOrientation = true;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
-  ValueNotifier<Set<int>> pressedNotesNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
   double halfStepWidthInPx = 80;
@@ -48,7 +48,6 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
-    pressedNotesNotifier = ValueNotifier(Set());
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
@@ -135,7 +134,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                         isComplex: true,
                         willChange: true,
                         painter: _ColorboardPainter(
-                            pressedNotesNotifier: pressedNotesNotifier,
+                            pressedNotesNotifier: widget.pressedNotesNotifier,
                             scrollPositionNotifier: scrollPositionNotifier,
                             halfStepsOnScreen: halfStepsOnScreen,
                             visibleRect: () => _visibleRect),
@@ -159,7 +158,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
               int velocity = (velocityRatio * 127).toInt();
               _pointerIdsToTones[event.pointer] = tone;
               print("pressed tone $tone");
-              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
               try {
                 BeatScratchPlugin.playNote(tone, velocity, widget.part);
               } catch(t) {}
@@ -178,7 +177,7 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
                 try {
                   BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
                   _pointerIdsToTones[event.pointer] = tone;
-                  pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
                   BeatScratchPlugin.playNote(tone, velocity, widget.part);
                 } catch(t) {
                   print(t);
@@ -187,14 +186,14 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
             },
             onPointerUp: (event) {
               int tone = _pointerIdsToTones.remove(event.pointer);
-              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
               try {
                 BeatScratchPlugin.stopNote(tone, 127, widget.part);
               } catch (t) {}
             },
             onPointerCancel: (event) {
               int tone = _pointerIdsToTones.remove(event.pointer);
-              pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
               try {
                 BeatScratchPlugin.stopNote(tone, 127, widget.part);
               } catch (t) {}

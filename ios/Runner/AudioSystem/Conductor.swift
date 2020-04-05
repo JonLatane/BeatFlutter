@@ -57,7 +57,7 @@ class Conductor {
 
         autopan = AutoPan(filterSection)
         autoPanMixer = AKDryWetMixer(filterSection, autopan)
-        autoPanMixer.balance = 0 
+        autoPanMixer.balance = 0
 
         fatten = Fatten(autoPanMixer)
         
@@ -70,7 +70,7 @@ class Conductor {
         reverbMixer = AKDryWetMixer(masterVolume, reverb, balance: 0.3)
        
         // Set Output & Start AudioKit
-        AudioKit.output = reverbMixer
+        AudioKit.output = sampler1
         do {
             try AudioKit.start()
             print("AudioKit.start() success")
@@ -81,9 +81,9 @@ class Conductor {
         // Set a few sampler parameters
         sampler1.releaseDuration = 0.5
   
-        useFluidSound("000_Grand Piano")
+        useFluidSound("Clavinet")
         print("AudioKit sample: Grand Piano")
-        useSound("TX Pluck Bass")
+        useSound("TX Brass")
         // Init sequencer
 //        midiLoad("rom_poly")
     }
@@ -109,7 +109,7 @@ class Conductor {
     }
 
     func useFluidSound(_ sound: String) {
-        let soundsFolder = Bundle.main.bundleURL.appendingPathComponent("Sounds/sfz/fluid").path
+        let soundsFolder = Bundle.main.bundleURL.appendingPathComponent("Sounds/sfz/fluid2").path
         sampler1.unloadAllSamples()
         sampler1.loadSFZ(path: soundsFolder, fileName: sound + ".sfz")
     }

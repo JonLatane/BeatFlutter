@@ -25,12 +25,23 @@ Melody odeToJoy() => Melody()
   }))
 ;
 
+Melody defaultMelody() => Melody()
+  ..id = uuid.v4()
+  ..type = MelodyType.melodic
+  ..instrumentType = InstrumentType.harmonic
+  ..subdivisionsPerBeat = 4
+  ..length = 64
+  ..melodicData = MelodicData();
+
 Harmony defaultHarmony() =>
   Harmony()
     ..id = uuid.v4()
     ..subdivisionsPerBeat = 4
     ..length = 64
-    ..data.addAll({0: cChromatic, 32: cMinor});
+    ..data.addAll({
+      0: cChromatic,
+//      32: cMinor,
+    });
 
 Section defaultSection() => Section()
   ..id = uuid.v4()
@@ -42,6 +53,10 @@ Score defaultScore() => Score()
   ..id = uuid.v4()
   ..sections.addAll([
     defaultSection(),
+  ])
+  ..parts.addAll([
+    newPartFor(Score()),
+    newDrumPart()
   ]);
 
 extension MidiThings on Score {

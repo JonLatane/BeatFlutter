@@ -59,30 +59,40 @@ class BeatScratchToolbar extends StatelessWidget {
               //setState(() {});
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: null,
-                child: Text('score name'),
+                child: Column(children:[
+                  Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900)),
+                  Container(height:5),
+                  Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
+                    style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12)),
+                ]),
                 enabled: false,
               ),
               const PopupMenuItem(
                 value: null,
                 child: Text('New Score'),
+                enabled: false,
               ),
               const PopupMenuItem(
                 value: null,
                 child: Text('Open Score...'),
+                enabled: false,
               ),
               const PopupMenuItem(
                 value: null,
                 child: Text('Duplicate Score...'),
+                enabled: false,
               ),
               const PopupMenuItem(
                 value: null,
                 child: Text('Save Score'),
+                enabled: false,
               ),
               const PopupMenuItem(
                 value: null,
                 child: Text('Copy Score'),
+                enabled: false,
               ),
               const PopupMenuItem(
                 value: "midiSettings",
@@ -120,28 +130,22 @@ class BeatScratchToolbar extends StatelessWidget {
 //                value: "about",
 //                child: Text('About BeatScratch'),
 //              ),
-              const PopupMenuItem(
-                value: null,
-                child: Text('Quit BeatScratch'),
-              ),
             ],
             padding: EdgeInsets.only(bottom: 10.0),
             icon: Image.asset('assets/logo.png'))),
         Expanded(
           child: FlatButton(
-            onPressed: () {
-              if (interactionMode == InteractionMode.view) {
-                togglePlaying();
-              } else {
-                toggleSectionListDisplayMode();
-              }
-            },
+            onPressed: (interactionMode == InteractionMode.view)
+              ? null /* () { togglePlaying(); }*/
+              : () { toggleSectionListDisplayMode(); },
             padding: EdgeInsets.all(0.0),
             child: Icon(
               (interactionMode == InteractionMode.view)
                 ? (playing ? Icons.stop : Icons.play_arrow)
                 : Icons.menu,
-              color: sectionColor))),
+              color: (interactionMode == InteractionMode.view)
+                ? Colors.grey
+                : sectionColor))),
         Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
@@ -227,7 +231,7 @@ class SecondToolbar extends StatelessWidget {
         duration: animationDuration,
         child: Padding(
           padding: const EdgeInsets.all(2),
-          child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: () => {}))),
+          child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: null))),
       AnimatedContainer(
         width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
         duration: animationDuration,

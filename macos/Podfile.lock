@@ -158,6 +158,7 @@ PODS:
     - abseil/base/base_internal
     - abseil/base/config
     - abseil/meta/type_traits
+  - AudioKit/Core (4.9.5)
   - BoringSSL-GRPC (0.0.3):
     - BoringSSL-GRPC/Implementation (= 0.0.3)
     - BoringSSL-GRPC/Interface (= 0.0.3)
@@ -265,6 +266,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - AudioKit/Core (~> 4.0)
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
@@ -275,6 +277,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - abseil
+    - AudioKit
     - BoringSSL-GRPC
     - Firebase
     - FirebaseAuth
@@ -308,6 +311,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   abseil: 18063d773f5366ff8736a050fe035a28f635fd27
+  AudioKit: ccf4e39c89ed6e5cbbce5fef58d819db39446437
   BoringSSL-GRPC: db8764df3204ccea016e1c8dd15d9a9ad63ff318
   cloud_firestore: e1c133271becf0db80f0ba5d68a5cbdc7cf1e892
   Firebase: 0490eca762a72e4f1582319539153897f1508dee
@@ -331,6 +335,6 @@ SPEC CHECKSUMS:
   url_launcher: af78307ef9bafff91273b34f1c6c0c86a0004fd7
   url_launcher_macos: 76867a28e24e0b6b98bfd65f157b64108e6d477a
 
-PODFILE CHECKSUM: d8ba9b3e9e93c62c74a660b46c6fcb09f03991a7
+PODFILE CHECKSUM: 954fb66b1ed63465c75dab10652c891094ca7d3b
 
 COCOAPODS: 1.8.4

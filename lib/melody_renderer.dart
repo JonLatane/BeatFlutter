@@ -36,8 +36,21 @@ class MelodyRenderer extends StatefulWidget {
   final RenderingMode renderingMode;
   final double xScale;
   final double yScale;
+  final int currentBeat;
+  final ValueNotifier<Set<int>> colorboardNotesNotifier;
+  final ValueNotifier<Set<int>> keyboardNotesNotifier;
 
-  const MelodyRenderer({Key key, this.score, this.section, this.xScale, this.yScale, this.focusedMelody, this.renderingMode})
+  const MelodyRenderer(
+      {Key key,
+      this.score,
+      this.section,
+      this.xScale,
+      this.yScale,
+      this.focusedMelody,
+      this.renderingMode,
+      this.currentBeat,
+      this.colorboardNotesNotifier,
+      this.keyboardNotesNotifier})
       : super(key: key);
 
   @override
@@ -61,39 +74,43 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   AnimationController configurationChangeAnimationController;
   ValueNotifier<double> colorblockOpacityNotifier;
   ValueNotifier<double> notationOpacityNotifier;
+  ValueNotifier<int> currentBeatNotifier;
 
   @override
   void initState() {
     super.initState();
-    configurationChangeAnimationController = AnimationController(vsync: this,
-      duration: Duration(milliseconds: 500));
-    if(colorblockOpacityNotifier == null) colorblockOpacityNotifier = ValueNotifier(0);
-    if(notationOpacityNotifier == null) notationOpacityNotifier = ValueNotifier(0);
+    configurationChangeAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    if (colorblockOpacityNotifier == null) colorblockOpacityNotifier = ValueNotifier(0);
+    if (notationOpacityNotifier == null) notationOpacityNotifier = ValueNotifier(0);
+    currentBeatNotifier = ValueNotifier(0);
   }
 
   @override
   Widget build(BuildContext context) {
     String key = widget.score.id;
-    if(widget.section != null) {
+    if (widget.section != null) {
       key = widget.section.toString();
     }
     double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
     double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
     Animation animation1;
     animation1 = Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
-      .animate(configurationChangeAnimationController)
-      ..addListener(() {
-        colorblockOpacityNotifier.value = animation1.value;
+        .animate(configurationChangeAnimationController)
+          ..addListener(() {
+            colorblockOpacityNotifier.value = animation1.value;
 //                setState(() {});
-      });
+          });
     Animation animation2;
     animation2 = Tween<double>(begin: notationOpacityNotifier.value, end: notationOpacityValue)
-      .animate(configurationChangeAnimationController)
-      ..addListener(() {
-        notationOpacityNotifier.value = animation2.value;
+        .animate(configurationChangeAnimationController)
+          ..addListener(() {
+            notationOpacityNotifier.value = animation2.value;
 //                setState(() {});
-      });
-    configurationChangeAnimationController.forward(from:0);
+          });
+    if (currentBeatNotifier.value != widget.currentBeat) {
+      currentBeatNotifier.value = widget.currentBeat;
+    }
+    configurationChangeAnimationController.forward(from: 0);
     return SingleChildScrollView(
         key: Key(key),
         child: Container(
@@ -115,6 +132,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         focusedMelody: widget.focusedMelody,
                         colorblockOpacityNotifier: colorblockOpacityNotifier,
                         notationOpacityNotifier: notationOpacityNotifier,
+                        currentBeatNotifier: currentBeatNotifier,
+                        colorboardNotesNotifier: widget.colorboardNotesNotifier,
+                        keyboardNotesNotifier: widget.keyboardNotesNotifier,
                         visibleRect: () => _visibleRect,
                         staffReferences: [_AccompanimentReference(), _DrumTrackReference()]),
                   ),
@@ -164,6 +184,9 @@ class _MelodyPainter extends CustomPainter {
   final List<_StaffReference> staffReferences;
   final ValueNotifier<double> colorblockOpacityNotifier;
   final ValueNotifier<double> notationOpacityNotifier;
+  final ValueNotifier<int> currentBeatNotifier;
+  final ValueNotifier<Set<int>> colorboardNotesNotifier;
+  final ValueNotifier<Set<int>> keyboardNotesNotifier;
 
   bool get isViewingSection => section != null;
 
@@ -173,13 +196,30 @@ class _MelodyPainter extends CustomPainter {
 
   double get width => standardBeatWidth * numberOfBeats;
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
+
   int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
   _MelodyPainter(
-      {this.score, this.section, this.xScale, this.yScale, this.visibleRect, this.staffReferences, this.focusedMelody,
-        this.colorblockOpacityNotifier, this.notationOpacityNotifier}) : super(
-    repaint: Listenable.merge([colorblockOpacityNotifier, notationOpacityNotifier])
-  ) {
+      {this.colorboardNotesNotifier,
+      this.keyboardNotesNotifier,
+      this.currentBeatNotifier,
+      this.score,
+      this.section,
+      this.xScale,
+      this.yScale,
+      this.visibleRect,
+      this.staffReferences,
+      this.focusedMelody,
+      this.colorblockOpacityNotifier,
+      this.notationOpacityNotifier})
+      : super(
+            repaint: Listenable.merge([
+          colorblockOpacityNotifier,
+          notationOpacityNotifier,
+          currentBeatNotifier,
+          colorboardNotesNotifier,
+          keyboardNotesNotifier
+        ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
   }
@@ -199,13 +239,11 @@ class _MelodyPainter extends CustomPainter {
     double left = startOffset;
     double right;
 
-
-    if(notationOpacityNotifier.value > 0) {
+    if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
-        ..alphaDrawerPaint = (Paint()
-          ..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
+        ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = Rect.fromLTRB(
-          visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
+            visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
         ..draw(canvas);
     }
     if (drawContinuousColorGuide && colorGuideAlpha > 0) {
@@ -229,7 +267,7 @@ class _MelodyPainter extends CustomPainter {
           _beat += candidate.beatCount;
           renderingSectionBeat -= candidate.beatCount;
           sectionIndex += 1;
-          if(sectionIndex < score.sections.length) {
+          if (sectionIndex < score.sections.length) {
             candidate = score.sections[sectionIndex];
           } else {
             candidate = null;
@@ -238,13 +276,13 @@ class _MelodyPainter extends CustomPainter {
         }
         renderingSection = candidate;
       }
-      if(renderingSection == null) {
+      if (renderingSection == null) {
         break;
       }
       Harmony renderingHarmony = renderingSection.harmony;
       right = left + standardBeatWidth;
       String sectionName = renderingSection.name;
-      if(sectionName == null || sectionName.isEmpty) {
+      if (sectionName == null || sectionName.isEmpty) {
         sectionName = renderingSection.id;
       }
 //      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
@@ -253,96 +291,30 @@ class _MelodyPainter extends CustomPainter {
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
       Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
-      HarmonyBeatRenderer()
-        ..overallBounds = harmonyBounds
-        ..section = renderingSection
-        ..beatPosition = renderingSectionBeat
-        ..draw(canvas);
+      _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
       top = top + harmonyHeight;
 
       Rect melodyBounds = Rect.fromLTRB(left, top, right, visibleRect().bottom);
       if (!drawContinuousColorGuide) {
-        try {
-          Melody colorGuideMelody = focusedMelody;
-          if (colorGuideMelody == null) {
-            colorGuideMelody = Melody()
-              ..id = uuid.v4()
-              ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
-              ..length = renderingHarmony.length;
-          }
-//          if(colorblockOpacityNotifier.value > 0) {
-            MelodyColorGuide()
-              ..overallBounds = melodyBounds
-              ..section = renderingSection
-              ..beatPosition = renderingSectionBeat
-              ..section = renderingSection
-              ..drawPadding = 3
-              ..nonRootPadding = 3
-              ..drawnColorGuideAlpha = colorGuideAlpha
-              ..isUserChoosingHarmonyChord = false
-              ..isMelodyReferenceEnabled = true
-              ..melody = colorGuideMelody
-              ..drawColorGuide(canvas);
-//          }
-        } catch(t) {
-          print("failed to draw colorguide: $t");
-        }
+        _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
       }
       renderingSection.melodies
-        .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
-        .forEach((melodyReference) {
+          .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
+          .forEach((melodyReference) {
         Melody melody = score.melodyReferencedBy(melodyReference);
-        if(melody != null) {
-          try {
-            if(colorblockOpacityNotifier.value > 0) {
-              ColorblockMelodyRenderer()
-                ..overallBounds = melodyBounds
-                ..section = renderingSection
-                ..beatPosition = renderingSectionBeat
-                ..section = renderingSection
-                ..colorblockAlpha = colorblockOpacityNotifier.value
-                ..drawPadding = 3
-                ..nonRootPadding = 3
-                ..isUserChoosingHarmonyChord = false
-                ..isMelodyReferenceEnabled = true
-                ..melody = melody
-                ..draw(canvas);
-            }
-          } catch(e) {
-            print("exception rendering colorblock: $e");
-          }
-          try {
-            if(notationOpacityNotifier.value > 0) {
-              NotationMelodyRenderer()
-                ..overallBounds = melodyBounds
-                ..section = renderingSection
-                ..beatPosition = renderingSectionBeat
-                ..section = renderingSection
-                ..notationAlpha = notationOpacityNotifier.value
-                ..drawPadding = 3
-                ..nonRootPadding = 3
-                ..isUserChoosingHarmonyChord = false
-                ..isMelodyReferenceEnabled = true
-                ..melody = melody
-                ..draw(canvas, true);
-            }
-          } catch(e) {
-            print("exception rendering notation: $e");
-          }
-        }
+        _renderColorblockAndNotationNotes(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat);
       });
 
       try {
-        if(notationOpacityNotifier.value > 0) {
-          MelodyMeasureLinesRenderer()
-            ..section = renderingSection
-            ..beatPosition = renderingSectionBeat
-            ..notationAlpha = notationOpacityNotifier.value
-            ..overallBounds = melodyBounds
-            ..draw(canvas, 1);
+        if (notationOpacityNotifier.value > 0) {
+          _renderNotationMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
         }
-      } catch(e) {
+      } catch (e) {
         print("exception rendering measure lines: $e");
+      }
+
+      if (renderingBeat == currentBeatNotifier.value) {
+        _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat);
       }
 
       left += standardBeatWidth;
@@ -351,6 +323,107 @@ class _MelodyPainter extends CustomPainter {
 //    if (drawContinuousColorGuide) {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
+  }
+
+  Melody _colorboardDummyMelody = defaultMelody()..subdivisionsPerBeat=1..length=1;
+  Melody _keyboardDummyMelody = defaultMelody()..subdivisionsPerBeat=1..length=1;
+  void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat) {
+    canvas.drawRect(
+        melodyBounds,
+        Paint()
+          ..style = PaintingStyle.fill
+          ..color = Colors.black26);
+    _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(colorboardNotesNotifier.value);
+    _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(keyboardNotesNotifier.value);
+    _renderColorblockAndNotationNotes(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat);
+    _renderColorblockAndNotationNotes(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat);
+
+  }
+
+  void _renderNotationMeasureLines(Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
+    MelodyMeasureLinesRenderer()
+      ..section = renderingSection
+      ..beatPosition = renderingSectionBeat
+      ..notationAlpha = notationOpacityNotifier.value
+      ..overallBounds = melodyBounds
+      ..draw(canvas, 1);
+  }
+
+  void _renderSubdividedColorGuide(Harmony renderingHarmony, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
+    try {
+      Melody colorGuideMelody = focusedMelody;
+      if (colorGuideMelody == null) {
+        colorGuideMelody = Melody()
+          ..id = uuid.v4()
+          ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
+          ..length = renderingHarmony.length;
+      }
+    //          if(colorblockOpacityNotifier.value > 0) {
+      MelodyColorGuide()
+        ..overallBounds = melodyBounds
+        ..section = renderingSection
+        ..beatPosition = renderingSectionBeat
+        ..section = renderingSection
+        ..drawPadding = 3
+        ..nonRootPadding = 3
+        ..drawnColorGuideAlpha = colorGuideAlpha
+        ..isUserChoosingHarmonyChord = false
+        ..isMelodyReferenceEnabled = true
+        ..melody = colorGuideMelody
+        ..drawColorGuide(canvas);
+    //          }
+    } catch (t) {
+      print("failed to draw colorguide: $t");
+    }
+  }
+
+  void _renderHarmonyBeat(Rect harmonyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
+    HarmonyBeatRenderer()
+      ..overallBounds = harmonyBounds
+      ..section = renderingSection
+      ..beatPosition = renderingSectionBeat
+      ..draw(canvas);
+  }
+
+  _renderColorblockAndNotationNotes(
+      Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat) {
+    if (melody != null) {
+      try {
+        if (colorblockOpacityNotifier.value > 0) {
+          ColorblockMelodyRenderer()
+            ..overallBounds = melodyBounds
+            ..section = renderingSection
+            ..beatPosition = renderingSectionBeat
+            ..colorblockAlpha = colorblockOpacityNotifier.value
+            ..drawPadding = 3
+            ..nonRootPadding = 3
+            ..isUserChoosingHarmonyChord = false
+            ..isMelodyReferenceEnabled = true
+            ..melody = melody
+            ..draw(canvas);
+        }
+      } catch (e) {
+        print("exception rendering colorblock: $e");
+      }
+      try {
+        if (notationOpacityNotifier.value > 0) {
+          NotationMelodyRenderer()
+            ..overallBounds = melodyBounds
+            ..section = renderingSection
+            ..beatPosition = renderingSectionBeat
+            ..section = renderingSection
+            ..notationAlpha = notationOpacityNotifier.value
+            ..drawPadding = 3
+            ..nonRootPadding = 3
+            ..isUserChoosingHarmonyChord = false
+            ..isMelodyReferenceEnabled = true
+            ..melody = melody
+            ..draw(canvas, true);
+        }
+      } catch (e) {
+        print("exception rendering notation: $e");
+      }
+    }
   }
 
   drawContinuousColorGuide(Canvas canvas, double top, double bottom) {
@@ -381,12 +454,10 @@ class _MelodyPainter extends CustomPainter {
       }
       Harmony renderingHarmony = renderingSection.harmony;
       double beatLeft = left;
-      for(int renderingSubdivision in range(
-        renderingSectionBeat * renderingHarmony.subdivisionsPerBeat,
-        (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat - 1
-      )) {
+      for (int renderingSubdivision in range(renderingSectionBeat * renderingHarmony.subdivisionsPerBeat,
+          (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat - 1)) {
         Chord chordAtSubdivision =
-          renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic; //TODO Is this default needed?
+            renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic; //TODO Is this default needed?
         if (renderingChord == null) {
           renderingChord = chordAtSubdivision;
         }
@@ -404,7 +475,7 @@ class _MelodyPainter extends CustomPainter {
               ..nonRootPadding = 0
               ..drawnColorGuideAlpha = colorGuideAlpha
               ..drawColorGuide(canvas);
-          } catch(t) {
+          } catch (t) {
             print("failed to draw colorguide: $t");
           }
           chordLeft = left;
@@ -428,11 +499,10 @@ class _MelodyPainter extends CustomPainter {
         ..nonRootPadding = 0
         ..drawnColorGuideAlpha = colorGuideAlpha
         ..drawColorGuide(canvas);
-    } catch(t) {
+    } catch (t) {
       print("failed to draw colorguide: $t");
     }
   }
-
 
   @override
   bool shouldRepaint(_MelodyPainter oldDelegate) {

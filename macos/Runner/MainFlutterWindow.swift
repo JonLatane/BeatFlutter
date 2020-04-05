@@ -4,49 +4,41 @@ import CoreAudio
 import AVFoundation
 
 class MainFlutterWindow: NSWindow {
-  override func awakeFromNib() {
-    let flutterViewController = FlutterViewController.init()
-    let windowFrame = self.frame
-    self.contentViewController = flutterViewController
-    self.setFrame(windowFrame, display: true)
-    RegisterGeneratedPlugins(registry: flutterViewController)
-    
-    let engine = AVAudioEngine()
-    let sampler = AVAudioUnitSampler()
-    engine.attach(sampler)
-    engine.connect(sampler, to:engine.mainMixerNode, format:engine.mainMixerNode.outputFormat(forBus: 0))
-
-    do {
-        let url = Bundle.main.url(forResource:"chaos_bank_v1.9", withExtension:"sf2")
-        if url != nil {
-            try sampler.loadSoundBankInstrument(at: url!, program: 0, bankMSB: 0, bankLSB: 0)
-//            try sampler.loadAudioFiles(at:[url])
-            try engine.start()
-            print("Started audio engine!")
-        } else {
-            print("Engine: Couldn't find SoundFont")
+    override func awakeFromNib() {
+        let flutterViewController = FlutterViewController.init()
+        let windowFrame = self.frame
+        self.contentViewController = flutterViewController
+        self.setFrame(windowFrame, display: true)
+        RegisterGeneratedPlugins(registry: flutterViewController)
+        
+        
+        
+        let channel = FlutterMethodChannel.init(name: "BeatScratchPlugin", binaryMessenger: flutterViewController.engine.binaryMessenger)
+        let conductor = Conductor.sharedInstance
+        channel.setMethodCallHandler { (call, result) in
+            print("Call from macOS: " + call.method)
+            switch call.method {
+            case "sendMIDI":
+                let data = (call.arguments as! FlutterStandardTypedData).data
+                let args = [UInt8](data)
+                if((args[0] & 0xF0) == 0x90) {
+                    print("noteOn");
+                    conductor.playNote(note: args[1], velocity: args[2], channel: args[0] & 0xF)
+                } else if((args[0] & 0xF0) == 0x80) {
+                    print("noteOff");
+                    conductor.stopNote(note: args[1], channel: args[0] & 0xF)
+                } else {
+                    print("unmatched args:");
+                    print(args);
+                }
+                result(nil)
+                break
+            default:
+                result(FlutterMethodNotImplemented)
+                break
+            }
         }
-    } catch {
-        print("Couldn't start engine")
+        
+        super.awakeFromNib()
     }
-    
-    let channel = FlutterMethodChannel.init(name: "BeatScratchPlugin", binaryMessenger: flutterViewController.engine.binaryMessenger)
-    channel.setMethodCallHandler { (call, result) in
-        print("Call from macOS: " + call.method)
-        switch call.method {
-        case "sendMIDI":
-            sampler.startNote(36, withVelocity:90, onChannel:0)
-
-            let args = call.arguments as! FlutterStandardTypedData
-            sampler.sendMIDISysExEvent(args.data)
-            result(nil)
-            break
-        default:
-            result(FlutterMethodNotImplemented)
-            break
-        }
-    }
-
-    super.awakeFromNib()
-  }
 }
