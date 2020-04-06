@@ -241,6 +241,7 @@ const Section$json = const {
     const {'1': 'harmony', '3': 3, '4': 1, '5': 11, '6': '.Harmony', '10': 'harmony'},
     const {'1': 'meter', '3': 4, '4': 1, '5': 11, '6': '.Meter', '10': 'meter'},
     const {'1': 'tempo', '3': 5, '4': 1, '5': 11, '6': '.Tempo', '10': 'tempo'},
+    const {'1': 'key', '3': 6, '4': 1, '5': 11, '6': '.NoteName', '10': 'key'},
     const {'1': 'melodies', '3': 100, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
   ],
 };

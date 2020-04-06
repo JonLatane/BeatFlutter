@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/midi_theory.dart';
 import 'package:unification/unification.dart';
 
 import 'generated/protos/music.pb.dart';
@@ -105,6 +106,14 @@ extension NoteConversions on int {
     }
     return result;
   }
+  int get mod7 {
+    int result = this;
+    result = result % 7;
+    while (result < 0) {
+      result += 7;
+    }
+    return result;
+  }
 }
 
 extension PatternIndexConversions on int {
@@ -136,7 +145,9 @@ extension ChordTheory on Chord {
         }
       }
     });
-//    print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
+    if(chroma != 2047) {
+//      print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
+    }
     return result ?? rootNote.tone;
   }
 
@@ -146,8 +157,8 @@ extension ChordTheory on Chord {
     if (root == tone) {
       return true;
     }
-    int difference = (tone - root).mod12 - 1;
-    if ((chroma >> difference) & 0x0001 == 1) {
+    int difference = (tone - root).mod12;
+    if ((chroma >> 11 - difference) & 0x0001 == 1) {
       return true;
     }
     return false;
@@ -172,6 +183,11 @@ extension HarmonyTheory on Harmony {
 }
 
 extension MelodyTheory on Melody {
+  Iterable<int> get tones => (type == MelodyType.melodic)
+    ? melodicData.data.values.expand((it) => it.tones)
+    : [];
+  double get averageTone => tones.reduce((a, b) => a + b) / tones.length.toDouble();
+
   int offsetUnder(Chord chord) {
     int result = 0;
     if (interpretationType != MelodyInterpretationType.fixed && interpretationType != MelodyInterpretationType.fixed_nonadaptive) {
@@ -213,6 +229,7 @@ extension MelodyTheory on Melody {
 }
 
 extension SectionTheory on Section {
+  String get convenientName => (name.isEmpty) ? name : "Section ${id.substring(0, 5)}";
   int get beatCount => harmony.beatCount;
 
   MelodyReference referenceTo(Melody melody) =>
@@ -228,6 +245,13 @@ extension SectionTheory on Section {
     melodies.add(result);
     return result;
   }
+}
+
+extension PartTheory on Part {
+//  String get convenientName => (name.isEmpty) ? name : "Part ${id.substring(0, 5)}";
+  bool get isDrum => instrument.type == InstrumentType.drum;
+  bool get isHarmonic => instrument.type == InstrumentType.harmonic;
+  String get midiName => isDrum ? "Drums" : midiInstruments[instrument.midiInstrument];
 }
 
 extension ScoreTheory on Score {

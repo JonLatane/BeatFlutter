@@ -11,7 +11,8 @@ class NoteSpecification {
   NoteLetter get letter => noteName.noteLetter;
   NoteSign get sign => noteName.noteSign;
   int get diatonicValue => 7 * octave + letter.value;
-  @override String toString() => "NoteSpecification:${noteName.noteLetter.name}${noteName.noteSign.simpleString}$octave";
+  String get uiString => "${noteName.noteLetter.name}${noteName.noteSign.simpleString}$octave";
+  @override String toString() => "NoteSpecification:$uiString";
 
   NoteSpecification({this.noteName, this.octave});
 

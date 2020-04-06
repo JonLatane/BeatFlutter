@@ -21,17 +21,19 @@ class MainFlutterWindow: NSWindow {
             case "sendMIDI":
                 let data = (call.arguments as! FlutterStandardTypedData).data
                 let args = [UInt8](data)
-                if((args[0] & 0xF0) == 0x90) {
-                    print("noteOn");
+                if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
+//                    print("noteOn");
                     conductor.playNote(note: args[1], velocity: args[2], channel: args[0] & 0xF)
+                    result(nil)
                 } else if((args[0] & 0xF0) == 0x80) {
-                    print("noteOff");
+//                    print("noteOff");
                     conductor.stopNote(note: args[1], channel: args[0] & 0xF)
+                    result(nil)
                 } else {
-                    print("unmatched args:");
+                    print("unmatched MIDI bytes:");
                     print(args);
+                    result(FlutterMethodNotImplemented)
                 }
-                result(nil)
                 break
             default:
                 result(FlutterMethodNotImplemented)

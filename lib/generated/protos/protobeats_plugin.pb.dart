@@ -9,44 +9,135 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-class SendPartMIDI extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('SendPartMIDI', createEmptyInstance: create)
-    ..aOS(1, 'partId')
-    ..a<$core.List<$core.int>>(2, 'data', $pb.PbFieldType.OY)
+class MidiSynthesizer extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiSynthesizer', createEmptyInstance: create)
+    ..aOS(1, 'id')
+    ..aOS(2, 'name')
     ..hasRequiredFields = false
   ;
 
-  SendPartMIDI._() : super();
-  factory SendPartMIDI() => create();
-  factory SendPartMIDI.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory SendPartMIDI.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  SendPartMIDI clone() => SendPartMIDI()..mergeFromMessage(this);
-  SendPartMIDI copyWith(void Function(SendPartMIDI) updates) => super.copyWith((message) => updates(message as SendPartMIDI));
+  MidiSynthesizer._() : super();
+  factory MidiSynthesizer() => create();
+  factory MidiSynthesizer.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiSynthesizer.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiSynthesizer clone() => MidiSynthesizer()..mergeFromMessage(this);
+  MidiSynthesizer copyWith(void Function(MidiSynthesizer) updates) => super.copyWith((message) => updates(message as MidiSynthesizer));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static SendPartMIDI create() => SendPartMIDI._();
-  SendPartMIDI createEmptyInstance() => create();
-  static $pb.PbList<SendPartMIDI> createRepeated() => $pb.PbList<SendPartMIDI>();
+  static MidiSynthesizer create() => MidiSynthesizer._();
+  MidiSynthesizer createEmptyInstance() => create();
+  static $pb.PbList<MidiSynthesizer> createRepeated() => $pb.PbList<MidiSynthesizer>();
   @$core.pragma('dart2js:noInline')
-  static SendPartMIDI getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SendPartMIDI>(create);
-  static SendPartMIDI _defaultInstance;
+  static MidiSynthesizer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiSynthesizer>(create);
+  static MidiSynthesizer _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get partId => $_getSZ(0);
+  $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
-  set partId($core.String v) { $_setString(0, v); }
+  set id($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasPartId() => $_has(0);
+  $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
-  void clearPartId() => clearField(1);
+  void clearId() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get data => $_getN(1);
+  $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set data($core.List<$core.int> v) { $_setBytes(1, v); }
+  set name($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasData() => $_has(1);
+  $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearData() => clearField(2);
+  void clearName() => clearField(2);
+}
+
+class MidiController extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiController', createEmptyInstance: create)
+    ..aOS(1, 'id')
+    ..aOS(2, 'name')
+    ..hasRequiredFields = false
+  ;
+
+  MidiController._() : super();
+  factory MidiController() => create();
+  factory MidiController.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiController.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiController clone() => MidiController()..mergeFromMessage(this);
+  MidiController copyWith(void Function(MidiController) updates) => super.copyWith((message) => updates(message as MidiController));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiController create() => MidiController._();
+  MidiController createEmptyInstance() => create();
+  static $pb.PbList<MidiController> createRepeated() => $pb.PbList<MidiController>();
+  @$core.pragma('dart2js:noInline')
+  static MidiController getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiController>(create);
+  static MidiController _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get name => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set name($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearName() => clearField(2);
+}
+
+class MidiSynthesizers extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiSynthesizers', createEmptyInstance: create)
+    ..pc<MidiSynthesizer>(1, 'synthesizers', $pb.PbFieldType.PM, subBuilder: MidiSynthesizer.create)
+    ..hasRequiredFields = false
+  ;
+
+  MidiSynthesizers._() : super();
+  factory MidiSynthesizers() => create();
+  factory MidiSynthesizers.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiSynthesizers.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiSynthesizers clone() => MidiSynthesizers()..mergeFromMessage(this);
+  MidiSynthesizers copyWith(void Function(MidiSynthesizers) updates) => super.copyWith((message) => updates(message as MidiSynthesizers));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiSynthesizers create() => MidiSynthesizers._();
+  MidiSynthesizers createEmptyInstance() => create();
+  static $pb.PbList<MidiSynthesizers> createRepeated() => $pb.PbList<MidiSynthesizers>();
+  @$core.pragma('dart2js:noInline')
+  static MidiSynthesizers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiSynthesizers>(create);
+  static MidiSynthesizers _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<MidiSynthesizer> get synthesizers => $_getList(0);
+}
+
+class MidiControllers extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiControllers', createEmptyInstance: create)
+    ..pc<MidiController>(1, 'controllers', $pb.PbFieldType.PM, subBuilder: MidiController.create)
+    ..hasRequiredFields = false
+  ;
+
+  MidiControllers._() : super();
+  factory MidiControllers() => create();
+  factory MidiControllers.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiControllers.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiControllers clone() => MidiControllers()..mergeFromMessage(this);
+  MidiControllers copyWith(void Function(MidiControllers) updates) => super.copyWith((message) => updates(message as MidiControllers));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiControllers create() => MidiControllers._();
+  MidiControllers createEmptyInstance() => create();
+  static $pb.PbList<MidiControllers> createRepeated() => $pb.PbList<MidiControllers>();
+  @$core.pragma('dart2js:noInline')
+  static MidiControllers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiControllers>(create);
+  static MidiControllers _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<MidiController> get controllers => $_getList(0);
 }
 

@@ -14,6 +14,7 @@ import 'package:unification/unification.dart';
 import 'animations/animations.dart';
 import 'beatscratch_plugin.dart';
 import 'instrument_picker.dart';
+import 'midi_theory.dart';
 import 'music_theory.dart';
 import 'ui_models.dart';
 import 'util.dart';
@@ -31,6 +32,7 @@ class PartMelodiesView extends StatefulWidget {
   final Function(Part, double) setPartVolume;
   final Part colorboardPart;
   final Part keyboardPart;
+  final Part selectedPart;
   final Function(Part) setKeyboardPart;
   final Function(Part) setColorboardPart;
   final Function(Part) selectPart;
@@ -54,7 +56,7 @@ class PartMelodiesView extends StatefulWidget {
       this.editingMelody,
       this.toggleEditingMelody,
       this.hideMelodyView,
-      this.availableWidth});
+      this.availableWidth, this.selectedPart});
 
   @override
   _PartMelodiesViewState createState() {
@@ -168,12 +170,13 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   Widget _buildPart(Part part) {
     return Container(
         key: Key("part-container-${part.id}"),
-        width: 160,
+        width: 200,
         child: Column(children: [
           Expanded(
             child: _MelodiesView(
                 score: widget.score,
                 part: part,
+                selectedPart: widget.selectedPart,
                 sectionColor: widget.sectionColor,
                 selectMelody: widget.selectMelody,
                 toggleEditingMelody: widget.toggleEditingMelody,
@@ -281,6 +284,7 @@ class _MelodiesView extends StatefulWidget {
   final Color sectionColor;
   final Section currentSection;
   final Melody selectedMelody;
+  final Part selectedPart;
   final Part colorboardPart;
   final Part keyboardPart;
   final Function(Part) setKeyboardPart;
@@ -312,7 +316,7 @@ class _MelodiesView extends StatefulWidget {
     this.editingMelody,
     this.toggleEditingMelody,
     this.hideMelodyView,
-    this.removePart,
+    this.removePart, this.selectedPart,
   });
 
   @override
@@ -391,6 +395,15 @@ class _MelodiesViewState extends State<_MelodiesView> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    String partName;
+    if(part.instrument.type == InstrumentType.drum) {
+      partName = "Drums";
+    } else {
+      partName = midiInstruments[part.instrument.midiInstrument];
+    }
+    bool isSelectedPart = widget.selectedPart == part && part.instrument.type != InstrumentType.drum;
+    Color backgroundColor = part.instrument.type == InstrumentType.drum ? Colors.brown : isSelectedPart ? Colors.white : Colors.grey;
+    Color textColor = part.instrument.type == InstrumentType.drum ? Colors.white : isSelectedPart ? Colors.grey : Colors.white;
     return ReorderableList(
         onReorder: this._reorderCallback,
         onReorderDone: this._reorderDone,
@@ -398,7 +411,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
           // cacheExtent: 3000,
           slivers: <Widget>[
             SliverAppBar(
-              backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
+              backgroundColor: backgroundColor,
               actions: <Widget>[
                 AnimatedContainer(
                     duration: animationDuration,
@@ -413,7 +426,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 Padding(
                     padding: EdgeInsets.only(right: 5),
                     child:
-                        Handle(key: Key("handle-part-${part.id}"), delay: Duration.zero, child: Icon(Icons.reorder))),
+                        Handle(key: Key("handle-part-${part.id}"), delay: Duration.zero, child:
+                        Icon(Icons.reorder, color: textColor))),
               ],
               pinned: true,
               expandedHeight: 100.0,
@@ -430,28 +444,28 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       child: Align(
                           alignment: Alignment.bottomLeft,
                           child: Padding(
-                              padding: EdgeInsets.only(bottom: 18),
+                              padding: EdgeInsets.only(bottom: 0, top: 30),
                               child: Text(
-                                part.instrument.name,
-                                style: TextStyle(color: Colors.white, fontSize: 15),
-                                maxLines: 1,
+                                partName,
+                                style: TextStyle(color: textColor, fontSize: 12),
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ))))),
             ),
             SliverAppBar(
-              backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
+              backgroundColor: backgroundColor,
               floating: true,
               pinned: false,
               expandedHeight: 50.0,
               flexibleSpace: Slider(
                   value: max(0.0, min(1.0, part.instrument.volume)),
-                  activeColor: Colors.white,
+                  activeColor: textColor,
                   onChanged: (value) {
                     setPartVolume(part, value);
                   }),
             ),
             SliverAppBar(
-              backgroundColor: part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
+              backgroundColor: backgroundColor,
               floating: true,
               pinned: false,
               expandedHeight: 50.0,
@@ -468,7 +482,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   },
                   child: Icon(
                     Icons.add,
-                    color: Colors.white,
+                    color: textColor,
                   )),
             ),
             SliverPadding(

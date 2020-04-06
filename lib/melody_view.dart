@@ -5,6 +5,7 @@ import 'package:beatscratch_flutter_redux/main.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'instrument_picker.dart';
 import 'melodybeat.dart';
 import 'expanded_section.dart';
 import 'part_melodies_view.dart';
@@ -25,30 +26,27 @@ class MelodyView extends StatefulWidget {
   final Score score;
   final Section currentSection;
   final int currentBeat;
-  final ValueNotifier<Set<int>> colorboardNotesNotifier;
-  final ValueNotifier<Set<int>> keyboardNotesNotifier;
+  final ValueNotifier<Set<int>> colorboardNotesNotifier, keyboardNotesNotifier;
   final Melody melody;
   final Part part;
   final Color sectionColor;
-  final VoidCallback toggleMelodyViewDisplayMode;
-  final VoidCallback closeMelodyView;
-  final VoidCallback toggleEditingMelody;
+  final VoidCallback toggleMelodyViewDisplayMode, closeMelodyView, toggleEditingMelody;
+  final Function(VoidCallback) superSetState;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
   final Function(Part, double) setPartVolume;
   final Function(Melody, String) setMelodyName;
   final Function(Section, String) setSectionName;
   final bool editingMelody;
-  final Function(Part) setKeyboardPart;
-  final Function(Part) setColorboardPart;
-  final Part colorboardPart;
-  final Part keyboardPart;
+  final Function(Part) setKeyboardPart, setColorboardPart;
+  final Part keyboardPart, colorboardPart;
   final Function(Part) deletePart;
   final Function(Melody) deleteMelody;
   final Function(Section) deleteSection;
 
   MelodyView(
       {this.melodyViewSizeFactor,
+        this.superSetState,
       this.melodyViewMode,
       this.score,
       this.currentSection,
@@ -79,9 +77,76 @@ class MelodyView extends StatefulWidget {
   _MelodyViewState createState() => _MelodyViewState();
 }
 
-class _MelodyViewState extends State<MelodyView> {
+class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
+  bool isConfiguringPart = false;
+  Offset _previousOffset = Offset.zero;
+  Offset _offset = Offset.zero;
+  Offset _startFocalPoint = Offset.zero;
+  double _startHorizontalScale = 1.0;
+  double _startVerticalScale = 1.0;
+  AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
+  double _xScale = null;
+  double get xScale => _xScale;
+  List<AnimationController> _xScaleAnimationControllers = [];
+  set xScale(double value) {
+    _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _xScaleAnimationControllers.clear();
+    AnimationController scaleAnimationController = animationController();
+    _xScaleAnimationControllers.add(scaleAnimationController);
+    Animation animation;
+    print("animating xScale to $value");
+    animation = Tween<double>(begin: _xScale, end: value)
+      .animate(scaleAnimationController)
+      ..addListener(() {
+        setState(() { _xScale = animation.value; });
+      });
+    scaleAnimationController.forward();
+  }
+  double _yScale = null;
+  double get yScale => _yScale;
+  List<AnimationController> _yScaleAnimationControllers = [];
+  set yScale(double value) {
+    _yScaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _yScaleAnimationControllers.clear();
+    AnimationController scaleAnimationController = animationController();
+    _yScaleAnimationControllers.add(scaleAnimationController);
+    Animation animation;
+    animation = Tween<double>(begin: _yScale, end: value)
+      .animate(scaleAnimationController)
+      ..addListener(() {
+        setState(() { _yScale = animation.value; });
+      });
+    scaleAnimationController.forward();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+  @override
+  void dispose() {
+    _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _yScaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _xScaleAnimationControllers.clear();
+    _yScaleAnimationControllers.clear();
+    super.dispose();
+  }
+  makeFullSize() {
+    if(widget.melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+      widget.toggleMelodyViewDisplayMode();
+    }
+  }
   @override
   Widget build(context) {
+    if(_xScale == null) {
+      if(context.isTablet) {
+        _xScale = 1;
+        _yScale = 1;
+      } else {
+        _xScale = 0.66;
+        _yScale = 0.66;
+      }
+    }
     return Column(
       children: [
         AnimatedContainer(
@@ -125,16 +190,24 @@ class _MelodyViewState extends State<MelodyView> {
                       deleteSection: widget.deleteSection,
                       canDeleteSection: widget.score.sections.length > 1,
                     )),
-                AnimatedContainer(
-                    duration: animationDuration,
-                    height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
-                    child: PartToolbar(
+                    AnimatedContainer(
+                      duration: animationDuration,
+                      height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
+                      child: PartToolbar(
                         part: widget.part,
                         setKeyboardPart: widget.setKeyboardPart,
+                        configuringPart: isConfiguringPart,
+                        toggleConfiguringPart: () {setState(() {
+                          isConfiguringPart = !isConfiguringPart;
+                          if(isConfiguringPart && !context.isTablet) {
+                            makeFullSize();
+                          }
+                        });},
                         setColorboardPart: widget.setColorboardPart,
                         colorboardPart: widget.colorboardPart,
                         keyboardPart: widget.keyboardPart,
-                        deletePart: widget.deletePart)),
+                        deletePart: widget.deletePart,
+                      sectionColor: widget.sectionColor)),
                     AnimatedContainer(
                       duration: animationDuration,
                       height: (widget.melodyViewMode == MelodyViewMode.melody) ? 48 : 0,
@@ -161,6 +234,12 @@ class _MelodyViewState extends State<MelodyView> {
             ],
           ),
         ),
+
+        AnimatedContainer(
+          duration: animationDuration,
+          color: widget.part != null && widget.part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
+          height: (widget.melodyViewMode == MelodyViewMode.part && isConfiguringPart) ? 280 : 0,
+          child: PartConfiguration(part: widget.part, superSetState: widget.superSetState)),
         AnimatedContainer(
           color: Colors.white,
           duration: animationDuration,
@@ -171,14 +250,8 @@ class _MelodyViewState extends State<MelodyView> {
     );
   }
 
-  Offset _previousOffset = Offset.zero;
-  Offset _offset = Offset.zero;
-  Offset _startFocalPoint = Offset.zero;
-  double _startHorizontalScale = 1.0;
-  double _startVerticalScale = 1.0;
-  double _horizontalScale = 1.0;
-  double _verticalScale = 1.0;
-
+  static const double maxScaleDiscrepancy = 1.5;
+  static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
   Widget _mainMelody(BuildContext context) {
     return Container(
         color: Colors.white,
@@ -186,36 +259,73 @@ class _MelodyViewState extends State<MelodyView> {
             onScaleStart: (details) => setState(() {
                   _previousOffset = _offset;
                   _startFocalPoint = details.focalPoint;
-                  _startHorizontalScale = _horizontalScale;
-                  _startVerticalScale = _verticalScale;
+                  _startHorizontalScale = xScale;
+                  _startVerticalScale = yScale;
                 }),
             onScaleUpdate: (ScaleUpdateDetails details) {
               setState(() {
                 if (details.horizontalScale > 0) {
-                  _horizontalScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
+                  _xScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
+//                  if(_xScale > maxScaleDiscrepancy * _yScale) {
+//                    _yScale = _xScale * minScaleDiscrepancy;
+//                  }
+//                  if(_xScale < minScaleDiscrepancy * _yScale) {
+//                    _yScale = _xScale * minScaleDiscrepancy;
+//                  }
                 }
-                if (details.horizontalScale > 0) {
-                  _verticalScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
+                if (details.verticalScale > 0) {
+                  _yScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
                 }
                 final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
-                final Offset newOffset = details.focalPoint - normalizedOffset * _horizontalScale;
+                final Offset newOffset = details.focalPoint - normalizedOffset * xScale;
                 _offset = newOffset;
               });
             },
             onScaleEnd: (ScaleEndDetails details) {
               //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
             },
-            child: MelodyRenderer(
-              score: widget.score,
-              section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
-              currentBeat: widget.currentBeat,
-              colorboardNotesNotifier: widget.colorboardNotesNotifier,
-              keyboardNotesNotifier: widget.keyboardNotesNotifier,
-              focusedMelody: widget.melody,
-              renderingMode: widget.renderingMode,
-              xScale: _horizontalScale,
-              yScale: _verticalScale,
-            )
+            child: Stack(children:[
+              MelodyRenderer(
+                melodyViewMode: widget.melodyViewMode,
+                score: widget.score,
+                section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
+                currentBeat: widget.currentBeat,
+                colorboardNotesNotifier: widget.colorboardNotesNotifier,
+                keyboardNotesNotifier: widget.keyboardNotesNotifier,
+                focusedMelody: widget.melody,
+                renderingMode: widget.renderingMode,
+                xScale: _xScale,
+                yScale: _xScale,
+              ),
+              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
+                Container(
+                  width: 36,
+                  child: RaisedButton(
+                    padding: EdgeInsets.all(0),
+                    onPressed: (xScale < 16 || yScale < 16)
+                      ? () {
+                      setState(() {
+                        if(xScale < 16) xScale *= 1.62;
+                        if(yScale < 16) yScale *= 1.62;
+                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
+                      });
+                    } : null,
+                    child: Icon(Icons.zoom_in))),
+                Container(
+                  width: 36,
+                  child: RaisedButton(
+                    padding: EdgeInsets.all(0),
+                    onPressed: (xScale > 0.1 || yScale > 0.1)
+                      ? () {
+                      setState(() {
+                        if(xScale > 0.1) xScale /= 1.62;
+                        if(yScale > 0.1) yScale /= 1.62;
+                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
+                      });
+                    } : null,
+                    child: Icon(Icons.zoom_out))),
+              ]))))
+            ])
 //          GridView.builder(
 //            gridDelegate:
 //                new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),

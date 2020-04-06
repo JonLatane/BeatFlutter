@@ -119,9 +119,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    ));
   }
   bool showViewOptions = false;
-  bool showKeyboard = false;
+  bool showKeyboard = true;
   bool _showKeyboardConfiguration = false;
-  bool showColorboard = true;
+  bool showColorboard = false;
   bool _showColorboardConfiguration = false;
   Part _keyboardPart;
   Part get keyboardPart => _keyboardPart;
@@ -151,6 +151,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
 
   double _melodyViewSizeFactor = 1.0;
+
+  updateScore(Function(Score) updates) {
+    setState(() {
+      score = score.copyWith(updates);
+    });
+  }
 
   _showMelodyView() {
     if (interactionMode == InteractionMode.edit) {
@@ -528,8 +534,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                                 child: Text(
-                                    "is pre-Alpha software. macOS and iOS ports are coming, and the Android app is on the Play Store.",
+                                    "is pre-release software. Bugs and missing features abound.",
                                     style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
+                        Padding(
+                          padding: EdgeInsets.only(right: 5),
+                          child: RaisedButton(
+                            onPressed: () {
+                              setState(() {
+                                showWebWarning = false;
+                              });
+                            },
+                            child: Text("OK!"))),
                         FlatButton(
                             onPressed: () {
                               _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
@@ -543,7 +558,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             child: FlatButton(
                                 color: Colors.white,
                                 onPressed: () {
-                                  _launchURL("https://beatscratch.io/assets/BeatFlutter.zip");
+                                  _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
                                 },
                                 padding: EdgeInsets.all(0),
                                 child: Stack(children:[
@@ -554,15 +569,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   Padding(padding: EdgeInsets.only(top:2, left:5), child:
                                   Text("Download For", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
                                 ]))),
-                        Padding(
-                            padding: EdgeInsets.only(right: 5),
-                            child: RaisedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    showWebWarning = false;
-                                  });
-                                },
-                                child: Text("OK!"))),
                       ])),
 //            Flex(direction: Axis.vertical, children: <Widget>[
                   _combineSecondAndMainToolbar
@@ -614,6 +620,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         showConfiguration: _showColorboardConfiguration,
                         sectionColor: sectionColor,
                         pressedNotesNotifier: colorboardNotesNotifier,
+                        distanceFromBottom: _keyboardHeight,
                       )
 //                      Image.asset(
 //                        'assets/colorboard.png',
@@ -767,6 +774,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       selectMelody: _selectOrDeselectMelody,
       selectPart: _selectOrDeselectPart,
       selectedMelody: selectedMelody,
+      selectedPart: selectedPart,
       toggleEditingMelody: () {
         setState(() {
           editingMelody = !editingMelody;
@@ -787,6 +795,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _melodyView(BuildContext context) {
     return MelodyView(
+      superSetState: setState,
       melodyViewSizeFactor: _melodyViewSizeFactor,
       melodyViewMode: melodyViewMode,
       score: _score,

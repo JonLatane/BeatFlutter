@@ -17,6 +17,7 @@ enum Notehead { quarter, half, whole, percussion }
 class NotationMelodyRenderer extends BaseMelodyRenderer {
   double xScale;
   double yScale;
+  double get minScale => min(xScale, yScale);
 //  static final ui.Image notehead = await loadUiImage("");
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
@@ -46,61 +47,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     canvas.save();
     canvas.translate(0, bounds.top);
     alphaDrawerPaint.color = Colors.black.withAlpha((255 * notationAlpha).toInt());
-    alphaDrawerPaint.strokeWidth = 3;
-//    alphaDrawerPaint.strokeWidth = max(1.0, bounds.width * 0.008);
-
-//    double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0 / 3;
     _drawNotationMelody(canvas);
-//
-    NoteSpecification highestDiatonicNote = clefs.expand((clef) => clef.notes).maxBy((e) => e.diatonicValue);
-    NoteSpecification lowestDiatonicNote = clefs.expand((clef) => clef.notes).minBy((e) => e.diatonicValue);
-
-//    if(isFinalBeat) {
-//      print("final beat is beat $beatPosition");
-//      drawTimewiseLineRelativeToBounds(
-//        canvas: canvas,
-//        leftSide: true,
-//        alpha: notationAlpha,
-//        strokeWidth: 3,
-//        startY: pointForNote(highestDiatonicNote),
-//        stopY: pointForNote(lowestDiatonicNote),
-//      );
-//    }
-//TODO Most of this code can go up into MelodyRenderer
-//    paint.color = color(android.R.color.black).withAlpha(
-//    if (focusedMelody != null) (255 * notationAlpha / 3f).toInt()
-//    else (255 * notationAlpha).toInt()
-//    )
-//    var melodiesToRender = sectionMelodiesOfPartType.filter { it != focusedMelody }
-//    if(focusedMelody == null) {
-//    melodiesToRender = melodiesToRender.sortedByDescending { otherMelody ->
-//    otherMelody.averageTone!!
-//    }
-//    }
-//    val melodyToRenderSelectionAndPlaybackWith = when(focusedMelody) {
-//    null -> melodiesToRender.maxBy { it.subdivisionsPerBeat }
-//    else -> null
-//    }
-//    // Render queue is accessed from two directions; in order from highest to lowest Melody
-//    val renderQueue = melodiesToRender.toMutableList()
-//    var index = 0
-//    while(renderQueue.isNotEmpty()) {
-//    // Draw highest Melody stems up, lowest stems down, second lowest stems up, second highest
-//    // down. And repeat.
-//    val (otherMelody, stemsUp) = when (index % 4) {
-//    0    -> renderQueue.removeAt(0) to true
-//    1    -> renderQueue.removeAt(renderQueue.size - 1) to false
-//    2    -> renderQueue.removeAt(renderQueue.size - 1) to true
-//    else -> renderQueue.removeAt(0) to false
-//    }
-//    val drawSelectionAndPlayback = otherMelody == melodyToRenderSelectionAndPlaybackWith
-//    this.drawNotationMelody(
-//      canvas: canvas,
-//    drawAlpha: viewModel.openedMelody?.let { notationAlpha / 3 } ?: notationAlpha,
-//    stemsUp: stemsUp
-//    )
-//    index++
-//    }
     canvas.restore();
   }
 
@@ -158,7 +105,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       bool hadStaggeredNotes = false;
       bool minWasStaggered = false;
       bool maxWasStaggered = false;
-      print("Rendering playbackNotes $playbackNotes");
+//      print("Rendering playbackNotes $playbackNotes");
       playbackNotes.forEach((note) {
         double center = pointForNote(note);
         minCenter = min(center, minCenter);
@@ -243,6 +190,8 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           _renderSign(canvas, signRect, signToDraw);
         }
 
+        alphaDrawerPaint.strokeWidth = max(1, 1 * minScale);
+
 //        drawable.setBounds(signLeft, signTop, signRight, signBottom)
 //        drawable.alpha = (255 * alphaSource).toInt()
 //        drawable.draw(this)
@@ -250,21 +199,21 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         _renderLedgerLines(canvas, note, left, right);
 //      }
 //
-//      // Draw the stem
-//      if (stemsUp) {
-//        val stemX = bounds.right - 0.95 * noteheadWidth
-//        val startY = maxCenter + noteheadHeight * (if (maxWasStaggered) .2f else -.2f)
-//        val stopY = minCenter - 3 * noteheadHeight
-//        drawLine(stemX, startY, stemX, stopY, paint)
-//      } else {
-//        val stemX = if (hadStaggeredNotes) bounds.right - 0.95 * noteheadWidth
-//        else bounds.right - 1.85 * noteheadWidth
-//        val startY = minCenter + noteheadHeight * when {
-//        minWasStaggered || hadStaggeredNotes -> -.2
-//        else -> .2
-//        }
-//        double stopY = maxCenter + 3 * noteheadHeight;
-//        canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+        // Draw the stem
+        if (stemsUp) {
+          double stemX = bounds.right - 0.965 * noteheadWidth;
+          double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
+          double stopY = minCenter - 3 * noteheadHeight;
+          canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+        } else {
+          double stemX = (hadStaggeredNotes)
+            ? bounds.right - 0.95 * noteheadWidth
+            : bounds.right - 1.837 * noteheadWidth;
+          double startY = minCenter + noteheadHeight *
+            ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
+          double stopY = maxCenter + 3 * noteheadHeight;
+          canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+        }
       });
     }
   }
@@ -284,13 +233,14 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     switch(sign) {
       case NoteSign.sharp:
         signPath = _sharpPath;
-        canvas.scale(2.2 * xScale, 2.2 * yScale);
+        canvas.scale(1.6 * minScale, 1.6 * minScale);
         canvas.translate(-84.19600,-436.0680 + 1);
 //    canvas.scale(0.1);
         break;
       case NoteSign.flat:
         signPath = _flatPath;
-        canvas.translate(-94.947,-433.75);
+        canvas.scale(1.8 * minScale, 1.8 * minScale);
+        canvas.translate(-94.947,-433.75 + 1);
         break;
       case NoteSign.double_flat:
         signPath = _doubleFlatPath;

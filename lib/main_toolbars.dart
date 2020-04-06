@@ -239,7 +239,7 @@ class SecondToolbar extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           child: RaisedButton(
             child: Image.asset('assets/stop.png'),
-            onPressed: () => {},
+            onPressed: null//() => {},
           ))),
       Expanded(
         child: Padding(
@@ -256,7 +256,7 @@ class SecondToolbar extends StatelessWidget {
                 child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
               )
             ]),
-            onPressed: () => {},
+            onPressed: null//() => {},
           ))),
       Expanded(
         child: Padding(

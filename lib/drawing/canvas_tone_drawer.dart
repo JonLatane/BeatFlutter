@@ -34,9 +34,9 @@ class CanvasToneDrawer {
   double get axisLength => renderVertically ? bounds.height : bounds.width;
   double halfStepsOnScreen;
 
-  int get highestPitch => TOP;
+  int highestPitch = TOP;
 
-  int get lowestPitch => BOTTOM;
+  int lowestPitch = BOTTOM;
 
   double get halfStepWidth => axisLength / halfStepsOnScreen;
   double get diatonicStepWidth => halfStepWidth * 12 / 7;

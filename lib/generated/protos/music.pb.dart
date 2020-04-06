@@ -678,6 +678,7 @@ class Section extends $pb.GeneratedMessage {
     ..aOM<Harmony>(3, 'harmony', subBuilder: Harmony.create)
     ..aOM<Meter>(4, 'meter', subBuilder: Meter.create)
     ..aOM<Tempo>(5, 'tempo', subBuilder: Tempo.create)
+    ..aOM<NoteName>(6, 'key', subBuilder: NoteName.create)
     ..pc<MelodyReference>(100, 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
     ..hasRequiredFields = false
   ;
@@ -748,8 +749,19 @@ class Section extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   Tempo ensureTempo() => $_ensure(4);
 
+  @$pb.TagNumber(6)
+  NoteName get key => $_getN(5);
+  @$pb.TagNumber(6)
+  set key(NoteName v) { setField(6, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasKey() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearKey() => clearField(6);
+  @$pb.TagNumber(6)
+  NoteName ensureKey() => $_ensure(5);
+
   @$pb.TagNumber(100)
-  $core.List<MelodyReference> get melodies => $_getList(5);
+  $core.List<MelodyReference> get melodies => $_getList(6);
 }
 
 class Score extends $pb.GeneratedMessage {

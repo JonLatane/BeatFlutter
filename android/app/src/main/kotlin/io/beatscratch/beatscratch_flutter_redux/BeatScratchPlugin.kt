@@ -59,22 +59,26 @@ class BeatScratchPlugin : MethodChannel.MethodCallHandler {
       "pushPart" -> {
         logI("pushPart: Kotlin BeatScratchPlugin.onMethodCall")
         try {
-          val part: Part = Part.parseFrom(call.arguments as ByteArray)
+          var part: Part = Part.parseFrom(call.arguments as ByteArray)
           logI("deserialized part successfully: $part")
           currentScore?.let { score ->
-            val currentIndex: Int? = score.partsList.indexOfFirst { it.id == part.id }.takeIf { it >= 0 }
-            if (currentIndex != null) {
-              logI("updating existing part at $currentIndex")
-              // TODO a proper merge of sorts?
-              score.partsList.removeAt(currentIndex)
-              score.partsList.add(currentIndex, part)
+            val oldPartIndex = score.partsList.indexOfFirst { it.id == part.id }.takeIf { it >= 0 }
+            val newScore = Score.newBuilder(score)
+            if (oldPartIndex != null) {
+              logI("updating existing Part at $oldPartIndex")
+              val oldPart = score.partsList[oldPartIndex];
+              part = Part.newBuilder(part)
+                .addAllMelodies(oldPart.melodiesList)
+                .build()
+              newScore.removeParts(oldPartIndex)
             } else {
-              logI("adding new part")
-              score.partsList.add(part)
+              logI("adding new Part")
             }
+            newScore.addParts(part)
+            currentScore = newScore.build()
+            part.instrument.sendSelectInstrument()
+            AndroidMidi.flushSendStream()
           }
-          part.instrument.sendSelectInstrument()
-          AndroidMidi.flushSendStream()
         } catch (e: Throwable) {
           logE("Failed to deserialize part", e)
           result.error("deserialize", "Failed to deserialize part", e)

@@ -18,6 +18,42 @@ extension ContextUtils on BuildContext {
   bool get isPortrait => !isLandscape;
 }
 
+class IncrementableValue extends StatelessWidget {
+  final Function onIncrement;
+  final Function onDecrement;
+  final String value;
+  final TextStyle textStyle;
+  final double valueWidth;
+  final VoidCallback onValuePressed;
+
+  const IncrementableValue({Key key, this.onIncrement, this.onDecrement, this.value, this.textStyle, this.valueWidth = 45, this.onValuePressed,}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Row(children:[
+      Container(
+        width: 25,
+        child: RaisedButton(
+          child: Icon(Icons.arrow_upward),
+          onPressed: onIncrement,
+          padding: EdgeInsets.all(0),)),
+      Container(
+        width: valueWidth,
+        child: RaisedButton(onPressed: onValuePressed, padding: EdgeInsets.all(0),
+          child: Text(value ?? "null", style: textStyle ?? TextStyle(color: Colors.white),))),
+      Container(
+        width: 25,
+        child: RaisedButton(
+          child: Icon(Icons.arrow_downward),
+          onPressed: onDecrement,
+          padding: EdgeInsets.all(0),)),
+    ]);
+  }
+
+}
+
 
 Future<ui.Image> loadUiImage(String imageAssetPath) async {
   final ByteData data = await rootBundle.load(imageAssetPath);
@@ -90,7 +126,7 @@ extension Iterables<E> on Iterable<E> {
       (Map<K, List<E>> map, E element) =>
     map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
 
-  E maxBy(int Function(E) valueFunction) => reduce((value, element) {
+  E maxBy(int Function(E) valueFunction) => (isEmpty) ? null : reduce((value, element) {
     if(value == null) {
       return element;
     }

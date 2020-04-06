@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
 import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,19 +14,32 @@ import 'dart:math';
 import 'generated/protos/music.pb.dart';
 import 'ui_models.dart';
 import 'util.dart';
+import 'music_notation_theory.dart';
+import 'music_theory.dart';
 import 'dart:io' show Platform;
 
-
 class Colorboard extends StatefulWidget {
+  final Chord chord = (Chord()
+    ..rootNote = (NoteName()..noteLetter = NoteLetter.C)
+    ..chroma = 146);
   final double height;
   final bool showConfiguration;
   final Function() hideConfiguration;
   final Color sectionColor;
   final Part part;
   final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final double distanceFromBottom;
 
-  const Colorboard({Key key, this.height, this.showConfiguration, this.hideConfiguration, this.sectionColor, this.part, this.pressedNotesNotifier})
-      : super(key: key);
+  Colorboard({
+    Key key,
+    this.height,
+    this.showConfiguration,
+    this.hideConfiguration,
+    this.sectionColor,
+    this.part,
+    this.pressedNotesNotifier,
+    this.distanceFromBottom,
+  }) : super(key: key);
 
   @override
   _ColorboardState createState() => _ColorboardState();
@@ -33,21 +47,55 @@ class Colorboard extends StatefulWidget {
 
 Rect _visibleRect = Rect.zero;
 
-class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateMixin {
+class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
   bool useOrientation = true;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
+  ValueNotifier<Chord> chordNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
-  double halfStepWidthInPx = 80;
+
+  List<AnimationController> _scaleAnimationControllers = [];
+
+  AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
+  double _halfStepWidthInPx = 80;
+
+  double get halfStepWidthInPx => _halfStepWidthInPx;
+
+  set halfStepWidthInPx(double value) {
+    _halfStepWidthInPx = halfStepWidthInPx;
+    _scaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
+    _scaleAnimationControllers.clear();
+    AnimationController scaleAnimationController = animationController();
+    _scaleAnimationControllers.add(scaleAnimationController);
+    Animation animation;
+    animation = Tween<double>(begin: _halfStepWidthInPx, end: value).animate(scaleAnimationController)
+      ..addListener(() {
+        setState(() {
+          _halfStepWidthInPx = animation.value;
+        });
+      });
+    scaleAnimationController.forward();
+  }
+
   AnimationController orientationAnimationController;
   Animation orientationAnimation;
+  int highestPitch = CanvasToneDrawer.TOP;
+  int lowestPitch = CanvasToneDrawer.BOTTOM;
+  bool showScrollHint = true;
+
+  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
+
+  int get keysOnScreen => highestPitch - lowestPitch + 1;
 
   @override
   void initState() {
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
+    chordNotifier = ValueNotifier(widget.chord);
     try {
       _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
         if (scrollingMode != ScrollingMode.sideScroll) {
@@ -74,11 +122,11 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
           if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
             Animation animation;
             animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
-              .animate(orientationAnimationController)
-              ..addListener(() {
-                scrollPositionNotifier.value = animation.value;
+                .animate(orientationAnimationController)
+                  ..addListener(() {
+                    scrollPositionNotifier.value = animation.value;
 //                setState(() {});
-              });
+                  });
             orientationAnimationController.forward(from: scrollPositionNotifier.value);
 //            scrollPositionNotifier.value = newScrollPositionValue;
           }
@@ -93,247 +141,276 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
   @override
   void dispose() {
     super.dispose();
+    _scaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
+    _scaleAnimationControllers.clear();
+    scrollPositionNotifier.dispose();
+    chordNotifier.dispose();
     for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
       subscription.cancel();
     }
   }
 
-  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
   Map<int, int> _pointerIdsToTones = Map();
 
   @override
   Widget build(BuildContext context) {
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
-    double physicalWidth = 88 * halfStepWidthInPx;
+    double physicalWidth = keysOnScreen * halfStepWidthInPx;
+    chordNotifier.value = widget.chord;
 //    print("physicalWidth=$physicalWidth");
     return Stack(children: [
-              CustomScrollView(
-                key: Key("colorboard-$physicalWidth"),
-                scrollDirection: Axis.horizontal,
-                slivers: [
-                  CustomSliverToBoxAdapter(
-                    setVisibleRect: (rect) {
-                      _visibleRect = rect;
-                      _visibleRect =
-                          Rect.fromLTRB(rect.left, rect.top, rect.right, rect.bottom - touchScrollAreaHeight);
-                      double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
-                      if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
-                        scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
+      CustomScrollView(key: Key("colorboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
+        CustomSliverToBoxAdapter(
+          setVisibleRect: (rect) {
+            _visibleRect = rect;
+            _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right, rect.bottom - touchScrollAreaHeight);
+            double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
+            if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
+              scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
 //                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
-                      }
-                    },
-                    child:
-                    Column(children: [
-                      AnimatedContainer(duration: animationDuration,
-                        height: touchScrollAreaHeight, width: physicalWidth,
-                        color:widget.sectionColor, child: Align(alignment: Alignment.center,
-                          child: Container(height: 5, width: physicalWidth,
-                            color:Colors.black54))),
-                      CustomPaint(
-                        size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
-                        isComplex: true,
-                        willChange: true,
-                        painter: _ColorboardPainter(
-                            pressedNotesNotifier: widget.pressedNotesNotifier,
-                            scrollPositionNotifier: scrollPositionNotifier,
-                            halfStepsOnScreen: halfStepsOnScreen,
-                            visibleRect: () => _visibleRect),
-                      ),
-                    ]),
-                  )
-                ]
-              ),
+            }
+          },
+          child: Column(children: [
+            AnimatedContainer(
+                duration: animationDuration,
+                height: touchScrollAreaHeight,
+                width: physicalWidth,
+                color: widget.sectionColor,
+                child: Align(
+                    alignment: Alignment.center,
+                    child: Container(height: 5, width: physicalWidth, color: Colors.black54))),
+            CustomPaint(
+              size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
+              isComplex: true,
+              willChange: true,
+              painter: _ColorboardPainter(
+                  chordNotifier: chordNotifier,
+                  pressedNotesNotifier: widget.pressedNotesNotifier,
+                  scrollPositionNotifier: scrollPositionNotifier,
+                  highestPitch: highestPitch,
+                  lowestPitch: lowestPitch,
+                  halfStepsOnScreen: halfStepsOnScreen,
+                  visibleRect: () => _visibleRect),
+            ),
+          ]),
+        )
+      ]),
 //      Touch-handling area with the GestureDetector
-        Column(children: [
-          AnimatedContainer(duration: animationDuration,
-            height: touchScrollAreaHeight, child: SizedBox()),
-          Expanded(child:Listener(
-            onPointerDown: (event) {
-              double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
-              int tone = (left/halfStepWidthInPx).floor() - 39;
-              double dy = MediaQuery.of(context).size.height - event.position.dy;
-              double maxDy = widget.height - touchScrollAreaHeight;
-              double velocityRatio = min(dy, maxDy) / maxDy;
-              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
-              int velocity = (velocityRatio * 127).toInt();
-              _pointerIdsToTones[event.pointer] = tone;
-              print("pressed tone $tone");
-              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-              try {
-                BeatScratchPlugin.playNote(tone, velocity, widget.part);
-              } catch(t) {}
-            },
-            onPointerMove: (event) {
-              double left = _visibleRect.left + event.position.dx;
-              int tone = (left/halfStepWidthInPx).floor() - 39;
-              double dy = MediaQuery.of(context).size.height - event.position.dy;
-              double maxDy = widget.height - touchScrollAreaHeight;
-              double velocityRatio = min(dy, maxDy) / maxDy;
+      Column(children: [
+        AnimatedContainer(
+            duration: animationDuration,
+            height: touchScrollAreaHeight,
+            child: AnimatedContainer(
+                width: showScrollHint ? touchScrollAreaHeight * 3.4 : 0,
+                duration: animationDuration,
+                padding: EdgeInsets.symmetric(horizontal: 5),
+                color: widget.sectionColor,
+                child: AnimatedOpacity(
+                    opacity: showScrollHint ? 1 : 0,
+                    duration: animationDuration,
+                    child: FlatButton(
+                      padding: EdgeInsets.zero,
+                        onPressed: () {
+                          setState(() {
+                            showScrollHint = false;
+                          });
+                        },
+                        child: Row(children: [
+                          Icon(Icons.arrow_left),
+                          Expanded(child: Text("Scroll", style: TextStyle(fontSize: 16))),
+                          Icon(Icons.arrow_right),
+                        ]))))),
+        Expanded(
+            child: Listener(
+                onPointerDown: (event) {
+                  double left = _visibleRect.left + event.position.dx;
+//              double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
+                  int tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+                  tone = widget.chord.closestTone(tone);
+                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
+                  double maxDy = widget.height - touchScrollAreaHeight;
+                  double velocityRatio = min(dy, maxDy) / maxDy;
 //              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
-              int velocity = (velocityRatio * 127).toInt();
-              int oldTone = _pointerIdsToTones[event.pointer];
-              if(tone != oldTone) {
-                print("moving tone $oldTone to $tone");
-                try {
-                  BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
+                  int velocity = min(127, max(0, (velocityRatio * 127).toInt()));
                   _pointerIdsToTones[event.pointer] = tone;
+//              print("pressed tone $tone");
                   widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-                  BeatScratchPlugin.playNote(tone, velocity, widget.part);
-                } catch(t) {
-                  print(t);
-                }
-              }
-            },
-            onPointerUp: (event) {
-              int tone = _pointerIdsToTones.remove(event.pointer);
-              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-              try {
-                BeatScratchPlugin.stopNote(tone, 127, widget.part);
-              } catch (t) {}
-            },
-            onPointerCancel: (event) {
-              int tone = _pointerIdsToTones.remove(event.pointer);
-              widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-              try {
-                BeatScratchPlugin.stopNote(tone, 127, widget.part);
-              } catch (t) {}
-            },
-            child: Container(color: Colors.black12)
-          ))
-        ]),
+                  try {
+                    BeatScratchPlugin.playNote(tone, velocity, widget.part);
+                  } catch (t) {}
+                },
+                onPointerMove: (event) {
+                  double left = _visibleRect.left + event.position.dx;
+                  int tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+                  tone = widget.chord.closestTone(tone);
+                  double dy = MediaQuery.of(context).size.height - event.position.dy;
+                  double maxDy = widget.height - touchScrollAreaHeight;
+                  double velocityRatio = min(dy, maxDy) / maxDy;
+//              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
+                  int velocity = min(127, max(0, (velocityRatio * 127).toInt()));
+                  int oldTone = _pointerIdsToTones[event.pointer];
+                  if (tone != oldTone) {
+                    print("moving tone $oldTone to $tone");
+                    try {
+                      BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
+                      _pointerIdsToTones[event.pointer] = tone;
+                      widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                      BeatScratchPlugin.playNote(tone, velocity, widget.part);
+                    } catch (t) {
+                      print(t);
+                    }
+                  }
+                },
+                onPointerUp: (event) {
+                  int tone = _pointerIdsToTones.remove(event.pointer);
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                  try {
+                    BeatScratchPlugin.stopNote(tone, 127, widget.part);
+                  } catch (t) {}
+                },
+                onPointerCancel: (event) {
+                  int tone = _pointerIdsToTones.remove(event.pointer);
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                  try {
+                    BeatScratchPlugin.stopNote(tone, 127, widget.part);
+                  } catch (t) {}
+                },
+                child: Container(color: Colors.black12)))
+      ]),
 //    Configuration layer
-    Column(children:[
-      AnimatedContainer(duration: animationDuration,
-        height: touchScrollAreaHeight, child: SizedBox()),
-      AnimatedContainer(
-          duration: animationDuration,
-          height: widget.height - touchScrollAreaHeight,
-          color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
-          child: widget.showConfiguration
-              ? Row(children: [
-                  Expanded(
-                      flex: 3,
-                      child: Column(children: [
-                        Expanded(child: SizedBox()),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: SizedBox(),
+      Column(children: [
+        AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight, child: SizedBox()),
+        AnimatedContainer(
+            duration: animationDuration,
+            height: widget.height - touchScrollAreaHeight,
+            color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
+            child: widget.showConfiguration
+                ? Row(children: [
+                    Expanded(
+                        flex: 3,
+                        child: Row(children: [
+                          Expanded(child: SizedBox()),
+                          Column(children: [
+                            Expanded(child: SizedBox()),
+                            IncrementableValue(
+                              onIncrement: highestPitch <= 67
+                                  ? () {
+                                      setState(() {
+                                        highestPitch++;
+                                      });
+                                    }
+                                  : null,
+                              onDecrement: highestPitch > lowestPitch + 1
+                                  ? () {
+                                      setState(() {
+                                        highestPitch--;
+                                      });
+                                    }
+                                  : null,
+                              value: highestPitch.naturalOrSharpNote.uiString,
                             ),
-                            Container(
-                                width: 25,
-                                child: RaisedButton(
-                                    onPressed: () {}, padding: EdgeInsets.all(0), child: Icon(Icons.arrow_upward))),
-                            Container(
-                                width: 45,
-                                child: RaisedButton(onPressed: () {}, padding: EdgeInsets.all(0), child: Text("C8"))),
-                            Container(
-                                width: 25,
-                                child: RaisedButton(
-                                    onPressed: () {}, padding: EdgeInsets.all(0), child: Icon(Icons.arrow_downward))),
-                            Expanded(
-                              child: SizedBox(),
+                            IncrementableValue(
+                              onIncrement: highestPitch > lowestPitch + 1
+                                  ? () {
+                                      setState(() {
+                                        lowestPitch++;
+                                      });
+                                    }
+                                  : null,
+                              onDecrement: lowestPitch >= -60
+                                  ? () {
+                                      setState(() {
+                                        lowestPitch--;
+                                      });
+                                    }
+                                  : null,
+                              value: lowestPitch.naturalOrSharpNote.uiString,
                             ),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: SizedBox(),
-                            ),
-                            Container(
-                                width: 25,
-                                child: RaisedButton(
-                                    onPressed: () {}, padding: EdgeInsets.all(0), child: Icon(Icons.arrow_upward))),
-                            Container(
-                                width: 45,
-                                child: RaisedButton(onPressed: () {}, padding: EdgeInsets.all(0), child: Text("A#-1"))),
-                            Container(
-                                width: 25,
-                                child: RaisedButton(
-                                    onPressed: () {}, padding: EdgeInsets.all(0), child: Icon(Icons.arrow_downward))),
-                            Expanded(
-                              child: SizedBox(),
-                            ),
-                          ],
-                        ),
-                        Expanded(child: SizedBox()),
-                      ])),
-                  Expanded(
-                      flex: context.isTabletOrLandscapey ? 3 : 2,
-                      child: RaisedButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: () {
-                            setState(() {
-                              scrollingMode = ScrollingMode.sideScroll;
-                            });
-                          },
-                          color: (scrollingMode == ScrollingMode.sideScroll) ? widget.sectionColor : null,
-                          child: Text("Scroll"))),
-                  Expanded(
-                      flex: context.isTabletOrLandscapey ? 3 : 2,
-                      child: RaisedButton(
-                          padding: EdgeInsets.all(0),
-                          onPressed: (Platform.isAndroid || Platform.isIOS) ? () {
-                            setState(() {
-                              switch(scrollingMode) {
-                                case ScrollingMode.sideScroll:
-                                  scrollingMode = ScrollingMode.roll;
-                                  break;
-                                case ScrollingMode.pitch:
-                                  scrollingMode = ScrollingMode.roll;
-                                  break;
-                                case ScrollingMode.roll:
+                            Expanded(child: SizedBox()),
+                          ]),
+                          Expanded(child: SizedBox()),
+                        ])),
+                    Expanded(
+                        flex: context.isTabletOrLandscapey ? 3 : 2,
+                        child: RaisedButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {
+                              setState(() {
+                                scrollingMode = ScrollingMode.sideScroll;
+                              });
+                            },
+                            color: (scrollingMode == ScrollingMode.sideScroll) ? widget.sectionColor : null,
+                            child: Text("Scroll"))),
+                    Expanded(
+                        flex: context.isTabletOrLandscapey ? 3 : 2,
+                        child: RaisedButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: (Platform.isAndroid || Platform.isIOS || kDebugMode)
+                                ? () {
+                                    setState(() {
+                                      switch (scrollingMode) {
+                                        case ScrollingMode.sideScroll:
+                                          scrollingMode = ScrollingMode.roll;
+                                          break;
+                                        case ScrollingMode.pitch:
+                                          scrollingMode = ScrollingMode.roll;
+                                          break;
+                                        case ScrollingMode.roll:
 //                                  scrollingMode = ScrollingMode.pitch;
-                                  break;
-                              }
-                            });
-                          } : null,
-                          color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
-                          child: Row(children: [
-                            Expanded(child: SizedBox()),
+                                          break;
+                                      }
+                                    });
+                                  }
+                                : null,
+                            color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
+                            child: Row(children: [
+                              Expanded(child: SizedBox()),
 //                            Text("+"),
-                            Text((scrollingMode == ScrollingMode.pitch) ? "Tilt"
-                              : (scrollingMode == ScrollingMode.roll) ? "Roll"
-                              : (scrollingMode == ScrollingMode.sideScroll) ? "Roll"
-                              : "Wat"),
-                            Expanded(child: SizedBox()),
-                          ]))),
-                  Expanded(
-                      flex: context.isTabletOrLandscapey ? 3 : 1,
-                      child: Column(children: [
-                        Expanded(child: SizedBox()),
-                        Container(
-                            width: 36,
-                            child: RaisedButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: (halfStepWidthInPx < 500)
-                                    ? () {
-                                        setState(() {
-                                          halfStepWidthInPx *= 1.1;
-                                          print("halfStepWidthInPx=$halfStepWidthInPx");
-                                        });
-                                      }
-                                    : null,
-                                child: Icon(Icons.zoom_in))),
-                        Container(
-                            width: 36,
-                            child: RaisedButton(
-                                padding: EdgeInsets.all(0),
-                                onPressed: (halfStepWidthInPx > 10)
-                                    ? () {
-                                        setState(() {
-                                          halfStepWidthInPx /= 1.1;
-                                          print("halfStepWidthInPx=$halfStepWidthInPx");
-                                        });
-                                      }
-                                    : null,
-                                child: Icon(Icons.zoom_out))),
-                        Expanded(child: SizedBox()),
-                      ])),
-                ])
-              : SizedBox())
-    ]),
+                              Text((scrollingMode == ScrollingMode.pitch)
+                                  ? "Tilt"
+                                  : (scrollingMode == ScrollingMode.roll)
+                                      ? "Roll"
+                                      : (scrollingMode == ScrollingMode.sideScroll) ? "Roll" : "Wat"),
+                              Expanded(child: SizedBox()),
+                            ]))),
+                    Expanded(
+                        flex: context.isTabletOrLandscapey ? 3 : 1,
+                        child: Column(children: [
+                          Expanded(child: SizedBox()),
+                          Container(
+                              width: 36,
+                              child: RaisedButton(
+                                  padding: EdgeInsets.all(0),
+                                  onPressed: (halfStepWidthInPx < 500)
+                                      ? () {
+                                          setState(() {
+                                            halfStepWidthInPx *= 1.62;
+                                          });
+                                        }
+                                      : null,
+                                  child: Icon(Icons.zoom_in))),
+                          Container(
+                              width: 36,
+                              child: RaisedButton(
+                                  padding: EdgeInsets.all(0),
+                                  onPressed: (halfStepWidthInPx > 10)
+                                      ? () {
+                                          setState(() {
+                                            double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+                                            double newValue = halfStepWidthInPx / 1.62;
+                                            newValue = max(minNewValue, newValue);
+                                            halfStepWidthInPx  = newValue;
+                                          });
+                                        }
+                                      : null,
+                                  child: Icon(Icons.zoom_out))),
+                          Expanded(child: SizedBox()),
+                        ])),
+                  ])
+                : SizedBox())
+      ]),
     ]);
   }
 }
@@ -341,11 +418,21 @@ class _ColorboardState extends State<Colorboard> with SingleTickerProviderStateM
 class _ColorboardPainter extends CustomPainter {
   final ValueNotifier<double> scrollPositionNotifier;
   final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final int lowestPitch;
+  final int highestPitch;
   final double halfStepsOnScreen;
   final Rect Function() visibleRect;
+  final ValueNotifier<Chord> chordNotifier;
 
-  _ColorboardPainter({this.pressedNotesNotifier, this.scrollPositionNotifier, this.halfStepsOnScreen, this.visibleRect})
-      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier]));
+  _ColorboardPainter(
+      {this.chordNotifier,
+      this.lowestPitch,
+      this.highestPitch,
+      this.pressedNotesNotifier,
+      this.scrollPositionNotifier,
+      this.halfStepsOnScreen,
+      this.visibleRect})
+      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier, chordNotifier]));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -354,10 +441,13 @@ class _ColorboardPainter extends CustomPainter {
 //    canvas.drawRect(bounds, Paint());
 //    canvas.clipRect(bounds);
     final ColorGuide colorGuide = ColorGuide()
+      ..chord = chordNotifier.value
       ..renderVertically = false
       ..alphaDrawerPaint = Paint()
       ..halfStepsOnScreen = halfStepsOnScreen
       ..bounds = visibleRect()
+      ..lowestPitch = lowestPitch
+      ..highestPitch = highestPitch
       ..drawnColorGuideAlpha = 255
       ..drawPadding = 0
       ..nonRootPadding = 10

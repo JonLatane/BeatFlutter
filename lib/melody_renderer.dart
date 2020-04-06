@@ -30,6 +30,7 @@ import 'dart:ui' as ui;
 const double unscaledStandardBeatWidth = 60.0;
 
 class MelodyRenderer extends StatefulWidget {
+  final MelodyViewMode melodyViewMode;
   final Score score;
   final Section section;
   final Melody focusedMelody;
@@ -50,7 +51,7 @@ class MelodyRenderer extends StatefulWidget {
       this.renderingMode,
       this.currentBeat,
       this.colorboardNotesNotifier,
-      this.keyboardNotesNotifier})
+      this.keyboardNotesNotifier, this.melodyViewMode})
       : super(key: key);
 
   @override
@@ -64,25 +65,40 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   int get numberOfBeats => isViewingSection ? widget.section.harmony.beatCount : widget.score.beatCount;
 
-  double get standardBeatWidth => unscaledStandardBeatWidth * widget.xScale;
+  double get xScale => widget.xScale;
+  double get yScale => widget.yScale;
+  double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
-  double get width => numberOfBeats * standardBeatWidth;
+  double get overallCanvasHeight => heightFactor * yScale;
+  double get overallCanvasWidth => numberOfBeats * standardBeatWidth;
 
   ScrollController verticalController = ScrollController();
-  static const double heightFactor = 800;
+  static const double heightFactor = 500;
 
   AnimationController configurationChangeAnimationController;
   ValueNotifier<double> colorblockOpacityNotifier;
   ValueNotifier<double> notationOpacityNotifier;
   ValueNotifier<int> currentBeatNotifier;
+  ValueNotifier<double> sectionScaleNotifier;
 
   @override
   void initState() {
     super.initState();
     configurationChangeAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    if (colorblockOpacityNotifier == null) colorblockOpacityNotifier = ValueNotifier(0);
-    if (notationOpacityNotifier == null) notationOpacityNotifier = ValueNotifier(0);
+    colorblockOpacityNotifier = ValueNotifier(0);
+    notationOpacityNotifier = ValueNotifier(0);
     currentBeatNotifier = ValueNotifier(0);
+    sectionScaleNotifier = ValueNotifier(0);
+  }
+
+
+  @override
+  void dispose() {
+    colorblockOpacityNotifier.dispose();
+    notationOpacityNotifier.dispose();
+    currentBeatNotifier.dispose();
+    sectionScaleNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -93,20 +109,25 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     }
     double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
     double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
+    double sectionScaleValue = widget.melodyViewMode == MelodyViewMode.score ? 1 : 0;
     Animation animation1;
     animation1 = Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
         .animate(configurationChangeAnimationController)
           ..addListener(() {
             colorblockOpacityNotifier.value = animation1.value;
-//                setState(() {});
           });
     Animation animation2;
     animation2 = Tween<double>(begin: notationOpacityNotifier.value, end: notationOpacityValue)
         .animate(configurationChangeAnimationController)
           ..addListener(() {
             notationOpacityNotifier.value = animation2.value;
-//                setState(() {});
           });
+      Animation animation3;
+      animation3 = Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
+        .animate(configurationChangeAnimationController)
+        ..addListener(() {
+          sectionScaleNotifier.value = animation3.value;
+        });
     if (currentBeatNotifier.value != widget.currentBeat) {
       currentBeatNotifier.value = widget.currentBeat;
     }
@@ -114,7 +135,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     return SingleChildScrollView(
         key: Key(key),
         child: Container(
-            height: heightFactor * widget.yScale,
+            height: heightFactor * yScale,
             child: CustomScrollView(
               scrollDirection: Axis.horizontal,
               slivers: [
@@ -123,8 +144,10 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                     _visibleRect = rect;
                   },
                   child: CustomPaint(
-                    size: Size(width, heightFactor * widget.yScale),
+//                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
+                    size: Size(overallCanvasWidth, overallCanvasHeight),
                     painter: new _MelodyPainter(
+                      sectionScaleNotifier: sectionScaleNotifier,
                         score: widget.score,
                         section: widget.section,
                         xScale: widget.xScale,
@@ -182,8 +205,7 @@ class _MelodyPainter extends CustomPainter {
   final double yScale;
   final Rect Function() visibleRect;
   final List<_StaffReference> staffReferences;
-  final ValueNotifier<double> colorblockOpacityNotifier;
-  final ValueNotifier<double> notationOpacityNotifier;
+  final ValueNotifier<double> colorblockOpacityNotifier, notationOpacityNotifier, sectionScaleNotifier;
   final ValueNotifier<int> currentBeatNotifier;
   final ValueNotifier<Set<int>> colorboardNotesNotifier;
   final ValueNotifier<Set<int>> keyboardNotesNotifier;
@@ -199,8 +221,8 @@ class _MelodyPainter extends CustomPainter {
 
   int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
-  _MelodyPainter(
-      {this.colorboardNotesNotifier,
+  _MelodyPainter({this.sectionScaleNotifier,
+      this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.currentBeatNotifier,
       this.score,
@@ -225,6 +247,8 @@ class _MelodyPainter extends CustomPainter {
   }
 
   double get harmonyHeight => min(100, 30 * yScale);
+  double get idealSectionHeight => harmonyHeight;
+  double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -236,18 +260,18 @@ class _MelodyPainter extends CustomPainter {
     int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
 
     final double startOffset = renderingBeat * standardBeatWidth;
-    double left = startOffset;
-    double right;
+    double top, left, right, bottom;
+    left = startOffset;
 
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
         ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = Rect.fromLTRB(
-            visibleRect().left, visibleRect().top + harmonyHeight, visibleRect().right, visibleRect().bottom)
+            visibleRect().left, visibleRect().top + harmonyHeight + sectionHeight, visibleRect().right, visibleRect().bottom)
         ..draw(canvas);
     }
     if (drawContinuousColorGuide && colorGuideAlpha > 0) {
-      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
+      this.drawContinuousColorGuide(canvas, visibleRect().top + sectionHeight, visibleRect().bottom);
     }
 
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
@@ -279,15 +303,34 @@ class _MelodyPainter extends CustomPainter {
       if (renderingSection == null) {
         break;
       }
+
+      // Draw the Section name if needed
+      top = visibleRect().top;
+      if(renderingSectionBeat == 0) {
+        double fontSize = sectionHeight * 0.6;
+        double topOffset = max(0, 30/pow(fontSize, 0.7 + 0.2 * fontSize/20));
+//        print("fontSize=$fontSize topOffset=$topOffset");
+        TextSpan span = new TextSpan(text: renderingSection.name.isNotEmpty
+          ? renderingSection.name
+          : " Section ${renderingSection.id.substring(0, 5)}",
+          style: TextStyle(fontFamily: "VulfSans", fontSize: fontSize, fontWeight: FontWeight.w100,
+            color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
+        TextPainter tp = new TextPainter(text: span,
+          strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
+          textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
+        tp.layout();
+        tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top - topOffset));
+      }
+      top += sectionHeight;
+
+
       Harmony renderingHarmony = renderingSection.harmony;
       right = left + standardBeatWidth;
       String sectionName = renderingSection.name;
       if (sectionName == null || sectionName.isEmpty) {
         sectionName = renderingSection.id;
       }
-//      print("Drawing beat $renderingBeat out of section $sectionName as beat $renderingSectionBeat");
-//      canvas.drawLine(Offset(left, 0), Offset(left, rect.height), _tickPaint);
-      double top = visibleRect().top;
+
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
       Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
@@ -298,12 +341,52 @@ class _MelodyPainter extends CustomPainter {
       if (!drawContinuousColorGuide) {
         _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
       }
-      renderingSection.melodies
-          .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
-          .forEach((melodyReference) {
-        Melody melody = score.melodyReferencedBy(melodyReference);
-        _renderColorblockAndNotationNotes(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat);
-      });
+
+      List<Melody> melodiesToRender = renderingSection.melodies
+        .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
+        .where((it) => it != focusedMelody)
+        .map((it) => score.melodyReferencedBy(it))
+        .toList();
+      if(focusedMelody == null) {
+        melodiesToRender.sort((a,b) => -a.averageTone.compareTo(b.averageTone));
+      }
+      var melodyToRenderSelectionAndPlaybackWith = (focusedMelody == null)
+        ? melodiesToRender.maxBy((it) => it.subdivisionsPerBeat)
+        : null;
+
+      var renderQueue = List<Melody>.from(melodiesToRender);
+      int index = 0;
+      while(renderQueue.isNotEmpty) {
+        // Draw highest Melody stems up, lowest stems down, second lowest stems up, second highest
+        // down. And repeat.
+        Melody melody;
+        bool stemsUp;
+        switch(index % 4) {
+          case 0:
+            melody = renderQueue.removeAt(0);
+            stemsUp = true;
+            break;
+          case 1:
+            melody = renderQueue.removeAt(renderQueue.length - 1);
+            stemsUp = false;
+            break;
+          case 2:
+            melody = renderQueue.removeAt(renderQueue.length - 1);
+            stemsUp = true;
+            break;
+          default:
+          melody = renderQueue.removeAt(0);
+          stemsUp = false;
+        }
+
+        _renderColorblockAndNotationNotes(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat,
+          stemsUp, (focusedMelody == null) ? 1 : 0.66);
+        index++;
+      }
+
+      if(focusedMelody != null) {
+        _renderColorblockAndNotationNotes(canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1);
+      }
 
       try {
         if (notationOpacityNotifier.value > 0) {
@@ -335,8 +418,15 @@ class _MelodyPainter extends CustomPainter {
           ..color = Colors.black26);
     _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(colorboardNotesNotifier.value);
     _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(keyboardNotesNotifier.value);
-    _renderColorblockAndNotationNotes(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat);
-    _renderColorblockAndNotationNotes(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat);
+
+    // Stem will be up
+    double avgColorboardNote = colorboardNotesNotifier.value.isEmpty ? -100
+      : colorboardNotesNotifier.value.reduce((a,b) => a+b)/colorboardNotesNotifier.value.length.toDouble();
+    double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty ? -100
+      : keyboardNotesNotifier.value.reduce((a,b) => a+b)/keyboardNotesNotifier.value.length.toDouble();
+
+    _renderColorblockAndNotationNotes(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote > avgKeyboardNote, 1);
+    _renderColorblockAndNotationNotes(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote <= avgKeyboardNote, 1);
 
   }
 
@@ -386,7 +476,7 @@ class _MelodyPainter extends CustomPainter {
   }
 
   _renderColorblockAndNotationNotes(
-      Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat) {
+      Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, bool stemsUp, double alpha) {
     if (melody != null) {
       try {
         if (colorblockOpacityNotifier.value > 0) {
@@ -394,7 +484,7 @@ class _MelodyPainter extends CustomPainter {
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
-            ..colorblockAlpha = colorblockOpacityNotifier.value
+            ..colorblockAlpha = colorblockOpacityNotifier.value * alpha
             ..drawPadding = 3
             ..nonRootPadding = 3
             ..isUserChoosingHarmonyChord = false
@@ -414,9 +504,10 @@ class _MelodyPainter extends CustomPainter {
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
             ..section = renderingSection
-            ..notationAlpha = notationOpacityNotifier.value
+            ..notationAlpha = notationOpacityNotifier.value * alpha
             ..drawPadding = 3
             ..nonRootPadding = 3
+            ..stemsUp = stemsUp
             ..isUserChoosingHarmonyChord = false
             ..isMelodyReferenceEnabled = true
             ..melody = melody

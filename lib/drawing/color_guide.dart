@@ -75,7 +75,8 @@ class ColorGuide extends CanvasToneDrawer {
           }
           if(tone.mod12 == 0) {
 //            alphaDrawerPaint.color = Colors.black;
-            TextSpan span = new TextSpan(text: (4 + (tone/12)).toInt().toString());
+            TextSpan span = new TextSpan(text: (4 + (tone/12)).toInt().toString(),
+              style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.white));
             TextPainter tp = new TextPainter(text: span,
               strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
               textAlign: TextAlign.left, textDirection: TextDirection.ltr,);

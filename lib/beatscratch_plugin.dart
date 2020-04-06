@@ -13,15 +13,24 @@ import 'package:flutter/services.dart';
 class BeatScratchPlugin {
   static const MethodChannel _channel = const MethodChannel('BeatScratchPlugin');
 
-  static void pushScore(Score score) {
+  static void pushScore(Score score, {bool includeParts = true, includeSections = true}) {
     print("invoking pushScore");
-    _channel.invokeMethod('pushScore', score.writeToBuffer());
+    if(!includeParts) {
+      score = score.clone().copyWith((it) { it.parts.clear(); });
+    }
+    if(!includeSections) {
+      score = score.clone().copyWith((it) { it.sections.clear(); });
+    }
+    _channel.invokeMethod('pushScore', score.clone().writeToBuffer());
   }
 
   /// Pushes or updates the [Part].
-  static void pushPart(Part part) {
+  static void pushPart(Part part, {bool includeMelodies = true}) {
     print("invoking pushPart");
-    _channel.invokeMethod('pushPart', part.writeToBuffer());
+    if(!includeMelodies) {
+      part = part.clone().copyWith((it) { it.melodies.clear(); });
+    }
+    _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
   }
 
   /// Pushes or updates the [Part].
@@ -41,11 +50,11 @@ class BeatScratchPlugin {
   }
 
   static void pushMelody(Part part, Melody melody) {
-    _channel.invokeMethod('pushMelody', [part.id, melody.writeToBuffer()]);
+    _channel.invokeMethod('pushMelody', [part.id, melody.clone().writeToBuffer()]);
   }
 
   static void updateMelody(Melody melody) {
-    _channel.invokeMethod('updateMelody', melody.writeToBuffer());
+    _channel.invokeMethod('updateMelody', melody.clone().writeToBuffer());
   }
 
   static void deleteMelody(Melody melody) {
@@ -72,13 +81,30 @@ class BeatScratchPlugin {
     sendMIDI(writer.buffer);
   }
 
+  static Future<bool> supportsMelodyPlayback() {
+    if(kIsWeb) {
+      return Future.value(false);
+    }
+    return _channel.invokeMethod('supportsMelodyPlayback');
+  }
+
+  static void sendBeat(int beat) {
+    print("invoking sendMIDI");
+    if(kIsWeb) {
+      print("invoking sendMIDI as JavaScript with context $context");
+      context.callMethod('sendBeat', [beat]);
+    } else {
+      print("invoking sendMIDI through Platform Channel $_channel");
+      _channel.invokeMethod('sendBeat', beat);
+    }
+  }
+
 
   static void sendMIDI(List<int> bytes) {
     print("invoking sendMIDI");
     if(kIsWeb) {
       print("invoking sendMIDI as JavaScript with context $context");
       context.callMethod('sendMIDI', bytes);
-//      js.context.callMethod('sendMIDI', bytes);
     } else {
       print("invoking sendMIDI through Platform Channel $_channel");
       _channel.invokeMethod('sendMIDI', Uint8List.fromList(bytes));

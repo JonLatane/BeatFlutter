@@ -26,7 +26,7 @@ class MelodyToolbar extends StatefulWidget {
   final Function(Melody) deleteMelody;
 
   const MelodyToolbar(
-    {Key key,
+      {Key key,
       this.melody,
       this.currentSection,
       this.toggleMelodyReference,
@@ -37,7 +37,7 @@ class MelodyToolbar extends StatefulWidget {
       this.setMelodyName,
       this.melodyViewMode,
       this.deleteMelody})
-    : super(key: key);
+      : super(key: key);
 
   @override
   MelodyToolbarState createState() => MelodyToolbarState();
@@ -66,30 +66,30 @@ class MelodyToolbarState extends State<MelodyToolbar> {
     }
     return Container(
 //        color: Colors.white,
-      child: Row(children: [
-        Expanded(
+        child: Row(children: [
+      Expanded(
           child: Padding(
-            padding: EdgeInsets.only(left: 5),
-            child: (widget.melodyViewMode == MelodyViewMode.melody)
-              ? TextField(
-              controller: (melodySelected)
-                ? (TextEditingController()..text = widget.melody.name)
-                : TextEditingController(),
-              textCapitalization: TextCapitalization.words,
-              onChanged: (melodySelected)
-                ? (value) {
-                widget.melody.name = value;
-              }
-                : null,
-              onEditingComplete: () {
-                widget.setMelodyName(widget.melody, widget.melody.name);
-              },
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: (melodySelected) ? "Melody ${widget.melody.id.substring(0, 5)}" : ""),
-            )
-              : Text(""))),
-        AnimatedContainer(
+              padding: EdgeInsets.only(left: 5),
+              child: (widget.melodyViewMode == MelodyViewMode.melody)
+                  ? TextField(
+                      controller: (melodySelected)
+                          ? (TextEditingController()..text = widget.melody.name)
+                          : TextEditingController(),
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (melodySelected)
+                          ? (value) {
+                              widget.melody.name = value;
+                            }
+                          : null,
+                      onEditingComplete: () {
+                        widget.setMelodyName(widget.melody, widget.melody.name);
+                      },
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: (melodySelected) ? "Melody ${widget.melody.id.substring(0, 5)}" : ""),
+                    )
+                  : Text(""))),
+      AnimatedContainer(
           duration: animationDuration,
           width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
           height: 36,
@@ -97,122 +97,127 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           child: RaisedButton(
             color: (widget.editingMelody) ? widget.sectionColor : null,
             onPressed: (melodyEnabled)
-              ? () {
-              widget.toggleEditingMelody();
-            }
-              : null,
+                ? () {
+                    widget.toggleEditingMelody();
+                  }
+                : null,
             padding: EdgeInsets.all(0),
             child: Image.asset(
               'assets/edit.png',
               fit: BoxFit.fill,
             ),
           )),
-        AnimatedContainer(
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 40,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: melodySelected
-              ? () {
-              widget.toggleMelodyReference(melodyReference);
-            }
-              : null,
-            padding: EdgeInsets.all(0),
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: (melodySelected && !isConfirmingDelete) ? 1 : 0,
-              child: Icon(melodySelected
-                ? (melodyEnabled ? Icons.volume_up : Icons.not_interested)
-                : Icons.not_interested)))),
-        AnimatedContainer(
+              onPressed: melodySelected
+                  ? () {
+                      widget.toggleMelodyReference(melodyReference);
+                    }
+                  : null,
+              padding: EdgeInsets.all(0),
+              child: AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: (melodySelected && !isConfirmingDelete) ? 1 : 0,
+                  child: Icon(melodySelected
+                      ? (melodyEnabled ? Icons.volume_up : Icons.not_interested)
+                      : Icons.not_interested)))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 128 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: Align(
-            alignment: Alignment.center,
-            child: Text("Really delete?",
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.black)))),
-        AnimatedContainer(
+              alignment: Alignment.center,
+              child: Text("Really delete?",
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.black)))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                widget.deleteMelody(confirmingDeleteFor);
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text(
-              "Yes",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ))),
-        AnimatedContainer(
+              onPressed: () {
+                setState(() {
+                  widget.deleteMelody(confirmingDeleteFor);
+                  confirmingDeleteFor = null;
+                });
+              },
+              padding: EdgeInsets.zero,
+              child: Text(
+                "Yes",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
-        AnimatedContainer(
+              onPressed: () {
+                setState(() {
+                  confirmingDeleteFor = null;
+                });
+              },
+              padding: EdgeInsets.zero,
+              child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                confirmingDeleteFor = widget.melody;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
-      ]));
+              onPressed: () {
+                setState(() {
+                  confirmingDeleteFor = widget.melody;
+                });
+              },
+              padding: EdgeInsets.zero,
+              child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
+    ]));
   }
 }
 
 class MelodyEditingToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(children:[
-      Container(width:5),
+    return Row(children: [
+      Container(width: 5),
       Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey)),
-      Container(width:5),
+      Container(width: 5),
       Text('Melody editing features are coming. Ode to Joy is nice.',
-        style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: Colors.grey)),
+          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: Colors.grey)),
     ]);
   }
-
 }
 
 class PartToolbar extends StatefulWidget {
+  final Color sectionColor;
   final Part part;
   final Function(Part) setKeyboardPart;
   final Function(Part) setColorboardPart;
   final Part colorboardPart;
   final Part keyboardPart;
   final Function(Part) deletePart;
+  final bool configuringPart;
+  final VoidCallback toggleConfiguringPart;
 
   const PartToolbar(
-    {Key key,
+      {Key key,
       this.part,
       this.setKeyboardPart,
       this.setColorboardPart,
       this.colorboardPart,
       this.keyboardPart,
-      this.deletePart})
-    : super(key: key);
+      this.deletePart,
+      this.configuringPart,
+      this.toggleConfiguringPart,
+      this.sectionColor})
+      : super(key: key);
 
   @override
   PartToolbarState createState() => PartToolbarState();
@@ -235,139 +240,141 @@ class PartToolbarState extends State<PartToolbar> {
       key: Key("part-toolbar-${widget.part?.id}"),
       child: Row(children: [
         AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 41,
-          height: 36,
-          padding: EdgeInsets.only(left: 5),
-          child: RaisedButton(
-            onPressed: widget.part != null && widget.part.instrument.type != InstrumentType.drum ? () {} : null,
-            padding: EdgeInsets.zero,
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
-              child: Icon(Icons.view_list)))),
-        Expanded(
-          child: Padding(
+            duration: animationDuration,
+            width: isConfirmingDelete ? 0 : 41,
+            height: 36,
             padding: EdgeInsets.only(left: 5),
-            child: Text((widget.part != null) ? widget.part.instrument.name : "",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600)))),
-        AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 41,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
-            onPressed: widget.part != null
-              ? () {
-              widget.setKeyboardPart(widget.part);
-            }
-              : null,
-            padding: EdgeInsets.zero,
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
-              child: Stack(children: [
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: EdgeInsets.all(2),
-                    child: Image.asset("assets/piano.png", width: 22, height: 22))),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    child: Checkbox(value: widget.keyboardPart == widget.part, onChanged: null)))
-              ])))),
-        AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 41,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
-            onPressed: (widget.part != null && widget.part.instrument.type != InstrumentType.drum)
-              ? () {
-              widget.setColorboardPart(widget.part);
-            }
-              : null,
-            padding: EdgeInsets.zero,
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
-              child: Stack(children: [
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: AnimatedOpacity(
+            child: RaisedButton(
+                onPressed: widget.toggleConfiguringPart,
+                padding: EdgeInsets.zero,
+                color: widget.configuringPart ? Colors.black : null,
+                child: AnimatedOpacity(
                     duration: animationDuration,
-                    opacity: (widget.part != null && widget.part.instrument.type != InstrumentType.drum)
-                      ? 1
-                      : 0.25,
-                    child: Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Image.asset("assets/colorboard.png", width: 24, height: 24)))),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    child: Checkbox(value: widget.colorboardPart == widget.part, onChanged: null)))
-              ])))),
+                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+                    child: Icon(Icons.settings, color: widget.configuringPart ? Colors.white : Colors.black)))),
+        Expanded(
+            child: Padding(
+                padding: EdgeInsets.only(left: 5),
+                child: Text((widget.part != null) ? widget.part.midiName : "",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600)))),
         AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 128 : 0,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text("Really delete?",
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
+            duration: animationDuration,
+            width: isConfirmingDelete ? 0 : 41,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+                onPressed: widget.part != null
+                    ? () {
+                        widget.setKeyboardPart(widget.part);
+                      }
+                    : null,
+                padding: EdgeInsets.zero,
+                child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+                    child: Stack(children: [
+                      Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                              padding: EdgeInsets.all(2),
+                              child: Image.asset("assets/piano.png", width: 22, height: 22))),
+                      Align(
+                          alignment: Alignment.topLeft,
+                          child: Container(
+                              width: 26,
+                              height: 26,
+                              child: Checkbox(value: widget.keyboardPart == widget.part, onChanged: null)))
+                    ])))),
         AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 48 : 0,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                widget.deletePart(widget.part);
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text(
-              "Yes",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ))),
+            duration: animationDuration,
+            width: isConfirmingDelete ? 0 : 41,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+                onPressed: (widget.part != null && widget.part.instrument.type != InstrumentType.drum)
+                    ? () {
+                        widget.setColorboardPart(widget.part);
+                      }
+                    : null,
+                padding: EdgeInsets.zero,
+                child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+                    child: Stack(children: [
+                      Align(
+                          alignment: Alignment.bottomRight,
+                          child: AnimatedOpacity(
+                              duration: animationDuration,
+                              opacity: (widget.part != null && widget.part.instrument.type != InstrumentType.drum)
+                                  ? 1
+                                  : 0.25,
+                              child: Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Image.asset("assets/colorboard.png", width: 24, height: 24)))),
+                      Align(
+                          alignment: Alignment.topLeft,
+                          child: Container(
+                              width: 26,
+                              height: 26,
+                              child: Checkbox(value: widget.colorboardPart == widget.part, onChanged: null)))
+                    ])))),
         AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 48 : 0,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
+            duration: animationDuration,
+            width: isConfirmingDelete ? 128 : 0,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: Align(
+                alignment: Alignment.center,
+                child: Text("Really delete?",
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
         AnimatedContainer(
-          duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 41,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                confirmingDeleteFor = widget.part;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
-      ]));
+            duration: animationDuration,
+            width: isConfirmingDelete ? 48 : 0,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+                onPressed: () {
+                  setState(() {
+                    widget.deletePart(widget.part);
+                    confirmingDeleteFor = null;
+                  });
+                },
+                padding: EdgeInsets.zero,
+                child: Text(
+                  "Yes",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ))),
+        AnimatedContainer(
+            duration: animationDuration,
+            width: isConfirmingDelete ? 48 : 0,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+                onPressed: () {
+                  setState(() {
+                    confirmingDeleteFor = null;
+                  });
+                },
+                padding: EdgeInsets.zero,
+                child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
+        AnimatedContainer(
+            duration: animationDuration,
+            width: isConfirmingDelete ? 0 : 41,
+            height: 36,
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+                onPressed: () {
+                  setState(() {
+                    confirmingDeleteFor = widget.part;
+                  });
+                },
+                padding: EdgeInsets.zero,
+                child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
+      ]),
+    );
   }
 }
 
@@ -379,16 +386,18 @@ class SectionToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final Function(Section, String) setSectionName;
   final Function(Section) deleteSection;
+  final bool editingSection;
 
   const SectionToolbar(
-    {Key key,
+      {Key key,
       this.currentSection,
       this.sectionColor,
       this.melodyViewMode,
       this.setSectionName,
       this.deleteSection,
-      this.canDeleteSection})
-    : super(key: key);
+      this.canDeleteSection,
+      this.editingSection})
+      : super(key: key);
 
   @override
   SectionToolbarState createState() => SectionToolbarState();
@@ -410,99 +419,145 @@ class SectionToolbarState extends State<SectionToolbar> {
     }
     return Container(
 //        color: sectionColor,
-      child: Row(children: [
-        Expanded(
+        child: Row(children: [
+      Expanded(
           child: Padding(
-            padding: EdgeInsets.only(left: 5),
-            child: (widget.melodyViewMode == MelodyViewMode.section)
-              ? TextField(
-              style: TextStyle(fontWeight: FontWeight.w100),
-              controller: (widget.melodyViewMode == MelodyViewMode.section)
-                ? (TextEditingController()..text = widget.currentSection.name)
-                : TextEditingController(),
-              textCapitalization: TextCapitalization.words,
-              onChanged: (widget.melodyViewMode == MelodyViewMode.section)
-                ? (value) {
-                widget.currentSection.name = value;
-              }
-                : null,
-              onEditingComplete: () {
-                widget.setSectionName(widget.currentSection, widget.currentSection.name);
-              },
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: (widget.melodyViewMode == MelodyViewMode.section)
-                  ? "Section ${widget.currentSection.id.substring(0, 5)}"
-                  : ""),
-            )
-              : Text(""))),
-        AnimatedContainer(
+              padding: EdgeInsets.only(left: 5),
+              child: (widget.melodyViewMode == MelodyViewMode.section)
+                  ? TextField(
+                      style: TextStyle(fontWeight: FontWeight.w100),
+                      controller: (widget.melodyViewMode == MelodyViewMode.section)
+                          ? (TextEditingController()..text = widget.currentSection.name)
+                          : TextEditingController(),
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (widget.melodyViewMode == MelodyViewMode.section)
+                          ? (value) {
+                              widget.currentSection.name = value;
+                            }
+                          : null,
+                      onEditingComplete: () {
+                        widget.setSectionName(widget.currentSection, widget.currentSection.name);
+                      },
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: (widget.melodyViewMode == MelodyViewMode.section)
+                              ? "Section ${widget.currentSection.id.substring(0, 5)}"
+                              : ""),
+                    )
+                  : Text(""))),
+      AnimatedContainer(
+          duration: animationDuration,
+          width: isConfirmingDelete ? 0 : 95,
+          height: 36,
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+            padding: EdgeInsets.zero,
+            child: Row(children: [
+              Container(
+                  width: 36,
+                  padding: EdgeInsets.only(top: 7, bottom: 5),
+                  child: Stack(children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Opacity(opacity: 0.2, child: Image.asset('assets/metronome.png')),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child:
+                      Transform.translate(offset: Offset(0, -7), child: Text('123', )),
+                    )
+                  ])),
+              Container(
+                width: 24,
+                height: 32,
+                padding: EdgeInsets.only(left:5),
+                child: Stack(children: [
+                  Transform.translate(offset: Offset(0, -4), child:
+                  Text("4", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900))),
+                  Transform.translate(offset: Offset(0, 11), child:
+                  Text(
+                    "4",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                  ))
+                ])),
+              Container(
+                width: 24,
+                height: 32,
+                child: Stack(children: [
+                  Transform.translate(offset: Offset(0, -2), child:
+                  Text("C", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w200))),
+                ])),
+              Expanded(child:SizedBox())
+            ]),
+            onPressed: null,//() => {},
+          )),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
-              child: Icon(Icons.control_point_duplicate)))),
-        AnimatedContainer(
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              child: AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
+                  child: Icon(Icons.control_point_duplicate)))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 128 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: Align(
-            alignment: Alignment.center,
-            child: Text("Really delete?",
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
-        AnimatedContainer(
+              alignment: Alignment.center,
+              child: Text("Really delete?",
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white)))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                widget.deleteSection(confirmingDeleteFor);
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text(
-              "Yes",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ))),
-        AnimatedContainer(
+              onPressed: () {
+                setState(() {
+                  widget.deleteSection(confirmingDeleteFor);
+                  confirmingDeleteFor = null;
+                });
+              },
+              padding: EdgeInsets.zero,
+              child: Text(
+                "Yes",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: () {
-              setState(() {
-                confirmingDeleteFor = null;
-              });
-            },
-            padding: EdgeInsets.zero,
-            child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
-        AnimatedContainer(
+              onPressed: () {
+                setState(() {
+                  confirmingDeleteFor = null;
+                });
+              },
+              padding: EdgeInsets.zero,
+              child: Text("No", maxLines: 1, overflow: TextOverflow.ellipsis))),
+      AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            onPressed: widget.canDeleteSection
-              ? () {
-              setState(() {
-                confirmingDeleteFor = widget.currentSection;
-              });
-            }
-              : null,
-            padding: EdgeInsets.zero,
-            child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
-      ]));
+              onPressed: widget.canDeleteSection
+                  ? () {
+                      setState(() {
+                        confirmingDeleteFor = widget.currentSection;
+                      });
+                    }
+                  : null,
+              padding: EdgeInsets.zero,
+              child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
+    ]));
   }
 }

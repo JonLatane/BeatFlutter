@@ -17,6 +17,7 @@ Melody odeToJoy() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.melodic
   ..instrumentType = InstrumentType.harmonic
+  ..interpretationType = MelodyInterpretationType.fixed
   ..subdivisionsPerBeat = 2
   ..length = 32
   ..melodicData = (MelodicData()..data.addAll({
@@ -29,6 +30,7 @@ Melody defaultMelody() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.melodic
   ..instrumentType = InstrumentType.harmonic
+  ..interpretationType = MelodyInterpretationType.fixed
   ..subdivisionsPerBeat = 4
   ..length = 64
   ..melodicData = MelodicData();
@@ -66,16 +68,11 @@ Part newPartFor(Score score) {
   Part part = Part()
     ..id = uuid.v4()
     ..instrument = (Instrument()
-      ..name = score.parts.any((part) => part.instrument.name == "Piano")
-        ? (score.parts.any((part) => part.instrument.name == "Bass")
-        ? (score.parts.any((part) => part.instrument.name == "Guitar")
-        ? (score.parts
-        .any((part) => part.instrument.name == "Muted Electric Jazz Guitar 1")
-        ? ("Picollo")
-        : "Muted Electric Jazz Guitar 1")
-        : "Guitar")
-        : "Bass")
-        : "Piano"
+      ..midiInstrument = score.parts.any((part) => part.instrument.midiInstrument == 0)
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 33)
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 26)
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 28)
+        ? (111) : 28) : 26) : 33) : 0
       ..midiChannel = (range(0,8).toList() + range(10,15).toList())
         .firstWhere((channel) => !score.usesChannel(channel))
       ..volume = 0.5
@@ -87,7 +84,7 @@ Part newDrumPart() {
   Part part = Part()
     ..id = uuid.v4()
     ..instrument = (Instrument()
-      ..name = "Drums"
+      ..name = ""//"Drums"
       ..volume = 0.5
       ..midiChannel = 9
       ..type = InstrumentType.drum);

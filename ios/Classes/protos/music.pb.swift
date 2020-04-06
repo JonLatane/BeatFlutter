@@ -826,6 +826,15 @@ struct Section {
   /// Clears the value of `tempo`. Subsequent reads from it will return its default value.
   mutating func clearTempo() {_uniqueStorage()._tempo = nil}
 
+  var key: NoteName {
+    get {return _storage._key ?? NoteName()}
+    set {_uniqueStorage()._key = newValue}
+  }
+  /// Returns true if `key` has been explicitly set.
+  var hasKey: Bool {return _storage._key != nil}
+  /// Clears the value of `key`. Subsequent reads from it will return its default value.
+  mutating func clearKey() {_uniqueStorage()._key = nil}
+
   var melodies: [MelodyReference] {
     get {return _storage._melodies}
     set {_uniqueStorage()._melodies = newValue}
@@ -1600,6 +1609,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     3: .same(proto: "harmony"),
     4: .same(proto: "meter"),
     5: .same(proto: "tempo"),
+    6: .same(proto: "key"),
     100: .same(proto: "melodies"),
   ]
 
@@ -1609,6 +1619,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     var _harmony: Harmony? = nil
     var _meter: Meter? = nil
     var _tempo: Tempo? = nil
+    var _key: NoteName? = nil
     var _melodies: [MelodyReference] = []
 
     static let defaultInstance = _StorageClass()
@@ -1621,6 +1632,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
       _harmony = source._harmony
       _meter = source._meter
       _tempo = source._tempo
+      _key = source._key
       _melodies = source._melodies
     }
   }
@@ -1642,6 +1654,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
         case 3: try decoder.decodeSingularMessageField(value: &_storage._harmony)
         case 4: try decoder.decodeSingularMessageField(value: &_storage._meter)
         case 5: try decoder.decodeSingularMessageField(value: &_storage._tempo)
+        case 6: try decoder.decodeSingularMessageField(value: &_storage._key)
         case 100: try decoder.decodeRepeatedMessageField(value: &_storage._melodies)
         default: break
         }
@@ -1666,6 +1679,9 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
       if let v = _storage._tempo {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
       }
+      if let v = _storage._key {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+      }
       if !_storage._melodies.isEmpty {
         try visitor.visitRepeatedMessageField(value: _storage._melodies, fieldNumber: 100)
       }
@@ -1683,6 +1699,7 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
         if _storage._harmony != rhs_storage._harmony {return false}
         if _storage._meter != rhs_storage._meter {return false}
         if _storage._tempo != rhs_storage._tempo {return false}
+        if _storage._key != rhs_storage._key {return false}
         if _storage._melodies != rhs_storage._melodies {return false}
         return true
       }
