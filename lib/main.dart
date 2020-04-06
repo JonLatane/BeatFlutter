@@ -7,6 +7,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
+import 'keyboard.dart';
 import 'melody_view.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -625,9 +626,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       height: _keyboardHeight,
                       width: MediaQuery.of(context).size.width,
                       color: Colors.white,
-                      child: Image.asset(
-                        'assets/piano.png',
-                        fit: BoxFit.fill,
+                      child: Keyboard(
+                        part: keyboardPart,
+                        height: _keyboardHeight,
+                        showConfiguration: _showKeyboardConfiguration,
+                        sectionColor: sectionColor,
+                        pressedNotesNotifier: keyboardNotesNotifier,
                       )),
                 ])
                 //]),

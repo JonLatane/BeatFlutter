@@ -95,6 +95,8 @@ extension NoteTheory on NoteName {
 }
 
 extension NoteConversions on int {
+  bool get isBlackKey => mod12 == 1 || mod12 == 3 || mod12 == 6 || mod12 == 8 || mod12 == 10;
+  bool get isWhiteKey => !isBlackKey;
   int get mod12 {
     int result = this;
     result = result % 12;
