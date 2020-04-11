@@ -15,9 +15,6 @@ import '../canvas_tone_drawer.dart';
 
 enum Notehead { quarter, half, whole, percussion }
 class NotationMelodyRenderer extends BaseMelodyRenderer {
-  double xScale;
-  double yScale;
-  double get minScale => min(xScale, yScale);
 //  static final ui.Image notehead = await loadUiImage("");
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
@@ -277,17 +274,17 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     }
   }
 
-  static List<List<dynamic>> _recentPlaybackNoteRequests = List();
+//  static List<List<dynamic>> _recentPlaybackNoteRequests = List();
   static Map<List<dynamic>, List<NoteSpecification>> _playbackNoteCache = Map();
   List<NoteSpecification> getPlaybackNotes(List<int> tones, Chord chord) {
     List<dynamic> key = [tones, chord];
     return _playbackNoteCache.putIfAbsent(key,
         () {
-          _recentPlaybackNoteRequests.remove(key);
-          _recentPlaybackNoteRequests.insert(0, key);
-          if(_recentPlaybackNoteRequests.length > 30000) {
-            _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
-          }
+//          _recentPlaybackNoteRequests.remove(key);
+//          _recentPlaybackNoteRequests.insert(0, key);
+//          if(_recentPlaybackNoteRequests.length > 30000) {
+//            _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
+//          }
         return computePlaybackNotes(tones, chord);
       }
     );

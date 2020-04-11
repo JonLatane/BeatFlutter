@@ -7,9 +7,6 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   @override
   bool showSteps = true;
   @override
-  double normalizedDevicePitch = 0;
-
-  @override
   double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
   double colorblockAlpha;
 

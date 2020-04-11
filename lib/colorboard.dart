@@ -58,7 +58,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
   List<AnimationController> _scaleAnimationControllers = [];
 
   AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
-  double _halfStepWidthInPx = 80;
+  double _halfStepWidthInPx = 20;
 
   double get halfStepWidthInPx => _halfStepWidthInPx;
 
@@ -159,6 +159,11 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
     double physicalWidth = keysOnScreen * halfStepWidthInPx;
     chordNotifier.value = widget.chord;
+
+    double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+    if(halfStepWidthInPx < minNewValue) {
+      halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
+    }
 //    print("physicalWidth=$physicalWidth");
     return Stack(children: [
       CustomScrollView(key: Key("colorboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
@@ -199,7 +204,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
       ]),
 //      Touch-handling area with the GestureDetector
       Column(children: [
-        AnimatedContainer(
+        AnimatedContainer( // Touch hint area
             duration: animationDuration,
             height: touchScrollAreaHeight,
             child: AnimatedContainer(

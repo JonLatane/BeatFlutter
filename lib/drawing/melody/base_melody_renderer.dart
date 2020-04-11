@@ -11,6 +11,7 @@ import '../../music_notation_theory.dart';
 
 class BaseMelodyRenderer extends ColorGuide {
   @override final bool renderVertically = true;
+  @override final double normalizedDevicePitch = 0;
   Rect overallBounds;
   Melody melody;
   int elementPosition;
@@ -20,10 +21,13 @@ class BaseMelodyRenderer extends ColorGuide {
   bool isUserChoosingHarmonyChord;
   bool isMelodyReferenceEnabled;
   int beatPosition = 0;
+  double xScale = 1;
+  double yScale = 1;
   // Used for notation. Logically, if an octave is to have the same "scale" chromatically or diatonically, the letter
   // step must be 12/7 of the half step in size.
   double get letterStepSize => halfStepWidth * 12 / 7;
   bool get isFinalBeat => (beatPosition + 1) % meter.defaultBeatsPerMeasure == 0;
+  double get minScale => min(xScale, yScale);
 
 
   Harmony get harmony => section.harmony;

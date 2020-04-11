@@ -12,12 +12,22 @@ class Conductor {
     // Globally accessible
     static let sharedInstance = Conductor()
 
-    var drumSampler = AKSampler()
     var sampler1 = AKSampler()
     var sampler2 = AKSampler()
     var sampler3 = AKSampler()
     var sampler4 = AKSampler()
     var sampler5 = AKSampler()
+    var sampler6 = AKSampler()
+    var sampler7 = AKSampler()
+    var sampler8 = AKSampler()
+    var sampler9 = AKSampler()
+    var drumSampler = AKSampler()
+    var sampler11 = AKSampler()
+    var sampler12 = AKSampler()
+    var sampler13 = AKSampler()
+    var sampler14 = AKSampler()
+    var sampler15 = AKSampler()
+    var sampler16 = AKSampler()
     var channelSamplers: [Int: AKSampler] = [:]
 
 //    var decimator: AKDecimator
@@ -75,7 +85,17 @@ class Conductor {
                 2: sampler3,
                 3: sampler4,
                 4: sampler5,
-                9: drumSampler
+                5: sampler6,
+                6: sampler7,
+                7: sampler8,
+                8: sampler9,
+                9: drumSampler,
+                10: sampler11,
+                11: sampler12,
+                12: sampler13,
+                13: sampler14,
+                14: sampler15,
+                15: sampler16,
             ], uniquingKeysWith: { (_, last) in last })
             for (channel, sampler) in channelSamplers {
                 if(channel == 9) {
@@ -91,7 +111,7 @@ class Conductor {
             //loadAndMapCompressedSampleFiles()
 
             // Preferred method: use SFZ file
-            loadSFZ(sampler: sampler, folderPath: Bundle.main.resourcePath! + "/Sounds/sfz/fluid", sfzFileName: fluidSample + ".sfz")
+            loadSFZ(sampler: sampler, sfzFileName: fluidSample + ".sfz")
 
 
             // Set up the main amplitude envelope
@@ -111,7 +131,9 @@ class Conductor {
     //        sampler.filterEnvelopeVelocityScaling = 1.0
         }
     
-    func loadSFZ(sampler: AKSampler, folderPath: String, sfzFileName: String) {
+    private func loadSFZ(sampler: AKSampler, sfzFileName: String) {
+        let folderPath = Bundle.main.resourcePath! + "/Sounds/sfz/fluid"
+        print("Fluid R3 Resources are in " + folderPath)
         let info = ProcessInfo.processInfo
         let begin = info.systemUptime
 
@@ -125,9 +147,13 @@ class Conductor {
     func addMidiListener(listener: AKMIDIListener) {
         midi.addListener(listener)
     }
+    
+    func setMIDIInstrument(channel: Int, midiInstrument: Int) {
+        setupSampler(sampler: channelSamplers[channel]!, fluidSample: instrumentPatches[midiInstrument])
+    }
 
     func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
-        print("Conductor playNote, note=\(note), velocity=\(velocity), (ignored) channel=\(channel)")
+        print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel)")
         do {
             try channelSamplers[Int(channel)]?.play(noteNumber: note, velocity: velocity)
         } catch {
@@ -136,7 +162,7 @@ class Conductor {
     }
 
     func stopNote(note: MIDINoteNumber, channel: MIDIChannel) {
-        print("Conductor stopNote, note=\(note), (ignored) channel=\(channel)")
+        print("Conductor stopNote, note=\(note), channel=\(channel)")
         do {
             try channelSamplers[Int(channel)]?.stop(noteNumber: note)
         } catch {
@@ -187,7 +213,7 @@ var instrumentPatches = [
 // "012_Room 4",
 // "013_Room 5",
  "013_Xylophone",
- "014_Church Bell",
+// "014_Church Bell",
 // "014_Room 6",
  "014_Tubular Bells",
  "015_Dulcimer",
@@ -226,7 +252,7 @@ var instrumentPatches = [
 // "031_Guitar Feedback",
  "031_Guitar Harmonics",
  "032_Acoustic Bass",
- "032_Jazz",
+// "032_Jazz",
  "033_Fingered Bass",
 // "033_Jazz 1",
 // "034_Jazz 2",

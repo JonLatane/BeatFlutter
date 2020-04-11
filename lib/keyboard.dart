@@ -145,6 +145,10 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
 //    print("physicalWidth=$physicalWidth");
+    double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+    if(halfStepWidthInPx < minNewValue) {
+      halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
+    }
     return Stack(children: [
       CustomScrollView(key: Key("colorboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
         CustomSliverToBoxAdapter(

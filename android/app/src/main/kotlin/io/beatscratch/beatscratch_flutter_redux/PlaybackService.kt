@@ -154,7 +154,9 @@ class PlaybackService : Service() {
       }
       .addAction(R.drawable.stop_notification, "Stop", pendingIntent(Action.STOP_ACTION))
       .addAction(R.drawable.close_notification, "Exit", pendingIntent(Action.STOPFOREGROUND_ACTION))
-//      .setStyle(NotificationCompat.MediaStyle())
+      .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0, 1)
+        .setShowCancelButton(true)
+        .setCancelButtonIntent(pendingIntent(Action.STOPFOREGROUND_ACTION)))
 //      .setStyle(
 //        NotificationCompat.MediaStyle()
 //          .setShowActionsInCompactView(0, 1)

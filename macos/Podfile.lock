@@ -261,6 +261,7 @@ PODS:
     - nanopb/encode (= 0.3.9011)
   - nanopb/decode (0.3.9011)
   - nanopb/encode (0.3.9011)
+  - SwiftProtobuf (1.8.0)
   - url_launcher (0.0.1)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
@@ -270,7 +271,8 @@ DEPENDENCIES:
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
-  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
+  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64-profile`)
+  - SwiftProtobuf
   - url_launcher (from `Flutter/ephemeral/.symlinks/plugins/url_launcher/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
@@ -294,6 +296,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - leveldb-library
     - nanopb
+    - SwiftProtobuf
 
 EXTERNAL SOURCES:
   cloud_firestore:
@@ -303,7 +306,7 @@ EXTERNAL SOURCES:
   firebase_core:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
   FlutterMacOS:
-    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
+    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64-profile
   url_launcher:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher/macos
   url_launcher_macos:
@@ -332,9 +335,10 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: cea130bbfe5a7edc8d06d3f0d17288c32ffe9925
   leveldb-library: 55d93ee664b4007aac644a782d11da33fba316f7
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
+  SwiftProtobuf: 2cbd9409689b7df170d82a92a33443c8e3e14a70
   url_launcher: af78307ef9bafff91273b34f1c6c0c86a0004fd7
   url_launcher_macos: 76867a28e24e0b6b98bfd65f157b64108e6d477a
 
-PODFILE CHECKSUM: 954fb66b1ed63465c75dab10652c891094ca7d3b
+PODFILE CHECKSUM: d8c8b3786a5606e81061a2e272ec5db1fbd844e9
 
 COCOAPODS: 1.8.4
