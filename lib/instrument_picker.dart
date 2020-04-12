@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
@@ -105,6 +106,10 @@ class _PartConfigurationState extends State<PartConfiguration> {
       items = items.where((i) => i == midiInstrument ||
         midiInstruments[i].toLowerCase().contains(searchText.toLowerCase())).toList();
     }
+    int maxMidiChannel = 15;
+    if(Platform.isIOS) {
+      maxMidiChannel = 4;
+    }
     return Column(children: [
       Row(children: [
         Padding(
@@ -143,7 +148,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
               BeatScratchPlugin.pushPart(widget.part, includeMelodies: false);
                 }
               : null,
-          onIncrement: (isHarmonic && midiChannel < 15)
+          onIncrement: (isHarmonic && midiChannel < maxMidiChannel)
               ? () {
                   widget.superSetState(() {
                   setState(() {

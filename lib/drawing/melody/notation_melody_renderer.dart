@@ -18,6 +18,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 //  static final ui.Image notehead = await loadUiImage("");
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
+  Iterable<Melody> otherMelodiesOnStaff = [];
   double notationAlpha = 1;
   int maxSubdivisonsPerBeatUnder7 = 7;
   bool stemsUp = true;
@@ -96,7 +97,28 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       double noteheadWidth = min(letterStepSize * 2, maxFittableNoteheadWidth);
       double noteheadHeight = noteheadWidth; //(bounds.right - bounds.left)
 
-      List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, chord);//computePlaybackNotes(tones, chord);
+      var computationChord = chord;
+      if(computationChord.chroma == 2047) {
+        int newChroma = 0;
+        addTonesToNewChroma(Iterable<int> newTones) {
+          newTones.forEach((t) {
+            int difference = (t - computationChord.rootNote.tone).mod12;
+            int bitValue = 1 << (11 - difference);
+//            print("adding $bitValue to chroma=$newChroma for tone $t");
+            newChroma |= bitValue;
+          });
+        }
+        addTonesToNewChroma(tones);
+        otherMelodiesOnStaff.forEach((otherMelody) {
+          int foreignPosition =
+          elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
+            toSubdivisionsPerBeat: otherMelody.subdivisionsPerBeat);
+          var foreignTones = otherMelody.tonesAt(foreignPosition);
+          addTonesToNewChroma(foreignTones);
+        });
+        computationChord = computationChord.copyWith((it) { it.chroma = newChroma; });
+      }
+      List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, computationChord);//computePlaybackNotes(tones, chord);
       double maxCenter = -100000000;
       double minCenter = 100000000;
       bool hadStaggeredNotes = false;
@@ -274,11 +296,10 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     }
   }
 
-//  static List<List<dynamic>> _recentPlaybackNoteRequests = List();
-  static Map<List<dynamic>, List<NoteSpecification>> _playbackNoteCache = Map();
+//  static List<List<dynamic>> _recentPlaybackNoteRequests =List();
+  static Map<ArgumentList, List<NoteSpecification>> _playbackNoteCache = Map();
   List<NoteSpecification> getPlaybackNotes(List<int> tones, Chord chord) {
-    List<dynamic> key = [tones, chord];
-    return _playbackNoteCache.putIfAbsent(key,
+    return _playbackNoteCache.putIfAbsent(ArgumentList([tones, chord]),
         () {
 //          _recentPlaybackNoteRequests.remove(key);
 //          _recentPlaybackNoteRequests.insert(0, key);

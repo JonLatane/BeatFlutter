@@ -18,6 +18,27 @@ extension ContextUtils on BuildContext {
   bool get isPortrait => !isLandscape;
 }
 
+/// Wrapper around [List<dynamic>] that calculates == and hashCode.
+class ArgumentList {
+  final List<dynamic> arguments;
+
+  ArgumentList(this.arguments);
+
+  @override bool operator ==(other) => other is ArgumentList && arguments.length == other.arguments.length
+    && !arguments.asMap().entries.any((entry) => other.arguments[entry.key] != entry.value);
+  @override int get hashCode {
+    int result;
+    arguments.forEach((arg) {
+      if(result == null) {
+        result = arg.hashCode;
+      } else {
+        result = result ^ arg.hashCode;
+      }
+    });
+    return result;
+  }
+}
+
 class IncrementableValue extends StatelessWidget {
   final Function onIncrement;
   final Function onDecrement;

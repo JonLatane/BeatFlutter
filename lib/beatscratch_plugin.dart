@@ -30,7 +30,13 @@ class BeatScratchPlugin {
     if(!includeMelodies) {
       part = part.clone().copyWith((it) { it.melodies.clear(); });
     }
-    _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
+
+    if(kIsWeb) {
+      print("invoking sendMIDI as JavaScript with context $context");
+      context.callMethod('pushPart', [part.writeToJson()]);
+    } else {
+      _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
+    }
   }
 
   /// Pushes or updates the [Part].

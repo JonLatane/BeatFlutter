@@ -98,9 +98,9 @@ class Conductor {
                 15: sampler16,
             ], uniquingKeysWith: { (_, last) in last })
             for (channel, sampler) in channelSamplers {
-                if(channel == 9) {
+                if channel == 9 {
                     setupSampler(sampler: sampler, fluidSample: "000_Standard")
-                } else {
+                } else if channel == 0 {
                     setupSampler(sampler: sampler, fluidSample: "000_Grand Piano")
                 }
             }
@@ -177,6 +177,10 @@ class Conductor {
             }
         }
     }
+}
+
+class asdf : AKMIDIListener {
+    
 }
 
 var drumPatch = "000_Standard"

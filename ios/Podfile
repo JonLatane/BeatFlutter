@@ -36,6 +36,7 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  pod 'SwiftProtobuf'
   pod 'AudioKit/Core', '~> 4.0'
 
   # Flutter Pod

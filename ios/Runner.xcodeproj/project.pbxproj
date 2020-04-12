@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		330B43392431872E00141FC5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 330B43382431872E00141FC5 /* GoogleService-Info.plist */; };
+		3322C10624435DA000092C52 /* protobeats_plugin.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */; };
+		3322C10724435DA000092C52 /* music.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C10524435DA000092C52 /* music.pb.swift */; };
+		3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C1082443613100092C52 /* AKSamplerExtensions.swift */; };
 		3326BB8E243A25EC00022545 /* Conductor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB89243A25EC00022545 /* Conductor.swift */; };
 		3326BB8F243A25EC00022545 /* Fatten.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8A243A25EC00022545 /* Fatten.swift */; };
 		3326BB90243A25EC00022545 /* AutoPan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8B243A25EC00022545 /* AutoPan.swift */; };
@@ -42,6 +45,9 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		330B43382431872E00141FC5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = protobeats_plugin.pb.swift; sourceTree = "<group>"; };
+		3322C10524435DA000092C52 /* music.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = music.pb.swift; sourceTree = "<group>"; };
+		3322C1082443613100092C52 /* AKSamplerExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AKSamplerExtensions.swift; sourceTree = "<group>"; };
 		3326BB89243A25EC00022545 /* Conductor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Conductor.swift; sourceTree = "<group>"; };
 		3326BB8A243A25EC00022545 /* Fatten.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fatten.swift; sourceTree = "<group>"; };
 		3326BB8B243A25EC00022545 /* AutoPan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPan.swift; sourceTree = "<group>"; };
@@ -83,6 +89,23 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3322C10224435D9F00092C52 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				3322C10324435DA000092C52 /* protos */,
+			);
+			path = Classes;
+			sourceTree = SOURCE_ROOT;
+		};
+		3322C10324435DA000092C52 /* protos */ = {
+			isa = PBXGroup;
+			children = (
+				3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */,
+				3322C10524435DA000092C52 /* music.pb.swift */,
+			);
+			path = protos;
+			sourceTree = "<group>";
+		};
 		3326BB88243A25EC00022545 /* AudioSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -90,6 +113,7 @@
 				3326BB8A243A25EC00022545 /* Fatten.swift */,
 				3326BB8B243A25EC00022545 /* AutoPan.swift */,
 				3326BB8C243A25EC00022545 /* FilterSection.swift */,
+				3322C1082443613100092C52 /* AKSamplerExtensions.swift */,
 				3326BB8D243A25EC00022545 /* PingPongDelay.swift */,
 			);
 			path = AudioSystem;
@@ -140,6 +164,7 @@
 			children = (
 				3326BB88243A25EC00022545 /* AudioSystem */,
 				330B43382431872E00141FC5 /* GoogleService-Info.plist */,
+				3322C10224435D9F00092C52 /* Classes */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -326,11 +351,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3326BB90243A25EC00022545 /* AutoPan.swift in Sources */,
+				3322C10724435DA000092C52 /* music.pb.swift in Sources */,
+				3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				3326BB8F243A25EC00022545 /* Fatten.swift in Sources */,
 				3326BB8E243A25EC00022545 /* Conductor.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				3326BB92243A25EC00022545 /* PingPongDelay.swift in Sources */,
+				3322C10624435DA000092C52 /* protobeats_plugin.pb.swift in Sources */,
 				3326BB91243A25EC00022545 /* FilterSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

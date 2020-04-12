@@ -132,6 +132,16 @@ extension PatternIndexConversions on int {
 }
 
 extension ChordTheory on Chord {
+  bool containsHalfStepInterval(int halfSteps) => containsTone(rootNote.tone + halfSteps);
+  bool get hasAug4 => (containsHalfStepInterval(6) && !containsHalfStepInterval(5) && !containsHalfStepInterval(3))
+    || (containsHalfStepInterval(6) && containsHalfStepInterval(7))
+    || (containsHalfStepInterval(6) && containsHalfStepInterval(2) && containsHalfStepInterval(9) && !containsHalfStepInterval(5));
+  bool get hasAug9 => containsHalfStepInterval(3) && containsHalfStepInterval(4);
+  bool get hasDim5 => containsHalfStepInterval(6) && !containsHalfStepInterval(7);
+  bool get hasAug5 => (containsHalfStepInterval(8) && !containsHalfStepInterval(7) && containsHalfStepInterval(9))
+   || (containsHalfStepInterval(8) && !containsHalfStepInterval(7) && containsHalfStepInterval(4));
+
+
   /// Returns the nearest
   int closestTone(int tone) {
     int result;
@@ -187,6 +197,9 @@ extension MelodyTheory on Melody {
     ? melodicData.data.values.expand((it) => it.tones)
     : [];
   double get averageTone => tones.reduce((a, b) => a + b) / tones.length.toDouble();
+  Iterable<int> tonesAt(int elementPosition) => (type == MelodyType.melodic)
+    ? melodicData.data[elementPosition].tones
+    : [];
 
   int offsetUnder(Chord chord) {
     int result = 0;

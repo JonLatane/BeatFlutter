@@ -350,9 +350,6 @@ class _MelodyPainter extends CustomPainter {
       if(focusedMelody == null) {
         melodiesToRender.sort((a,b) => -a.averageTone.compareTo(b.averageTone));
       }
-      var melodyToRenderSelectionAndPlaybackWith = (focusedMelody == null)
-        ? melodiesToRender.maxBy((it) => it.subdivisionsPerBeat)
-        : null;
 
       var renderQueue = List<Melody>.from(melodiesToRender);
       int index = 0;
@@ -380,12 +377,12 @@ class _MelodyPainter extends CustomPainter {
         }
 
         _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat,
-          stemsUp, (focusedMelody == null) ? 1 : 0.66);
+          stemsUp, (focusedMelody == null) ? 1 : 0.66, renderQueue);
         index++;
       }
 
       if(focusedMelody != null) {
-        _renderMelodyBeat(canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1);
+        _renderMelodyBeat(canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue);
       }
 
       try {
@@ -397,7 +394,7 @@ class _MelodyPainter extends CustomPainter {
       }
 
       if (renderingBeat == currentBeatNotifier.value) {
-        _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat);
+        _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue);
       }
 
       left += standardBeatWidth;
@@ -432,7 +429,8 @@ class _MelodyPainter extends CustomPainter {
 
   Melody _colorboardDummyMelody = defaultMelody()..subdivisionsPerBeat=1..length=1;
   Melody _keyboardDummyMelody = defaultMelody()..subdivisionsPerBeat=1..length=1;
-  void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat) {
+  void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
+    Iterable<Melody> otherMelodiesOnStaff) {
     canvas.drawRect(
         melodyBounds,
         Paint()
@@ -447,8 +445,8 @@ class _MelodyPainter extends CustomPainter {
     double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty ? -100
       : keyboardNotesNotifier.value.reduce((a,b) => a+b)/keyboardNotesNotifier.value.length.toDouble();
 
-    _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote > avgKeyboardNote, 1);
-    _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote <= avgKeyboardNote, 1);
+    _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
+    _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat, avgColorboardNote <= avgKeyboardNote, 1, otherMelodiesOnStaff);
 
   }
 
@@ -498,7 +496,8 @@ class _MelodyPainter extends CustomPainter {
   }
 
   _renderMelodyBeat(
-      Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, bool stemsUp, double alpha) {
+      Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, bool stemsUp,
+    double alpha, Iterable<Melody> otherMelodiesOnStaff) {
     double opacityFactor = 1;
     if(melodyBounds.left < visibleRect().left + standardBeatWidth) {
       opacityFactor = max(0, min(1,
@@ -526,6 +525,7 @@ class _MelodyPainter extends CustomPainter {
       try {
         if (notationOpacityNotifier.value > 0) {
           NotationMelodyRenderer()
+            ..otherMelodiesOnStaff = otherMelodiesOnStaff
             ..xScale = xScale
             ..yScale = yScale
             ..overallBounds = melodyBounds
