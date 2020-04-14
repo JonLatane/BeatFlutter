@@ -510,140 +510,129 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               },
               child: Stack(children: [
                 Column(children: [
-                  AnimatedContainer(
-                      duration: animationDuration,
-                      height: showWebWarning ? 60 : 0,
-                      color: Color(0xFF212121),
-                      child: Row(children: [
-                        Padding(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                            child: Column(children: [
-                              Align(
-                                  child: Text("BeatScratch",
-                                      style:
-                                          TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
-                              Align(
-                                  child: Row(children: [
-                                Text("Web",
-                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                                Text("Preview",
-                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
-                              ])),
-                            ])),
-                        Expanded(
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                                child: Text(
-                                    "is pre-release software. Bugs and missing features abound.",
-                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
-                        Padding(
-                          padding: EdgeInsets.only(right: 5),
-                          child: RaisedButton(
-                            onPressed: () {
-                              setState(() {
-                                showWebWarning = false;
-                              });
-                            },
-                            child: Text("OK!"))),
-                        FlatButton(
-                            onPressed: () {
-                              _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
-                            },
-                            padding: EdgeInsets.all(0),
-                            child: Image.asset("assets/play_en_badge_web_generic.png")),
-                        Container(
-                            width: 120,
-                            height: 40,
-                            padding: EdgeInsets.only(right: 5),
-                            child: FlatButton(
-                                color: Colors.white,
-                                onPressed: () {
-                                  _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
-                                },
-                                padding: EdgeInsets.all(0),
-                                child: Stack(children:[
-                                  Align(alignment: Alignment.bottomRight, child:
-                                  Padding(padding: EdgeInsets.only(right:5, bottom:2), child:
-                                  Text("macOS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)))),
-                                  Align(alignment: Alignment.topLeft, child:
-                                  Padding(padding: EdgeInsets.only(top:2, left:5), child:
-                                  Text("Download For", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
-                                ]))),
-                      ])),
-//            Flex(direction: Axis.vertical, children: <Widget>[
-                  _combineSecondAndMainToolbar
-                      ? Container(
-                          height: 48,
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(child: createBeatScratchToolbar()),
-                              Container(
-                                  height: 36,
-                                  child: AnimatedContainer(
-                                      duration: animationDuration,
-                                      width: context.isTabletOrLandscapey ||
-                                              interactionMode == InteractionMode.edit ||
-                                              showViewOptions
-                                          ? MediaQuery.of(context).size.width / 2
-                                          : 0,
-                                      child: createSecondToolbar()))
-                            ],
-                          ))
-                      : Column(children: <Widget>[
-                          createBeatScratchToolbar(),
-                          AnimatedContainer(
-                              duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
-                        ]),
-                  AnimatedContainer(
-                      duration: animationDuration,
-                      curve: Curves.easeInOut,
-                      height: horizontalSectionListHeight,
-                      child: createSectionList(scrollDirection: Axis.horizontal)),
+                  _webBanner(context),
+                  if (_combineSecondAndMainToolbar)_toolbars(context),
+                  _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        curve: Curves.easeInOut,
-                        width: verticalSectionListWidth,
-                        child: createSectionList(scrollDirection: Axis.vertical)),
+                    _verticalSectionList(),
                     Expanded(child: _partsAndMelodiesAndMelodyView(context))
                   ])),
-                  AnimatedContainer(
-                      curve: Curves.easeInOut,
-                      duration: animationDuration,
-                      height: _colorboardHeight,
-                      width: MediaQuery.of(context).size.width,
-                      color: Colors.white,
-                      child: Colorboard(
-                        part: colorboardPart,
-                        height: _colorboardHeight,
-                        showConfiguration: _showColorboardConfiguration,
-                        sectionColor: sectionColor,
-                        pressedNotesNotifier: colorboardNotesNotifier,
-                        distanceFromBottom: _keyboardHeight,
-                      )
-//                      Image.asset(
-//                        'assets/colorboard.png',
-//                        fit: BoxFit.fill,
-//                      )
-                      ),
-                  AnimatedContainer(
-                      curve: Curves.easeInOut,
-                      duration: animationDuration,
-                      height: _keyboardHeight,
-                      width: MediaQuery.of(context).size.width,
-                      color: Colors.white,
-                      child: Keyboard(
-                        part: keyboardPart,
-                        height: _keyboardHeight,
-                        showConfiguration: _showKeyboardConfiguration,
-                        sectionColor: sectionColor,
-                        pressedNotesNotifier: keyboardNotesNotifier,
-                      )),
+                  if (!_combineSecondAndMainToolbar)_toolbars(context),
+                  _colorboard(context),
+                  _keyboard(context),
                 ])
                 //]),
               ]),
             )));
+  }
+
+  AnimatedContainer _verticalSectionList() {
+    return AnimatedContainer(
+                      duration: animationDuration,
+                      curve: Curves.easeInOut,
+                      width: verticalSectionListWidth,
+                      child: createSectionList(scrollDirection: Axis.vertical));
+  }
+
+  AnimatedContainer _horizontalSectionList() {
+    return AnimatedContainer(
+                    duration: animationDuration,
+                    curve: Curves.easeInOut,
+                    height: horizontalSectionListHeight,
+                    child: createSectionList(scrollDirection: Axis.horizontal));
+  }
+
+  Widget _webBanner(BuildContext context) {
+    return AnimatedContainer(
+      duration: animationDuration,
+      height: showWebWarning ? 60 : 0,
+      color: Color(0xFF212121),
+      child: Row(children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+          child: Column(children: [
+            Align(
+              child: Text("BeatScratch",
+                style:
+                TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
+            Align(
+              child: Row(children: [
+                Text("Web",
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                Text("Preview",
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
+              ])),
+          ])),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+            child: Text(
+              "is pre-release software. Bugs and missing features abound.",
+              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100)))),
+        Padding(
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+            onPressed: () {
+              setState(() {
+                showWebWarning = false;
+              });
+            },
+            child: Text("OK!"))),
+        FlatButton(
+          onPressed: () {
+            _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
+          },
+          padding: EdgeInsets.all(0),
+          child: Image.asset("assets/play_en_badge_web_generic.png")),
+        Container(
+          width: 120,
+          height: 40,
+          padding: EdgeInsets.only(right: 5),
+          child: FlatButton(
+            color: Colors.white,
+            onPressed: () {
+              _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+            },
+            padding: EdgeInsets.all(0),
+            child: Stack(children: [
+              Align(alignment: Alignment.bottomRight, child:
+              Padding(padding: EdgeInsets.only(right: 5, bottom: 2), child:
+              Text("macOS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)))),
+              Align(alignment: Alignment.topLeft, child:
+              Padding(padding: EdgeInsets.only(top: 2, left: 5), child:
+              Text("Download For", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
+            ]))),
+      ]));
+  }
+
+  Widget _toolbars(BuildContext context) {
+    return _combineSecondAndMainToolbar
+      ? Container(
+      height: 48,
+      child: Row(
+        children: <Widget>[
+          Expanded(child: createBeatScratchToolbar()),
+          Container(
+            height: 36,
+            child: AnimatedContainer(
+              duration: animationDuration,
+              width: context.isTabletOrLandscapey ||
+                interactionMode == InteractionMode.edit ||
+                showViewOptions
+                ? MediaQuery
+                .of(context)
+                .size
+                .width / 2
+                : 0,
+              child: createSecondToolbar()))
+        ],
+      ))
+      : Column(children: <Widget>[
+      createBeatScratchToolbar(),
+      AnimatedContainer(
+        duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
+    ]);
   }
 
   BeatScratchToolbar createBeatScratchToolbar() => BeatScratchToolbar(
@@ -738,8 +727,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
 //      height += 36;
 //    }
-    _handleStatusBar(context);
-
     return Stack(children: [
       (context.isPortrait)
           ? Column(children: [
@@ -894,12 +881,34 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  _handleStatusBar(BuildContext context) {
-//    var size = MediaQuery.of(context).size;
-//    if(size.height < 600) {
-//      SystemChrome.setEnabledSystemUIOverlays([]);
-//    } else {
-//      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-//    }
+  AnimatedContainer _keyboard(BuildContext context) {
+    return AnimatedContainer(
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _keyboardHeight,
+      width: MediaQuery.of(context).size.width,
+      color: Colors.white,
+      child: Keyboard(
+        part: keyboardPart,
+        height: _keyboardHeight,
+        showConfiguration: _showKeyboardConfiguration,
+        sectionColor: sectionColor,
+        pressedNotesNotifier: keyboardNotesNotifier,));
+  }
+
+  AnimatedContainer _colorboard(BuildContext context) {
+    return AnimatedContainer(
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _colorboardHeight,
+      width: MediaQuery.of(context).size.width,
+      color: Colors.white,
+      child: Colorboard(
+        part: colorboardPart,
+        height: _colorboardHeight,
+        showConfiguration: _showColorboardConfiguration,
+        sectionColor: sectionColor,
+        pressedNotesNotifier: colorboardNotesNotifier,
+        distanceFromBottom: _keyboardHeight,));
   }
 }

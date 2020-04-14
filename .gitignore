@@ -38,3 +38,4 @@ lib/generated_plugin_registrant.dart
 GoogleService-Info.plist
 .cxx/
 android/app/.cxx/
+.last_build_id

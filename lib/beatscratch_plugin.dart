@@ -32,7 +32,7 @@ class BeatScratchPlugin {
     }
 
     if(kIsWeb) {
-      print("invoking sendMIDI as JavaScript with context $context");
+      print("invoking pushPart as JavaScript with context $context");
       context.callMethod('pushPart', [part.writeToJson()]);
     } else {
       _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
@@ -106,7 +106,7 @@ class BeatScratchPlugin {
   }
 
 
-  static void sendMIDI(List<int> bytes) {
+  static void sendMIDI(List<int> bytes) async {
     print("invoking sendMIDI");
     if(kIsWeb) {
       print("invoking sendMIDI as JavaScript with context $context");
