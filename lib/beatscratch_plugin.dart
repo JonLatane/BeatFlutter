@@ -26,14 +26,12 @@ class BeatScratchPlugin {
 
   /// Pushes or updates the [Part].
   static void pushPart(Part part, {bool includeMelodies = true}) {
-    print("invoking pushPart");
     if(!includeMelodies) {
       part = part.clone().copyWith((it) { it.melodies.clear(); });
     }
 
     if(kIsWeb) {
-      print("invoking pushPart as JavaScript with context $context");
-      context.callMethod('pushPart', [part.writeToJson()]);
+      context.callMethod('pushPart', [ part.toProto3Json() ]);
     } else {
       _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
     }

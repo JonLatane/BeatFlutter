@@ -296,6 +296,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 renderingMode: widget.renderingMode,
                 xScale: _xScale,
                 yScale: _xScale,
+                staves: [ AccompanimentStaff(), DrumStaff() ],
               ),
               Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
                 Container(

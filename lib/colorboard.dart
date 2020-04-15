@@ -250,7 +250,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                   double left = _visibleRect.left + event.position.dx;
                   int tone = (left / halfStepWidthInPx).floor() + lowestPitch;
                   tone = widget.chord.closestTone(tone);
-                  double dy = MediaQuery.of(context).size.height - event.position.dy;
+                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
                   double maxDy = widget.height - touchScrollAreaHeight;
                   double velocityRatio = min(dy, maxDy) / maxDy;
 //              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
