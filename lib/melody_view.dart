@@ -1,22 +1,15 @@
-import 'dart:collection';
+import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/main.dart';
-import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 import 'instrument_picker.dart';
-import 'melodybeat.dart';
-import 'expanded_section.dart';
-import 'part_melodies_view.dart';
-import 'dart:math';
-import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
-import 'package:uuid/uuid.dart';
-import 'ui_models.dart';
-import 'util.dart';
-import 'music_theory.dart';
 import 'melody_renderer.dart';
 import 'melody_toolbars.dart';
+import 'music_theory.dart';
+import 'music_notation_theory.dart';
+import 'ui_models.dart';
+import 'util.dart';
 
 class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
@@ -253,6 +246,23 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double maxScaleDiscrepancy = 1.5;
   static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
   Widget _mainMelody(BuildContext context) {
+    List<MusicStaff> staves = [];
+    Part mainPart = widget.part;
+    if(widget.melody != null) {
+      mainPart = widget.score.parts.firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id),
+        orElse: () => null);
+    }
+    if(mainPart != null && mainPart.isHarmonic) {
+      staves.add(PartStaff()..part=mainPart);
+    } else if(mainPart != null && mainPart.isDrum) {
+      staves.add(DrumStaff());
+    }
+    if(widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
+      staves.add(AccompanimentStaff());
+    }
+    if(widget.score.parts.any((part) => part.isDrum && part != mainPart)) {
+      staves.add(DrumStaff());
+    }
     return Container(
         color: Colors.white,
         child: GestureDetector(
@@ -296,7 +306,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 renderingMode: widget.renderingMode,
                 xScale: _xScale,
                 yScale: _xScale,
-                staves: [ AccompanimentStaff(), DrumStaff() ],
+                staves: staves,
               ),
               Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
                 Container(

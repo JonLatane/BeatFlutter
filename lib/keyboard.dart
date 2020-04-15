@@ -550,7 +550,7 @@ class _KeyboardRenderer extends CanvasToneDrawer {
 
   draw(Canvas canvas) {
     canvas.drawColor(Colors.black12, BlendMode.srcATop);
-    alphaDrawerPaint.preserveColor(() {
+    alphaDrawerPaint.preserveProperties(() {
       var halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
       // Draw white keys
       visibleDiatonicPitches.forEach((visiblePitch) {

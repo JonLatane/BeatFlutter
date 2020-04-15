@@ -471,7 +471,12 @@ class _MelodiesViewState extends State<_MelodiesView> {
               expandedHeight: 50.0,
               flexibleSpace: FlatButton(
                   onPressed: () {
-                    var newMelody = odeToJoy(); // Melody()..id = uuid.v4();
+                    var newMelody;
+                    if(part.instrument.type != InstrumentType.drum) {
+                      newMelody = odeToJoy();
+                    } else {
+                      newMelody = boomChick();
+                    }
                     _lastAddedMelody = newMelody;
                     setState(() {
                       part.melodies.insert(0, newMelody);

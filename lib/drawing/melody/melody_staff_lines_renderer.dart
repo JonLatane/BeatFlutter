@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:unification/unification.dart';
 import '../../util.dart';
 
-enum Clef { treble, bass, tenor_treble }
+enum Clef { treble, bass, tenor_treble, drum_treble, drum_bass }
 
 extension ClefNotes on Clef {
   List<NoteSpecification> get notes => clefNotes[this];
@@ -26,6 +26,20 @@ extension ClefNotes on Clef {
       NoteSpecification.name(letter: NoteLetter.E, octave: 3),
     ],
     Clef.bass: [
+      NoteSpecification.name(letter: NoteLetter.A, octave: 3),
+      NoteSpecification.name(letter: NoteLetter.F, octave: 3),
+      NoteSpecification.name(letter: NoteLetter.D, octave: 3),
+      NoteSpecification.name(letter: NoteLetter.B, octave: 2),
+      NoteSpecification.name(letter: NoteLetter.G, octave: 2),
+    ],
+    Clef.drum_treble: [
+      NoteSpecification.name(letter: NoteLetter.F, octave: 5),
+      NoteSpecification.name(letter: NoteLetter.D, octave: 5),
+      NoteSpecification.name(letter: NoteLetter.B, octave: 4),
+      NoteSpecification.name(letter: NoteLetter.G, octave: 4),
+      NoteSpecification.name(letter: NoteLetter.E, octave: 4),
+    ],
+    Clef.drum_bass: [
       NoteSpecification.name(letter: NoteLetter.A, octave: 3),
       NoteSpecification.name(letter: NoteLetter.F, octave: 3),
       NoteSpecification.name(letter: NoteLetter.D, octave: 3),

@@ -1,5 +1,4 @@
 import 'package:dart_midi/dart_midi.dart';
-import 'package:unification/unification.dart';
 
 import 'generated/protos/music.pb.dart';
 

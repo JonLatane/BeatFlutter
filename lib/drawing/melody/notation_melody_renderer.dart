@@ -155,7 +155,20 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           right = bounds.right - 0.9 * noteheadWidth;
         }
         Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
-        _drawFilledNotehead(canvas, noteheadRect);
+        switch(notehead) {
+          case Notehead.quarter:
+            _drawFilledNotehead(canvas, noteheadRect);
+            break;
+          case Notehead.half:
+            _drawFilledNotehead(canvas, noteheadRect);
+            break;
+          case Notehead.whole:
+            _drawFilledNotehead(canvas, noteheadRect);
+            break;
+          case Notehead.percussion:
+            _drawPercussionNotehead(canvas, noteheadRect);
+            break;
+        }
         // Draw signs
         NoteSign previousSign;
 //        val previousSign = previousSignOf(melody, harmony, note, elementPosition)
@@ -330,5 +343,18 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     target = Rect.fromCenter(center: target.center, width: target.width, height: target.height * 0.7777777);
     canvas.drawOval(target, alphaDrawerPaint);
     canvas.restore();
+  }
+  _drawPercussionNotehead(Canvas canvas, Rect rect) {
+//    canvas.save();
+//    canvas.translate(rect.center.dx, rect.center.dy);
+//    canvas.rotate(-0.58171824);
+//    var target = rect.shift(-rect.center);
+//    target = Rect.fromCenter(center: target.center, width: target.width, height: target.height * 0.7777777);
+    alphaDrawerPaint.preserveProperties(() {
+      alphaDrawerPaint.strokeWidth = max(1, 2*xScale);
+      canvas.drawLine(rect.bottomLeft, rect.topRight, alphaDrawerPaint);
+      canvas.drawLine(rect.topLeft, rect.bottomRight, alphaDrawerPaint);
+    });
+//    canvas.restore();
   }
 }

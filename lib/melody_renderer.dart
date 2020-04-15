@@ -1,34 +1,23 @@
-import 'dart:async';
-import 'dart:math';
-import 'dart:typed_data';
-
-import 'package:beatscratch_flutter_redux/drawing/harmony_beat_renderer.dart';
-import 'package:beatscratch_flutter_redux/drawing/melody/melody.dart';
-import 'package:beatscratch_flutter_redux/drawing/melody/melody_clef_renderer.dart';
-import 'package:beatscratch_flutter_redux/drawing/melody/melody_color_guide.dart';
-import 'package:beatscratch_flutter_redux/drawing/melody/melody_staff_lines_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:unification/unification.dart';
-import 'drawing/color_guide.dart';
-import 'drawing/drawing.dart';
-import 'melody_view.dart';
-import 'section_list.dart';
-import 'part_melodies_view.dart';
-import 'colorboard.dart';
-import 'package:flutter/services.dart';
-import 'colors.dart';
-import 'util.dart';
-import 'ui_models.dart';
-import 'dummydata.dart';
-import 'music_theory.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:ui' as ui;
+import 'package:collection/collection.dart';
 
-const double unscaledStandardBeatWidth = 60.0;
+
+import 'drawing/color_guide.dart';
+import 'drawing/harmony_beat_renderer.dart';
+import 'drawing/melody/melody.dart';
+import 'drawing/melody/melody_clef_renderer.dart';
+import 'drawing/melody/melody_color_guide.dart';
+import 'drawing/melody/melody_staff_lines_renderer.dart';
+import 'dummydata.dart';
+import 'generated/protos/music.pb.dart';
+import 'music_notation_theory.dart';
+import 'music_theory.dart';
+import 'ui_models.dart';
+import 'util.dart';
+import 'dart:math';
 
 class MelodyRenderer extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
@@ -62,42 +51,6 @@ class MelodyRenderer extends StatefulWidget {
   _MelodyRendererState createState() => _MelodyRendererState();
 }
 
-abstract class MusicStaff {
-  MusicStaff();
-
-  String get id;
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration);
-}
-
-class PartStaff extends MusicStaff {
-  Part part;
-
-  @override
-  String get id => "staff-part-${part.id}";
-  @override
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration) => [ part ];
-}
-
-class AccompanimentStaff extends MusicStaff {
-  @override
-  String get id => "accompaniment";
-  @override
-  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration) => score.parts
-    .where((part) => part.isHarmonic)
-    .where((part) => // Don't display Parts listed elsewhere in the configuration.
-  !staffConfiguration.any((staff) => staff is PartStaff && staff.part.id == part.id));
-}
-
-class DrumStaff extends MusicStaff {
-  @override
-  String get id => "drum";
-  @override
-  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration) =>
-    score.parts.where((part) => part.isDrum);
-}
-
-extension PartDerivation on MusicStaff {}
-
 Rect _visibleRect = Rect.zero;
 
 class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStateMixin {
@@ -111,9 +64,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
-  double get overallCanvasHeight => heightFactor * yScale;
+  double get overallCanvasHeight => (widget.staves.length * heightFactor * yScale + 60) * 1.3;
 
-  double get overallCanvasWidth => (numberOfBeats + 1) * standardBeatWidth; // + 1 for clefs
+  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
 
   ScrollController verticalController = ScrollController();
   static const double heightFactor = 500;
@@ -148,6 +101,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     notationOpacityNotifier.dispose();
     currentBeatNotifier.dispose();
     sectionScaleNotifier.dispose();
+    partTopOffsets.dispose();
+    staffOffsets.dispose();
+    stavesNotifier.dispose();
     super.dispose();
   }
 
@@ -166,7 +122,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     return SingleChildScrollView(
         key: Key(key),
         child: Container(
-            height: heightFactor * yScale,
+            height: overallCanvasHeight,
             child: CustomScrollView(
               scrollDirection: Axis.horizontal,
               slivers: [
@@ -216,6 +172,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         .animate(configurationChangeAnimationController)
         ..addListener(() {
           staffOffsets.value[staff.id] = staffAnimation.value;
+          staffOffsets.notifyListeners();
         });
       staff.getParts(widget.score, widget.staves).forEach((part) {
         double partPosition = staffPosition;
@@ -225,9 +182,13 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
           .animate(configurationChangeAnimationController)
           ..addListener(() {
             partTopOffsets.value[part.id] = partAnimation.value;
+            partTopOffsets.notifyListeners();
           });
         
       });
+//      if(ListEquality().equals(widget.staves, stavesNotifier.value)) {
+        stavesNotifier.value = widget.staves;
+//      }
     });
   }
 
@@ -256,6 +217,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   }
 }
 
+
 class MusicSystemPainter extends CustomPainter {
   final Melody focusedMelody;
   final Score score;
@@ -283,26 +245,27 @@ class MusicSystemPainter extends CustomPainter {
   int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
   MusicSystemPainter({this.staves, this.partTopOffsets, this.staffOffsets,
-      this.sectionScaleNotifier,
-      this.colorboardNotesNotifier,
-      this.keyboardNotesNotifier,
-      this.currentBeatNotifier,
-      this.score,
-      this.section,
-      this.xScale,
-      this.yScale,
-      this.visibleRect,
-      this.focusedMelody,
-      this.colorblockOpacityNotifier,
-      this.notationOpacityNotifier})
-      : super(
-            repaint: Listenable.merge([
-          colorblockOpacityNotifier,
-          notationOpacityNotifier,
-          currentBeatNotifier,
-          colorboardNotesNotifier,
-          keyboardNotesNotifier
-        ])) {
+    this.sectionScaleNotifier,
+    this.colorboardNotesNotifier,
+    this.keyboardNotesNotifier,
+    this.currentBeatNotifier,
+    this.score,
+    this.section,
+    this.xScale,
+    this.yScale,
+    this.visibleRect,
+    this.focusedMelody,
+    this.colorblockOpacityNotifier,
+    this.notationOpacityNotifier})
+    : super(
+    repaint: Listenable.merge([
+      colorblockOpacityNotifier,
+      notationOpacityNotifier,
+      currentBeatNotifier,
+      colorboardNotesNotifier,
+      keyboardNotesNotifier,
+      staves,partTopOffsets,staffOffsets,
+    ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
   }
@@ -312,6 +275,8 @@ class MusicSystemPainter extends CustomPainter {
   double get idealSectionHeight => harmonyHeight;
 
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
+
+  double get melodyHeight => _MelodyRendererState.heightFactor * yScale;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -325,15 +290,20 @@ class MusicSystemPainter extends CustomPainter {
     left = renderingBeat * standardBeatWidth;
 //    canvas.drawRect(visibleRect(), Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
-    Rect staffLineBounds = Rect.fromLTRB(visibleRect().left, visibleRect().top + harmonyHeight + sectionHeight,
-        visibleRect().right, visibleRect().bottom);
-    _renderStaffLines(canvas, drawContinuousColorGuide, staffLineBounds);
-    Rect clefBounds = Rect.fromLTRB(visibleRect().left, visibleRect().top + harmonyHeight + sectionHeight,
-        visibleRect().left + standardBeatWidth, visibleRect().bottom);
+    staves.value.forEach((staff) {
+      double staffOffset = staffOffsets.value.putIfAbsent(staff.id, ()=>0);
+      double top = visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
+      Rect staffLineBounds = Rect.fromLTRB(visibleRect().left, top, visibleRect().right, top + melodyHeight);
+//      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
+      _renderStaffLines(canvas, drawContinuousColorGuide, staffLineBounds);
+      Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
+        visibleRect().left + 2*standardBeatWidth, top + melodyHeight);
+//      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
-    _renderClefs(canvas, drawContinuousColorGuide, staffLineBounds);
+      _renderClefs(canvas, clefBounds, staff);
+    });
 
-    renderingBeat -= 1; // To make room for clefs
+    renderingBeat -= 2; // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
     while (left < visibleRect().right + standardBeatWidth) {
       if (renderingBeat < 0) {
@@ -373,14 +343,14 @@ class MusicSystemPainter extends CustomPainter {
         double topOffset = max(0, 30 / pow(fontSize, 0.7 + 0.2 * fontSize / 20));
 //        print("fontSize=$fontSize topOffset=$topOffset");
         TextSpan span = new TextSpan(
-            text: renderingSection.name.isNotEmpty
-                ? renderingSection.name
-                : " Section ${renderingSection.id.substring(0, 5)}",
-            style: TextStyle(
-                fontFamily: "VulfSans",
-                fontSize: fontSize,
-                fontWeight: FontWeight.w100,
-                color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
+          text: renderingSection.name.isNotEmpty
+            ? renderingSection.name
+            : " Section ${renderingSection.id.substring(0, 5)}",
+          style: TextStyle(
+            fontFamily: "VulfSans",
+            fontSize: fontSize,
+            fontWeight: FontWeight.w100,
+            color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
         TextPainter tp = new TextPainter(
           text: span,
           strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
@@ -405,73 +375,80 @@ class MusicSystemPainter extends CustomPainter {
       _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
       top = top + harmonyHeight;
 
-      Rect melodyBounds = Rect.fromLTRB(left, top, right, visibleRect().bottom);
-      if (!drawContinuousColorGuide) {
-        _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
-      }
 
-      List<Melody> melodiesToRender = renderingSection.melodies
-          .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
-          .where((it) => it != focusedMelody)
-          .map((it) => score.melodyReferencedBy(it))
-          .toList();
-      if (focusedMelody == null) {
-        melodiesToRender.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
-      }
-
-      var renderQueue = List<Melody>.from(melodiesToRender);
-      int index = 0;
-      while (renderQueue.isNotEmpty) {
-        // Draw highest Melody stems up, lowest stems down, second lowest stems up, second highest
-        // down. And repeat.
-        Melody melody;
-        bool stemsUp;
-        switch (index % 4) {
-          case 0:
-            melody = renderQueue.removeAt(0);
-            stemsUp = true;
-            break;
-          case 1:
-            melody = renderQueue.removeAt(renderQueue.length - 1);
-            stemsUp = false;
-            break;
-          case 2:
-            melody = renderQueue.removeAt(renderQueue.length - 1);
-            stemsUp = true;
-            break;
-          default:
-            melody = renderQueue.removeAt(0);
-            stemsUp = false;
+      staves.value.expand((staff) => staff.getParts(score, staves.value)).forEach((part) {
+        double partOffset = partTopOffsets.value.putIfAbsent(part.id, ()=>0);
+        List<Melody> melodiesToRender = renderingSection.melodies
+            .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
+            .where((ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
+            .map((it) => score.melodyReferencedBy(it))
+            .toList();
+//        canvas.save();
+//        canvas.translate(0, partOffset);
+        Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
+        if (!drawContinuousColorGuide) {
+          _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
         }
-
-        _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat, stemsUp,
-            (focusedMelody == null) ? 1 : 0.66, renderQueue);
-        index++;
-      }
-
-      if (focusedMelody != null) {
-        _renderMelodyBeat(
-            canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue);
-      }
-
-      try {
-        if (notationOpacityNotifier.value > 0 && renderingBeat != 0) {
-          _renderNotationMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
-        }
-      } catch (e) {
-        print("exception rendering measure lines: $e");
-      }
-
-      if (renderingBeat == currentBeatNotifier.value) {
-        _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue);
-      }
-
+        _renderMelodies(melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat, renderingBeat, left);
+//        canvas.restore();
+      });
       left += standardBeatWidth;
       renderingBeat += 1;
     }
 //    if (drawContinuousColorGuide) {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
+  }
+
+  void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, int renderingBeat, double left) {
+    var renderQueue = List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
+    renderQueue.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
+    int index = 0;
+    while (renderQueue.isNotEmpty) {
+      // Draw highest Melody stems up, lowest stems down, second lowest stems up, second highest
+      // down. And repeat.
+      Melody melody;
+      bool stemsUp;
+      switch (index % 4) {
+        case 0:
+          melody = renderQueue.removeAt(0);
+          stemsUp = true;
+          break;
+        case 1:
+          melody = renderQueue.removeAt(renderQueue.length - 1);
+          stemsUp = false;
+          break;
+        case 2:
+          melody = renderQueue.removeAt(renderQueue.length - 1);
+          stemsUp = true;
+          break;
+        default:
+          melody = renderQueue.removeAt(0);
+          stemsUp = false;
+      }
+
+      _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat, stemsUp,
+        (focusedMelody == null) ? 1 : 0.66, renderQueue);
+      index++;
+    }
+
+    if (focusedMelody != null && melodiesToRender.contains(focusedMelody)) {
+      _renderMelodyBeat(
+        canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue);
+    }
+
+    try {
+      if (notationOpacityNotifier.value > 0 && renderingBeat != 0) {
+        _renderNotationMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
+      }
+    } catch (e) {
+      print("exception rendering measure lines: $e");
+    }
+
+    if (renderingBeat == currentBeatNotifier.value) {
+      _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue);
+    }
+
   }
 
   void _renderStaffLines(Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
@@ -482,17 +459,21 @@ class MusicSystemPainter extends CustomPainter {
         ..draw(canvas);
     }
     if (drawContinuousColorGuide && colorGuideAlpha > 0) {
-      this.drawContinuousColorGuide(canvas, visibleRect().top + sectionHeight, visibleRect().bottom);
+      this.drawContinuousColorGuide(canvas, bounds.top - harmonyHeight, bounds.bottom);
     }
   }
 
-  void _renderClefs(Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
+  void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
     if (notationOpacityNotifier.value > 0) {
-      MelodyClefRenderer()
+      var clefs = (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
+        ? [ Clef.drum_treble, Clef.drum_bass ]
+        : [ Clef.treble, Clef.bass ];
+    MelodyClefRenderer()
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
+        ..clefs = clefs
         ..draw(canvas);
     }
   }
@@ -505,31 +486,31 @@ class MusicSystemPainter extends CustomPainter {
     ..length = 1;
 
   void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-      Iterable<Melody> otherMelodiesOnStaff) {
+    Iterable<Melody> otherMelodiesOnStaff) {
     canvas.drawRect(
-        melodyBounds,
-        Paint()
-          ..style = PaintingStyle.fill
-          ..color = Colors.black26);
+      melodyBounds,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = Colors.black26);
     _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(colorboardNotesNotifier.value);
     _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(keyboardNotesNotifier.value);
 
     // Stem will be up
     double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
-        ? -100
-        : colorboardNotesNotifier.value.reduce((a, b) => a + b) / colorboardNotesNotifier.value.length.toDouble();
+      ? -100
+      : colorboardNotesNotifier.value.reduce((a, b) => a + b) / colorboardNotesNotifier.value.length.toDouble();
     double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty
-        ? -100
-        : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
+      ? -100
+      : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
 
     _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-        avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
+      avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
     _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-        avgColorboardNote <= avgKeyboardNote, 1, otherMelodiesOnStaff);
+      avgColorboardNote <= avgKeyboardNote, 1, otherMelodiesOnStaff);
   }
 
   void _renderNotationMeasureLines(
-      Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
+    Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
     MelodyMeasureLinesRenderer()
       ..section = renderingSection
       ..beatPosition = renderingSectionBeat
@@ -539,7 +520,7 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderSubdividedColorGuide(
-      Harmony renderingHarmony, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
+    Harmony renderingHarmony, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
     try {
       Melody colorGuideMelody = focusedMelody;
       if (colorGuideMelody == null) {
@@ -576,7 +557,7 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   _renderMelodyBeat(Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-      bool stemsUp, double alpha, Iterable<Melody> otherMelodiesOnStaff) {
+    bool stemsUp, double alpha, Iterable<Melody> otherMelodiesOnStaff) {
     double opacityFactor = 1;
     if (melodyBounds.left < visibleRect().left + standardBeatWidth) {
       opacityFactor = max(0, min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
@@ -626,7 +607,7 @@ class MusicSystemPainter extends CustomPainter {
 
   drawContinuousColorGuide(Canvas canvas, double top, double bottom) {
     // Calculate from which beat we should start drawing
-    int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
+    int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor() - 2;
 
     final double startOffset = renderingBeat * standardBeatWidth;
     double left = startOffset;
@@ -653,14 +634,14 @@ class MusicSystemPainter extends CustomPainter {
       Harmony renderingHarmony = renderingSection.harmony;
       double beatLeft = left;
       for (int renderingSubdivision in range(renderingSectionBeat * renderingHarmony.subdivisionsPerBeat,
-          (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat - 1)) {
+        (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat - 1)) {
         Chord chordAtSubdivision =
-            renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic; //TODO Is this default needed?
+          renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic; //TODO Is this default needed?
         if (renderingChord == null) {
           renderingChord = chordAtSubdivision;
         }
         if (renderingChord != chordAtSubdivision) {
-          Rect renderingRect = Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
+          Rect renderingRect = Rect.fromLTRB(chordLeft, top, left, bottom);
           try {
             ColorGuide()
               ..renderVertically = true

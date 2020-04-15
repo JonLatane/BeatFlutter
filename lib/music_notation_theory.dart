@@ -111,6 +111,42 @@ extension HeptatonicConversions on int {
       return this;
     }
   }
+}
 
+const double unscaledStandardBeatWidth = 60.0;
+abstract class MusicStaff {
+  MusicStaff();
 
+  String get id;
+  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration);
+
+  @override bool operator ==(other) => other is MusicStaff && id == other.id;
+  @override int get hashCode => id.hashCode;
+}
+
+class PartStaff extends MusicStaff {
+  Part part;
+
+  @override
+  String get id => "staff-part-${part.id}";
+  @override
+  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration) => [ part ];
+}
+
+class AccompanimentStaff extends MusicStaff {
+  @override
+  String get id => "accompaniment";
+  @override
+  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration) => score.parts
+    .where((part) => part.isHarmonic)
+    .where((part) => // Don't display Parts listed elsewhere in the configuration.
+  !staffConfiguration.any((staff) => staff is PartStaff && staff.part.id == part.id));
+}
+
+class DrumStaff extends MusicStaff {
+  @override
+  String get id => "drum";
+  @override
+  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration) =>
+    score.parts.where((part) => part.isDrum);
 }

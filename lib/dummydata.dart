@@ -26,6 +26,19 @@ Melody odeToJoy() => Melody()
   }))
 ;
 
+
+Melody boomChick() => Melody()
+  ..id = uuid.v4()
+  ..type = MelodyType.melodic
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed
+  ..subdivisionsPerBeat = 1
+  ..length = 2
+  ..melodicData = (MelodicData()..data.addAll({
+    0: _note(-25), 1: _note(-18)
+  }))
+;
+
 Melody defaultMelody() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.melodic

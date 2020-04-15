@@ -8,10 +8,12 @@ import 'package:unification/unification.dart';
 import '../music_theory.dart';
 
 extension PreserveColor on Paint {
-  preserveColor(VoidCallback callback) {
+  preserveProperties(VoidCallback callback) {
     var color = this.color;
+    var strokeWidth = this.strokeWidth;
     callback();
     this.color = color;
+    this.strokeWidth = strokeWidth;
   }
 }
 

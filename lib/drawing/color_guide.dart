@@ -20,7 +20,7 @@ class ColorGuide extends CanvasToneDrawer {
     if(colorGuideAlpha == 0) {
       return;
     }
-    alphaDrawerPaint.preserveColor(() {
+    alphaDrawerPaint.preserveProperties(() {
       var halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
       visiblePitches.forEach((visiblePitch) {
         var tone = visiblePitch.tone;
