@@ -475,7 +475,26 @@ class MusicSystemPainter extends CustomPainter {
         ..bounds = bounds
         ..clefs = clefs
         ..draw(canvas);
+
     }
+
+    String text;
+    if(staff is PartStaff) {
+      text = staff.part.midiName;
+    } else if(staff is AccompanimentStaff) {
+      text = "Accomp.";
+    } else {
+      text = "Drums";
+    }
+    TextSpan span = new TextSpan(text: text,
+      style: TextStyle(
+        fontFamily: "VulfSans",
+        fontSize: 20 * yScale,
+        fontWeight: FontWeight.w800,
+        color: colorblockOpacityNotifier.value > 0.5 ? Colors.white : Colors.black));
+    TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
+    tp.layout();
+    tp.paint(canvas, bounds.topLeft.translate(5 * xScale, 50 * yScale));
   }
 
   Melody _colorboardDummyMelody = defaultMelody()
