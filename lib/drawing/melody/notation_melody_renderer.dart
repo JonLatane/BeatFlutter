@@ -68,6 +68,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       }
       bounds = Rect.fromLTRB(bounds.left, bounds.top, bounds.right + boundsWidth, bounds.bottom);
 
+//      canvas.drawRect(bounds, Paint()..style=PaintingStyle.stroke..strokeWidth=5);
 
       colorGuideAlpha = 0;
 
@@ -258,7 +259,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   static Path _naturalPath = parseSvgPathData("M 26.578125,106.17187 L 22.640625,107.57812 L 22.640625,75.375001 L 0,85.218751 L 0,1.6875 L 3.796875,1.4210855e-014 L 3.796875,32.765625 L 26.578125,22.359375 L 26.578125,106.17187 z M 22.640625,61.171871 L 22.640625,38.671875 L 3.796875,46.96875 L 3.796875,69.468751 L 22.640625,61.171871 z ");
   _renderSign(Canvas canvas, Rect signRect, NoteSign sign) {
 //    canvas.drawRect(signRect, Paint()..style=PaintingStyle.fill..color=Colors.black26);
-    print("Rendering sign: $sign");
+//    print("Rendering sign: $sign");
     canvas.save();
     canvas.translate(signRect.topLeft.dx, signRect.topLeft.dy);
     Path signPath = _sharpPath;
@@ -286,7 +287,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         signPath = _naturalPath;
         break;
     }
-    canvas.drawPath(signPath, Paint()..style=PaintingStyle.fill..color=Colors.black);
+    canvas.drawPath(signPath, alphaDrawerPaint);
     canvas.restore();
   }
 

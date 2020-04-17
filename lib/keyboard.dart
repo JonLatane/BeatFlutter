@@ -26,7 +26,7 @@ class Keyboard extends StatefulWidget {
   final Function() hideConfiguration;
   final Color sectionColor;
   final Part part;
-  final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final ValueNotifier<Iterable<int>> pressedNotesNotifier;
 
   const Keyboard(
       {Key key,
@@ -226,7 +226,7 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                   }
                   _pointerIdsToTones[event.pointer] = tone;
                   print("pressed tone $tone");
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                   try {
                     BeatScratchPlugin.playNote(tone, 127, widget.part);
                   } catch (t) {}
@@ -472,14 +472,14 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
         break;
     }
     int tone = 12 * (octave - 4) + toneOffset;
-    print("diatonic tone: $diatonicTone octave: $octave toneoffset: $toneOffset tone: $tone");
+//    print("diatonic tone: $diatonicTone octave: $octave toneoffset: $toneOffset tone: $tone");
     return tone;
   }
 }
 
 class _KeyboardPainter extends CustomPainter {
   final ValueNotifier<double> scrollPositionNotifier;
-  final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final ValueNotifier<Iterable<int>> pressedNotesNotifier;
   final double halfStepsOnScreen;
   final Rect Function() visibleRect;
   final int highestPitch, lowestPitch;
@@ -546,7 +546,7 @@ class _KeyboardPainter extends CustomPainter {
 }
 
 class _KeyboardRenderer extends CanvasToneDrawer {
-  Set<int> pressedNotes;
+  Iterable<int> pressedNotes;
 
   draw(Canvas canvas) {
     canvas.drawColor(Colors.black12, BlendMode.srcATop);

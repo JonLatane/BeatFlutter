@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 class BeatScratchPlugin {
   static const MethodChannel _channel = const MethodChannel('BeatScratchPlugin');
 
-  static void pushScore(Score score, {bool includeParts = true, includeSections = true}) {
+  static void pushScore(Score score, {bool includeParts = true, includeSections = true}) async {
     print("invoking pushScore");
     if(!includeParts) {
       score = score.clone().copyWith((it) { it.parts.clear(); });
@@ -25,43 +25,43 @@ class BeatScratchPlugin {
   }
 
   /// Pushes or updates the [Part].
-  static void pushPart(Part part, {bool includeMelodies = true}) {
+  static void pushPart(Part part, {bool includeMelodies = true}) async {
     if(!includeMelodies) {
       part = part.clone().copyWith((it) { it.melodies.clear(); });
     }
 
     if(kIsWeb) {
-      context.callMethod('pushPart', [ part.toProto3Json() ]);
+      context.callMethod('pushPart', [ part.writeToJson() ]);
     } else {
       _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
     }
   }
 
   /// Pushes or updates the [Part].
-  static void setColorboardPart(Part part) {
+  static void setColorboardPart(Part part) async {
     print("invoking setColorboardPart");
     _channel.invokeMethod('setColorboardPart', part?.id);
   }
 
   /// Pushes or updates the [Part].
-  static void setKeyboardPart(Part part) {
+  static void setKeyboardPart(Part part) async {
     print("invoking setKeyboardPart");
     _channel.invokeMethod('setKeyboardPart', part?.id);
   }
 
-  static void deletePart(Part part) {
+  static void deletePart(Part part) async {
     _channel.invokeMethod('deletePart', part.id);
   }
 
-  static void pushMelody(Part part, Melody melody) {
+  static void pushMelody(Part part, Melody melody) async {
     _channel.invokeMethod('pushMelody', [part.id, melody.clone().writeToBuffer()]);
   }
 
-  static void updateMelody(Melody melody) {
+  static void updateMelody(Melody melody) async {
     _channel.invokeMethod('updateMelody', melody.clone().writeToBuffer());
   }
 
-  static void deleteMelody(Melody melody) {
+  static void deleteMelody(Melody melody) async {
     _channel.invokeMethod('deleteMelody', melody.id);
   }
 
@@ -85,32 +85,32 @@ class BeatScratchPlugin {
     sendMIDI(writer.buffer);
   }
 
-  static Future<bool> supportsMelodyPlayback() {
+  static Future<bool> supportsMelodyPlayback() async {
     if(kIsWeb) {
       return Future.value(false);
     }
     return _channel.invokeMethod('supportsMelodyPlayback');
   }
 
-  static void sendBeat(int beat) {
-    print("invoking sendMIDI");
+  static void sendBeat(int beat) async {
+//    print("invoking sendMIDI");
     if(kIsWeb) {
-      print("invoking sendMIDI as JavaScript with context $context");
+//      print("invoking sendMIDI as JavaScript with context $context");
       context.callMethod('sendBeat', [beat]);
     } else {
-      print("invoking sendMIDI through Platform Channel $_channel");
+//      print("invoking sendMIDI through Platform Channel $_channel");
       _channel.invokeMethod('sendBeat', beat);
     }
   }
 
 
   static void sendMIDI(List<int> bytes) async {
-    print("invoking sendMIDI");
+//    print("invoking sendMIDI");
     if(kIsWeb) {
-      print("invoking sendMIDI as JavaScript with context $context");
+//      print("invoking sendMIDI as JavaScript with context $context");
       context.callMethod('sendMIDI', bytes);
     } else {
-      print("invoking sendMIDI through Platform Channel $_channel");
+//      print("invoking sendMIDI through Platform Channel $_channel");
       _channel.invokeMethod('sendMIDI', Uint8List.fromList(bytes));
     }
   }

@@ -28,9 +28,11 @@ class MelodyRenderer extends StatefulWidget {
   final double xScale;
   final double yScale;
   final int currentBeat;
-  final ValueNotifier<Set<int>> colorboardNotesNotifier;
-  final ValueNotifier<Set<int>> keyboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
   final List<MusicStaff> staves;
+  final Part keyboardPart;
+  final Part colorboardPart;
 
   const MelodyRenderer(
       {Key key,
@@ -44,7 +46,7 @@ class MelodyRenderer extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
-      this.staves})
+      this.staves, this.keyboardPart, this.colorboardPart})
       : super(key: key);
 
   @override
@@ -64,7 +66,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
-  double get overallCanvasHeight => (widget.staves.length * heightFactor * yScale + 60) * 1.3;
+  double get overallCanvasHeight => (widget.staves.length * heightFactor * yScale * 1.3) + 60;
 
   double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
 
@@ -82,6 +84,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   ValueNotifier<Map<String, double>> partTopOffsets;
   ValueNotifier<Map<String,double>> staffOffsets;
 
+  ValueNotifier<Part> keyboardPart;
+  ValueNotifier<Part> colorboardPart;
   @override
   void initState() {
     super.initState();
@@ -93,6 +97,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     partTopOffsets = ValueNotifier(Map());
     staffOffsets = ValueNotifier(Map());
     stavesNotifier = ValueNotifier(widget.staves);
+    keyboardPart = ValueNotifier(widget.keyboardPart);
+    colorboardPart = ValueNotifier(widget.colorboardPart);
   }
 
   @override
@@ -104,6 +110,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     partTopOffsets.dispose();
     staffOffsets.dispose();
     stavesNotifier.dispose();
+    keyboardPart.dispose();
+    colorboardPart.dispose();
     super.dispose();
   }
 
@@ -148,7 +156,10 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         currentBeatNotifier: currentBeatNotifier,
                         colorboardNotesNotifier: widget.colorboardNotesNotifier,
                         keyboardNotesNotifier: widget.keyboardNotesNotifier,
-                        visibleRect: () => _visibleRect,),
+                        visibleRect: () => _visibleRect,
+                        keyboardPart: keyboardPart,
+                        colorboardPart: colorboardPart,
+                    ),
                   ),
 //          child: _MelodyPaint(
 //            score: widget.score,
@@ -164,6 +175,16 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   }
   
   void _animateStaffAndPartPositions() {
+    var removedOffsets = staffOffsets.value.keys.where((id) => !widget.staves.any((staff) => staff.id == id));
+    removedOffsets.forEach((removedStaffId) {
+      Animation staffAnimation;
+      staffAnimation = Tween<double>(begin: staffOffsets.value[removedStaffId], end: 0)
+        .animate(configurationChangeAnimationController)
+        ..addListener(() {
+          staffOffsets.value[removedStaffId] = staffAnimation.value;
+          staffOffsets.notifyListeners();
+        });
+    });
     widget.staves.asMap().forEach((staffIndex, staff) { 
       double staffPosition = staffIndex * heightFactor * yScale;
       double initialStaffPosition = staffOffsets.value.putIfAbsent(staff.id, () => 0);
@@ -186,9 +207,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
           });
         
       });
-//      if(ListEquality().equals(widget.staves, stavesNotifier.value)) {
-        stavesNotifier.value = widget.staves;
-//      }
+      stavesNotifier.value = widget.staves;
+      colorboardPart.value = widget.colorboardPart;
+      keyboardPart.value = widget.keyboardPart;
     });
   }
 
@@ -227,11 +248,13 @@ class MusicSystemPainter extends CustomPainter {
   final Rect Function() visibleRect;
   final ValueNotifier<double> colorblockOpacityNotifier, notationOpacityNotifier, sectionScaleNotifier;
   final ValueNotifier<int> currentBeatNotifier;
-  final ValueNotifier<Set<int>> colorboardNotesNotifier;
-  final ValueNotifier<Set<int>> keyboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets;
   final ValueNotifier<Map<String, double>> staffOffsets;
+  final ValueNotifier<Part> keyboardPart;
+  final ValueNotifier<Part> colorboardPart;
 
   bool get isViewingSection => section != null;
 
@@ -244,7 +267,7 @@ class MusicSystemPainter extends CustomPainter {
 
   int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
-  MusicSystemPainter({this.staves, this.partTopOffsets, this.staffOffsets,
+  MusicSystemPainter({this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
     this.sectionScaleNotifier,
     this.colorboardNotesNotifier,
     this.keyboardNotesNotifier,
@@ -259,12 +282,8 @@ class MusicSystemPainter extends CustomPainter {
     this.notationOpacityNotifier})
     : super(
     repaint: Listenable.merge([
-      colorblockOpacityNotifier,
-      notationOpacityNotifier,
-      currentBeatNotifier,
-      colorboardNotesNotifier,
-      keyboardNotesNotifier,
-      staves,partTopOffsets,staffOffsets,
+      colorblockOpacityNotifier, notationOpacityNotifier, currentBeatNotifier, colorboardNotesNotifier,
+      keyboardNotesNotifier, staves,partTopOffsets,staffOffsets,keyboardPart,colorboardPart,
     ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
@@ -281,7 +300,7 @@ class MusicSystemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     bool drawContinuousColorGuide = xScale <= 1;
-    canvas.clipRect(Offset.zero & size);
+//    canvas.clipRect(Offset.zero & size);
 
     // Calculate from which beat we should start drawing
     int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
@@ -303,6 +322,7 @@ class MusicSystemPainter extends CustomPainter {
       _renderClefs(canvas, clefBounds, staff);
     });
 
+//    left += 2 * standardBeatWidth;
     renderingBeat -= 2; // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
     while (left < visibleRect().right + standardBeatWidth) {
@@ -335,12 +355,19 @@ class MusicSystemPainter extends CustomPainter {
       if (renderingSection == null) {
         break;
       }
+      if(renderingSectionBeat >= renderingSection.beatCount) { //TODO do this better...
+        break;
+      }
 
       // Draw the Section name if needed
       top = visibleRect().top;
       if (renderingSectionBeat == 0) {
         double fontSize = sectionHeight * 0.6;
-        double topOffset = max(0, 30 / pow(fontSize, 0.7 + 0.2 * fontSize / 20));
+        double topOffset = sectionHeight * 0.05;
+        if(fontSize <= 12) {
+          topOffset -= 45/fontSize;
+          topOffset = max(-13, topOffset);
+        }
 //        print("fontSize=$fontSize topOffset=$topOffset");
         TextSpan span = new TextSpan(
           text: renderingSection.name.isNotEmpty
@@ -358,7 +385,7 @@ class MusicSystemPainter extends CustomPainter {
           textDirection: TextDirection.ltr,
         );
         tp.layout();
-        tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top - topOffset));
+        tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top + topOffset));
       }
       top += sectionHeight;
 
@@ -375,6 +402,7 @@ class MusicSystemPainter extends CustomPainter {
       _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
       top = top + harmonyHeight;
 
+//      print("renderingSectionBeat=$renderingSectionBeat");
 
       staves.value.expand((staff) => staff.getParts(score, staves.value)).forEach((part) {
         double partOffset = partTopOffsets.value.putIfAbsent(part.id, ()=>0);
@@ -482,7 +510,7 @@ class MusicSystemPainter extends CustomPainter {
     if(staff is PartStaff) {
       text = staff.part.midiName;
     } else if(staff is AccompanimentStaff) {
-      text = "Accomp.";
+      text = "Accompaniment";
     } else {
       text = "Drums";
     }
@@ -522,6 +550,7 @@ class MusicSystemPainter extends CustomPainter {
       ? -100
       : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
 
+    _keyboardDummyMelody.instrumentType = keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;
     _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
       avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
     _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,

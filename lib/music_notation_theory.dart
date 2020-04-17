@@ -126,7 +126,7 @@ abstract class MusicStaff {
 
 class PartStaff extends MusicStaff {
   Part part;
-
+  PartStaff(this.part);
   @override
   String get id => "staff-part-${part.id}";
   @override

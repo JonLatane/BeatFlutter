@@ -32,8 +32,10 @@ class BaseMelodyRenderer extends ColorGuide {
 
   Harmony get harmony => section.harmony;
   Meter get meter => section.meter;
-  List<int> get subdivisionRange => rangeList(beatPosition * melody.subdivisionsPerBeat,
-    min(melody.length, (beatPosition + 1) * melody.subdivisionsPerBeat));
+  Iterable<int> get subdivisionRange => range(
+    beatPosition * melody.subdivisionsPerBeat,
+    (beatPosition + 1) * melody.subdivisionsPerBeat
+  );
 
   Chord get chord {
     int harmonyPosition = elementPosition.convertPatternIndex(
@@ -90,7 +92,8 @@ class BaseMelodyRenderer extends ColorGuide {
     int elementCount = subdivisionRange.length;
     double overallWidth = overallBounds.right - overallBounds.left;
     elementPosition = beatPosition * melody.subdivisionsPerBeat;
-    subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
+//    print("subdivisionRange=$subdivisionRange");
+    subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
       bounds = Rect.fromLTRB(
         overallBounds.left + overallWidth * elementIndex / elementCount,
         overallBounds.top,

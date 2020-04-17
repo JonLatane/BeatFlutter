@@ -19,7 +19,7 @@ class MelodyView extends StatefulWidget {
   final Score score;
   final Section currentSection;
   final int currentBeat;
-  final ValueNotifier<Set<int>> colorboardNotesNotifier, keyboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> colorboardNotesNotifier, keyboardNotesNotifier;
   final Melody melody;
   final Part part;
   final Color sectionColor;
@@ -133,11 +133,11 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   Widget build(context) {
     if(_xScale == null) {
       if(context.isTablet) {
-        _xScale = 1;
-        _yScale = 1;
-      } else {
         _xScale = 0.66;
         _yScale = 0.66;
+      } else {
+        _xScale = 0.44;
+        _yScale = 0.44;
       }
     }
     return Column(
@@ -246,22 +246,28 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double maxScaleDiscrepancy = 1.5;
   static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
   Widget _mainMelody(BuildContext context) {
-    List<MusicStaff> staves = [];
-    Part mainPart = widget.part;
-    if(widget.melody != null) {
-      mainPart = widget.score.parts.firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id),
-        orElse: () => null);
-    }
-    if(mainPart != null && mainPart.isHarmonic) {
-      staves.add(PartStaff()..part=mainPart);
-    } else if(mainPart != null && mainPart.isDrum) {
-      staves.add(DrumStaff());
-    }
-    if(widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
-      staves.add(AccompanimentStaff());
-    }
-    if(widget.score.parts.any((part) => part.isDrum && part != mainPart)) {
-      staves.add(DrumStaff());
+    List<MusicStaff> staves;
+    if(widget.melodyViewMode == MelodyViewMode.score || widget.melodyViewMode == MelodyViewMode.section
+      || widget.melodyViewMode == MelodyViewMode.none) {
+      staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
+    } else {
+      staves = [];
+      Part mainPart = widget.part;
+      if (widget.melody != null) {
+        mainPart = widget.score.parts.firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id),
+          orElse: () => null);
+      }
+      if (mainPart != null && mainPart.isHarmonic) {
+        staves.add(PartStaff(mainPart));
+      } else if (mainPart != null && mainPart.isDrum) {
+        staves.add(DrumStaff());
+      }
+      if (widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
+        staves.add(AccompanimentStaff());
+      }
+      if (widget.score.parts.any((part) => part.isDrum && part != mainPart)) {
+        staves.add(DrumStaff());
+      }
     }
     return Container(
         color: Colors.white,
@@ -307,6 +313,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 xScale: _xScale,
                 yScale: _xScale,
                 staves: staves,
+                keyboardPart: widget.keyboardPart,
+                colorboardPart: widget.colorboardPart,
               ),
               Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
                 Container(

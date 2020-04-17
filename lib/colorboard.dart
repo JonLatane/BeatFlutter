@@ -27,7 +27,7 @@ class Colorboard extends StatefulWidget {
   final Function() hideConfiguration;
   final Color sectionColor;
   final Part part;
-  final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final ValueNotifier<Iterable<int>> pressedNotesNotifier;
   final double distanceFromBottom;
 
   Colorboard({
@@ -241,7 +241,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                   int velocity = min(127, max(0, (velocityRatio * 127).toInt()));
                   _pointerIdsToTones[event.pointer] = tone;
 //              print("pressed tone $tone");
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                   try {
                     BeatScratchPlugin.playNote(tone, velocity, widget.part);
                   } catch (t) {}
@@ -422,7 +422,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
 
 class _ColorboardPainter extends CustomPainter {
   final ValueNotifier<double> scrollPositionNotifier;
-  final ValueNotifier<Set<int>> pressedNotesNotifier;
+  final ValueNotifier<Iterable<int>> pressedNotesNotifier;
   final int lowestPitch;
   final int highestPitch;
   final double halfStepsOnScreen;

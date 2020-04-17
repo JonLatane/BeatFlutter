@@ -198,7 +198,7 @@ extension MelodyTheory on Melody {
     : [];
   double get averageTone => tones.reduce((a, b) => a + b) / tones.length.toDouble();
   Iterable<int> tonesAt(int elementPosition) => (type == MelodyType.melodic)
-    ? melodicData.data[elementPosition].tones
+    ? melodicData.data[elementPosition]?.tones ?? []
     : [];
 
   int offsetUnder(Chord chord) {

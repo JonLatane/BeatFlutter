@@ -143,8 +143,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    BeatScratchPlugin.setColorboardPart(part);
   }
 
-  ValueNotifier<Set<int>> colorboardNotesNotifier;
-  ValueNotifier<Set<int>> keyboardNotesNotifier;
+  ValueNotifier<Iterable<int>> colorboardNotesNotifier;
+  ValueNotifier<Iterable<int>> keyboardNotesNotifier;
 
   bool playing = false;
 
@@ -755,6 +755,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _partMelodiesView(BuildContext context, double availableWidth) {
     return PartMelodiesView(
+      superSetState: setState,
       currentSection: currentSection,
       score: _score,
       sectionColor: sectionColor,

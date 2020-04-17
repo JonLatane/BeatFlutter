@@ -19,11 +19,15 @@ Melody odeToJoy() => Melody()
   ..instrumentType = InstrumentType.harmonic
   ..interpretationType = MelodyInterpretationType.fixed
   ..subdivisionsPerBeat = 2
-  ..length = 32
+  ..length = 64
   ..melodicData = (MelodicData()..data.addAll({
     0: _note(4), 2: _note(4), 4: _note(5), 6: _note(7), 8: _note(7), 10: _note(5), 12: _note(4), 14: _note(2),
     16: _note(0), 18: _note(0), 20: _note(2), 22: _note(4), 24: _note(4), 27: _note(2), 28: _note(2)
-  }))
+  })..data.addAll({
+    0: _note(4), 2: _note(4), 4: _note(5), 6: _note(7), 8: _note(7), 10: _note(5), 12: _note(4), 14: _note(2),
+    16: _note(0), 18: _note(0), 20: _note(2), 22: _note(4), 24: _note(2), 27: _note(0), 28: _note(0)
+  }.map((key, value) => MapEntry(key + 32, value)))
+  )
 ;
 
 
@@ -52,7 +56,7 @@ Harmony defaultHarmony() =>
   Harmony()
     ..id = uuid.v4()
     ..subdivisionsPerBeat = 4
-    ..length = 64
+    ..length = 128
     ..data.addAll({
       0: cChromatic,
 //      32: cMinor,
