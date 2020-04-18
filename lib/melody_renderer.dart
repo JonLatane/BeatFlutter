@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -285,7 +286,8 @@ class MusicSystemPainter extends CustomPainter {
     : super(
     repaint: Listenable.merge([
       colorblockOpacityNotifier, notationOpacityNotifier, currentBeatNotifier, colorboardNotesNotifier,
-      keyboardNotesNotifier, staves,partTopOffsets,staffOffsets,keyboardPart,colorboardPart,
+      keyboardNotesNotifier, staves,partTopOffsets,staffOffsets,keyboardPart,colorboardPart, 
+      BeatScratchPlugin.pressedMidiControllerNotes
     ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
@@ -406,21 +408,23 @@ class MusicSystemPainter extends CustomPainter {
 
 //      print("renderingSectionBeat=$renderingSectionBeat");
 
-      staves.value.expand((staff) => staff.getParts(score, staves.value)).forEach((part) {
-        double partOffset = partTopOffsets.value.putIfAbsent(part.id, ()=>0);
-        List<Melody> melodiesToRender = renderingSection.melodies
-            .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
-            .where((ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
-            .map((it) => score.melodyReferencedBy(it))
-            .toList();
-//        canvas.save();
-//        canvas.translate(0, partOffset);
-        Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
-        if (!drawContinuousColorGuide) {
-          _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
-        }
-        _renderMelodies(melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat, renderingBeat, left);
-//        canvas.restore();
+      staves.value.forEach((staff) {
+        staff.getParts(score, staves.value).forEach((part) {
+          double partOffset = partTopOffsets.value.putIfAbsent(part.id, ()=>0);
+          List<Melody> melodiesToRender = renderingSection.melodies
+              .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
+              .where((ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
+              .map((it) => score.melodyReferencedBy(it))
+              .toList();
+  //        canvas.save();
+  //        canvas.translate(0, partOffset);
+          Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
+          if (!drawContinuousColorGuide) {
+            _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
+          }
+          _renderMelodies(melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat, renderingBeat, left, staff);
+  //        canvas.restore();
+        });
       });
       left += standardBeatWidth;
       renderingBeat += 1;
@@ -430,7 +434,8 @@ class MusicSystemPainter extends CustomPainter {
 //    }
   }
 
-  void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, int renderingBeat, double left) {
+  void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection,
+    int renderingSectionBeat, int renderingBeat, double left, MusicStaff staff) {
     var renderQueue = List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
     renderQueue.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
     int index = 0;
@@ -476,7 +481,7 @@ class MusicSystemPainter extends CustomPainter {
     }
 
     if (renderingBeat == currentBeatNotifier.value) {
-      _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue);
+      _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
     }
 
   }
@@ -535,28 +540,54 @@ class MusicSystemPainter extends CustomPainter {
     ..length = 1;
 
   void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-    Iterable<Melody> otherMelodiesOnStaff) {
+    Iterable<Melody> otherMelodiesOnStaff, MusicStaff staff) {
     canvas.drawRect(
       melodyBounds,
       Paint()
         ..style = PaintingStyle.fill
         ..color = Colors.black26);
-    _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(colorboardNotesNotifier.value);
-    _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()..tones.addAll(keyboardNotesNotifier.value);
+    var staffParts = staff.getParts(score, staves.value);
+    bool hasColorboardPart = staffParts.any((part) => part.id == colorboardPart.value.id);
+    bool hasKeyboardPart = staffParts.any((part) => part.id == keyboardPart.value.id);
+    if (hasColorboardPart || hasKeyboardPart) {
+      _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()
+        ..tones.addAll(colorboardNotesNotifier.value);
+      _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()
+        ..tones
+          .addAll(keyboardNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value));
 
-    // Stem will be up
-    double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
-      ? -100
-      : colorboardNotesNotifier.value.reduce((a, b) => a + b) / colorboardNotesNotifier.value.length.toDouble();
-    double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty
-      ? -100
-      : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
+      // Stem will be up
+      double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
+        ? -100
+        : colorboardNotesNotifier.value.reduce((a, b) => a + b) / colorboardNotesNotifier.value.length.toDouble();
+      double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty
+        ? -100
+        : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
 
-    _keyboardDummyMelody.instrumentType = keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;
-    _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-      avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
-    _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-      avgColorboardNote <= avgKeyboardNote, 1, otherMelodiesOnStaff);
+      _keyboardDummyMelody.instrumentType = keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;
+      if(hasColorboardPart) {
+        _renderMelodyBeat(
+          canvas,
+          _colorboardDummyMelody,
+          melodyBounds,
+          renderingSection,
+          renderingSectionBeat,
+          avgColorboardNote > avgKeyboardNote,
+          1,
+          otherMelodiesOnStaff);
+      }
+      if(hasKeyboardPart) {
+        _renderMelodyBeat(
+          canvas,
+          _keyboardDummyMelody,
+          melodyBounds,
+          renderingSection,
+          renderingSectionBeat,
+          avgColorboardNote <= avgKeyboardNote,
+          1,
+          otherMelodiesOnStaff);
+      }
+    }
   }
 
   void _renderNotationMeasureLines(

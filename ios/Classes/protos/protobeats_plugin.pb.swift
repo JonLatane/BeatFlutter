@@ -71,6 +71,18 @@ struct MidiControllers {
   init() {}
 }
 
+struct MidiNotes {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var midiNotes: [UInt32] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 extension MidiSynthesizer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -196,6 +208,35 @@ extension MidiControllers: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
 
   static func ==(lhs: MidiControllers, rhs: MidiControllers) -> Bool {
     if lhs.controllers != rhs.controllers {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension MidiNotes: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MidiNotes"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "midi_notes"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeRepeatedUInt32Field(value: &self.midiNotes)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.midiNotes.isEmpty {
+      try visitor.visitPackedUInt32Field(value: self.midiNotes, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: MidiNotes, rhs: MidiNotes) -> Bool {
+    if lhs.midiNotes != rhs.midiNotes {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -100,7 +100,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (value) _showMelodyView();
   }
 
-
   Section _currentSection = section1;
   get currentSection => _currentSection;
   set currentSection(Section section) {
@@ -130,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if(part == null) {
       showKeyboard = false;
     }
-//    BeatScratchPlugin.setKeyboardPart(part);
+    BeatScratchPlugin.setKeyboardPart(part);
   }
   
   Part _colorboardPart;

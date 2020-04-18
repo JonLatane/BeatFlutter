@@ -11,8 +11,22 @@ import 'package:flutter/services.dart';
 /// We can push [Part]s and [Melody]s to it. [pushScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
-  static const MethodChannel _channel = const MethodChannel('BeatScratchPlugin');
+  static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
+  static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
+    ..setMethodCallHandler((call) {
+      switch(call.method) {
+        case "sendPressedMidiNotes":
+          final Uint8List rawData = call.arguments;
+          final MidiNotes response = MidiNotes.fromBuffer(rawData);
+          pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60);
 
+          print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
+
+          return Future.value(null);
+          break;
+      }
+      return Future.value(null);
+    });
   static Future<bool> supportsMelodyPlayback() async {
     if(kIsWeb) {
       return Future.value(false);
@@ -27,7 +41,21 @@ class BeatScratchPlugin {
       try {
         return _channel.invokeMethod('isAudioSystemReady');
       } catch(e) {
-        return true;
+        return Future.value(true);
+      }
+    }
+  }
+
+  static Future<List<MidiController>> get midiControllers async {
+    if(kIsWeb) {
+      return Future.value([]);
+    } else {
+      try {
+        final Uint8List rawData = await _channel.invokeMethod('getMidiControllers');
+        final MidiControllers response = MidiControllers.fromBuffer(rawData);
+        return response.controllers.toList();
+      } catch(e) {
+        return Future.value([]);
       }
     }
   }

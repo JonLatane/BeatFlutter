@@ -19,3 +19,7 @@ message MidiSynthesizers {
 message MidiControllers {
   repeated MidiController controllers = 1;
 }
+
+message MidiNotes {
+  repeated uint32 midi_notes = 1;
+}

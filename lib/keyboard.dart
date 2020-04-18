@@ -508,7 +508,7 @@ class _KeyboardPainter extends CustomPainter {
       this.scrollPositionNotifier,
       this.halfStepsOnScreen,
       this.visibleRect})
-      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier]));
+      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier, BeatScratchPlugin.pressedMidiControllerNotes]));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -519,7 +519,7 @@ class _KeyboardPainter extends CustomPainter {
     _KeyboardRenderer()
       ..highestPitch = highestPitch
       ..lowestPitch = lowestPitch
-      ..pressedNotes = pressedNotesNotifier.value
+      ..pressedNotes = pressedNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
       ..renderVertically = false
       ..alphaDrawerPaint = Paint()
       ..halfStepsOnScreen = halfStepsOnScreen

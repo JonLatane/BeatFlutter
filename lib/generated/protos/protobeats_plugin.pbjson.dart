@@ -35,3 +35,10 @@ const MidiControllers$json = const {
   ],
 };
 
+const MidiNotes$json = const {
+  '1': 'MidiNotes',
+  '2': const [
+    const {'1': 'midi_notes', '3': 1, '4': 3, '5': 13, '10': 'midiNotes'},
+  ],
+};
+

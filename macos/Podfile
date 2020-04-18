@@ -47,7 +47,7 @@ target 'Runner' do
   use_modular_headers!
   
   pod 'SwiftProtobuf'
-  pod 'AudioKit/Core', '~> 4.0'
+  pod 'AudioKit/Core', '~> 4.9'
 
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.

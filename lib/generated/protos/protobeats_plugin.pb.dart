@@ -141,3 +141,28 @@ class MidiControllers extends $pb.GeneratedMessage {
   $core.List<MidiController> get controllers => $_getList(0);
 }
 
+class MidiNotes extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiNotes', createEmptyInstance: create)
+    ..p<$core.int>(1, 'midiNotes', $pb.PbFieldType.PU3)
+    ..hasRequiredFields = false
+  ;
+
+  MidiNotes._() : super();
+  factory MidiNotes() => create();
+  factory MidiNotes.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiNotes.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiNotes clone() => MidiNotes()..mergeFromMessage(this);
+  MidiNotes copyWith(void Function(MidiNotes) updates) => super.copyWith((message) => updates(message as MidiNotes));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiNotes create() => MidiNotes._();
+  MidiNotes createEmptyInstance() => create();
+  static $pb.PbList<MidiNotes> createRepeated() => $pb.PbList<MidiNotes>();
+  @$core.pragma('dart2js:noInline')
+  static MidiNotes getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiNotes>(create);
+  static MidiNotes _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get midiNotes => $_getList(0);
+}
+
