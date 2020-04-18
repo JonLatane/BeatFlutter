@@ -45,6 +45,9 @@ class Keyboard extends StatefulWidget {
 Rect _visibleRect = Rect.zero;
 
 class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
+  static const double _minHalfStepWidthInPx = 5;
+  static const double maxHalfStepWidthInPx = 500;
+  double get minHalfStepWidthInPx => max(_minHalfStepWidthInPx, _minHalfStepWidthBasedOnScreenSize);
   bool useOrientation = false;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
@@ -139,9 +142,12 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   }
 
   Map<int, int> _pointerIdsToTones = Map();
+  double _startHalfStepWidthInPx;
+  double _minHalfStepWidthBasedOnScreenSize;
 
   @override
   Widget build(BuildContext context) {
+    _minHalfStepWidthBasedOnScreenSize = MediaQuery.of(context).size.width / keysOnScreen;
     double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
 //    print("physicalWidth=$physicalWidth");
@@ -162,14 +168,25 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             }
           },
           child: Column(children: [
-            AnimatedContainer(
+
+    GestureDetector(
+    onScaleStart: (details) => setState(() {
+      _startHalfStepWidthInPx = halfStepWidthInPx;
+    }),
+    onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
+      if (details.scale > 0) {
+        halfStepWidthInPx = max(minHalfStepWidthInPx, min(maxHalfStepWidthInPx,
+          _startHalfStepWidthInPx * details.scale));
+      }
+    }),
+    child:AnimatedContainer(
                 duration: animationDuration,
                 height: touchScrollAreaHeight,
                 width: physicalWidth,
                 color: widget.sectionColor,
                 child: Align(
                     alignment: Alignment.center,
-                    child: Container(height: 5, width: physicalWidth, color: Colors.black54))),
+                    child: Container(height: 5, width: physicalWidth, color: Colors.black54)))),
             CustomPaint(
               size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
               isComplex: true,
@@ -412,7 +429,7 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               width: 36,
                               child: RaisedButton(
                                   padding: EdgeInsets.all(0),
-                                  onPressed: (halfStepWidthInPx < 500)
+                                  onPressed: (halfStepWidthInPx < maxHalfStepWidthInPx)
                                       ? () {
                                           setState(() {
                                             halfStepWidthInPx *= 1.62;
@@ -424,7 +441,7 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               width: 36,
                               child: RaisedButton(
                                   padding: EdgeInsets.all(0),
-                                  onPressed: (halfStepWidthInPx > 10)
+                                  onPressed: (halfStepWidthInPx > minHalfStepWidthInPx)
                                       ? () {
                                           setState(() {
                                             double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;

@@ -13,6 +13,32 @@ import 'package:flutter/services.dart';
 class BeatScratchPlugin {
   static const MethodChannel _channel = const MethodChannel('BeatScratchPlugin');
 
+  static Future<bool> supportsMelodyPlayback() async {
+    if(kIsWeb) {
+      return Future.value(false);
+    }
+    return _channel.invokeMethod('supportsMelodyPlayback');
+  }
+
+  static Future<bool> isAudioSystemReady() async {
+    if(kIsWeb) {
+      return Future.value(true);
+    } else {
+      try {
+        return _channel.invokeMethod('isAudioSystemReady');
+      } catch(e) {
+        return true;
+      }
+    }
+  }
+
+  static void resetAudioSystem() async {
+    if(kIsWeb) {
+    } else {
+      _channel.invokeMethod('resetAudioSystem');
+    }
+  }
+
   static void pushScore(Score score, {bool includeParts = true, includeSections = true}) async {
     print("invoking pushScore");
     if(!includeParts) {
@@ -83,13 +109,6 @@ class BeatScratchPlugin {
       ..channel = part.instrument.midiChannel
       ..writeEvent(writer);
     sendMIDI(writer.buffer);
-  }
-
-  static Future<bool> supportsMelodyPlayback() async {
-    if(kIsWeb) {
-      return Future.value(false);
-    }
-    return _channel.invokeMethod('supportsMelodyPlayback');
   }
 
   static void sendBeat(int beat) async {

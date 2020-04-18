@@ -66,14 +66,15 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
-  double get overallCanvasHeight => (widget.staves.length * heightFactor * yScale * 1.3) + 60;
+  double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
+  double get overallCanvasHeight => (widget.staves.length * staffHeight * yScale * canvasHeightMagic) + 60;
 
   double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
 
   ScrollController verticalController = ScrollController();
-  static const double heightFactor = 500;
+  static const double staffHeight = 500;
 
-  AnimationController configurationChangeAnimationController;
+  AnimationController animationController;
   ValueNotifier<double> colorblockOpacityNotifier;
   ValueNotifier<double> notationOpacityNotifier;
   ValueNotifier<int> currentBeatNotifier;
@@ -89,7 +90,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    configurationChangeAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     colorblockOpacityNotifier = ValueNotifier(0);
     notationOpacityNotifier = ValueNotifier(0);
     currentBeatNotifier = ValueNotifier(0);
@@ -103,6 +104,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   @override
   void dispose() {
+    animationController.dispose();
     colorblockOpacityNotifier.dispose();
     notationOpacityNotifier.dispose();
     currentBeatNotifier.dispose();
@@ -126,9 +128,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     if (currentBeatNotifier.value != widget.currentBeat) {
       currentBeatNotifier.value = widget.currentBeat;
     }
-    configurationChangeAnimationController.forward(from: 0);
+    animationController.forward(from: 0);
     return SingleChildScrollView(
-        key: Key(key),
+//        key: Key(key),
         child: Container(
             height: overallCanvasHeight,
             child: CustomScrollView(
@@ -179,18 +181,18 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     removedOffsets.forEach((removedStaffId) {
       Animation staffAnimation;
       staffAnimation = Tween<double>(begin: staffOffsets.value[removedStaffId], end: 0)
-        .animate(configurationChangeAnimationController)
+        .animate(animationController)
         ..addListener(() {
           staffOffsets.value[removedStaffId] = staffAnimation.value;
           staffOffsets.notifyListeners();
         });
     });
     widget.staves.asMap().forEach((staffIndex, staff) { 
-      double staffPosition = staffIndex * heightFactor * yScale;
+      double staffPosition = staffIndex * staffHeight * yScale;
       double initialStaffPosition = staffOffsets.value.putIfAbsent(staff.id, () => 0);
       Animation staffAnimation;
       staffAnimation = Tween<double>(begin: initialStaffPosition, end: staffPosition)
-        .animate(configurationChangeAnimationController)
+        .animate(animationController)
         ..addListener(() {
           staffOffsets.value[staff.id] = staffAnimation.value;
           staffOffsets.notifyListeners();
@@ -200,7 +202,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         double initialPartPosition = partTopOffsets.value.putIfAbsent(part.id, () => 0);
         Animation partAnimation;
         partAnimation = Tween<double>(begin: initialPartPosition, end: partPosition)
-          .animate(configurationChangeAnimationController)
+          .animate(animationController)
           ..addListener(() {
             partTopOffsets.value[part.id] = partAnimation.value;
             partTopOffsets.notifyListeners();
@@ -219,19 +221,19 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     double sectionScaleValue = widget.melodyViewMode == MelodyViewMode.score ? 1 : 0;
     Animation animation1;
     animation1 = Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
-        .animate(configurationChangeAnimationController)
+        .animate(animationController)
           ..addListener(() {
             colorblockOpacityNotifier.value = animation1.value;
           });
     Animation animation2;
     animation2 = Tween<double>(begin: notationOpacityNotifier.value, end: notationOpacityValue)
-        .animate(configurationChangeAnimationController)
+        .animate(animationController)
           ..addListener(() {
             notationOpacityNotifier.value = animation2.value;
           });
     Animation animation3;
     animation3 = Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
-        .animate(configurationChangeAnimationController)
+        .animate(animationController)
           ..addListener(() {
             sectionScaleNotifier.value = animation3.value;
           });
@@ -295,7 +297,7 @@ class MusicSystemPainter extends CustomPainter {
 
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
-  double get melodyHeight => _MelodyRendererState.heightFactor * yScale;
+  double get melodyHeight => _MelodyRendererState.staffHeight * yScale;
 
   @override
   void paint(Canvas canvas, Size size) {

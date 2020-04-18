@@ -497,7 +497,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: () {},
+              onPressed: null,
               padding: EdgeInsets.zero,
               child: AnimatedOpacity(
                   duration: animationDuration,

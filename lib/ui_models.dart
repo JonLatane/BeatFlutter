@@ -5,7 +5,7 @@ enum InteractionMode { view, edit }
 
 enum MelodyViewMode { score, section, part, melody, none }
 
-enum MelodyViewDisplayMode { half, full }
+enum SplitMode { half, full }
 
 enum ScrollingMode { sideScroll, pitch, roll }
 

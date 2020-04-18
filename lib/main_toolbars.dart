@@ -19,6 +19,8 @@ class BeatScratchToolbar extends StatelessWidget {
   final RenderingMode renderingMode;
   final Function(RenderingMode) setRenderingMode;
   final VoidCallback showMidiInputSettings;
+  final bool focusPartsAndMelodies;
+  final VoidCallback toggleFocusPartsAndMelodies;
 
   const BeatScratchToolbar(
     {Key key,
@@ -29,7 +31,7 @@ class BeatScratchToolbar extends StatelessWidget {
       this.sectionColor,
       this.playing,
       this.togglePlaying,
-      this.toggleSectionListDisplayMode, this.setRenderingMode, this.renderingMode, this.showMidiInputSettings})
+      this.toggleSectionListDisplayMode, this.setRenderingMode, this.renderingMode, this.showMidiInputSettings, this.focusPartsAndMelodies, this.toggleFocusPartsAndMelodies})
     : super(key: key);
 
   @override
@@ -54,6 +56,9 @@ class BeatScratchToolbar extends StatelessWidget {
                   break;
                 case "about":
                   showAbout(context);
+                  break;
+                case "focusPartsAndMelodies":
+                  toggleFocusPartsAndMelodies();
                   break;
               }
               //setState(() {});
@@ -94,6 +99,13 @@ class BeatScratchToolbar extends StatelessWidget {
                 child: Text('Copy Score'),
                 enabled: false,
               ),
+              PopupMenuItem(
+                value: "focusPartsAndMelodies",
+                child: Row(children: [
+                  Checkbox(value: focusPartsAndMelodies, onChanged: null),
+                  Expanded(child: Text('Focus Parts/Melodies'))
+                ]),
+              ),
               const PopupMenuItem(
                 value: "midiSettings",
                 child: Text('MIDI Settings'),
@@ -101,7 +113,7 @@ class BeatScratchToolbar extends StatelessWidget {
               PopupMenuItem(
                 value: "notationUi",
                 child: Row(children: [
-                  Checkbox(value: renderingMode == RenderingMode.notation, onChanged: null),
+                  Radio(value: RenderingMode.notation, onChanged: null, groupValue: renderingMode,),
                   Expanded(child: Text('Notation UI')),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
@@ -115,7 +127,7 @@ class BeatScratchToolbar extends StatelessWidget {
               PopupMenuItem(
                 value: "colorblockUi",
                 child: Row(children: [
-                  Checkbox(value: renderingMode == RenderingMode.colorblock, onChanged: null),
+                  Radio(value: RenderingMode.colorblock, onChanged: null, groupValue: renderingMode,),
                   Expanded(child: Text('Colorblock UI')),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),

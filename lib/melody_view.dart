@@ -14,8 +14,9 @@ import 'util.dart';
 class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
   final MelodyViewMode melodyViewMode;
-  final MelodyViewDisplayMode melodyViewDisplayMode;
+  final SplitMode splitMode;
   final RenderingMode renderingMode;
+  final bool focusPartsAndMelodies;
   final Score score;
   final Section currentSection;
   final int currentBeat;
@@ -23,7 +24,7 @@ class MelodyView extends StatefulWidget {
   final Melody melody;
   final Part part;
   final Color sectionColor;
-  final VoidCallback toggleMelodyViewDisplayMode, closeMelodyView, toggleEditingMelody;
+  final VoidCallback toggleSplitMode, closeMelodyView, toggleEditingMelody;
   final Function(VoidCallback) superSetState;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
@@ -38,7 +39,7 @@ class MelodyView extends StatefulWidget {
   final Function(Section) deleteSection;
 
   MelodyView(
-      {this.melodyViewSizeFactor,
+      {this.focusPartsAndMelodies, this.melodyViewSizeFactor,
         this.superSetState,
       this.melodyViewMode,
       this.score,
@@ -46,8 +47,8 @@ class MelodyView extends StatefulWidget {
       this.melody,
       this.part,
       this.sectionColor,
-      this.melodyViewDisplayMode,
-      this.toggleMelodyViewDisplayMode,
+      this.splitMode,
+      this.toggleSplitMode,
       this.closeMelodyView,
       this.toggleMelodyReference,
       this.setReferenceVolume,
@@ -71,6 +72,8 @@ class MelodyView extends StatefulWidget {
 }
 
 class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
+  static const double minScale = 0.1;
+  static const double maxScale = 5;
   bool isConfiguringPart = false;
   Offset _previousOffset = Offset.zero;
   Offset _offset = Offset.zero;
@@ -125,21 +128,42 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     super.dispose();
   }
   makeFullSize() {
-    if(widget.melodyViewDisplayMode == MelodyViewDisplayMode.half) {
-      widget.toggleMelodyViewDisplayMode();
+    if(widget.splitMode == SplitMode.half) {
+      widget.toggleSplitMode();
     }
   }
+
+  MelodyViewMode _previousMelodyViewMode;
+  SplitMode _previousSplitMode;
   @override
   Widget build(context) {
     if(_xScale == null) {
       if(context.isTablet) {
-        _xScale = 0.66;
-        _yScale = 0.66;
+        _xScale = 0.33;
+        _yScale = 0.33;
       } else {
-        _xScale = 0.44;
-        _yScale = 0.44;
+        _xScale = 0.22;
+        _yScale = 0.22;
       }
     }
+    if(context.isPortrait) {
+      var verticalSizeHalved = (_previousSplitMode == SplitMode.full && widget.splitMode == SplitMode.half)
+        || (_previousMelodyViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
+          && widget.splitMode == SplitMode.half);
+      var verticalSizeDoubled = (_previousSplitMode == SplitMode.half && widget.splitMode == SplitMode.full)
+        || (_previousMelodyViewMode != MelodyViewMode.score && widget.melodyViewMode == MelodyViewMode.score
+          && widget.splitMode == SplitMode.half);
+      if (verticalSizeDoubled) {
+        xScale *= 1.6666;
+        yScale *= 1.6666;
+      }
+      if (verticalSizeHalved) {
+        xScale /= 1.6666;
+        yScale /= 1.6666;
+      }
+    }
+    _previousSplitMode = widget.splitMode;
+    _previousMelodyViewMode = widget.melodyViewMode;
     return Column(
       children: [
         AnimatedContainer(
@@ -162,9 +186,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     width: 36,
                     height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
                     child: RaisedButton(
-                        onPressed: widget.toggleMelodyViewDisplayMode,
+                        onPressed: widget.toggleSplitMode,
                         padding: EdgeInsets.all(7),
-                        child: widget.melodyViewDisplayMode == MelodyViewDisplayMode.half
+                        child: widget.splitMode == SplitMode.half
                             ? Image.asset("assets/split_full.png")
                             : context.isPortrait
                                 ? Image.asset("assets/split_horizontal.png")
@@ -247,10 +271,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
   Widget _mainMelody(BuildContext context) {
     List<MusicStaff> staves;
-    if(widget.melodyViewMode == MelodyViewMode.score || widget.melodyViewMode == MelodyViewMode.section
-      || widget.melodyViewMode == MelodyViewMode.none) {
-      staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
-    } else {
+    bool focusPartsAndMelodies = widget.focusPartsAndMelodies &&
+      (widget.melodyViewMode == MelodyViewMode.part || widget.melodyViewMode == MelodyViewMode.melody);
+    if (focusPartsAndMelodies) {
       staves = [];
       Part mainPart = widget.part;
       if (widget.melody != null) {
@@ -268,6 +291,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       if (widget.score.parts.any((part) => part.isDrum && part != mainPart)) {
         staves.add(DrumStaff());
       }
+    } else {
+      staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
     }
     return Container(
         color: Colors.white,
@@ -290,7 +315,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 //                  }
                 }
                 if (details.verticalScale > 0) {
-                  _yScale = max(0.1, min(16, _startVerticalScale * details.verticalScale));
+                  _yScale = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
                 }
                 final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
                 final Offset newOffset = details.focalPoint - normalizedOffset * xScale;
@@ -321,12 +346,12 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                   width: 36,
                   child: RaisedButton(
                     padding: EdgeInsets.all(0),
-                    onPressed: (xScale < 16 || yScale < 16)
+                    onPressed: (xScale < maxScale || yScale < maxScale)
                       ? () {
                       setState(() {
-                        if(xScale < 16) xScale *= 1.62;
-                        if(yScale < 16) yScale *= 1.62;
-                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
+                        xScale = min(maxScale, xScale * 1.3333);
+                        yScale = min(maxScale, yScale * 1.3333);
+//                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
                       });
                     } : null,
                     child: Icon(Icons.zoom_in))),
@@ -334,12 +359,13 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                   width: 36,
                   child: RaisedButton(
                     padding: EdgeInsets.all(0),
-                    onPressed: (xScale > 0.1 || yScale > 0.1)
+                    onPressed: (xScale > minScale || yScale > minScale)
                       ? () {
                       setState(() {
-                        if(xScale > 0.1) xScale /= 1.62;
-                        if(yScale > 0.1) yScale /= 1.62;
-                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
+//                        print("zoomOut start; xScale=$xScale, yScale=$yScale");
+                        xScale = max(minScale, xScale / 1.3333);
+                        yScale = max(minScale, yScale / 1.3333);
+//                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
                       });
                     } : null,
                     child: Icon(Icons.zoom_out))),

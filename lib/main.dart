@@ -78,7 +78,7 @@ Section section1 = score.sections[0];
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = score;
   InteractionMode interactionMode = InteractionMode.view;
-  MelodyViewDisplayMode melodyViewDisplayMode;
+  SplitMode melodyViewDisplayMode;
   
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
   MelodyViewMode get melodyViewMode => _melodyViewMode;
@@ -152,6 +152,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double _melodyViewSizeFactor = 1.0;
 
+  bool showWebWarning = kIsWeb;
+
+  bool focusPartsAndMelodies = true;
+
   updateScore(Function(Score) updates) {
     setState(() {
       score = score.copyWith(updates);
@@ -160,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _showMelodyView() {
     if (interactionMode == InteractionMode.edit) {
-      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
+      if (melodyViewDisplayMode == SplitMode.half) {
         _melodyViewSizeFactor = 0.5;
       } else {
         _melodyViewSizeFactor = 1;
@@ -181,10 +185,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   toggleMelodyViewDisplayMode() {
     setState(() {
-      if (melodyViewDisplayMode == MelodyViewDisplayMode.half) {
-        melodyViewDisplayMode = MelodyViewDisplayMode.full;
+      if (melodyViewDisplayMode == SplitMode.half) {
+        melodyViewDisplayMode = SplitMode.full;
       } else {
-        melodyViewDisplayMode = MelodyViewDisplayMode.half;
+        melodyViewDisplayMode = SplitMode.half;
       }
       _showMelodyView();
     });
@@ -444,8 +448,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     
   }
 
-  bool showWebWarning = kIsWeb;
-
   _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -473,7 +475,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (melodyViewDisplayMode == null) {
-      melodyViewDisplayMode = (context.isTablet) ? MelodyViewDisplayMode.half : MelodyViewDisplayMode.full;
+      melodyViewDisplayMode = (context.isTablet) ? SplitMode.half : SplitMode.full;
       verticalSectionList = context.isTablet;
     }
     if (context.isLandscape) {
@@ -670,6 +672,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           });
         },
+    focusPartsAndMelodies: focusPartsAndMelodies,
+    toggleFocusPartsAndMelodies: (){ setState((){ focusPartsAndMelodies = !focusPartsAndMelodies; }); },
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
@@ -781,9 +785,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _melodyView(BuildContext context) {
+  MelodyView _melodyView(BuildContext context) {
     return MelodyView(
       superSetState: setState,
+      focusPartsAndMelodies: focusPartsAndMelodies,
       melodyViewSizeFactor: _melodyViewSizeFactor,
       melodyViewMode: melodyViewMode,
       score: _score,
@@ -794,9 +799,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       melody: selectedMelody,
       part: selectedPart,
       sectionColor: sectionColor,
-      melodyViewDisplayMode: melodyViewDisplayMode,
+      splitMode: melodyViewDisplayMode,
       renderingMode: renderingMode,
-      toggleMelodyViewDisplayMode: toggleMelodyViewDisplayMode,
+      toggleSplitMode: toggleMelodyViewDisplayMode,
       closeMelodyView: _hideMelodyView,
       toggleMelodyReference: _toggleReferenceDisabled,
       setReferenceVolume: _setReferenceVolume,
