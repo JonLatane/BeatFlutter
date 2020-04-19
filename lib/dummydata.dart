@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quiver/iterables.dart';
 import 'drawing/sizeutil.dart';
 import 'generated/protos/music.pb.dart';
+import 'midi_theory.dart';
 import 'util.dart';
 
 Chord cChromatic = Chord()
@@ -15,32 +16,33 @@ MelodicAttack _note(int tone) => MelodicAttack()..tones.add(tone)..velocity = 1;
 
 Melody odeToJoy() => Melody()
   ..id = uuid.v4()
-  ..type = MelodyType.melodic
+  ..type = MelodyType.midi
   ..instrumentType = InstrumentType.harmonic
   ..interpretationType = MelodyInterpretationType.fixed
   ..subdivisionsPerBeat = 2
   ..length = 64
-  ..melodicData = (MelodicData()..data.addAll({
-    0: _note(4), 2: _note(4), 4: _note(5), 6: _note(7), 8: _note(7), 10: _note(5), 12: _note(4), 14: _note(2),
-    16: _note(0), 18: _note(0), 20: _note(2), 22: _note(4), 24: _note(4), 27: _note(2), 28: _note(2)
-  })..data.addAll({
-    0: _note(4), 2: _note(4), 4: _note(5), 6: _note(7), 8: _note(7), 10: _note(5), 12: _note(4), 14: _note(2),
-    16: _note(0), 18: _note(0), 20: _note(2), 22: _note(4), 24: _note(2), 27: _note(0), 28: _note(0)
-  }.map((key, value) => MapEntry(key + 32, value)))
-  )
-;
-
+  ..setMidiDataFromSimpleMelody(Map.from({
+    0:  [4],  2: [4],  4: [5],  6: [7],
+    8:  [7], 10: [5], 12: [4], 14: [2],
+    16: [0], 18: [0], 20: [2], 22: [4],
+    24: [4], 27: [2], 28: [2]
+  })..addAll({
+    0:  [4],  2: [4],  4: [5],  6: [7],
+    8:  [7], 10: [5], 12: [4], 14: [2],
+    16: [0], 18: [0], 20: [2], 22: [4],
+    24: [2], 27: [0], 28: [0]
+  }.map((key, value) => MapEntry(key + 32, value))));
 
 Melody boomChick() => Melody()
   ..id = uuid.v4()
-  ..type = MelodyType.melodic
+  ..type = MelodyType.midi
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed
   ..subdivisionsPerBeat = 1
   ..length = 2
-  ..melodicData = (MelodicData()..data.addAll({
-    0: _note(-25), 1: _note(-18)
-  }))
+  ..setMidiDataFromSimpleMelody({
+    0: [-25], 1: [-22]
+  })
 ;
 
 Melody defaultMelody() => Melody()

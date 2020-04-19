@@ -81,16 +81,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   }
 
   _drawNoteheadsLedgersAndStems(Canvas canvas) {
-    MelodicAttack element = melody.melodicData.data[elementPosition % melody.length];
-    MelodicAttack nextElement = melody.melodicData.data[elementPosition % melody.length];
-    bool isChange = element != null;
-    alphaDrawerPaint.color =
-      ((isChange) ? Color(0xAA212121) : Color(0xAA424242)).withAlpha((notationAlpha * 255).toInt());
-
-    List<int> tones = [];
-    if (element != null) {
-      tones = element.tones;
-    }
+    List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
 
     if (tones.isNotEmpty) {
       double boundsWidth = bounds.width;
@@ -196,11 +187,11 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         if(signToDraw != null) {
           double signLeft, signRight, signTop, signBottom;
           if(shouldStagger) {
-            signLeft = bounds.right - 1.6 * noteheadWidth;
-            signRight = bounds.right - 1.1 * noteheadWidth;
+            signLeft = bounds.right - 2.3 * noteheadWidth;
+            signRight = bounds.right - 1.8 * noteheadWidth;
           } else {
-            signLeft = bounds.right - 2.5 * noteheadWidth;
-            signRight = bounds.right - 2.0 * noteheadWidth;
+            signLeft = bounds.right - 2.8 * noteheadWidth;
+            signRight = bounds.right - 2.3 * noteheadWidth;
           }
 
           switch(signToDraw) {

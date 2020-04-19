@@ -166,6 +166,20 @@ extension Iterables<E> on Iterable<E> {
     }
     return value;
   });
+
+  Iterable<Iterable<E>> chunked(int chunkSize) {
+    return _chunkIterable(this, chunkSize);
+  }
+}
+
+Iterable<Iterable<E>> _chunkIterable<E>(Iterable<E> iterable, int chunkSize) {
+  if(iterable.isEmpty) {
+    return [];
+  }
+  return [iterable.take(chunkSize)]
+      ..addAll(
+        _chunkIterable(iterable.skip(chunkSize).toList(), chunkSize)
+      );
 }
 
 extension FancyIterable on Iterable<int> {

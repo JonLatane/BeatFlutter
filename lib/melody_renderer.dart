@@ -658,8 +658,8 @@ class MusicSystemPainter extends CustomPainter {
             ..melody = melody
             ..draw(canvas);
         }
-      } catch (e) {
-        print("exception rendering colorblock: $e");
+      } catch (e, s) {
+        print("exception rendering colorblock: $e: \n$s");
       }
       try {
         if (notationOpacityNotifier.value > 0) {
@@ -680,8 +680,8 @@ class MusicSystemPainter extends CustomPainter {
             ..melody = melody
             ..draw(canvas, true);
         }
-      } catch (e) {
-        print("exception rendering notation: $e");
+      } catch (e, s) {
+        print("exception rendering notation: $e: \n$s");
       }
     }
   }

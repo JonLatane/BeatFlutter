@@ -27,6 +27,21 @@ class BeatScratchPlugin {
       }
       return Future.value(null);
     });
+
+  static Iterable<MidiController> get midiControllers => [
+    MidiController()
+    ..id = "colorboard"
+    ..name = "Colorboard",
+    MidiController()
+      ..id = "keyboard"
+      ..name = "Keyboard"
+  ];
+  static Iterable<MidiSynthesizer> get midiSynthesizers => [
+    MidiSynthesizer()
+    ..id = "internal"
+    ..name = "BeatScratch Synthesizer"
+  ];
+
   static Future<bool> supportsMelodyPlayback() async {
     if(kIsWeb) {
       return Future.value(false);
@@ -46,7 +61,7 @@ class BeatScratchPlugin {
     }
   }
 
-  static Future<List<MidiController>> get midiControllers async {
+  static Future<List<MidiController>> get deviceMidiControllers async {
     if(kIsWeb) {
       return Future.value([]);
     } else {

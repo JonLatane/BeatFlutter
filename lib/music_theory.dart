@@ -132,14 +132,23 @@ extension PatternIndexConversions on int {
 }
 
 extension ChordTheory on Chord {
-  bool containsHalfStepInterval(int halfSteps) => containsTone(rootNote.tone + halfSteps);
-  bool get hasAug4 => (containsHalfStepInterval(6) && !containsHalfStepInterval(5) && !containsHalfStepInterval(3))
-    || (containsHalfStepInterval(6) && containsHalfStepInterval(7))
-    || (containsHalfStepInterval(6) && containsHalfStepInterval(2) && containsHalfStepInterval(9) && !containsHalfStepInterval(5));
-  bool get hasAug9 => containsHalfStepInterval(3) && containsHalfStepInterval(4);
-  bool get hasDim5 => containsHalfStepInterval(6) && !containsHalfStepInterval(7);
-  bool get hasAug5 => (containsHalfStepInterval(8) && !containsHalfStepInterval(7) && containsHalfStepInterval(9))
-   || (containsHalfStepInterval(8) && !containsHalfStepInterval(7) && containsHalfStepInterval(4));
+  bool has(int halfStepsFromRoot) => containsTone(rootNote.tone + halfStepsFromRoot);
+  bool get hasMin2 => has(1);
+  bool get hasMaj2 => has(2);
+  bool get hasAug2 => has(3) && hasMaj3;
+  bool get hasMin3 => has(3) && !hasMaj3;
+  bool get hasMaj3 => has(4);
+  bool get hasPer4 => has(5);
+  bool get hasAug4 => has(6) && !hasDim5;
+  bool get hasDim5 => has(6) && !hasPer5 && (hasMin3 || hasMaj3 || hasPer4 || (hasMin2 && hasMin7));
+  bool get hasPer5 => has(7);
+  bool get hasAug5 => has(8) && !hasPer5 && (hasMaj6 || hasMaj3 || hasMaj7 || (!hasDim5 && hasMaj6));
+  bool get hasMin6 => (has(8) && !hasAug5);
+  bool get hasMaj6 => has(9) && !(hasDim5 && hasMin3);
+  bool get hasDim7 => has(9) && (hasDim5 && hasMin3);
+  bool get hasAug6 => has(10) && hasMaj7;
+  bool get hasMin7 => has(10) && !hasMaj7;
+  bool get hasMaj7 => has(11);
 
 
   /// Returns the nearest
@@ -195,11 +204,21 @@ extension HarmonyTheory on Harmony {
 extension MelodyTheory on Melody {
   Iterable<int> get tones => (type == MelodyType.melodic)
     ? melodicData.data.values.expand((it) => it.tones)
-    : [];
+    : midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60));
   double get averageTone => tones.reduce((a, b) => a + b) / tones.length.toDouble();
-  Iterable<int> tonesAt(int elementPosition) => (type == MelodyType.melodic)
-    ? melodicData.data[elementPosition]?.tones ?? []
-    : [];
+  Iterable<int> tonesAt(int elementPosition) {
+    if (type == MelodyType.melodic) {
+     return melodicData.data[elementPosition]?.tones ?? [];
+    } else {
+      final data = midiData.data[elementPosition];
+      if(data != null) {
+        final midiEvents = data.midiEvents;
+        final convertedData = data.noteOns.map((e) => e.noteNumber - 60);
+        return convertedData;
+      }
+      return [];
+    }
+  }
 
   int offsetUnder(Chord chord) {
     int result = 0;

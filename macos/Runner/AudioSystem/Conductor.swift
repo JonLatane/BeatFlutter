@@ -53,7 +53,10 @@ class Conductor {
     
     // MIDI Configure
     midi.createVirtualPorts()
-    midi.openInput(name: "BeatScratch Session")
+    midi.openInput(name: "BeatScratch Input Port for External Controller 1")
+    midi.openInput(name: "BeatScratch Input Port for External Controller 2")
+    midi.openInput(name: "BeatScratch Input Port for External Controller 3")
+    midi.openInput(name: "BeatScratch Input Port for External Controller 4")
     midi.openOutput()
     
     // Session settings

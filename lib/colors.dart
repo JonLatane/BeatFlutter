@@ -23,7 +23,7 @@ var chromaticSteps = [
   Color(0xFF2EBBB5),
 ];
 
-enum ChordColor { dominant, major, minor, augmented, diminished, none }
+enum ChordColor { dominant, major, minor, augmented, diminished, tonic, none }
 
 extension ActualColors on ChordColor {
   Color get color {
@@ -42,6 +42,9 @@ extension ActualColors on ChordColor {
         break;
       case ChordColor.diminished:
         return Color(0xFFF652F9);
+        break;
+      case ChordColor.tonic:
+        return chromaticSteps[0];
         break;
       case ChordColor.none:
         return Colors.white;

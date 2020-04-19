@@ -38,9 +38,10 @@ extension HeptatonicConversions on int {
   ) ?? _notesFor[this].firstWhere((note) => note.sign == NoteSign.sharp);
 
   static final Map<Chord, Map<int, NoteSpecification>> _noteNameChordCache = Map();
-  NoteSpecification nameNoteUnderChord(Chord chord) => _noteNameChordCache
+  NoteSpecification nameNoteUnderChord(Chord chord) => _nameNoteUnderChord(chord);
+  /*=> _noteNameChordCache
     .putIfAbsent(chord, () => Map())
-    .putIfAbsent(this, () => _nameNoteUnderChord(chord));
+    .putIfAbsent(this, () => _nameNoteUnderChord(chord));*/
 
   NoteSpecification _nameNoteUnderChord(Chord chord) {
     NoteName rootNote = chord.rootNote;
@@ -53,7 +54,7 @@ extension HeptatonicConversions on int {
       case 2:
         return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 1); // M2
       case 3:
-        if(chord.hasAug9) {
+        if(chord.hasAug2) {
           return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 1); // A2
         } else {
           return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 2); // m3
@@ -80,17 +81,19 @@ extension HeptatonicConversions on int {
         }
         break;
       case 9:
-//        if (chord.hasDiminished5 && chord.hasMinor3 && !chord.hasMinor7 && !chord.hasMajor7) {
-//          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // d7
-//        } else {
-        return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // M6
-//        }
+        if (chord.hasDim7) {
+          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // d7
+        } else {
+          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // M6
+        }
+        break;
       case 10:
-//        if(chord.hasAug6) {
-//          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // A6
-//        } else {
-        return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 6); // m7
-//        }
+        if(chord.hasAug6) {
+          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 5); // A6
+        } else {
+          return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter + 6); // m7
+        }
+        break;
       case 11:
         if(rootNote.sign == NoteSign.double_sharp) {
           return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter); // diminished 1 (for readability)

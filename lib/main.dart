@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/midi_settings.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -118,6 +119,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    ));
   }
   bool showViewOptions = false;
+  bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
+  bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
+  bool showMidiConfiguration = false;
   bool showKeyboard = true;
   bool _showKeyboardConfiguration = false;
   bool showColorboard = false;
@@ -520,6 +524,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Expanded(child: _partsAndMelodiesAndMelodyView(context))
                   ])),
                   if (!_combineSecondAndMainToolbar)_toolbars(context),
+                  _midiSettings(context),
                   _colorboard(context),
                   _keyboard(context),
                 ])
@@ -661,6 +666,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         showMidiInputSettings: () {
           setState(() {
+            _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
+            _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
+            showMidiConfiguration = true;
             if(keyboardPart != null) {
               showKeyboard = true;
               _showKeyboardConfiguration = true;
@@ -884,6 +892,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       },
     );
+  }
+
+  AnimatedContainer _midiSettings(BuildContext context) {
+    return AnimatedContainer(
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: showMidiConfiguration ? 150 : 0,
+      width: MediaQuery.of(context).size.width,
+      color: Color(0xFF424242),
+      child: MidiSettings(
+        sectionColor: sectionColor,
+      close: () {
+          setState(() {
+            showMidiConfiguration = false;
+            _showKeyboardConfiguration = false;
+            _showColorboardConfiguration = false;
+            showKeyboard = _wasKeyboardShowingWhenMidiConfigurationOpened;
+            showColorboard = _wasColorboardShowingWhenMidiConfigurationOpened;
+          });
+      }));
   }
 
   AnimatedContainer _keyboard(BuildContext context) {

@@ -1,14 +1,67 @@
 import 'package:dart_midi/dart_midi.dart';
 
 import 'generated/protos/music.pb.dart';
+import 'package:dart_midi/src/byte_writer.dart';
+import 'package:dart_midi/src/byte_reader.dart';
+import 'util.dart';
 
-extension MidiMelodies on MidiChange {
-  List<MidiEvent> get midiEvents => _parser.parseTrack(data);
-  List<NoteOnEvent> get noteOns => midiEvents.where((event) => event is NoteOnEvent);
-  List<NoteOffEvent> get noteOffs => midiEvents.where((event) => event is NoteOffEvent);
+extension MidiChangeTheory on MidiChange {
+  Iterable<MidiEvent> get midiEvents {
+    if(data == null || data.isEmpty) {
+      return [];
+    }
+    var chunkedData = data.chunked(3);
+    // Parser expects some dumb time bytes... we don't need em of course
+    var fakeTrackData = chunkedData.expand((eventBytes) => [0,].followedBy(eventBytes));
+    var result =  _parser.parseTrack(fakeTrackData.toList());
+    return result;
+  }
+  set midiEvents(Iterable<MidiEvent> value) {
+//    print("setting midiEvents to ${value}; data=$data");
+    ByteWriter writer = ByteWriter();
+    value.forEach((event) { event.writeEvent(writer); });
+    data = writer.buffer;
+//    print("done setting midiEvents; data1=${writer.buffer}");
+//    print("done setting midiEvents; data=$data");
+  }
+  Iterable<NoteOnEvent> get noteOns => midiEvents
+    .where((event) => event is NoteOnEvent)
+    .map((event) => event as NoteOnEvent);
+  Iterable<NoteOffEvent> get noteOffs => midiEvents
+    .where((event) => event is NoteOffEvent)
+    .map((event) => event as NoteOffEvent);
 }
 
 final MidiParser _parser = MidiParser();
+
+extension MidiMelodies on Melody {
+  setMidiDataFromSimpleMelody(Map<int, Iterable<int>> simpleData) {
+    Map<int, MidiChange> convertedData = Map();
+    List<MapEntry<int, Iterable<int>>> sortedData = simpleData.entries.toList()
+      ..sort((e1, e2) => e1.key.compareTo(e2.key));
+    Iterable<int> prevTones;
+    sortedData.forEach((entry) {
+      int key = entry.key;
+      Iterable<int> tones = entry.value;
+      List<MidiEvent> events = [];
+      events.addAll(tones.map((tone) => NoteOnEvent()
+        ..noteNumber = tone + 60
+        ..velocity = 127
+        ..channel = 0));
+      if(prevTones != null) {
+        events.addAll(prevTones.map((tone) =>
+        NoteOffEvent()
+          ..noteNumber = tone + 60
+          ..velocity = 127
+          ..channel = 0));
+      }
+      convertedData[key] = MidiChange()..midiEvents = events;
+      prevTones = tones;
+    });
+    print("midiData: ${convertedData}");
+    midiData = MidiData()..data.addAll(convertedData);
+  }
+}
 
 const List<String> midiInstruments = [
   "Acoustic Grand Piano",
