@@ -73,7 +73,7 @@ class MelodyView extends StatefulWidget {
 
 class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScale = 0.1;
-  static const double maxScale = 5;
+  static const double maxScale = 1.0;
   bool isConfiguringPart = false;
   Offset _previousOffset = Offset.zero;
   Offset _offset = Offset.zero;
@@ -81,7 +81,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   double _startHorizontalScale = 1.0;
   double _startVerticalScale = 1.0;
   AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
-  double _xScale = null;
+  double _xScale;
   double get xScale => _xScale;
   List<AnimationController> _xScaleAnimationControllers = [];
   set xScale(double value) {
@@ -98,7 +98,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       });
     scaleAnimationController.forward();
   }
-  double _yScale = null;
+  double _yScale;
   double get yScale => _yScale;
   List<AnimationController> _yScaleAnimationControllers = [];
   set yScale(double value) {
@@ -119,6 +119,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
   }
+
   @override
   void dispose() {
     _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
@@ -306,7 +307,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
             onScaleUpdate: (ScaleUpdateDetails details) {
               setState(() {
                 if (details.horizontalScale > 0) {
-                  _xScale = max(0.1, min(16, _startHorizontalScale * details.horizontalScale));
+                  _xScale = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
 //                  if(_xScale > maxScaleDiscrepancy * _yScale) {
 //                    _yScale = _xScale * minScaleDiscrepancy;
 //                  }
@@ -317,6 +318,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 if (details.verticalScale > 0) {
                   _yScale = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
                 }
+                // TODO: Use _startFocalPoint to scroll the MelodyRenderer ScrollViews
                 final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
                 final Offset newOffset = details.focalPoint - normalizedOffset * xScale;
                 _offset = newOffset;
@@ -371,17 +373,6 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     child: Icon(Icons.zoom_out))),
               ]))))
             ])
-//          GridView.builder(
-//            gridDelegate:
-//                new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: max(1, (16 / _horizontalScale).floor())),
-//            itemCount: 12,
-//            itemBuilder: (BuildContext context, int index) {
-//              return GridTile(
-//                  child: Transform.scale(
-//                      scale: 1 - 0.2 * ((16 / _horizontalScale).floor() - (16 / _horizontalScale)).abs(),
-//                      child: SvgPicture.asset('assets/notehead_half.svg')));
-//            },
-//          ),
             ));
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'fake_js.dart'
   if(dart.library.js) 'dart:js';
@@ -18,7 +19,8 @@ class BeatScratchPlugin {
         case "sendPressedMidiNotes":
           final Uint8List rawData = call.arguments;
           final MidiNotes response = MidiNotes.fromBuffer(rawData);
-          pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60);
+          pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60)
+          .toSet();
 
           print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
 
@@ -30,23 +32,21 @@ class BeatScratchPlugin {
 
   static Iterable<MidiController> get midiControllers => [
     MidiController()
-    ..id = "colorboard"
-    ..name = "Colorboard",
+    ..id = "keyboard"
+    ..name = "Keyboard",
     MidiController()
-      ..id = "keyboard"
-      ..name = "Keyboard"
+    ..id = "colorboard"
+    ..name = "Colorboard"
   ];
+
   static Iterable<MidiSynthesizer> get midiSynthesizers => [
     MidiSynthesizer()
     ..id = "internal"
     ..name = "BeatScratch Synthesizer"
   ];
 
-  static Future<bool> supportsMelodyPlayback() async {
-    if(kIsWeb) {
-      return Future.value(false);
-    }
-    return _channel.invokeMethod('supportsMelodyPlayback');
+  static bool get supportsMelodyEditing {
+    return Platform.isMacOS && kDebugMode;
   }
 
   static Future<bool> isAudioSystemReady() async {

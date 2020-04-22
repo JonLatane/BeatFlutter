@@ -88,10 +88,10 @@ Part newPartFor(Score score) {
     ..id = uuid.v4()
     ..instrument = (Instrument()
       ..midiInstrument = score.parts.any((part) => part.instrument.midiInstrument == 0)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 33)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 26)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 28)
-        ? (111) : 28) : 26) : 33) : 0
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 34)
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 25)
+        ? (score.parts.any((part) => part.instrument.midiInstrument == 4)
+        ? (72) : 4) : 25) : 34) : 0
       ..midiChannel = (range(0,8).toList() + range(10,15).toList())
         .firstWhere((channel) => !score.usesChannel(channel))
       ..volume = 0.5

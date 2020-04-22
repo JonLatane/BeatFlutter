@@ -43,12 +43,17 @@ class _MidiSettingsState extends State<MidiSettings> {
         ? Row(children: [
             Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
       Container(
-        width: 40,
+        width: 44,
 //    height: 32,
         padding: EdgeInsets.zero,
         child: Column(children: [Expanded(child:RaisedButton(
           color: ChordColor.tonic.color,
-          child: Icon(Icons.check, color: Colors.white),
+          child: Column(children:[
+            Expanded(child: SizedBox()),
+            Icon(Icons.check, color: Colors.white),
+            Text("DONE", style: TextStyle(color: Colors.white, fontSize: 10)),
+            Expanded(child: SizedBox()),
+          ]),
           padding: EdgeInsets.all(2),
           onPressed: widget.close,
         ))]))
@@ -59,8 +64,8 @@ class _MidiSettingsState extends State<MidiSettings> {
   }
 
   Widget getList(BuildContext context) {
-    List<dynamic> items = midiControllers.map((e) => e as dynamic)
-      .followedBy(midiSynthesizers).toList();
+    List<dynamic> items = midiSynthesizers.map((e) => e as dynamic)
+      .followedBy(midiControllers).toList();
     return ImplicitlyAnimatedList<dynamic>(
       scrollDirection: widget.scrollDirection,
       spawnIsolate: false,
@@ -106,7 +111,7 @@ class _MidiController extends StatelessWidget {
     return Container(
       width: scrollDirection == Axis.horizontal ? 200 : null,
       height: scrollDirection == Axis.vertical ? 150 : null,
-      color: chromaticSteps[10],
+      color: Colors.grey,
       padding: EdgeInsets.all(5),
       child: Column(children:[
         Row(children:[
@@ -158,7 +163,12 @@ class _MidiSynthesizer extends StatelessWidget {
             Text("AudioKit", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           if(midiSynthesizer.id == "internal" && kIsWeb)
             Text("MIDI.js", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
-
+          if(midiSynthesizer.id == "internal" && Platform.isAndroid)
+            Text("FluidSynth", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
+          if(midiSynthesizer.id == "internal")
+            Container(height: 24, padding: EdgeInsets.only(top:3), child:RaisedButton(child: Text("Reset"), padding: EdgeInsets.zero,
+              onPressed: () {},
+            )),
           Expanded(child:SizedBox()),
         ]))
       ])

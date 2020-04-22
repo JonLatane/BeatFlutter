@@ -295,7 +295,7 @@ class MusicSystemPainter extends CustomPainter {
 
   double get harmonyHeight => min(100, 30 * yScale);
 
-  double get idealSectionHeight => harmonyHeight;
+  double get idealSectionHeight => max(22, harmonyHeight);
 
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
@@ -303,14 +303,15 @@ class MusicSystemPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final startTime = DateTime.now().millisecondsSinceEpoch;
     bool drawContinuousColorGuide = xScale <= 1;
 //    canvas.clipRect(Offset.zero & size);
 
     // Calculate from which beat we should start drawing
-    int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
+    int startBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
 
     double top, left, right, bottom;
-    left = renderingBeat * standardBeatWidth;
+    left = startBeat * standardBeatWidth;
 //    canvas.drawRect(visibleRect(), Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
     staves.value.forEach((staff) {
@@ -327,111 +328,119 @@ class MusicSystemPainter extends CustomPainter {
     });
 
 //    left += 2 * standardBeatWidth;
-    renderingBeat -= 2; // To make room for clefs
+    int renderingBeat = startBeat - 2; // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
+//    while(false) {
     while (left < visibleRect().right + standardBeatWidth) {
-      if (renderingBeat < 0) {
-        left += standardBeatWidth;
-        renderingBeat += 1;
-        continue;
-      }
-
-      // Figure out what beat of what section we're drawing
-      int renderingSectionBeat = renderingBeat;
-      Section renderingSection = this.section;
-      if (renderingSection == null) {
-        int _beat = 0;
-        int sectionIndex = 0;
-        Section candidate = score.sections[sectionIndex];
-        while (_beat + candidate.beatCount <= renderingBeat) {
-          _beat += candidate.beatCount;
-          renderingSectionBeat -= candidate.beatCount;
-          sectionIndex += 1;
-          if (sectionIndex < score.sections.length) {
-            candidate = score.sections[sectionIndex];
-          } else {
-            candidate = null;
-            break;
+      if(renderingBeat >= 0) {
+        // Figure out what beat of what section we're drawing
+        int renderingSectionBeat = renderingBeat;
+        Section renderingSection = this.section;
+        if (renderingSection == null) {
+          int _beat = 0;
+          int sectionIndex = 0;
+          Section candidate = score.sections[sectionIndex];
+          while (_beat + candidate.beatCount <= renderingBeat) {
+            _beat += candidate.beatCount;
+            renderingSectionBeat -= candidate.beatCount;
+            sectionIndex += 1;
+            if (sectionIndex < score.sections.length) {
+              candidate = score.sections[sectionIndex];
+            } else {
+              candidate = null;
+              break;
+            }
           }
+          renderingSection = candidate;
         }
-        renderingSection = candidate;
-      }
-      if (renderingSection == null) {
-        break;
-      }
-      if(renderingSectionBeat >= renderingSection.beatCount) { //TODO do this better...
-        break;
-      }
+        if (renderingSection == null) {
+          break;
+        }
+        if (renderingSectionBeat >= renderingSection.beatCount) { //TODO do this better...
+          break;
+        }
 
-      // Draw the Section name if needed
-      top = visibleRect().top;
-      if (renderingSectionBeat == 0) {
-        double fontSize = sectionHeight * 0.6;
-        double topOffset = sectionHeight * 0.05;
-        if(fontSize <= 12) {
-          topOffset -= 45/fontSize;
-          topOffset = max(-13, topOffset);
-        }
+        // Draw the Section name if needed
+        top = visibleRect().top;
+        if (renderingSectionBeat == 0 && sectionHeight > 0) { //TODO Why does frame rate drop?
+          double fontSize = sectionHeight * 0.6;
+          double topOffset = sectionHeight * 0.05;
+          if (fontSize <= 12) {
+            topOffset -= 45 / fontSize;
+            topOffset = max(-13, topOffset);
+          }
 //        print("fontSize=$fontSize topOffset=$topOffset");
-        TextSpan span = new TextSpan(
-          text: renderingSection.name.isNotEmpty
-            ? renderingSection.name
-            : " Section ${renderingSection.id.substring(0, 5)}",
-          style: TextStyle(
-            fontFamily: "VulfSans",
-            fontSize: fontSize,
-            fontWeight: FontWeight.w100,
-            color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
-        TextPainter tp = new TextPainter(
-          text: span,
-          strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
-          textAlign: TextAlign.left,
-          textDirection: TextDirection.ltr,
-        );
-        tp.layout();
-        tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top + topOffset));
-      }
-      top += sectionHeight;
+          TextSpan span = TextSpan(
+            text: renderingSection.name.isNotEmpty
+              ? renderingSection.name
+              : " Section ${renderingSection.id.substring(0, 5)}",
+            style: TextStyle(
+              fontFamily: "VulfSans",
+              fontSize: fontSize,
+              fontWeight: FontWeight.w100,
+              color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
+          TextPainter tp = TextPainter(
+            text: span,
+            strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout();
+          tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top + topOffset));
+        }
+        top += sectionHeight;
 
-      Harmony renderingHarmony = renderingSection.harmony;
-      right = left + standardBeatWidth;
-      String sectionName = renderingSection.name;
-      if (sectionName == null || sectionName.isEmpty) {
-        sectionName = renderingSection.id;
-      }
+        Harmony renderingHarmony = renderingSection.harmony;
+        right = left + standardBeatWidth;
+        String sectionName = renderingSection.name;
+        if (sectionName == null || sectionName.isEmpty) {
+          sectionName = renderingSection.id;
+        }
 
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
-      Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
-      _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
-      top = top + harmonyHeight;
+        Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
+        _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
+        top = top + harmonyHeight;
 
 //      print("renderingSectionBeat=$renderingSectionBeat");
 
-      staves.value.forEach((staff) {
-        staff.getParts(score, staves.value).forEach((part) {
-          double partOffset = partTopOffsets.value.putIfAbsent(part.id, ()=>0);
-          List<Melody> melodiesToRender = renderingSection.melodies
+        staves.value.forEach((staff) {
+          staff.getParts(score, staves.value).forEach((part) {
+            double partOffset = partTopOffsets.value.putIfAbsent(part.id, () => 0);
+            List<Melody> melodiesToRender = renderingSection.melodies
               .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
               .where((ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
               .map((it) => score.melodyReferencedBy(it))
               .toList();
-  //        canvas.save();
-  //        canvas.translate(0, partOffset);
-          Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
-          if (!drawContinuousColorGuide) {
-            _renderSubdividedColorGuide(renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
-          }
-          _renderMelodies(melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat, renderingBeat, left, staff);
-  //        canvas.restore();
+            //        canvas.save();
+            //        canvas.translate(0, partOffset);
+            Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
+            if (!drawContinuousColorGuide) {
+              _renderSubdividedColorGuide(
+                renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
+            }
+            _renderMelodies(
+              melodiesToRender,
+              canvas,
+              melodyBounds,
+              renderingSection,
+              renderingSectionBeat,
+              renderingBeat,
+              left,
+              staff);
+            //        canvas.restore();
+          });
         });
-      });
+      }
       left += standardBeatWidth;
       renderingBeat += 1;
     }
 //    if (drawContinuousColorGuide) {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
+    final endTime = DateTime.now().millisecondsSinceEpoch;
+    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
   }
 
   void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection,
@@ -524,7 +533,7 @@ class MusicSystemPainter extends CustomPainter {
     TextSpan span = new TextSpan(text: text,
       style: TextStyle(
         fontFamily: "VulfSans",
-        fontSize: 20 * yScale,
+        fontSize: max(11, 20 * yScale),
         fontWeight: FontWeight.w800,
         color: colorblockOpacityNotifier.value > 0.5 ? Colors.white : Colors.black));
     TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);

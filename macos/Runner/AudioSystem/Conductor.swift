@@ -5,8 +5,10 @@
 //  Created by Matthew Fecher on 7/20/17.
 //  Copyright © 2017 AudioKit Pro. All rights reserved.
 
+import Foundation
 import AudioKit
 import FlutterMacOS
+import ExternalAccessory
 
 class Conductor {
   
@@ -46,10 +48,19 @@ class Conductor {
   //    var reverb: AKCostelloReverb
   //    var reverbMixer: AKDryWetMixer
   let midi = AudioKit.midi
+//  var accessoryManager = EAAccessoryManager.shared()
   
   var pressedNotes = [Int]()
   
+//  func deviceConnected(notification: NSNotification) {
+//    print("EAAccessoryManager device connected, creating BeatScratch Session")
+//    midi.openInput(name: "BeatScratch Session")
+//  }
+  
   init() {
+//    accessoryManager.registerForLocalNotifications()
+//    NotificationCenter.default.addObserver(self, selector: Selector(("deviceConnected:")), name: NSNotification.Name.EAAccessoryDidConnect, object: nil)
+
     
     // MIDI Configure
     midi.createVirtualPorts()
@@ -208,6 +219,19 @@ class MidiListener : AKMIDIListener {
       Conductor.sharedInstance.pressedNotes.remove(at: indexToRemove)
     }
     sendPressedNotes()
+  }
+  
+  func receivedMIDIController(controller: MIDIByte, value: MIDIByte, channel: MIDIChannel, portID: MIDIUniqueID?, offset: MIDITimeStamp) {
+    if portID != nil {
+      AudioKit.midi.openInput(uid: portID!)
+    } else {
+      AudioKit.midi.openInput(name: "BeatScratch Session")
+    }
+  }
+  
+  func receivedMIDIPropertyChange(propertyChangeInfo: MIDIObjectPropertyChangeNotification) {
+    print(propertyChangeInfo)
+//    if(propertyChangeInfo.objectType)
   }
   
   func sendPressedNotes() {

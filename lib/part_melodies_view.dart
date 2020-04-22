@@ -503,6 +503,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       selectMelody(newMelody);
                       toggleMelodyReference(currentSection.referenceTo(newMelody));
                       editingMelody = true;
+                      BeatScratchPlugin.pushMelody(part, newMelody);
                     });
                   },
                   child: Icon(
