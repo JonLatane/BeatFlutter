@@ -1,0 +1,2 @@
+json_key_file("~/aapi-8301034569696927852-909075-d3ef216eaa4e.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+package_name("io.beatscratch.beatscratch_flutter_redux") # e.g. com.krausefx.app

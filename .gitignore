@@ -39,3 +39,4 @@ GoogleService-Info.plist
 .cxx/
 android/app/.cxx/
 .last_build_id
+key.properties
