@@ -12,8 +12,7 @@ class MainFlutterWindow: NSWindow {
     RegisterGeneratedPlugins(registry: flutterViewController)
     
     let channel = FlutterMethodChannel.init(name: "BeatScratchPlugin", binaryMessenger: flutterViewController.engine.binaryMessenger)
-    let conductor = Conductor.sharedInstance
-    BeatScratchPlugin.init().attach(channel: channel)
+    BeatScratchPlugin.sharedInstance.attach(channel: channel)
     
     super.awakeFromNib()
   }

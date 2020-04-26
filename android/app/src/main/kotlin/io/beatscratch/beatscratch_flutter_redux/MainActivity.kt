@@ -1,8 +1,8 @@
 package io.beatscratch.beatscratch_flutter_redux
 
-import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.view.WindowManager
 import androidx.annotation.NonNull
@@ -15,6 +15,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 class MainActivity : FlutterActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState);
+    BeatScratchPlugin.handler = Handler()
 //        val orientation = resources.configuration.orientation
 //        println("resources.configuration.orientation=${resources.configuration.orientation}")
     window.decorView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
@@ -30,18 +31,8 @@ class MainActivity : FlutterActivity() {
 
       }
     })
-    MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "BeatScratchPlugin")
-      .setMethodCallHandler(BeatScratchPlugin())
-//                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
-//        } else { // In portrait
-////        }
-//      
-//      MethodChannel(getCon, "BeatScratchPlugin").setMethodCallHandler { call, result ->
-//          if (call.method == "helloFromNativeCode") {
-//              val greetings: String = helloFromNativeCode()
-//              result.success(greetings)
-//          }
-//      }
+    val channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "BeatScratchPlugin")
+    BeatScratchPlugin.channel = channel
   }
 
   override fun onResume() {

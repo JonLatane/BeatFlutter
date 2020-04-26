@@ -9,7 +9,7 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_DEFAULT
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.Companion.currentSection
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentSection
 
 
 class PlaybackService : Service() {

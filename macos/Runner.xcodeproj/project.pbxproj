@@ -27,6 +27,7 @@
 		3338B684243E3DB0008AE813 /* AKSamplerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3338B683243E3DB0008AE813 /* AKSamplerExtensions.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		336B79EF244B6612004DA1C5 /* BeatScratchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79EE244B6612004DA1C5 /* BeatScratchPlugin.swift */; };
+		336B79F12450AD75004DA1C5 /* BeatScratchMidiListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F02450AD75004DA1C5 /* BeatScratchMidiListener.swift */; };
 		3393208A241D737800327C52 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33932089241D737800327C52 /* GoogleService-Info.plist */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
@@ -76,6 +77,7 @@
 		3338B683243E3DB0008AE813 /* AKSamplerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AKSamplerExtensions.swift; sourceTree = "<group>"; };
 		335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = "<group>"; };
 		336B79EE244B6612004DA1C5 /* BeatScratchPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatScratchPlugin.swift; sourceTree = "<group>"; };
+		336B79F02450AD75004DA1C5 /* BeatScratchMidiListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatScratchMidiListener.swift; sourceTree = "<group>"; };
 		33932089241D737800327C52 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		33CC10ED2044A3C60003C045 /* BeatFlutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatFlutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -134,6 +136,15 @@
 				330DD9E42441149500FC0203 /* music.pb.swift */,
 			);
 			path = protos;
+			sourceTree = "<group>";
+		};
+		336B79F32452265E004DA1C5 /* BeatScratch */ = {
+			isa = PBXGroup;
+			children = (
+				336B79F02450AD75004DA1C5 /* BeatScratchMidiListener.swift */,
+				336B79EE244B6612004DA1C5 /* BeatScratchPlugin.swift */,
+			);
+			path = BeatScratch;
 			sourceTree = "<group>";
 		};
 		33BA886A226E78AF003329D5 /* Configs */ = {
@@ -212,7 +223,7 @@
 				330DD9E12441149500FC0203 /* Classes */,
 				33F2423C243A4DEC00B1FC1B /* AudioSystem */,
 				33CC11122044BFA00003C045 /* MainFlutterWindow.swift */,
-				336B79EE244B6612004DA1C5 /* BeatScratchPlugin.swift */,
+				336B79F32452265E004DA1C5 /* BeatScratch */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
 				33CC11242044D66E0003C045 /* Resources */,
@@ -411,6 +422,7 @@
 				3338B684243E3DB0008AE813 /* AKSamplerExtensions.swift in Sources */,
 				336B79EF244B6612004DA1C5 /* BeatScratchPlugin.swift in Sources */,
 				33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */,
+				336B79F12450AD75004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 				33F24242243A4DEC00B1FC1B /* Conductor.swift in Sources */,
 				330DD9E62441149500FC0203 /* music.pb.swift in Sources */,

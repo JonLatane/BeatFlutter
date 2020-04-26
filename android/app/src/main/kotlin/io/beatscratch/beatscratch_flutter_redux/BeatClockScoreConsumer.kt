@@ -1,7 +1,7 @@
 package io.beatscratch.beatscratch_flutter_redux
 
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.Companion.currentScore
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.Companion.currentSection
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentScore
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentSection
 import io.multifunctions.letCheckNull
 import kotlinx.io.pool.DefaultPool
 import org.beatscratch.models.Music

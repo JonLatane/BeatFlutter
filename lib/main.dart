@@ -183,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _melodyViewSizeFactor = 0;
       selectedMelody = null;
+      editingMelody = false;
       selectedPart = null;
       melodyViewMode = MelodyViewMode.none;
     });
@@ -234,6 +235,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _showMelodyView();
       } else {
         selectedMelody = null;
+        editingMelody = false;
         _hideMelodyView();
       }
     });
@@ -244,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       print("yay");
       if (selectedPart != part) {
         selectedPart = part;
+        editingMelody = false;
         melodyViewMode = MelodyViewMode.part;
         _showMelodyView();
       } else {
@@ -301,6 +304,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     setState(() {
       interactionMode = InteractionMode.view;
+      editingMelody = false;
       if (!context.isTabletOrLandscapey) {
         showViewOptions = false;
       }
@@ -359,6 +363,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _selectSection(Section section) {
     setState(() {
       if (currentSection == section) {
+        editingMelody = false;
         if (melodyViewMode != MelodyViewMode.section) {
           melodyViewMode = MelodyViewMode.section;
           _showMelodyView();
@@ -385,10 +390,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _colorboardHeight => showColorboard ? 150 : 0;
 
   double get _keyboardHeight => showKeyboard ? 150 : 0;
-  double get _statusBarHeight => true ? 30 : 0;
+  double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : 30;
   double get _countInBarHeight => editingMelody ? 44 : 0;
 
-  PhotoViewScaleStateController scaleStateController;
 
   bool verticalSectionList = false;
 
@@ -396,23 +400,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get horizontalSectionListHeight => interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
+  AnimationController loadingAnimationController;
   @override
   void initState() {
     super.initState();
     BeatScratchPlugin.pushScore(score);
-    scaleStateController = PhotoViewScaleStateController();
+    BeatScratchPlugin.onSynthesizerStatusChange = () { setState(() {}); };
     keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
         _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
+
+    loadingAnimationController = AnimationController(vsync: this);
   }
 
   @override
   void dispose() {
-    scaleStateController.dispose();
     super.dispose();
+    loadingAnimationController.dispose();
+    colorboardNotesNotifier.dispose();
+    keyboardNotesNotifier.dispose();
   }
 
   Future<bool> _onWillPop() async {
@@ -683,7 +692,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               child: Row(children: [
                 Icon(Icons.fiber_smart_record, color: chromaticSteps[7]),
                 SizedBox(width: 5),
-                Text("Recording...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+                Text("Recording doesn't actually work yet...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
               ]))
           ]))),
         Container(padding: EdgeInsets.only(left: 5), width: 69,
@@ -829,7 +838,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   duration: slowAnimationDuration,
                   padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
                   height: height * _melodyViewSizeFactor,
-                  child: _melodyView(context))
+                  child: _melodyView(context, height * _melodyViewSizeFactor))
             ])
           : Row(children: [
               AnimatedContainer(
@@ -841,7 +850,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   child: AnimatedContainer(
                       duration: animationDuration,
                       padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                      child: _melodyView(context)))
+                      child: _melodyView(context, height)))
             ])
     ]);
   }
@@ -874,7 +883,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  MelodyView _melodyView(BuildContext context) {
+  MelodyView _melodyView(BuildContext context, double height) {
     return MelodyView(
       superSetState: setState,
       focusPartsAndMelodies: focusPartsAndMelodies,
@@ -907,6 +916,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setColorboardPart: _setColorboardPart,
       colorboardPart: colorboardPart,
       keyboardPart: keyboardPart,
+      height: height,
       deletePart: (part) {
         setState(() {
           if (part == this.selectedPart) {

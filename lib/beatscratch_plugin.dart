@@ -12,6 +12,21 @@ import 'package:flutter/services.dart';
 /// We can push [Part]s and [Melody]s to it. [pushScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
+  static bool _isSynthesizerAvailable;
+  static bool get isSynthesizerAvailable {
+    if(_isSynthesizerAvailable == null) {
+      _isSynthesizerAvailable = false;
+      _doSynthesizerStatusChangeLoop();
+    }
+    return _isSynthesizerAvailable;
+  }
+  static VoidCallback onSynthesizerStatusChange;
+  static _doSynthesizerStatusChangeLoop() {
+    Future.delayed(Duration(seconds:5), () {
+      checkSynthesizerStatus();
+      _doSynthesizerStatusChangeLoop();
+    });
+  }
   static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
   static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
     ..setMethodCallHandler((call) {
@@ -19,11 +34,14 @@ class BeatScratchPlugin {
         case "sendPressedMidiNotes":
           final Uint8List rawData = call.arguments;
           final MidiNotes response = MidiNotes.fromBuffer(rawData);
-          pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60)
-          .toSet();
+          pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60).toSet();
+//          print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
 
-          print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
-
+          return Future.value(null);
+          break;
+        case "setSynthesizerAvailable":
+          _isSynthesizerAvailable = call.arguments;
+          onSynthesizerStatusChange?.call();
           return Future.value(null);
           break;
       }
@@ -49,16 +67,19 @@ class BeatScratchPlugin {
     return Platform.isMacOS && kDebugMode;
   }
 
-  static Future<bool> isAudioSystemReady() async {
+  static void checkSynthesizerStatus() async {
+    bool resultStatus;
     if(kIsWeb) {
-      return Future.value(true);
+      resultStatus = context.callMethod('checkSynthesizerStatus', []);
     } else {
-      try {
-        return _channel.invokeMethod('isAudioSystemReady');
-      } catch(e) {
-        return Future.value(true);
-      }
+      resultStatus = await _channel.invokeMethod('checkSynthesizerStatus');
     }
+    if(resultStatus == null) {
+      print("Failed to retrieve Synthesizer Status from JS/Platform Channel");
+      resultStatus = false;
+    }
+    _isSynthesizerAvailable = resultStatus;
+    onSynthesizerStatusChange?.call();
   }
 
   static Future<List<MidiController>> get deviceMidiControllers async {
@@ -76,6 +97,8 @@ class BeatScratchPlugin {
   }
 
   static void resetAudioSystem() async {
+    _isSynthesizerAvailable = false;
+    onSynthesizerStatusChange?.call();
     if(kIsWeb) {
     } else {
       _channel.invokeMethod('resetAudioSystem');

@@ -7,32 +7,35 @@
 
 import Foundation
 import AudioKit
-import FlutterMacOS
 import ExternalAccessory
+#if canImport(FlutterMacOS)
+let maxNonDrumChannels = 16
+#elseif canImport(Flutter)
+let maxNonDrumChannels = 5
+#endif
 
 class Conductor {
-  
   // Globally accessible
   static let sharedInstance = Conductor()
-  
-  var flutterMethodChannel: FlutterMethodChannel? = nil
-  var samplersInitialized = false
+  var samplersInitialized = false {
+    didSet { BeatScratchPlugin.sharedInstance.setSynthesizerAvailable() }
+  }
   var sampler1 = AKSampler()
-  var sampler2 = AKSampler()
-  var sampler3 = AKSampler()
-  var sampler4 = AKSampler()
-  var sampler5 = AKSampler()
-  var sampler6 = AKSampler()
-  var sampler7 = AKSampler()
-  var sampler8 = AKSampler()
-  var sampler9 = AKSampler()
+  var sampler2 = maxNonDrumChannels > 1 ? AKSampler() : nil
+  var sampler3 = maxNonDrumChannels > 2 ? AKSampler() : nil
+  var sampler4 = maxNonDrumChannels > 3 ? AKSampler() : nil
+  var sampler5 = maxNonDrumChannels > 4 ? AKSampler() : nil
+  var sampler6 = maxNonDrumChannels > 5 ? AKSampler() : nil
+  var sampler7 = maxNonDrumChannels > 6 ? AKSampler() : nil
+  var sampler8 = maxNonDrumChannels > 7 ? AKSampler() : nil
+  var sampler9 = maxNonDrumChannels > 8 ? AKSampler() : nil
   var drumSampler = AKSampler()
-  var sampler11 = AKSampler()
-  var sampler12 = AKSampler()
-  var sampler13 = AKSampler()
-  var sampler14 = AKSampler()
-  var sampler15 = AKSampler()
-  var sampler16 = AKSampler()
+  var sampler11 = maxNonDrumChannels > 9 ? AKSampler() : nil
+  var sampler12 = maxNonDrumChannels > 10 ? AKSampler() : nil
+  var sampler13 = maxNonDrumChannels > 11 ? AKSampler() : nil
+  var sampler14 = maxNonDrumChannels > 12 ? AKSampler() : nil
+  var sampler15 = maxNonDrumChannels > 13 ? AKSampler() : nil
+  var sampler16 = maxNonDrumChannels > 14 ? AKSampler() : nil
   var channelSamplers: [Int: AKSampler] = [:]
   
   //    var decimator: AKDecimator
@@ -64,16 +67,18 @@ class Conductor {
     
     // MIDI Configure
     midi.createVirtualPorts()
-    midi.openInput(name: "BeatScratch Input Port for External Controller 1")
-    midi.openInput(name: "BeatScratch Input Port for External Controller 2")
-    midi.openInput(name: "BeatScratch Input Port for External Controller 3")
-    midi.openInput(name: "BeatScratch Input Port for External Controller 4")
+    midi.openInput(name: "BeatScratch Session")
+    midi.openInput(name: "BeatScratch Session")
+    midi.openInput(name: "BeatScratch Session")
+    midi.openInput(name: "BeatScratch Session")
     midi.openOutput()
     
     // Session settings
     //AKAudioFile.cleanTempDirectory()
     AKSettings.bufferLength = .medium
     AKSettings.enableLogging = true
+    
+    midi.addListener(BeatScratchMidiListener.sharedInstance)
     
     // Set Output & Start AudioKit
     let mix = AKMixer(sampler1, sampler2, sampler3, sampler4, sampler5, drumSampler)
@@ -92,31 +97,31 @@ class Conductor {
   }
   
   func assignMidiControllersToChannel(channel: Int) {
-    midi.clearListeners()
-    let listener = MidiListener()
-    listener.conductorChannel = channel
-    midi.addListener(listener)
+    BeatScratchMidiListener.sharedInstance.conductorChannel = channel
   }
   
   private func setupSamplers() {
-    channelSamplers.merge([
-      0: sampler1,
-      1: sampler2,
-      2: sampler3,
-      3: sampler4,
-      4: sampler5,
-      5: sampler6,
-      6: sampler7,
-      7: sampler8,
-      8: sampler9,
-      9: drumSampler,
-      10: sampler11,
-      11: sampler12,
-      12: sampler13,
-      13: sampler14,
-      14: sampler15,
-      15: sampler16,
-    ], uniquingKeysWith: { (_, last) in last })
+    self.channelSamplers.merge(
+      [
+        0:  self.sampler1,
+        1:  self.sampler2,
+        2:  self.sampler3,
+        3:  self.sampler4,
+        4:  self.sampler5,
+        5:  self.sampler6,
+        6:  self.sampler7,
+        7:  self.sampler8,
+        8:  self.sampler9,
+        9:  self.drumSampler,
+        10: self.sampler11,
+        11: self.sampler12,
+        12: self.sampler13,
+        13: self.sampler14,
+        14: self.sampler15,
+        15: self.sampler16,
+      ].filter { $0.key == 9 || $0.key < maxNonDrumChannels }.mapValues { $0! },
+      uniquingKeysWith: { (_, last) in last }
+    )
     for (channel, sampler) in channelSamplers {
       if channel == 9 {
         setupSampler(sampler: sampler, fluidSample: "000_Standard")
@@ -199,49 +204,6 @@ class Conductor {
       for(channel, _) in channelSamplers {
         stopNote(note: UInt8(note), channel: UInt8(channel))
       }
-    }
-  }
-}
-
-class MidiListener : AKMIDIListener {
-  var conductorChannel: Int = 0
-  func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
-    print("received midi note on")
-    Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel))
-    Conductor.sharedInstance.pressedNotes.append(Int(noteNumber))
-    sendPressedNotes()
-  }
-  
-  func receivedMIDINoteOff(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
-    print("received midi note off")
-    Conductor.sharedInstance.stopNote(note: noteNumber, channel: UInt8(conductorChannel))
-    if let indexToRemove = Conductor.sharedInstance.pressedNotes.firstIndex(of: Int(noteNumber)) {
-      Conductor.sharedInstance.pressedNotes.remove(at: indexToRemove)
-    }
-    sendPressedNotes()
-  }
-  
-  func receivedMIDIController(controller: MIDIByte, value: MIDIByte, channel: MIDIChannel, portID: MIDIUniqueID?, offset: MIDITimeStamp) {
-    if portID != nil {
-      AudioKit.midi.openInput(uid: portID!)
-    } else {
-      AudioKit.midi.openInput(name: "BeatScratch Session")
-    }
-  }
-  
-  func receivedMIDIPropertyChange(propertyChangeInfo: MIDIObjectPropertyChangeNotification) {
-    print(propertyChangeInfo)
-//    if(propertyChangeInfo.objectType)
-  }
-  
-  func sendPressedNotes() {
-    do {
-      print("swift: sendPressedNotes")
-      var midiNotes = MidiNotes.init()
-      midiNotes.midiNotes = Conductor.sharedInstance.pressedNotes.map { UInt32($0) }
-      Conductor.sharedInstance.flutterMethodChannel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
-    } catch {
-      print("Failed to send pressed notes")
     }
   }
 }

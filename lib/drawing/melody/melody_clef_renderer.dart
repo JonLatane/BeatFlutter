@@ -7,6 +7,7 @@ import 'package:path_drawing/path_drawing.dart';
 import 'package:unification/unification.dart';
 import '../../util.dart';
 import 'melody_staff_lines_renderer.dart';
+import '../canvas_tone_drawer.dart';
 import 'dart:math';
 
 class MelodyClefRenderer extends BaseMelodyRenderer {
@@ -43,10 +44,13 @@ class MelodyClefRenderer extends BaseMelodyRenderer {
           double bottom = pointFor(letter: NoteLetter.G, octave:4);
           double x1 = 0.45 * bounds.width;
           double x2 = 0.55 * bounds.width;
-          canvas.drawLine(Offset(x1, top), Offset(x1, bottom), alphaDrawerPaint);
-          canvas.drawLine(Offset(x2, top), Offset(x2, bottom), alphaDrawerPaint);
+          alphaDrawerPaint.preserveProperties(() {
+            alphaDrawerPaint.strokeWidth = max(1,4 * xScale);
+            canvas.drawLine(Offset(x1, top), Offset(x1, bottom), alphaDrawerPaint);
+            canvas.drawLine(Offset(x2, top), Offset(x2, bottom), alphaDrawerPaint);
+          });
 
-          canvas.translate(0.55 * bounds.width, 39.2 * halfStepPhysicalDistance); // Position of clef
+          canvas.translate(0.57 * bounds.width, 39.2 * halfStepPhysicalDistance); // Position of clef
           canvas.scale(0.0025 * halfStepPhysicalDistance);
           canvas.drawPath(_trebleClefPath, alphaDrawerPaint);
           break;
@@ -55,10 +59,12 @@ class MelodyClefRenderer extends BaseMelodyRenderer {
           double bottom = pointFor(letter: NoteLetter.B, octave:2);
           double x1 = 0.45 * bounds.width;
           double x2 = 0.55 * bounds.width;
-          canvas.drawLine(Offset(x1, top), Offset(x1, bottom), alphaDrawerPaint);
-          canvas.drawLine(Offset(x2, top), Offset(x2, bottom), alphaDrawerPaint);
-
-          canvas.translate(0.57 * bounds.width, 54.4 * halfStepPhysicalDistance); // Position of clef
+          alphaDrawerPaint.preserveProperties(() {
+            alphaDrawerPaint.strokeWidth = max(1,4 * xScale);
+            canvas.drawLine(Offset(x1, top), Offset(x1, bottom), alphaDrawerPaint);
+            canvas.drawLine(Offset(x2, top), Offset(x2, bottom), alphaDrawerPaint);
+          });
+          canvas.translate(0.59 * bounds.width, 54.4 * halfStepPhysicalDistance); // Position of clef
           canvas.scale(.033 * halfStepPhysicalDistance);
           canvas.drawPath(_bassClefPath, alphaDrawerPaint);
           break;

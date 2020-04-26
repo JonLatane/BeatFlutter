@@ -28,7 +28,7 @@ object MidiDevices {
 	internal val manager: MidiManager by lazy {
 		MainApplication.instance.getSystemService(Context.MIDI_SERVICE) as MidiManager
 	}
-	internal val handler: Handler by lazy {
+	private val handler: Handler by lazy {
 		val handlerThread = HandlerThread("MIDIDeviceHandlerThread")
 		handlerThread.start()
 		val looper = handlerThread.looper
@@ -46,32 +46,28 @@ object MidiDevices {
 
 	@RequiresApi(Build.VERSION_CODES.M)
 	fun initialize(context: Context) {
-		if (MainApplication.instance.packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)
-			&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-		) {
-			val infos = manager.devices
-			for (info in infos) {
+		val infos = manager.devices
+		for (info in infos) {
+			setupDevice(info)
+		}
+		manager.registerDeviceCallback(object : MidiManager.DeviceCallback() {
+			@RequiresApi(Build.VERSION_CODES.M)
+			override fun onDeviceAdded(info: MidiDeviceInfo) {
+				try {
+//						context.toast("Connecting to ${info.properties[MidiDeviceInfo.PROPERTY_NAME]}...")
+				} catch(t: Throwable) {}
 				setupDevice(info)
 			}
-			manager.registerDeviceCallback(object : MidiManager.DeviceCallback() {
-				@RequiresApi(Build.VERSION_CODES.M)
-				override fun onDeviceAdded(info: MidiDeviceInfo) {
-					try {
-//						context.toast("Connecting to ${info.properties[MidiDeviceInfo.PROPERTY_NAME]}...")
-					} catch(t: Throwable) {}
-					setupDevice(info)
-				}
 
-				@RequiresApi(Build.VERSION_CODES.M)
-				override fun onDeviceRemoved(info: MidiDeviceInfo) {
+			@RequiresApi(Build.VERSION_CODES.M)
+			override fun onDeviceRemoved(info: MidiDeviceInfo) {
 //					context.toast("Disconnected from ${info.name}.")
-					devices.find { it.info == info }?.close()
-					devices.removeAll { it.info == info }
-				}
+				devices.find { it.info == info }?.close()
+				devices.removeAll { it.info == info }
+			}
 
-				override fun onDeviceStatusChanged(status: MidiDeviceStatus) {}
-			}, handler)
-		}
+			override fun onDeviceStatusChanged(status: MidiDeviceStatus) {}
+		}, handler)
 	}
 
 

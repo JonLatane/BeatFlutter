@@ -7,16 +7,13 @@ import android.media.midi.MidiOutputPort
 import android.media.midi.MidiReceiver
 import android.os.Build
 import androidx.annotation.RequiresApi
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.Companion.keyboardPart
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.keyboardPart
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.leftHalf
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.leftHalfMatchesAny
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.rightHalf
 
 object MidiControllers {
-	// ..and receiving input via devices' output ports
-//	val receivers: MutableList<(InputDevice, ByteArray) -> Unit> = mutableListOf()
-//	private val inputDevices = mutableMapOf<MidiDeviceInfo, MidiOutputPort>()
-//	val controllers get() = inputDevices.keys
+	val pressedNotes: MutableSet<Int> = mutableSetOf()
 
 	@RequiresApi(Build.VERSION_CODES.M)
 	internal fun setupController(info: MidiDeviceInfo, device: MidiDevice): MidiOutputPort? = with(MidiConstants) {
@@ -69,8 +66,16 @@ object MidiControllers {
 						val velocity = msg[++byteIndex]
 						keyboardPart?.instrument?.let { instrument ->
 							when(noteOnOrOff) {
-								MidiConstants.NOTE_ON  -> { instrument.play(midiTone.toInt() - 60, velocity.toInt()) }
-								MidiConstants.NOTE_OFF -> { instrument.stop(midiTone.toInt() - 60) }
+								MidiConstants.NOTE_ON  -> {
+									instrument.play(midiTone.toInt() - 60, velocity.toInt())
+									pressedNotes.add(midiTone.toInt())
+									BeatScratchPlugin.sendPressedMidiNotes()
+								}
+								MidiConstants.NOTE_OFF -> {
+									instrument.stop(midiTone.toInt() - 60)
+									pressedNotes.remove(midiTone.toInt())
+									BeatScratchPlugin.sendPressedMidiNotes()
+								}
 							}
 							AndroidMidi.flushSendStream()
 						}

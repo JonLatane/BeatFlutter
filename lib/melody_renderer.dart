@@ -1,5 +1,6 @@
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:unification/unification.dart';
@@ -24,6 +25,7 @@ class MelodyRenderer extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final Score score;
   final Section section;
+  final Color sectionColor;
   final Melody focusedMelody;
   final RenderingMode renderingMode;
   final double xScale;
@@ -32,13 +34,15 @@ class MelodyRenderer extends StatefulWidget {
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
   final List<MusicStaff> staves;
+  final Part focusedPart;
   final Part keyboardPart;
   final Part colorboardPart;
+  final double height;
 
   const MelodyRenderer(
       {Key key,
       this.score,
-      this.section,
+      this.section, this.sectionColor,
       this.xScale,
       this.yScale,
       this.focusedMelody,
@@ -47,7 +51,7 @@ class MelodyRenderer extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
-      this.staves, this.keyboardPart, this.colorboardPart})
+      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.height})
       : super(key: key);
 
   @override
@@ -68,7 +72,10 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
-  double get overallCanvasHeight => (widget.staves.length * staffHeight * yScale * canvasHeightMagic) + 60;
+  double get toolbarHeight => widget.melodyViewMode == MelodyViewMode.score ? 0 : 48;
+  double get renderAreaHeight => widget.height - toolbarHeight;
+  double get overallCanvasHeight =>
+    max(renderAreaHeight, widget.staves.length * staffHeight * yScale);
 
   double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
 
@@ -88,10 +95,12 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   ValueNotifier<Part> keyboardPart;
   ValueNotifier<Part> colorboardPart;
+  ValueNotifier<Part> focusedPart;
+  ValueNotifier<Color> sectionColor;
   @override
   void initState() {
     super.initState();
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
     notationOpacityNotifier = ValueNotifier(0);
     currentBeatNotifier = ValueNotifier(0);
@@ -101,6 +110,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     stavesNotifier = ValueNotifier(widget.staves);
     keyboardPart = ValueNotifier(widget.keyboardPart);
     colorboardPart = ValueNotifier(widget.colorboardPart);
+    focusedPart = ValueNotifier(widget.focusedPart);
+    sectionColor = ValueNotifier(widget.sectionColor);
   }
 
   @override
@@ -115,6 +126,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     stavesNotifier.dispose();
     keyboardPart.dispose();
     colorboardPart.dispose();
+    focusedPart.dispose();
+    sectionColor.dispose();
     super.dispose();
   }
 
@@ -129,6 +142,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     if (currentBeatNotifier.value != widget.currentBeat) {
       currentBeatNotifier.value = widget.currentBeat;
     }
+    focusedPart.value = widget.focusedPart;
+    sectionColor.value = widget.sectionColor;
     animationController.forward(from: 0);
     return SingleChildScrollView(
 //        key: Key(key),
@@ -161,7 +176,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         keyboardNotesNotifier: widget.keyboardNotesNotifier,
                         visibleRect: () => _visibleRect,
                         keyboardPart: keyboardPart,
-                        colorboardPart: colorboardPart,
+                      colorboardPart: colorboardPart,
+                      focusedPart: focusedPart,
+                      sectionColor: sectionColor,
                     ),
                   ),
 //          child: _MelodyPaint(
@@ -182,7 +199,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     removedOffsets.forEach((removedStaffId) {
       Animation staffAnimation;
       staffAnimation = Tween<double>(begin: staffOffsets.value[removedStaffId], end: 0)
-        .animate(animationController)
+        .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
         ..addListener(() {
           staffOffsets.value[removedStaffId] = staffAnimation.value;
           staffOffsets.notifyListeners();
@@ -190,20 +207,20 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     });
     widget.staves.asMap().forEach((staffIndex, staff) { 
       double staffPosition = staffIndex * staffHeight * yScale;
-      double initialStaffPosition = staffOffsets.value.putIfAbsent(staff.id, () => 0);
+      double initialStaffPosition = staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight);
       Animation staffAnimation;
       staffAnimation = Tween<double>(begin: initialStaffPosition, end: staffPosition)
-        .animate(animationController)
+        .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
         ..addListener(() {
           staffOffsets.value[staff.id] = staffAnimation.value;
           staffOffsets.notifyListeners();
         });
       staff.getParts(widget.score, widget.staves).forEach((part) {
         double partPosition = staffPosition;
-        double initialPartPosition = partTopOffsets.value.putIfAbsent(part.id, () => 0);
+        double initialPartPosition = partTopOffsets.value.putIfAbsent(part.id, () => overallCanvasHeight);
         Animation partAnimation;
         partAnimation = Tween<double>(begin: initialPartPosition, end: partPosition)
-          .animate(animationController)
+          .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
           ..addListener(() {
             partTopOffsets.value[part.id] = partAnimation.value;
             partTopOffsets.notifyListeners();
@@ -256,6 +273,8 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets;
   final ValueNotifier<Map<String, double>> staffOffsets;
+  final ValueNotifier<Color> sectionColor;
+  final ValueNotifier<Part> focusedPart;
   final ValueNotifier<Part> keyboardPart;
   final ValueNotifier<Part> colorboardPart;
 
@@ -270,7 +289,7 @@ class MusicSystemPainter extends CustomPainter {
 
   int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
 
-  MusicSystemPainter({this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
+  MusicSystemPainter({this.sectionColor, this.focusedPart, this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
     this.sectionScaleNotifier,
     this.colorboardNotesNotifier,
     this.keyboardNotesNotifier,
@@ -440,7 +459,7 @@ class MusicSystemPainter extends CustomPainter {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
     final endTime = DateTime.now().millisecondsSinceEpoch;
-    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
+//    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
   }
 
   void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection,
@@ -508,6 +527,13 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
+    if(staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
+      Rect highlight = Rect.fromPoints(
+        bounds.topLeft.translate(-bounds.width / 13, 0),
+        bounds.bottomLeft.translate(bounds.width / 13, 0)
+      );
+      canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
+    }
     if (notationOpacityNotifier.value > 0) {
       var clefs = (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
         ? [ Clef.drum_treble, Clef.drum_bass ]
@@ -538,7 +564,7 @@ class MusicSystemPainter extends CustomPainter {
         color: colorblockOpacityNotifier.value > 0.5 ? Colors.white : Colors.black));
     TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
     tp.layout();
-    tp.paint(canvas, bounds.topLeft.translate(5 * xScale, 50 * yScale));
+    tp.paint(canvas, bounds.topLeft.translate(5 * xScale, 7 * yScale));
   }
 
   Melody _colorboardDummyMelody = defaultMelody()

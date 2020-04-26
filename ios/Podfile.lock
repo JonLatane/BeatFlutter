@@ -328,7 +328,7 @@ PODS:
 
 DEPENDENCIES:
   - aeyrium_sensor (from `.symlinks/plugins/aeyrium_sensor/ios`)
-  - AudioKit/Core (~> 4.0)
+  - AudioKit/Core (~> 4.9)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - cloud_firestore_web (from `.symlinks/plugins/cloud_firestore_web/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -449,6 +449,6 @@ SPEC CHECKSUMS:
   url_launcher_web: e5527357f037c87560776e36436bf2b0288b965c
   vibration: f0c5bb486671fb81e973bfb451d89f8efd07c9c9
 
-PODFILE CHECKSUM: 5527f1ebd9cb7d6f4359b3b35bbe7e60bafa808f
+PODFILE CHECKSUM: 02b58e102ea10ed11fe1f4501715b369cb76362e
 
 COCOAPODS: 1.8.4

@@ -18,6 +18,8 @@
 		3326BB91243A25EC00022545 /* FilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8C243A25EC00022545 /* FilterSection.swift */; };
 		3326BB92243A25EC00022545 /* PingPongDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8D243A25EC00022545 /* PingPongDelay.swift */; };
 		3326BBFA243A2FA100022545 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 3326BBF9243A2FA100022545 /* Sounds */; };
+		336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */; };
+		336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -44,7 +46,7 @@
 		1292649B87F6D6D664D55F2B /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
-		330B43382431872E00141FC5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		330B43382431872E00141FC5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
 		3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = protobeats_plugin.pb.swift; sourceTree = "<group>"; };
 		3322C10524435DA000092C52 /* music.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = music.pb.swift; sourceTree = "<group>"; };
 		3322C1082443613100092C52 /* AKSamplerExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AKSamplerExtensions.swift; sourceTree = "<group>"; };
@@ -54,6 +56,8 @@
 		3326BB8C243A25EC00022545 /* FilterSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterSection.swift; sourceTree = "<group>"; };
 		3326BB8D243A25EC00022545 /* PingPongDelay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PingPongDelay.swift; sourceTree = "<group>"; };
 		3326BBF9243A2FA100022545 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
+		336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlugin.swift; sourceTree = "<group>"; };
+		336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchMidiListener.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -116,8 +120,19 @@
 				3322C1082443613100092C52 /* AKSamplerExtensions.swift */,
 				3326BB8D243A25EC00022545 /* PingPongDelay.swift */,
 			);
-			path = AudioSystem;
-			sourceTree = "<group>";
+			name = AudioSystem;
+			path = ../macos/Runner/AudioSystem;
+			sourceTree = SOURCE_ROOT;
+		};
+		336B79F424522A62004DA1C5 /* BeatScratch */ = {
+			isa = PBXGroup;
+			children = (
+				336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */,
+				336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */,
+			);
+			name = BeatScratch;
+			path = ../macos/Runner/BeatScratch;
+			sourceTree = SOURCE_ROOT;
 		};
 		7D326150031D03879EE7C618 /* Pods */ = {
 			isa = PBXGroup;
@@ -162,8 +177,10 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				3326BB88243A25EC00022545 /* AudioSystem */,
+				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				330B43382431872E00141FC5 /* GoogleService-Info.plist */,
+				3326BB88243A25EC00022545 /* AudioSystem */,
+				336B79F424522A62004DA1C5 /* BeatScratch */,
 				3322C10224435D9F00092C52 /* Classes */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -173,7 +190,6 @@
 				97C146F11CF9000F007C117D /* Supporting Files */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
-				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -354,6 +370,8 @@
 				3322C10724435DA000092C52 /* music.pb.swift in Sources */,
 				3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */,
+				336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
 				3326BB8F243A25EC00022545 /* Fatten.swift in Sources */,
 				3326BB8E243A25EC00022545 /* Conductor.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
@@ -387,7 +405,6 @@
 /* Begin XCBuildConfiguration section */
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -427,10 +444,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -464,7 +481,6 @@
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -510,9 +526,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -520,7 +536,6 @@
 		};
 		97C147041CF9000F007C117D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -560,10 +575,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;

@@ -1,6 +1,7 @@
 package io.beatscratch.beatscratch_flutter_redux
 
 import android.content.pm.PackageManager
+import android.os.Handler
 import fluidsynth.FluidSynthMidiReceiver
 import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.*
@@ -11,6 +12,8 @@ import kotlinx.coroutines.*
  * and native MIDI android devices (via [PackageManager.FEATURE_MIDI]).
  */
 object AndroidMidi {
+	var isMidiReady = false
+		private set
 	internal var isPlayingFromExternalDevice = false
 	internal var lastMidiSyncTime: Long? = null
 	init {
@@ -23,9 +26,13 @@ object AndroidMidi {
 	}
 	private var FLUIDSYNTH: FluidSynthMidiReceiver? = null
 	fun resetFluidSynth() {
+		isMidiReady = false
+		BeatScratchPlugin.setSynthesizerAvailable()
 		FLUIDSYNTH?.nativeLibJNI?.destroy()
 		FLUIDSYNTH = FluidSynthMidiReceiver(MainApplication.instance)
 		MidiDevices.refreshInstruments()
+		isMidiReady = true
+		BeatScratchPlugin.setSynthesizerAvailable()
 	}
 	private var sendToInternalFluidSynthSetting by booleanPref("sendToInternalFluidSynth", true)
 	private var sendToExternalSynthSetting by booleanPref("sendToExternalSynth", false)

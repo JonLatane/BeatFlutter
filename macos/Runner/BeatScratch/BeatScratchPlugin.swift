@@ -7,14 +7,21 @@
 //
 
 import Foundation
+#if canImport(FlutterMacOS)
 import FlutterMacOS
+#elseif canImport(Flutter)
+import Flutter
+#endif
 
 class BeatScratchPlugin {
+  // Globally accessible
+  static let sharedInstance = BeatScratchPlugin()
   var score: Score = Score()
+  var channel: FlutterMethodChannel?
 
   func attach(channel: FlutterMethodChannel) {
     let conductor = Conductor.sharedInstance
-    conductor.flutterMethodChannel = channel
+    self.channel = channel
     channel.setMethodCallHandler { (call, result) in
       print("Call from macOS: " + call.method)
       do {
@@ -39,6 +46,7 @@ class BeatScratchPlugin {
         case "pushScore":
           let score = try Score(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           self.score = score
+          result(nil)
           break
         case "pushPart":
           var part = try Part(serializedData: (call.arguments as! FlutterStandardTypedData).data)
@@ -50,12 +58,17 @@ class BeatScratchPlugin {
               self.score.parts.append(part)
             }
           }
+          result(nil)
           break
         case "setKeyboardPart":
           let partId = call.arguments as! String
           if let part = self.score.parts.first(where: {$0.id == partId}) {
             Conductor.sharedInstance.assignMidiControllersToChannel(channel: Int(part.instrument.midiChannel))
           }
+          result(nil)
+          break
+        case "checkSynthesizerStatus":
+          result(Conductor.sharedInstance.samplersInitialized)
           break
         default:
           result(FlutterMethodNotImplemented)
@@ -66,5 +79,20 @@ class BeatScratchPlugin {
         result(FlutterError())
       }
     }
+  }
+  
+  func sendPressedMidiNotes() {
+    do {
+      print("swift: sendPressedMidiNotes")
+      var midiNotes = MidiNotes.init()
+      midiNotes.midiNotes = Conductor.sharedInstance.pressedNotes.map { UInt32($0) }
+      channel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
+    } catch {
+      print("Failed to sendPressedMidiNotes")
+    }
+  }
+  
+  func setSynthesizerAvailable() {
+    channel?.invokeMethod("setSynthesizerAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
   }
 }
