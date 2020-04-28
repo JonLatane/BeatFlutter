@@ -185,7 +185,9 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                 color: widget.sectionColor,
                 child: Align(
                     alignment: Alignment.center,
-                    child: Container(height: 5, width: physicalWidth, color: Colors.black54))),
+                    child:
+                    AnimatedContainer(
+                      duration: animationDuration,height: min(5, touchScrollAreaHeight), width: physicalWidth, color: Colors.black54))),
             CustomPaint(
               size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
               isComplex: true,

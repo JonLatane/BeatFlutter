@@ -20,12 +20,14 @@ class MidiSettings extends StatefulWidget {
   final Color sectionColor;
   final Function(VoidCallback) setState;
   final VoidCallback close;
+  final bool enableColorboard;
+  final Function(bool) setColorboardEnabled;
 
   const MidiSettings(
       {Key key,
       this.scrollDirection = Axis.horizontal,
       this.sectionColor,
-      this.setState, this.close})
+      this.setState, this.close, this.enableColorboard, this.setColorboardEnabled})
       : super(key: key);
 
   @override
@@ -81,6 +83,9 @@ class _MidiSettingsState extends State<MidiSettings> {
           tile = _MidiController(
             scrollDirection: widget.scrollDirection,
             midiController: item,
+            enableColorboard: widget.enableColorboard,
+            setColorboardEnabled: widget.setColorboardEnabled,
+            sectionColor: widget.sectionColor,
           );
         } else {
           tile = _MidiSynthesizer(
@@ -103,8 +108,11 @@ class _MidiSettingsState extends State<MidiSettings> {
 class _MidiController extends StatelessWidget {
   final Axis scrollDirection;
   final MidiController midiController;
+  final bool enableColorboard;
+  final Function(bool) setColorboardEnabled;
+  final Color sectionColor;
 
-  const _MidiController({Key key, this.scrollDirection, this.midiController})
+  const _MidiController({Key key, this.enableColorboard, this.setColorboardEnabled, this.scrollDirection, this.midiController, this.sectionColor})
     : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -129,6 +137,13 @@ class _MidiController extends StatelessWidget {
             Text(midiController.name, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
             if(midiController.id == "keyboard")
               Text("MIDI controllers connected to your device route to the Keyboard Part.", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
+            if(midiController.id == "colorboard")
+              Switch(
+                activeColor: sectionColor,
+                value: enableColorboard,
+                onChanged: setColorboardEnabled,
+//                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+              ),
 
             Expanded(child:SizedBox()),
       ]))
@@ -159,7 +174,7 @@ class _MidiSynthesizer extends StatelessWidget {
         Column(children:[
           Expanded(child:SizedBox()),
           Text(midiSynthesizer.name, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-          if(midiSynthesizer.id == "internal" && Platform.isMacOS)
+          if(midiSynthesizer.id == "internal" && (Platform.isMacOS || Platform.isIOS))
             Text("AudioKit", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           if(midiSynthesizer.id == "internal" && kIsWeb)
             Text("MIDI.js", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),

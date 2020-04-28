@@ -126,6 +126,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
   bool _showKeyboardConfiguration = false;
+  bool _enableColorboard = false;
+  get enableColorboard => _enableColorboard;
+  set enableColorboard(bool value) {
+    _enableColorboard = value;
+    _showColorboardConfiguration = value;
+    showColorboard = value;
+  }
   bool showColorboard = false;
   bool _showColorboardConfiguration = false;
   Part _keyboardPart;
@@ -425,29 +432,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Future<bool> _onWillPop() async {
-    if (interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
-      setState(() {
-        _hideMelodyView();
-      });
-      return false;
-    } else if (showMidiConfiguration || _showKeyboardConfiguration || _showColorboardConfiguration) {
-      setState(() {
-        if(showMidiConfiguration) {
-          showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
-          showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
-        }
-        showMidiConfiguration = false;
-        _showKeyboardConfiguration = false;
-        _showColorboardConfiguration = false;
-      });
-    } else if (showKeyboard || showColorboard) {
-      setState(() {
-        showKeyboard = false;
-        showColorboard = false;
-      });
-    } else if (interactionMode == InteractionMode.edit) {
-      _viewMode();
-    } else {
+    if(!_goBack()) {
       return (await showDialog(
             context: context,
             builder: (context) => new AlertDialog(
@@ -467,6 +452,38 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           )) ??
           false;
+    }
+
+  }
+
+  bool _goBack() {
+    if (interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
+      setState(() {
+        _hideMelodyView();
+      });
+      return true;
+    } else if (showMidiConfiguration || _showKeyboardConfiguration || _showColorboardConfiguration) {
+      setState(() {
+        if(showMidiConfiguration) {
+          showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
+          showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
+        }
+        showMidiConfiguration = false;
+        _showKeyboardConfiguration = false;
+        _showColorboardConfiguration = false;
+      });
+      return true;
+    } else if (showKeyboard || showColorboard) {
+      setState(() {
+        showKeyboard = false;
+        showColorboard = false;
+      });
+      return true;
+    } else if (interactionMode == InteractionMode.edit) {
+      _viewMode();
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -516,6 +533,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //      {"left": left.toInt(), "top": top.toInt(), "right": 10, "bottom": bottom.toInt()},
 //      {"left": (right - 10).toInt(), "top": top.toInt(), "right": right.toInt(), "bottom": bottom.toInt()},
 //    ]);
+    Map<LogicalKeySet, Intent> shortcuts = {
+      LogicalKeySet(LogicalKeyboardKey.escape): Intent.doNothing
+    };
     return WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
@@ -779,6 +799,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
+    enableColorboard: enableColorboard,
         toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
         toggleKeyboardConfiguration: keyboardPart != null
             ? () {
@@ -885,6 +906,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   MelodyView _melodyView(BuildContext context, double height) {
     return MelodyView(
+      enableColorboard: enableColorboard,
       superSetState: setState,
       focusPartsAndMelodies: focusPartsAndMelodies,
       melodyViewSizeFactor: _melodyViewSizeFactor,
@@ -995,6 +1017,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF424242),
       child: MidiSettings(
         sectionColor: sectionColor,
+      enableColorboard: enableColorboard,
+      setColorboardEnabled: (value) { setState(() { enableColorboard = value; });},
       close: () {
           setState(() {
             showMidiConfiguration = false;

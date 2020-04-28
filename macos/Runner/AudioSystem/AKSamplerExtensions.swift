@@ -10,50 +10,7 @@ import Foundation
 import AudioKit
 
 extension AKSampler {
-  open func buildSample(
-    baseURL: URL,
-    lokey: Int32,
-    hikey: Int32,
-    pitch: Int32,
-    lovel: Int32,
-    hivel: Int32,
-    sample: String,
-    loopmode: String,
-    loopstart: Float32,
-    loopend: Float32
-  ) throws {
-    let noteFreq = Float(AKPolyphonicNode.tuningTable.frequency(forNoteNumber: MIDINoteNumber(pitch)))
-    AKLog("load \(pitch) \(noteFreq) Hz range \(lokey)-\(hikey) vel \(lovel)-\(hivel) \(sample)")
-    
-    let sd = AKSampleDescriptor(noteNumber: pitch,
-                                noteFrequency: noteFreq,
-                                minimumNoteNumber: lokey,
-                                maximumNoteNumber: hikey,
-                                minimumVelocity: lovel,
-                                maximumVelocity: hivel,
-                                isLooping: loopmode != "" && loopmode != "no_loop",
-                                loopStartPoint: loopstart,
-                                loopEndPoint: loopend,
-                                startPoint: 0.0,
-                                endPoint: 0.0)
-    let sampleFileURL = baseURL.appendingPathComponent(sample)
-    if sample.hasSuffix(".wv") {
-      loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: sampleFileURL.path))
-    } else {
-      if sample.hasSuffix(".aif") || sample.hasSuffix(".wav") {
-        let compressedFileURL = baseURL.appendingPathComponent(String(sample.dropLast(4) + ".wv"))
-        let fileMgr = FileManager.default
-        if fileMgr.fileExists(atPath: compressedFileURL.path) {
-          loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: compressedFileURL.path))
-        } else {
-          let sampleFile = try AKAudioFile(forReading: sampleFileURL)
-          loadAKAudioFile(from: sd, file: sampleFile)
-        }
-      }
-    }
-  }
   open func loadSfzWithEmbeddedSpacesInSampleNames(folderPath: String, sfzFileName: String) {
-    
     stopAllVoices()
     unloadAllSamples()
     
@@ -147,5 +104,48 @@ extension AKSampler {
     
     buildKeyMap()
     restartVoices()
+  }
+
+  open func buildSample(
+    baseURL: URL,
+    lokey: Int32,
+    hikey: Int32,
+    pitch: Int32,
+    lovel: Int32,
+    hivel: Int32,
+    sample: String,
+    loopmode: String,
+    loopstart: Float32,
+    loopend: Float32
+  ) throws {
+    let noteFreq = Float(AKPolyphonicNode.tuningTable.frequency(forNoteNumber: MIDINoteNumber(pitch)))
+    AKLog("load \(pitch) \(noteFreq) Hz range \(lokey)-\(hikey) vel \(lovel)-\(hivel) \(sample)")
+    
+    let sd = AKSampleDescriptor(noteNumber: pitch,
+                                noteFrequency: noteFreq,
+                                minimumNoteNumber: lokey,
+                                maximumNoteNumber: hikey,
+                                minimumVelocity: lovel,
+                                maximumVelocity: hivel,
+                                isLooping: loopmode != "" && loopmode != "no_loop",
+                                loopStartPoint: loopstart,
+                                loopEndPoint: loopend,
+                                startPoint: 0.0,
+                                endPoint: 0.0)
+    let sampleFileURL = baseURL.appendingPathComponent(sample)
+    if sample.hasSuffix(".wv") {
+      loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: sampleFileURL.path))
+    } else {
+      if sample.hasSuffix(".aif") || sample.hasSuffix(".wav") {
+        let compressedFileURL = baseURL.appendingPathComponent(String(sample.dropLast(4) + ".wv"))
+        let fileMgr = FileManager.default
+        if fileMgr.fileExists(atPath: compressedFileURL.path) {
+          loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: compressedFileURL.path))
+        } else {
+          let sampleFile = try AKAudioFile(forReading: sampleFileURL)
+          loadAKAudioFile(from: sd, file: sampleFile)
+        }
+      }
+    }
   }
 }

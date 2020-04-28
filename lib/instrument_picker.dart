@@ -72,11 +72,12 @@ class _PartConfigurationState extends State<PartConfiguration> {
       color: isSelected ? Colors.white : Colors.transparent,
       child: Column(children:[
         Text(displayedChannel,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: isSelected ? Colors.black : Colors.white),),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: isSelected ? Colors.black :
+          BeatScratchPlugin.isSynthesizerAvailable ? Colors.white : Colors.white.withAlpha(127)),),
         Expanded(child:RotatedBox(
         quarterTurns: 3,
         child: FlatButton(
-          onPressed: isHarmonic ? () {
+          onPressed: isHarmonic && BeatScratchPlugin.isSynthesizerAvailable ? () {
             widget.superSetState(() {
               setState(() {
                 midiInstrument = item;
@@ -86,7 +87,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
           } : null,
           padding: EdgeInsets.symmetric(vertical: 7, horizontal: 5),
           child: Align(alignment: Alignment.centerLeft, child:Text(text,
-            style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white)))),
+            style: TextStyle(fontSize: 12, color: isSelected ? Colors.black :
+            BeatScratchPlugin.isSynthesizerAvailable ? Colors.white : Colors.white.withAlpha(127))))),
       ))]));
     return SizeFadeTransition(
       key: Key("midi-instrument-display-$item"),

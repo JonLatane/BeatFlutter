@@ -215,6 +215,7 @@ class SecondToolbar extends StatelessWidget {
   final InteractionMode interactionMode;
   final bool showViewOptions;
   final Color sectionColor;
+  final bool enableColorboard;
 
   const SecondToolbar(
     {Key key,
@@ -228,7 +229,7 @@ class SecondToolbar extends StatelessWidget {
       this.showColorboardConfiguration,
       this.toggleKeyboardConfiguration,
       this.toggleColorboardConfiguration,
-      this.sectionColor})
+      this.sectionColor, this.enableColorboard})
     : super(key: key);
 
   @override
@@ -237,15 +238,19 @@ class SecondToolbar extends StatelessWidget {
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
+    int numberOfButtons = interactionMode == InteractionMode.edit ? 4 : 2;
+    if(enableColorboard) {
+      numberOfButtons += 1;
+    }
     return Row(children: [
       AnimatedContainer(
-        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+        width: (interactionMode == InteractionMode.edit) ? width / numberOfButtons : 0,
         duration: animationDuration,
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: RaisedButton(child: Image.asset('assets/play.png'), onPressed: null))),
       AnimatedContainer(
-        width: (interactionMode == InteractionMode.edit) ? width / 5 : 0,
+        width: (interactionMode == InteractionMode.edit) ? width / numberOfButtons : 0,
         duration: animationDuration,
         child: Padding(
           padding: const EdgeInsets.all(2),
@@ -279,7 +284,9 @@ class SecondToolbar extends StatelessWidget {
             onLongPress: toggleKeyboardConfiguration,
             color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : null,
           ))),
-      Expanded(
+      AnimatedContainer(
+          width: (enableColorboard) ? width / numberOfButtons : 0,
+    duration: animationDuration,
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: RaisedButton(

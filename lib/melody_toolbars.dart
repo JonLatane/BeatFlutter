@@ -205,6 +205,7 @@ class PartToolbar extends StatefulWidget {
   final Function(Part) deletePart;
   final bool configuringPart;
   final VoidCallback toggleConfiguringPart;
+  final bool enableColorboard;
 
   const PartToolbar(
       {Key key,
@@ -216,7 +217,7 @@ class PartToolbar extends StatefulWidget {
       this.deletePart,
       this.configuringPart,
       this.toggleConfiguringPart,
-      this.sectionColor})
+      this.sectionColor, this.enableColorboard})
       : super(key: key);
 
   @override
@@ -289,7 +290,7 @@ class PartToolbarState extends State<PartToolbar> {
                     ])))),
         AnimatedContainer(
             duration: animationDuration,
-            width: isConfirmingDelete ? 0 : 41,
+            width: isConfirmingDelete || !widget.enableColorboard ? 0 : 41,
             height: 36,
             padding: EdgeInsets.only(right: 5),
             child: RaisedButton(
@@ -301,7 +302,7 @@ class PartToolbarState extends State<PartToolbar> {
                 padding: EdgeInsets.zero,
                 child: AnimatedOpacity(
                     duration: animationDuration,
-                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+                    opacity: widget.part == null || isConfirmingDelete || !widget.enableColorboard ? 0 : 1,
                     child: Stack(children: [
                       Align(
                           alignment: Alignment.bottomRight,

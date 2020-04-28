@@ -416,11 +416,15 @@ class _MelodiesViewState extends State<_MelodiesView> {
     } else {
       partName = midiInstruments[part.instrument.midiInstrument];
     }
-    bool isSelectedPart = widget.selectedPart == part && part.instrument.type != InstrumentType.drum;
-    Color backgroundColor =
-        part.instrument.type == InstrumentType.drum ? Colors.brown : isSelectedPart ? Colors.white : Colors.grey;
-    Color textColor =
-        part.instrument.type == InstrumentType.drum ? Colors.white : isSelectedPart ? Colors.grey : Colors.white;
+    bool isSelectedPart = widget.selectedPart == part;
+    Color backgroundColor, textColor;
+    if(part.instrument.type == InstrumentType.drum) {
+      backgroundColor = isSelectedPart ? Colors.white : Colors.brown;
+      textColor = isSelectedPart ? Colors.brown : Colors.white;
+    } else {
+      backgroundColor = isSelectedPart ? Colors.white : Colors.grey;
+      textColor = isSelectedPart ? Colors.grey : Colors.white;
+    }
     return ReorderableList(
         onReorder: this._reorderCallback,
         onReorderDone: this._reorderDone,

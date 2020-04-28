@@ -38,6 +38,7 @@ class MelodyView extends StatefulWidget {
   final Function(Melody) deleteMelody;
   final Function(Section) deleteSection;
   final double height;
+  final bool enableColorboard;
 
   MelodyView(
       {this.focusPartsAndMelodies, this.melodyViewSizeFactor,
@@ -66,7 +67,7 @@ class MelodyView extends StatefulWidget {
       this.deleteMelody,
       this.deleteSection,
       this.renderingMode,
-      this.currentBeat, this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height});
+      this.currentBeat, this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -213,6 +214,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       duration: animationDuration,
                       height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
                       child: PartToolbar(
+                        enableColorboard: widget.enableColorboard,
                         part: widget.part,
                         setKeyboardPart: widget.setKeyboardPart,
                         configuringPart: isConfiguringPart,
