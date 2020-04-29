@@ -157,9 +157,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   ValueNotifier<Iterable<int>> keyboardNotesNotifier;
-
-  bool playing = false;
-
   bool get melodyViewVisible => _melodyViewSizeFactor > 0;
 
   double _melodyViewSizeFactor = 1.0;
@@ -677,6 +674,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           width: _tapInBeat == null ? 37 : 0,
           child: RaisedButton(child: Text("3"),
             onPressed: _tapInBeat == null ? () {
+              BeatScratchPlugin.countIn(-2);
               setState(() {
                 _tapInBeat = -2;
               });
@@ -685,6 +683,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           width: _tapInBeat == null || _tapInBeat < -1 ? 37 : 0,
           child: RaisedButton(child: Text("4"),
             onPressed: _tapInBeat == -2 ? () {
+              BeatScratchPlugin.countIn(-1);
               setState(() {
                 _tapInBeat = -1;
               });
@@ -693,6 +692,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: RaisedButton(child: Text("Beat"),
             onPressed: _tapInBeat != null && _tapInBeat > -2 ? () {
               setState(() {
+                BeatScratchPlugin.tickBeat();
                 _tapInBeat = 0;
                 _recordingBeat = 0;
               });
@@ -762,10 +762,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         editMode: _editMode,
         toggleViewOptions: _toggleViewOptions,
         interactionMode: interactionMode,
-        playing: playing,
         togglePlaying: () {
           setState(() {
-            playing = !playing;
+            if(!BeatScratchPlugin.playing) {
+              BeatScratchPlugin.play();
+            } else {
+              BeatScratchPlugin.pause();
+            }
           });
         },
         toggleSectionListDisplayMode: () {

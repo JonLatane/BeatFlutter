@@ -18,6 +18,8 @@ class BeatScratchPlugin {
   static let sharedInstance = BeatScratchPlugin()
   var score: Score = Score()
   var channel: FlutterMethodChannel?
+  
+  private init() {}
 
   func attach(channel: FlutterMethodChannel) {
     let conductor = Conductor.sharedInstance
@@ -65,10 +67,36 @@ class BeatScratchPlugin {
           if let part = self.score.parts.first(where: {$0.id == partId}) {
             Conductor.sharedInstance.assignMidiControllersToChannel(channel: Int(part.instrument.midiChannel))
           }
-          result(nil)
           break
         case "checkSynthesizerStatus":
           result(Conductor.sharedInstance.samplersInitialized)
+          break
+        case "play":
+          BeatScratchPlaybackThread.sharedInstance.playing = true
+          result(nil)
+          break
+        case "pause":
+          BeatScratchPlaybackThread.sharedInstance.stopped = true
+          result(nil)
+          break
+        case "stop":
+          BeatScratchPlaybackThread.sharedInstance.stopped = true
+          BeatScratchScorePlayer.sharedInstance.currentTick = 0
+          result(nil)
+          break
+        case "setBeat":
+          let beat = call.arguments as! Int
+          BeatScratchScorePlayer.sharedInstance.currentTick = Int64(beat) * Int64( BeatScratchPlaybackThread.ticksPerBeat)
+          result(nil)
+          break
+        case "countIn":
+          let countInBeat = call.arguments as! Int
+          BeatScratchScorePlayer.sharedInstance.playMetronome()
+          result(nil)
+          break
+        case "tickBeat":
+          BeatScratchScorePlayer.sharedInstance.playMetronome()
+          result(nil)
           break
         default:
           result(FlutterMethodNotImplemented)
@@ -84,7 +112,7 @@ class BeatScratchPlugin {
   func sendPressedMidiNotes() {
     do {
       print("swift: sendPressedMidiNotes")
-      var midiNotes = MidiNotes.init()
+      var midiNotes = MidiNotes()
       midiNotes.midiNotes = Conductor.sharedInstance.pressedNotes.map { UInt32($0) }
       channel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
     } catch {
@@ -94,5 +122,9 @@ class BeatScratchPlugin {
   
   func setSynthesizerAvailable() {
     channel?.invokeMethod("setSynthesizerAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
+  }
+  
+  func sendCurrentBeat() {
+    channel?.invokeMethod("sendCurrentBeat", arguments: nil)
   }
 }

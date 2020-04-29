@@ -12,6 +12,21 @@ import 'package:flutter/services.dart';
 /// We can push [Part]s and [Melody]s to it. [pushScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
+  static bool _playing;
+  static bool get playing {
+    if(_playing == null) {
+      _playing = false;
+      _doSynthesizerStatusChangeLoop();
+    }
+    return _playing;
+  }
+  static _doPlayingChangedLoop() {
+    Future.delayed(Duration(seconds:5), () {
+//      checkPlaying();
+      _doPlayingChangedLoop();
+    });
+  }
+  
   static bool _isSynthesizerAvailable;
   static bool get isSynthesizerAvailable {
     if(_isSynthesizerAvailable == null) {
@@ -23,7 +38,7 @@ class BeatScratchPlugin {
   static VoidCallback onSynthesizerStatusChange;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
-      checkSynthesizerStatus();
+      _checkSynthesizerStatus();
       _doSynthesizerStatusChangeLoop();
     });
   }
@@ -67,7 +82,11 @@ class BeatScratchPlugin {
     return Platform.isMacOS && kDebugMode;
   }
 
-  static void checkSynthesizerStatus() async {
+  static bool get supportsPlayback {
+    return kDebugMode;
+  }
+
+  static void _checkSynthesizerStatus() async {
     bool resultStatus;
     if(kIsWeb) {
       resultStatus = context.callMethod('checkSynthesizerStatus', []);
@@ -155,6 +174,43 @@ class BeatScratchPlugin {
 
   static void deleteMelody(Melody melody) async {
     _channel.invokeMethod('deleteMelody', melody.id);
+  }
+
+  /// Starts the playback thread
+  static void play() async {
+    _channel.invokeMethod('play');
+    _playing = true;
+    onSynthesizerStatusChange();
+  }
+
+  static void stop() async {
+    _channel.invokeMethod('stop');
+    _playing = false;
+    onSynthesizerStatusChange();
+  }
+  static void pause() async {
+    _channel.invokeMethod('pause');
+    _playing = false;
+    onSynthesizerStatusChange();
+  }
+
+  static void setBeat(int beat) async {
+    _channel.invokeMethod('setBeat', beat);
+  }
+
+  /// CountIn beat timings are used to establish a starting tempo. Once *two* [countIn] beats
+  /// are sent within the minimum beat window (30bpm, or 2s), a tempo is established in the BE.
+  /// It is expected to continue playback at this point, with additional [tickBeat] or [countIn] calls
+  /// updating the underlying tempo. [countInBeat] is expected to be < 0. Once the playback thread reaches
+  /// the point that [countInBeat] == 0 - either "effectively" due to playback starting, or through a user
+  /// tap on [tickBeat] to signify that the current beat is 0
+  static void countIn(int countInBeat) async {
+    print("Invoked countIn");
+    _channel.invokeMethod('countIn', countInBeat);
+  }
+
+  static void tickBeat() async {
+    _channel.invokeMethod('tickBeat');
   }
 
   static void playNote(int tone, int velocity, Part part) {

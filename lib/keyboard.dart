@@ -241,12 +241,12 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                     // White key area press
                     tone = diatonicTone(left);
                   }
-                  _pointerIdsToTones[event.pointer] = tone;
-                  print("pressed tone $tone");
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                   try {
                     BeatScratchPlugin.playNote(tone, 127, widget.part);
                   } catch (t) {}
+                  _pointerIdsToTones[event.pointer] = tone;
+                  print("pressed tone $tone");
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                 },
                 onPointerMove: (event) {
                   double left = _visibleRect.left + event.position.dx;

@@ -60,7 +60,7 @@ class Conductor {
 //    midi.openInput(name: "BeatScratch Session")
 //  }
   
-  init() {
+  private init() {
 //    accessoryManager.registerForLocalNotifications()
 //    NotificationCenter.default.addObserver(self, selector: Selector(("deviceConnected:")), name: NSNotification.Name.EAAccessoryDidConnect, object: nil)
 

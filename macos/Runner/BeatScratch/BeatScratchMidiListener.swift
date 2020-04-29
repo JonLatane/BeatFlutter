@@ -45,4 +45,28 @@ class BeatScratchMidiListener : AKMIDIListener {
       AudioKit.midi.openInput(name: "BeatScratch Session")
     }
   }
+  
+  var lastPitchWheelValue: MIDIWord = 8192
+  func receivedMIDIPitchWheel(_ pitchWheelValue: MIDIWord,
+                              channel: MIDIChannel,
+                              portID: MIDIUniqueID?,
+                              offset: MIDITimeStamp) {
+    print("receivedMIDIPitchWheel: \(pitchWheelValue)")
+    if(lastPitchWheelValue == 8192 && pitchWheelValue != 8192) {
+      BeatScratchScorePlayer.sharedInstance.playMetronome()
+    }
+    lastPitchWheelValue = pitchWheelValue
+  }
+  
+  func receivedMIDISystemCommand(_ data: [MIDIByte],
+                                 portID: MIDIUniqueID?,
+                                 offset: MIDITimeStamp) {
+    print("receivedMIDISystemCommand: \(data)")
+  }
+  
+  func receivedMIDISetupChange() {
+    print("receivedMIDISetupChange")
+  }
+
+
 }

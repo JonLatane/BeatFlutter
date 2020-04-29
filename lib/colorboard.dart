@@ -243,10 +243,10 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                   int velocity = min(127, max(0, (velocityRatio * 127).toInt()));
                   _pointerIdsToTones[event.pointer] = tone;
 //              print("pressed tone $tone");
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                   try {
                     BeatScratchPlugin.playNote(tone, velocity, widget.part);
                   } catch (t) {}
+                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
                 },
                 onPointerMove: (event) {
                   double left = _visibleRect.left + event.position.dx;
