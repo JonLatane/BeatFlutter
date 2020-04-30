@@ -12,6 +12,7 @@ import MIKMIDI
 
 class BeatScratchScorePlayer {
   static let sharedInstance = BeatScratchScorePlayer()
+  var score: Score { return BeatScratchPlugin.sharedInstance.score }
   struct Attack {
     var part: Part
     var instrument: Instrument
@@ -27,11 +28,11 @@ class BeatScratchScorePlayer {
     return chord
   }()
   
-  var currentSection: Section? = nil
+  var playbackMode: Playback.Mode = Playback.Mode.score
+  var currentSection: Section = Section()
   var currentTick: Int64 = 0
-  var playbackMode = Playback.Mode.score
   private var chord: Chord = cChromatic
-  var harmony: Harmony? { return currentSection?.harmony }
+  var harmony: Harmony { return currentSection.harmony }
   var activeAttacks: Array<Attack> = []
   var outgoingAttacks: Array<Attack> = []
   var upcomingAttacks: Array<Attack> = []
@@ -44,6 +45,23 @@ class BeatScratchScorePlayer {
       playMetronome()
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
     }
+    if currentTick > Int(24 * Double(harmony.length) / Double(harmony.subdivisionsPerBeat)) {
+      Conductor.sharedInstance.stopPlayingNotes()
+      let sectionIndex = score.sections.firstIndex(of: currentSection) ?? -1
+      currentTick = 0
+      if playbackMode == Playback.Mode.score {
+        if sectionIndex + 1 < score.sections.count {
+          currentSection = score.sections[sectionIndex + 1]
+          BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+        } else {
+          currentSection = score.sections[0]
+          BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
+          BeatScratchPlaybackThread.sharedInstance.playing = false
+          BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+          return
+        }
+      }
+    }
     doTick()
     currentTick += 1
   }
@@ -53,10 +71,12 @@ class BeatScratchScorePlayer {
   }
   
   private var harmonyPosition: Int {
-    //TODO - this doesn't matter yet!
-    //  get() = harmony?.let { tickPosition.convertSubdivisionPosition(ticksPerBeat, it) }
-    return 0
+    return Int(currentTick).convertSubdivisionPosition(
+      fromSubdivisionsPerBeat: 24,
+      toSubdivisionsPerBeat: Int(harmony.subdivisionsPerBeat)
+    )
   }
+  
   private var harmonyChord: Chord {
     return chord
   }
@@ -64,7 +84,7 @@ class BeatScratchScorePlayer {
   private func doTick() {
     print("BeatScratchScorePlayer: processing tick \(currentTick)")
     let palette = BeatScratchPlugin.sharedInstance.score
-    let section: Section = currentSection ?? palette.sections[0]
+    let section: Section = currentSection
     //    chord = (harmonyChord ?: chord)?.also { chord ->
     //      doAsync {
     //        viewModel?.apply {

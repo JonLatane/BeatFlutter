@@ -59,7 +59,7 @@ class MelodyRenderer extends StatefulWidget {
 Rect _visibleRect = Rect.zero;
 
 class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStateMixin {
-  bool get isViewingSection => widget.section != null;
+  bool get isViewingSection => widget.melodyViewMode != MelodyViewMode.score;
 
   int get numberOfBeats => isViewingSection ? widget.section.harmony.beatCount : widget.score.beatCount;
 
@@ -157,6 +157,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         sectionScaleNotifier: sectionScaleNotifier,
                         score: widget.score,
                         section: widget.section,
+                        melodyViewMode: widget.melodyViewMode,
                         xScale: widget.xScale,
                         yScale: widget.yScale,
                         focusedMelody: widget.focusedMelody,
@@ -267,6 +268,7 @@ class MusicSystemPainter extends CustomPainter {
   final double xScale;
   final double yScale;
   final Rect Function() visibleRect;
+  final MelodyViewMode melodyViewMode;
   final ValueNotifier<double> colorblockOpacityNotifier, colorGuideOpacityNotifier, notationOpacityNotifier, sectionScaleNotifier;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
@@ -278,7 +280,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Part> keyboardPart;
   final ValueNotifier<Part> colorboardPart;
 
-  bool get isViewingSection => section != null;
+  bool get isViewingSection => melodyViewMode != MelodyViewMode.score;
 
   int get numberOfBeats => isViewingSection ? section.harmony.beatCount : score.beatCount;
 
@@ -289,7 +291,7 @@ class MusicSystemPainter extends CustomPainter {
 
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
-  MusicSystemPainter({this.colorGuideOpacityNotifier, this.sectionColor, this.focusedPart, this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
+  MusicSystemPainter({this.melodyViewMode, this.colorGuideOpacityNotifier, this.sectionColor, this.focusedPart, this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
     this.sectionScaleNotifier,
     this.colorboardNotesNotifier,
     this.keyboardNotesNotifier,
@@ -354,7 +356,7 @@ class MusicSystemPainter extends CustomPainter {
         // Figure out what beat of what section we're drawing
         int renderingSectionBeat = renderingBeat;
         Section renderingSection = this.section;
-        if (renderingSection == null) {
+        if (melodyViewMode == MelodyViewMode.score) {
           int _beat = 0;
           int sectionIndex = 0;
           Section candidate = score.sections[sectionIndex];
@@ -507,7 +509,7 @@ class MusicSystemPainter extends CustomPainter {
       print("exception rendering measure lines: $e");
     }
 
-    if (renderingBeat == BeatScratchPlugin.currentBeat.value) {
+    if (renderingSection == section && renderingSectionBeat == BeatScratchPlugin.currentBeat.value) {
       _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
     }
 

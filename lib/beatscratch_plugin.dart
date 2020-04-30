@@ -39,6 +39,7 @@ class BeatScratchPlugin {
   }
   static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
+  static Function(String) onSectionSelected;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
       _checkSynthesizerStatus();
@@ -78,6 +79,9 @@ class BeatScratchPlugin {
           _playing = false;
           onCountInInitiated?.call();
           return Future.value(null);
+          break;
+        case "setCurrentSection":
+          onSectionSelected(call.arguments);
           break;
       }
       return Future.value(null);
@@ -163,6 +167,10 @@ class BeatScratchPlugin {
     _channel.invokeMethod(remoteMethod, score.clone().writeToBuffer());
   }
 
+  static void setPlaybackMode(Playback_Mode mode) {
+    _channel.invokeMethod('setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
+  }
+
   static void createPart(Part part) {
     _pushPart(part, "createPart");
   }
@@ -184,9 +192,12 @@ class BeatScratchPlugin {
     }
   }
 
+  static void setCurrentSection(Section section) async {
+    _channel.invokeMethod('setCurrentSection', section?.id);
+  }
+
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
-    print("invoking setKeyboardPart");
     _channel.invokeMethod('setKeyboardPart', part?.id);
   }
 

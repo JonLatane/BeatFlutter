@@ -43,8 +43,8 @@ class BeatScratchPlaybackThread {
         if (!stopped) {
           let start: Double = CACurrentMediaTime() * 1000
           let tickTime: Double = (60000 / (self.bpm * BeatScratchPlaybackThread.ticksPerBeat))
-          print("Tick @\(BeatScratchScorePlayer.sharedInstance.currentTick) (T:\(start)")
-          BeatScratchScorePlayer.sharedInstance.tick()
+          print("BeatScratchPlaybackThread: Tick @\(BeatScratchScorePlayer.sharedInstance.currentTick) (T:\(start)")
+          try BeatScratchScorePlayer.sharedInstance.tick()
           while(CACurrentMediaTime() * 1000 < start + tickTime) {
 //            try sleep(1)
           }
@@ -59,7 +59,7 @@ class BeatScratchPlaybackThread {
         //Thread.sleep(10)
         }
       } catch {
-       print("Error during background playback: \(error)")
+        print("Error during background playback: \(error)")
       }
     }
   }

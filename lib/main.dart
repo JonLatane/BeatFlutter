@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -305,6 +306,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _doNothing() {}
 
   _viewMode() {
+    BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       interactionMode = InteractionMode.view;
       editingMelody = false;
@@ -318,6 +320,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   _editMode() {
+    BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
       if (interactionMode == InteractionMode.edit) {
         _selectSection(currentSection);
@@ -408,6 +411,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     BeatScratchPlugin.createScore(_score);
+    BeatScratchPlugin.onSectionSelected = (sectionId) {
+      setState(() {
+        currentSection = _score.sections.firstWhere((section) => section.id == sectionId);
+      });
+    };
     BeatScratchPlugin.onSynthesizerStatusChange = () { setState(() {}); };
     BeatScratchPlugin.onCountInInitiated = () {
       setState(() {

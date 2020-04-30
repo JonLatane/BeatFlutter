@@ -42,6 +42,9 @@ class BeatScratchPlugin {
           break
         case "createScore", "updateSections":
           let score = try Score(serializedData: (call.arguments as! FlutterStandardTypedData).data)
+          BeatScratchScorePlayer.sharedInstance.currentSection = score.sections.first {
+            $0.id == BeatScratchScorePlayer.sharedInstance.currentSection.id
+            } ?? score.sections.first!
           if call.method == "createScore" {
             self.score = score
           } else if call.method == "updateSections" {
@@ -129,6 +132,7 @@ class BeatScratchPlugin {
           break
         case "setBeat":
           let beat = call.arguments as! Int
+          Conductor.sharedInstance.stopPlayingNotes()
           BeatScratchScorePlayer.sharedInstance.currentTick = Int64(beat) * Int64( BeatScratchPlaybackThread.ticksPerBeat)
           result(nil)
           break
@@ -140,6 +144,16 @@ class BeatScratchPlugin {
         case "tickBeat":
           BeatScratchPlaybackThread.sharedInstance.sendBeat()
           result(nil)
+          break
+        case "setPlaybackMode":
+          let playback: Playback = try Playback(serializedData: (call.arguments as! FlutterStandardTypedData).data)
+          BeatScratchScorePlayer.sharedInstance.playbackMode = playback.mode
+          break
+        case "setCurrentSection":
+          let sectionId = call.arguments as! String
+          if let section = self.score.sections.first(where: { $0.id == sectionId }) {
+            BeatScratchScorePlayer.sharedInstance.currentSection = section
+          }
           break
         default:
           result(FlutterMethodNotImplemented)
@@ -178,5 +192,10 @@ class BeatScratchPlugin {
 
   func notifyCountInInitiated() {
     channel?.invokeMethod("notifyCountInInitiated", arguments: nil)
+  }
+  
+  func notifyCurrentSection() {
+    let section = BeatScratchScorePlayer.sharedInstance.currentSection
+    channel?.invokeMethod("setCurrentSection", arguments: section.id)
   }
 }
