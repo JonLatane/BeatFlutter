@@ -33,17 +33,10 @@ class BeatScratchPlugin {
         case "sendMIDI":
           let data = (call.arguments as! FlutterStandardTypedData).data
           let args = [UInt8](data)
-          if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
-            //                    print("noteOn");
-            conductor.playNote(note: args[1], velocity: args[2], channel: args[0] & 0xF)
-            result(nil)
-          } else if((args[0] & 0xF0) == 0x80) {
-            //                    print("noteOff");
-            conductor.stopNote(note: args[1], channel: args[0] & 0xF)
+          let parsedBytes = conductor.parseMidi(args)
+          if parsedBytes > 0 {
             result(nil)
           } else {
-            print("unmatched MIDI bytes:");
-            print(args);
             result(FlutterMethodNotImplemented)
           }
           break
@@ -58,13 +51,17 @@ class BeatScratchPlugin {
           break
         case "createPart", "updatePartConfiguration":
           var part = try Part(serializedData: (call.arguments as! FlutterStandardTypedData).data)
-          conductor.setMIDIInstrument(channel: Int(part.instrument.midiChannel), midiInstrument: Int(part.instrument.midiInstrument))
-          
+          conductor.setMIDIInstrument(channel: part.instrument.midiChannel, midiInstrument: part.instrument.midiInstrument)
+          conductor.setVolume(channel: part.instrument.midiChannel, volume: Double(part.instrument.volume))
           if call.method == "updatePartConfiguration" {
             if let existingPart = self.score.parts.first(where: {$0.id == part.id}) {
-              part.melodies = existingPart.melodies
-              self.score.parts.removeAll(where: {$0.id == part.id})
-              self.score.parts.append(part)
+              do {
+                try part.melodies = existingPart.melodies
+                try self.score.parts.removeAll(where: {$0.id == part.id})
+                try self.score.parts.append(part)
+              } catch {
+                print("updatePartConfiguration error: \(error)")
+              }
               result(nil)
             } else {
               result(FlutterError(code: "500", message: "Part does not exist", details: "nope"))
@@ -84,6 +81,8 @@ class BeatScratchPlugin {
           if let melody: Melody = self.newMelodies.first(where: { $0.id == registerMelody.melodyID }) {
             if var part: Part = self.score.parts.first(where: { $0.id == registerMelody.partID }) {
               part.melodies.append(melody)
+              self.score.parts.removeAll { $0.id == part.id }
+              self.score.parts.append(part)
               self.newMelodies.removeAll { $0.id == registerMelody.melodyID }
               result(nil)
             } else {

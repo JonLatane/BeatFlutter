@@ -73,11 +73,11 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-Score score = defaultScore();
-Section section1 = score.sections[0];
+Score initialScore = defaultScore();
+Section initialSection = initialScore.sections[0];
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  Score _score = score;
+  Score _score = initialScore;
   InteractionMode interactionMode = InteractionMode.view;
   SplitMode splitMode;
   
@@ -100,12 +100,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _editingMelody = value;
     if (value) {
       _showMelodyView();
-      var part = score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
+      var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
       _setKeyboardPart(part);
     }
   }
 
-  Section _currentSection = section1;
+  Section _currentSection = initialScore.sections[0];
   get currentSection => _currentSection;
   set currentSection(Section section) {
     _currentSection = section;
@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   updateScore(Function(Score) updates) {
     setState(() {
-      score = score.copyWith(updates);
+      _score = _score.copyWith(updates);
     });
   }
 
@@ -273,18 +273,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
       });
     }
+    BeatScratchPlugin.updateSections(_score);
   }
 
   _setReferenceVolume(MelodyReference ref, double volume) {
     setState(() {
       ref.volume = volume;
     });
+    BeatScratchPlugin.updateSections(_score);
   }
 
   _setPartVolume(Part part, double volume) {
     setState(() {
       part.instrument.volume = volume;
     });
+    BeatScratchPlugin.updatePartConfiguration(part);
   }
 
   _setSectionName(Section section, String name) {
@@ -404,7 +407,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    BeatScratchPlugin.createScore(score);
+    BeatScratchPlugin.createScore(_score);
     BeatScratchPlugin.onSynthesizerStatusChange = () { setState(() {}); };
     BeatScratchPlugin.onCountInInitiated = () {
       setState(() {
@@ -573,9 +576,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   if (!_combineSecondAndMainToolbar)_toolbars(context),
                   _midiSettings(context),
                   _tapInBar(context),
+                  _audioSystemWorkingBar(context),
                   _colorboard(context),
                   _keyboard(context),
-                  _audioSystemWorkingBar(context),
                 ])
                 //]),
               ]),
@@ -725,14 +728,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             AnimatedOpacity(duration: animationDuration,
               opacity: !BeatScratchPlugin.playing ? 1 : 0,
               child: Row(children: [
-                Icon(editingMelody?Icons.fiber_smart_record:Icons.play_arrow, color: Colors.grey),
+                Icon(editingMelody?Icons.fiber_manual_record:Icons.play_arrow, color: Colors.grey),
                 SizedBox(width: 5),
                 Text("Tap in to ${editingMelody?"record":"play"}", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
               ])),
             AnimatedOpacity(duration: animationDuration,
               opacity: BeatScratchPlugin.playing ? 1 : 0,
               child: Row(children: [
-                Icon(editingMelody?Icons.fiber_smart_record:Icons.play_arrow, color: editingMelody?chromaticSteps[7]:chromaticSteps[0]),
+                Icon(editingMelody?Icons.fiber_manual_record:Icons.play_arrow, color: editingMelody?chromaticSteps[7]:chromaticSteps[0]),
                 SizedBox(width: 5),
                 Text("${editingMelody?"Recording":"Playback"} doesn't actually work yet...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
               ]))
@@ -985,7 +988,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (part == this.colorboardPart) {
             this.colorboardPart = null;
           }
-          score.parts.remove(part);
+          _score.parts.remove(part);
 
           BeatScratchPlugin.deletePart(part);
         });
@@ -1007,10 +1010,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               this._selectOrDeselectPart(part);
             }
           }
-          score.parts.forEach((part) {
+          _score.parts.forEach((part) {
             part.melodies.remove(melody);
           });
-          score.sections.forEach((section) {
+          _score.sections.forEach((section) {
             section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
           });
         });
@@ -1026,7 +1029,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
             this.currentSection = this._score.sections[index];
           }
-          score.sections.remove(section);
+          _score.sections.remove(section);
         });
       },
     );

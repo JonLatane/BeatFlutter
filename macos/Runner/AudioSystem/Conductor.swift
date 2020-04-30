@@ -36,7 +36,7 @@ class Conductor {
   var sampler14 = maxNonDrumChannels > 12 ? AKSampler() : nil
   var sampler15 = maxNonDrumChannels > 13 ? AKSampler() : nil
   var sampler16 = maxNonDrumChannels > 14 ? AKSampler() : nil
-  var channelSamplers: [Int: AKSampler] = [:]
+  var channelSamplers: [UInt32: AKSampler] = [:]
   
   //    var decimator: AKDecimator
   //    var tremolo: AKTremolo
@@ -89,10 +89,9 @@ class Conductor {
       AKLog("AudioKit did not start")
     }
     
-    DispatchQueue.global(qos: .background).async {
+    DispatchQueue.global(qos: .userInteractive).async {
       self.setupSamplers()
       self.samplersInitialized = true;
-      print("This is run on the background queue")
     }
   }
   
@@ -173,18 +172,31 @@ class Conductor {
     midi.addListener(listener)
   }
   
-  func setMIDIInstrument(channel: Int, midiInstrument: Int) {
-    self.samplersInitialized = false;
-    DispatchQueue.global(qos: .background).async {
-      self.setupSampler(sampler: self.channelSamplers[channel]!, fluidSample: instrumentPatches[midiInstrument])
-      self.samplersInitialized = true;
+  private var channelInstruments: Dictionary<UInt32, UInt32> = [
+    0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0
+  ]
+  func setMIDIInstrument(channel: UInt32, midiInstrument: UInt32) {
+    if channelInstruments[channel] != midiInstrument {
+      self.samplersInitialized = false;
+      DispatchQueue.global(qos: .userInitiated).async {
+        self.setupSampler(sampler: self.channelSamplers[channel]!, fluidSample: instrumentPatches[Int(midiInstrument)])
+        self.channelInstruments[channel] = midiInstrument
+        self.samplersInitialized = true;
+      }
     }
   }
   
+  func setVolume(channel: UInt32, volume: Double) {
+    self.channelSamplers[channel]?.masterVolume = volume
+  }
+  
+  var playingNotes: Dictionary<MIDIChannel, Array<MIDINoteNumber>> = [
+  0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[],15:[],]
   func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
     print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel)")
     do {
-      try channelSamplers[Int(channel)]?.play(noteNumber: note, velocity: velocity)
+      playingNotes[channel]!.append(note)
+      try channelSamplers[UInt32(channel)]?.play(noteNumber: note, velocity: velocity)
     } catch {
       print("playNote error: " + error.localizedDescription)
     }
@@ -193,9 +205,51 @@ class Conductor {
   func stopNote(note: MIDINoteNumber, channel: MIDIChannel) {
     print("Conductor stopNote, note=\(note), channel=\(channel)")
     do {
-      try channelSamplers[Int(channel)]?.stop(noteNumber: note)
+      playingNotes[channel]!.removeAll { $0 == note }
+      try channelSamplers[UInt32(channel)]?.stop(noteNumber: note)
     } catch {
       print("stopNote error: " + error.localizedDescription)
+    }
+  }
+  
+  func stopPlayingNotes() {
+    playingNotes.forEach {
+      let channel = $0
+      $1.forEach {
+        let note = $0
+        self.stopNote(note: note, channel: channel)
+      }
+    }
+  }
+  
+  // Return the total number of bytes processed
+  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil) -> Int {
+    var bytes = [UInt8](midiData)
+    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride)
+    var totalBytesProcessed = bytesProcessed
+    while(bytes.count > bytesProcessed) {
+      bytes.removeFirst(max(1,bytesProcessed))
+      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride)
+      totalBytesProcessed += bytesProcessed
+    }
+    return totalBytesProcessed
+  }
+  
+  // Return the number of bytes processed
+  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?) -> Int {
+    if(args.count == 0) { return 0 }
+    if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
+      //                    print("noteOn");
+      playNote(note: args[1], velocity: args[2], channel: channelOverride ?? args[0] & 0xF)
+      return 3
+    } else if((args[0] & 0xF0) == 0x80) {
+      //                    print("noteOff");
+      stopNote(note: args[1], channel: channelOverride ?? args[0] & 0xF)
+      return 3
+    } else {
+      print("unmatched MIDI bytes:");
+      print(args);
+      return 0
     }
   }
   

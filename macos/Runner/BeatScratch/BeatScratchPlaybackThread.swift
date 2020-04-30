@@ -19,17 +19,19 @@ class BeatScratchPlaybackThread {
     }
   }
 
-  var playing: Bool {
-    set { stopped = !newValue }
-    get { return !stopped }
-  }
-  
-  var stopped: Bool = true {
+  var playing: Bool = false {
     didSet {
-      if(!stopped) {
+      if(playing) {
         semaphore.signal()
+      } else {
+        Conductor.sharedInstance.stopPlayingNotes()
       }
     }
+  }
+  
+  var stopped: Bool {
+    set { playing = !newValue }
+    get { return !playing }
   }
   var terminated: Bool = false
   var bpm: Double = 123

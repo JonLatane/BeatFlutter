@@ -8,6 +8,7 @@
 
 import Foundation
 import AudioKit
+import MIKMIDI
 
 class BeatScratchScorePlayer {
   static let sharedInstance = BeatScratchScorePlayer()
@@ -61,10 +62,9 @@ class BeatScratchScorePlayer {
   }
   
   private func doTick() {
-    
-  }
-  
-  private func loadUpcomingAttacks(palette: Score, section: Section) {
+    print("BeatScratchScorePlayer: processing tick \(currentTick)")
+    let palette = BeatScratchPlugin.sharedInstance.score
+    let section: Section = currentSection ?? palette.sections[0]
     //    chord = (harmonyChord ?: chord)?.also { chord ->
     //      doAsync {
     //        viewModel?.apply {
@@ -80,7 +80,7 @@ class BeatScratchScorePlayer {
     //        }
     //      }
     //    }
-    print("Harmony index: \(harmonyPosition); Chord: \(chord)")
+    print("BeatScratchScorePlayer: harmonyPosition=\(harmonyPosition); chord=\(chord)")
     palette.parts.forEach {
       let part = $0
       section.melodies.filter {
@@ -96,13 +96,15 @@ class BeatScratchScorePlayer {
     }
   }
   
-  func handleCurrentTickPosition(_ melody: Melody, _ part: Part, volume: Float) -> Attack? {
+  func handleCurrentTickPosition(_ melody: Melody, _ part: Part, volume: Float) {
     let ticks = Base24Conversion.map[Int(melody.subdivisionsPerBeat)]!
     if let correspondingPosition = ticks.firstIndex(of: Int(currentTick) % Int(BeatScratchPlaybackThread.ticksPerBeat)) {
-      let currentBeat = Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat
+      let currentBeat = floor(Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat)
       let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
-      if let midiData = melody.midiData.data[Int32(melodyPosition)] {
-        
+      if let midiData = melody.midiData.data[Int32(melodyPosition) % Int32(melody.length)] {
+        let bytes = [UInt8](midiData.data)
+        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel))
+        print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }
     //  return Base24ConversionMap[subdivisionsPerBeat]?.indexOf(tickPosition % ticksPerBeat)?.takeIf { it >=0 }?.let { correspondingPosition ->
@@ -127,7 +129,6 @@ class BeatScratchScorePlayer {
     //  else                                       -> null
     //  }
     //  }
-    return nil
   }
 //
 //  private fun cleanUpExpiredAttacks() {

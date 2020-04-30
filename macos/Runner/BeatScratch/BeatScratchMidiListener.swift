@@ -13,6 +13,24 @@ class BeatScratchMidiListener : AKMIDIListener {
   static let sharedInstance = BeatScratchMidiListener()
   private init(){}
   var conductorChannel: Int = 0
+  
+  // Return the number of bytes processed
+  static func parseFirstMidiCommand(args: [UInt8]) -> Int {
+    let conductor = Conductor.sharedInstance
+    if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
+      //                    print("noteOn");
+      conductor.playNote(note: args[1], velocity: args[2], channel: args[0] & 0xF)
+      return 3
+    } else if((args[0] & 0xF0) == 0x80) {
+      //                    print("noteOff");
+      conductor.stopNote(note: args[1], channel: args[0] & 0xF)
+      return 3
+    } else {
+      print("unmatched MIDI bytes:");
+      print(args);
+      return 0
+    }
+  }
 
   func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note on")
