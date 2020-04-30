@@ -45,7 +45,7 @@ class BeatScratchScorePlayer {
       playMetronome()
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
     }
-    if currentTick > Int(24 * Double(harmony.length) / Double(harmony.subdivisionsPerBeat)) {
+    if currentTick >= Int(24 * Double(harmony.length) / Double(harmony.subdivisionsPerBeat)) {
       Conductor.sharedInstance.stopPlayingNotes()
       let sectionIndex = score.sections.firstIndex(of: currentSection) ?? -1
       currentTick = 0
@@ -58,6 +58,7 @@ class BeatScratchScorePlayer {
           BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
           BeatScratchPlaybackThread.sharedInstance.playing = false
           BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+          BeatScratchPlugin.sharedInstance.notifyPaused()
           return
         }
       }

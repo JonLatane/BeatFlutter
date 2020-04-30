@@ -367,6 +367,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   _selectSection(Section section) {
+    BeatScratchPlugin.setCurrentSection(section);
     setState(() {
       if (currentSection == section) {
         editingMelody = false;
