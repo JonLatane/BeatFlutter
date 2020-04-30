@@ -23,3 +23,16 @@ message MidiControllers {
 message MidiNotes {
   repeated uint32 midi_notes = 1;
 }
+
+message RegisterMelody {
+  string melody_id = 1;
+  string part_id = 2;
+}
+
+message Playback {
+  enum Mode {
+    score = 0;
+    section = 1;
+  }
+  Mode mode = 1;
+}

@@ -19,7 +19,7 @@ void main() {
 
   test('pushScore', () async {
     Score score = defaultScore();
-    await BeatScratchPlugin.pushScore(score);
+    await BeatScratchPlugin.createScore(score);
     expect(await BeatScratchPlugin.getScoreId(), '42');
   });
 }

@@ -30,7 +30,6 @@ class MelodyRenderer extends StatefulWidget {
   final RenderingMode renderingMode;
   final double xScale;
   final double yScale;
-  final int currentBeat;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
   final List<MusicStaff> staves;
@@ -47,7 +46,6 @@ class MelodyRenderer extends StatefulWidget {
       this.yScale,
       this.focusedMelody,
       this.renderingMode,
-      this.currentBeat,
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
@@ -83,9 +81,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   static const double staffHeight = 500;
 
   AnimationController animationController;
+  ValueNotifier<double> colorGuideOpacityNotifier;
   ValueNotifier<double> colorblockOpacityNotifier;
   ValueNotifier<double> notationOpacityNotifier;
-  ValueNotifier<int> currentBeatNotifier;
   ValueNotifier<double> sectionScaleNotifier;
 
   // partTopOffsets are animated based off the Renderer's StaffConfigurations
@@ -102,8 +100,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     super.initState();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
+    colorGuideOpacityNotifier = ValueNotifier(0);
     notationOpacityNotifier = ValueNotifier(0);
-    currentBeatNotifier = ValueNotifier(0);
     sectionScaleNotifier = ValueNotifier(0);
     partTopOffsets = ValueNotifier(Map());
     staffOffsets = ValueNotifier(Map());
@@ -119,7 +117,6 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     animationController.dispose();
     colorblockOpacityNotifier.dispose();
     notationOpacityNotifier.dispose();
-    currentBeatNotifier.dispose();
     sectionScaleNotifier.dispose();
     partTopOffsets.dispose();
     staffOffsets.dispose();
@@ -139,9 +136,6 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     }
     _animateOpacitiesAndScale();
     _animateStaffAndPartPositions();
-    if (currentBeatNotifier.value != widget.currentBeat) {
-      currentBeatNotifier.value = widget.currentBeat;
-    }
     focusedPart.value = widget.focusedPart;
     sectionColor.value = widget.sectionColor;
     animationController.forward(from: 0);
@@ -169,9 +163,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         staves: stavesNotifier,
                         partTopOffsets: partTopOffsets,
                         staffOffsets: staffOffsets,
+                        colorGuideOpacityNotifier: colorGuideOpacityNotifier,
                         colorblockOpacityNotifier: colorblockOpacityNotifier,
                         notationOpacityNotifier: notationOpacityNotifier,
-                        currentBeatNotifier: currentBeatNotifier,
                         colorboardNotesNotifier: widget.colorboardNotesNotifier,
                         keyboardNotesNotifier: widget.keyboardNotesNotifier,
                         visibleRect: () => _visibleRect,
@@ -234,6 +228,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   }
 
   void _animateOpacitiesAndScale() {
+    double colorGuideOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 0.5 : 0;
     double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
     double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
     double sectionScaleValue = widget.melodyViewMode == MelodyViewMode.score ? 1 : 0;
@@ -255,6 +250,12 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
           ..addListener(() {
             sectionScaleNotifier.value = animation3.value;
           });
+    Animation animation4;
+    animation4 = Tween<double>(begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue)
+      .animate(animationController)
+      ..addListener(() {
+        colorGuideOpacityNotifier.value = animation4.value;
+      });
   }
 }
 
@@ -266,8 +267,7 @@ class MusicSystemPainter extends CustomPainter {
   final double xScale;
   final double yScale;
   final Rect Function() visibleRect;
-  final ValueNotifier<double> colorblockOpacityNotifier, notationOpacityNotifier, sectionScaleNotifier;
-  final ValueNotifier<int> currentBeatNotifier;
+  final ValueNotifier<double> colorblockOpacityNotifier, colorGuideOpacityNotifier, notationOpacityNotifier, sectionScaleNotifier;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
   final ValueNotifier<Iterable<MusicStaff>> staves;
@@ -287,13 +287,12 @@ class MusicSystemPainter extends CustomPainter {
   double get width => standardBeatWidth * numberOfBeats;
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
-  int get colorGuideAlpha => (255 * colorblockOpacityNotifier.value).toInt();
+  int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
-  MusicSystemPainter({this.sectionColor, this.focusedPart, this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
+  MusicSystemPainter({this.colorGuideOpacityNotifier, this.sectionColor, this.focusedPart, this.keyboardPart, this.colorboardPart, this.staves, this.partTopOffsets, this.staffOffsets,
     this.sectionScaleNotifier,
     this.colorboardNotesNotifier,
     this.keyboardNotesNotifier,
-    this.currentBeatNotifier,
     this.score,
     this.section,
     this.xScale,
@@ -304,9 +303,9 @@ class MusicSystemPainter extends CustomPainter {
     this.notationOpacityNotifier})
     : super(
     repaint: Listenable.merge([
-      colorblockOpacityNotifier, notationOpacityNotifier, currentBeatNotifier, colorboardNotesNotifier,
+      colorblockOpacityNotifier, notationOpacityNotifier, colorboardNotesNotifier,
       keyboardNotesNotifier, staves,partTopOffsets,staffOffsets,keyboardPart,colorboardPart, 
-      BeatScratchPlugin.pressedMidiControllerNotes
+      BeatScratchPlugin.pressedMidiControllerNotes, BeatScratchPlugin.currentBeat
     ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
@@ -508,7 +507,7 @@ class MusicSystemPainter extends CustomPainter {
       print("exception rendering measure lines: $e");
     }
 
-    if (renderingBeat == currentBeatNotifier.value) {
+    if (renderingBeat == BeatScratchPlugin.currentBeat.value) {
       _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
     }
 
@@ -561,7 +560,7 @@ class MusicSystemPainter extends CustomPainter {
         fontFamily: "VulfSans",
         fontSize: max(11, 20 * yScale),
         fontWeight: FontWeight.w800,
-        color: colorblockOpacityNotifier.value > 0.5 ? Colors.white : Colors.black));
+        color: colorblockOpacityNotifier.value > 0.5 ? Colors.black54 : Colors.black));
     TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
     tp.layout();
     tp.paint(canvas, bounds.topLeft.translate(5 * xScale, 7 * yScale));

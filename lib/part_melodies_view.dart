@@ -21,6 +21,7 @@ import 'ui_models.dart';
 import 'util.dart';
 
 class PartMelodiesView extends StatefulWidget {
+  final bool enableColorboard;
   final Score score;
   final Color sectionColor;
   final Section currentSection;
@@ -60,7 +61,7 @@ class PartMelodiesView extends StatefulWidget {
       this.toggleEditingMelody,
       this.hideMelodyView,
       this.availableWidth,
-      this.selectedPart});
+      this.selectedPart, this.enableColorboard});
 
   @override
   _PartMelodiesViewState createState() {
@@ -140,7 +141,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                             } else {
                               widget.score.parts.add(part);
                             }
-                            BeatScratchPlugin.pushPart(part);
+                            BeatScratchPlugin.createPart(part);
                             if (widget.keyboardPart == null) {
                               widget.setKeyboardPart(part);
                             }
@@ -167,7 +168,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                       child: Text(
                         "Pianos, guitars, voice, and all other instruments that play notes. Melodies in Harmonic Parts "
                         "can be transformed to fit Harmonies. "
-                        "\n\nMay be used on the Keyboard or the Colorboard.",
+                        "\n\nMay be used on the Keyboard${widget.enableColorboard ? " or the Colorboard" : ""}.",
                         style: TextStyle(
                             color: canAddPart ? Colors.white : Colors.black26,
                             fontSize: 10,
@@ -204,6 +205,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 selectPart: widget.selectPart,
                 editingMelody: widget.editingMelody,
                 hideMelodyView: widget.hideMelodyView,
+                enableColorboard: widget.enableColorboard,
                 removePart: (part) {
 
     widget.superSetState(() {
@@ -306,6 +308,7 @@ class _MelodiesView extends StatefulWidget {
   final Function(Part) removePart;
   final bool editingMelody;
   final Part part;
+  final bool enableColorboard;
 
   List<Melody> get _items {
     return part.melodies;
@@ -331,7 +334,7 @@ class _MelodiesView extends StatefulWidget {
     this.toggleEditingMelody,
     this.hideMelodyView,
     this.removePart,
-    this.selectedPart,
+    this.selectedPart, this.enableColorboard,
   });
 
   @override
@@ -443,7 +446,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         child: Padding(padding: EdgeInsets.all(2), child: Image.asset('assets/piano.png')))),
                 AnimatedContainer(
                     duration: animationDuration,
-                    width: (colorboardPart == part) ? 24 : 0,
+                    width: (widget.enableColorboard && colorboardPart == part) ? 24 : 0,
                     height: 24,
                     child: Opacity(opacity: 0.5, child: Image.asset('assets/colorboard.png'))),
                 Padding(
@@ -507,7 +510,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       selectMelody(newMelody);
                       toggleMelodyReference(currentSection.referenceTo(newMelody));
                       editingMelody = true;
-                      BeatScratchPlugin.pushMelody(part, newMelody);
+                      BeatScratchPlugin.createMelody(part, newMelody);
+                      setKeyboardPart(part);
                     });
                   },
                   child: Icon(

@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// The native platform side of the app is expected to maintain one [Score].
-/// We can push [Part]s and [Melody]s to it. [pushScore] should be the first thing called
+/// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
   static bool _playing;
@@ -20,6 +20,8 @@ class BeatScratchPlugin {
     }
     return _playing;
   }
+
+  static final ValueNotifier<int> currentBeat = ValueNotifier(0);
   static _doPlayingChangedLoop() {
     Future.delayed(Duration(seconds:5), () {
 //      checkPlaying();
@@ -35,6 +37,7 @@ class BeatScratchPlugin {
     }
     return _isSynthesizerAvailable;
   }
+  static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
@@ -57,6 +60,23 @@ class BeatScratchPlugin {
         case "setSynthesizerAvailable":
           _isSynthesizerAvailable = call.arguments;
           onSynthesizerStatusChange?.call();
+          return Future.value(null);
+          break;
+        case "notifyPlayingBeat":
+          _playing = true;
+          int beat = call.arguments;
+          currentBeat.value = beat;
+          onSynthesizerStatusChange?.call();
+          return Future.value(null);
+          break;
+        case "notifyPaused":
+          _playing = false;
+          onSynthesizerStatusChange?.call();
+          return Future.value(null);
+          break;
+        case "notifyCountInInitiated":
+          _playing = false;
+          onCountInInitiated?.call();
           return Future.value(null);
           break;
       }
@@ -124,37 +144,47 @@ class BeatScratchPlugin {
     }
   }
 
-  static void pushScore(Score score, {bool includeParts = true, includeSections = true}) async {
-    print("invoking pushScore");
+  static void createScore(Score score) async {
+    _pushScore(score, 'createScore', includeParts: true, includeSections: true);
+  }
+
+  static void updateSections(Score score) async {
+    _pushScore(score, 'updateSections', includeParts: false, includeSections: true);
+  }
+
+  static void _pushScore(Score score, String remoteMethod, {bool includeParts = true, includeSections = true}) async {
+    print("invoking $remoteMethod");
     if(!includeParts) {
       score = score.clone().copyWith((it) { it.parts.clear(); });
     }
     if(!includeSections) {
       score = score.clone().copyWith((it) { it.sections.clear(); });
     }
-    _channel.invokeMethod('pushScore', score.clone().writeToBuffer());
+    _channel.invokeMethod(remoteMethod, score.clone().writeToBuffer());
+  }
+
+  static void createPart(Part part) {
+    _pushPart(part, "createPart");
+  }
+
+  static void updatePartConfiguration(Part part) {
+    _pushPart(part, "updatePartConfiguration");
   }
 
   /// Pushes or updates the [Part].
-  static void pushPart(Part part, {bool includeMelodies = true}) async {
+  static void _pushPart(Part part, String methodName, {bool includeMelodies = false}) async {
     if(!includeMelodies) {
       part = part.clone().copyWith((it) { it.melodies.clear(); });
     }
 
     if(kIsWeb) {
-      context.callMethod('pushPart', [ part.writeToJson() ]);
+      context.callMethod(methodName, [ part.writeToJson() ]);
     } else {
-      _channel.invokeMethod('pushPart', part.clone().writeToBuffer());
+      _channel.invokeMethod(methodName, part.clone().writeToBuffer());
     }
   }
 
-  /// Pushes or updates the [Part].
-  static void setColorboardPart(Part part) async {
-    print("invoking setColorboardPart");
-    _channel.invokeMethod('setColorboardPart', part?.id);
-  }
-
-  /// Pushes or updates the [Part].
+  /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
     print("invoking setKeyboardPart");
     _channel.invokeMethod('setKeyboardPart', part?.id);
@@ -164,8 +194,10 @@ class BeatScratchPlugin {
     _channel.invokeMethod('deletePart', part.id);
   }
 
-  static void pushMelody(Part part, Melody melody) async {
-    _channel.invokeMethod('pushMelody', [part.id, melody.clone().writeToBuffer()]);
+  static void createMelody(Part part, Melody melody) async {
+    await _channel.invokeMethod('newMelody', melody.clone().writeToBuffer());
+    _channel.invokeMethod('registerMelody',
+      (RegisterMelody()..melodyId=melody.id..partId=part.id).writeToBuffer());
   }
 
   static void updateMelody(Melody melody) async {
@@ -195,6 +227,7 @@ class BeatScratchPlugin {
   }
 
   static void setBeat(int beat) async {
+    currentBeat.value = beat;
     _channel.invokeMethod('setBeat', beat);
   }
 
@@ -210,6 +243,7 @@ class BeatScratchPlugin {
   }
 
   static void tickBeat() async {
+    print("Invoked countIn");
     _channel.invokeMethod('tickBeat');
   }
 
@@ -256,13 +290,7 @@ class BeatScratchPlugin {
     }
   }
 
-  static Future<String> getScoreId() => _channel.invokeMethod<String>("getScoreId");
-
-//  static Future<Person> get myPerson async {
-//    final Uint8List rawData = await _channel.invokeMethod('getPlatformVersion');
-//    final Person person = Person.fromBuffer(rawData);
-//    return person;
-//  }
+  static Future<String> getScoreId() async => _channel.invokeMethod<String>("getScoreId");
 
   static Future<Melody> get recordedMelody async {
     final Uint8List rawData = await _channel.invokeMethod('getRecordedMelody');

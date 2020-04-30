@@ -9,6 +9,10 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'protobeats_plugin.pbenum.dart';
+
+export 'protobeats_plugin.pbenum.dart';
+
 class MidiSynthesizer extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiSynthesizer', createEmptyInstance: create)
     ..aOS(1, 'id')
@@ -164,5 +168,77 @@ class MidiNotes extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get midiNotes => $_getList(0);
+}
+
+class RegisterMelody extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('RegisterMelody', createEmptyInstance: create)
+    ..aOS(1, 'melodyId')
+    ..aOS(2, 'partId')
+    ..hasRequiredFields = false
+  ;
+
+  RegisterMelody._() : super();
+  factory RegisterMelody() => create();
+  factory RegisterMelody.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RegisterMelody.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  RegisterMelody clone() => RegisterMelody()..mergeFromMessage(this);
+  RegisterMelody copyWith(void Function(RegisterMelody) updates) => super.copyWith((message) => updates(message as RegisterMelody));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RegisterMelody create() => RegisterMelody._();
+  RegisterMelody createEmptyInstance() => create();
+  static $pb.PbList<RegisterMelody> createRepeated() => $pb.PbList<RegisterMelody>();
+  @$core.pragma('dart2js:noInline')
+  static RegisterMelody getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RegisterMelody>(create);
+  static RegisterMelody _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get melodyId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set melodyId($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasMelodyId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMelodyId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get partId => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set partId($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasPartId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPartId() => clearField(2);
+}
+
+class Playback extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Playback', createEmptyInstance: create)
+    ..e<Playback_Mode>(1, 'mode', $pb.PbFieldType.OE, defaultOrMaker: Playback_Mode.score, valueOf: Playback_Mode.valueOf, enumValues: Playback_Mode.values)
+    ..hasRequiredFields = false
+  ;
+
+  Playback._() : super();
+  factory Playback() => create();
+  factory Playback.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Playback.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  Playback clone() => Playback()..mergeFromMessage(this);
+  Playback copyWith(void Function(Playback) updates) => super.copyWith((message) => updates(message as Playback));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Playback create() => Playback._();
+  Playback createEmptyInstance() => create();
+  static $pb.PbList<Playback> createRepeated() => $pb.PbList<Playback>();
+  @$core.pragma('dart2js:noInline')
+  static Playback getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Playback>(create);
+  static Playback _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Playback_Mode get mode => $_getN(0);
+  @$pb.TagNumber(1)
+  set mode(Playback_Mode v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasMode() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMode() => clearField(1);
 }
 

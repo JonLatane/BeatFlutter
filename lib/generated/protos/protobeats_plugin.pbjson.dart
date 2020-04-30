@@ -42,3 +42,27 @@ const MidiNotes$json = const {
   ],
 };
 
+const RegisterMelody$json = const {
+  '1': 'RegisterMelody',
+  '2': const [
+    const {'1': 'melody_id', '3': 1, '4': 1, '5': 9, '10': 'melodyId'},
+    const {'1': 'part_id', '3': 2, '4': 1, '5': 9, '10': 'partId'},
+  ],
+};
+
+const Playback$json = const {
+  '1': 'Playback',
+  '2': const [
+    const {'1': 'mode', '3': 1, '4': 1, '5': 14, '6': '.Playback.Mode', '10': 'mode'},
+  ],
+  '4': const [Playback_Mode$json],
+};
+
+const Playback_Mode$json = const {
+  '1': 'Mode',
+  '2': const [
+    const {'1': 'score', '2': 0},
+    const {'1': 'section', '2': 1},
+  ],
+};
+

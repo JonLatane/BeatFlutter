@@ -83,6 +83,72 @@ struct MidiNotes {
   init() {}
 }
 
+struct RegisterMelody {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var melodyID: String = String()
+
+  var partID: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Playback {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var mode: Playback.Mode = .score
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  enum Mode: SwiftProtobuf.Enum {
+    typealias RawValue = Int
+    case score // = 0
+    case section // = 1
+    case UNRECOGNIZED(Int)
+
+    init() {
+      self = .score
+    }
+
+    init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .score
+      case 1: self = .section
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    var rawValue: Int {
+      switch self {
+      case .score: return 0
+      case .section: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  init() {}
+}
+
+#if swift(>=4.2)
+
+extension Playback.Mode: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [Playback.Mode] = [
+    .score,
+    .section,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 extension MidiSynthesizer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -240,4 +306,75 @@ extension MidiNotes: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension RegisterMelody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "RegisterMelody"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "melody_id"),
+    2: .standard(proto: "part_id"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.melodyID)
+      case 2: try decoder.decodeSingularStringField(value: &self.partID)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.melodyID.isEmpty {
+      try visitor.visitSingularStringField(value: self.melodyID, fieldNumber: 1)
+    }
+    if !self.partID.isEmpty {
+      try visitor.visitSingularStringField(value: self.partID, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: RegisterMelody, rhs: RegisterMelody) -> Bool {
+    if lhs.melodyID != rhs.melodyID {return false}
+    if lhs.partID != rhs.partID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Playback: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "Playback"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "mode"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.mode)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.mode != .score {
+      try visitor.visitSingularEnumField(value: self.mode, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Playback, rhs: Playback) -> Bool {
+    if lhs.mode != rhs.mode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Playback.Mode: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "score"),
+    1: .same(proto: "section"),
+  ]
 }

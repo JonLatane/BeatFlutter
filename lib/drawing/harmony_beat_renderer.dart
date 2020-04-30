@@ -105,7 +105,11 @@ class HarmonyBeatRenderer {
 
         Chord chord = harmony.changeBefore(elementPosition);
 
-        paint.color = chord.uiColor;
+        if(chord.chroma == 2047) {
+          paint.color = chromaticSteps[elementPosition % chromaticSteps.length].withAlpha(127);
+        } else {
+          paint.color = chord.uiColor;
+        }
 
         canvas.drawRect(bounds, paint);
 

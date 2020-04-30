@@ -31,6 +31,9 @@
 		3393208A241D737800327C52 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33932089241D737800327C52 /* GoogleService-Info.plist */; };
 		33A494BE2459073D00A75369 /* BeatScratchPlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494BD2459073D00A75369 /* BeatScratchPlaybackThread.swift */; };
 		33A494C0245908CE00A75369 /* BeatScratchScorePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494BF245908CE00A75369 /* BeatScratchScorePlayer.swift */; };
+		33A494C2245B2EB000A75369 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C1245B2EB000A75369 /* Patterns.swift */; };
+		33A494C4245B315F00A75369 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C3245B315F00A75369 /* Base24Conversion.swift */; };
+		33A494C6245B3CC600A75369 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C5245B3CC600A75369 /* MusicTheory.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
@@ -83,6 +86,9 @@
 		33932089241D737800327C52 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		33A494BD2459073D00A75369 /* BeatScratchPlaybackThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatScratchPlaybackThread.swift; sourceTree = "<group>"; };
 		33A494BF245908CE00A75369 /* BeatScratchScorePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatScratchScorePlayer.swift; sourceTree = "<group>"; };
+		33A494C1245B2EB000A75369 /* Patterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
+		33A494C3245B315F00A75369 /* Base24Conversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
+		33A494C5245B3CC600A75369 /* MusicTheory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
 		33CC10ED2044A3C60003C045 /* BeatFlutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatFlutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		33CC10F22044A3C60003C045 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Runner/Assets.xcassets; sourceTree = "<group>"; };
@@ -149,6 +155,9 @@
 				336B79EE244B6612004DA1C5 /* BeatScratchPlugin.swift */,
 				33A494BD2459073D00A75369 /* BeatScratchPlaybackThread.swift */,
 				33A494BF245908CE00A75369 /* BeatScratchScorePlayer.swift */,
+				33A494C1245B2EB000A75369 /* Patterns.swift */,
+				33A494C3245B315F00A75369 /* Base24Conversion.swift */,
+				33A494C5245B3CC600A75369 /* MusicTheory.swift */,
 			);
 			path = BeatScratch;
 			sourceTree = "<group>";
@@ -431,8 +440,11 @@
 				336B79F12450AD75004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 				33F24242243A4DEC00B1FC1B /* Conductor.swift in Sources */,
+				33A494C6245B3CC600A75369 /* MusicTheory.swift in Sources */,
+				33A494C2245B2EB000A75369 /* Patterns.swift in Sources */,
 				33A494C0245908CE00A75369 /* BeatScratchScorePlayer.swift in Sources */,
 				330DD9E62441149500FC0203 /* music.pb.swift in Sources */,
+				33A494C4245B315F00A75369 /* Base24Conversion.swift in Sources */,
 				33F24245243A4DEC00B1FC1B /* FilterSection.swift in Sources */,
 				33F24246243A4DEC00B1FC1B /* PingPongDelay.swift in Sources */,
 				33A494BE2459073D00A75369 /* BeatScratchPlaybackThread.swift in Sources */,

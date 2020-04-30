@@ -19,7 +19,6 @@ class MelodyView extends StatefulWidget {
   final bool focusPartsAndMelodies;
   final Score score;
   final Section currentSection;
-  final int currentBeat;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier, keyboardNotesNotifier;
   final Melody melody;
   final Part part;
@@ -67,7 +66,7 @@ class MelodyView extends StatefulWidget {
       this.deleteMelody,
       this.deleteSection,
       this.renderingMode,
-      this.currentBeat, this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard});
+  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -339,7 +338,6 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 score: widget.score,
                 section: widget.melodyViewMode != MelodyViewMode.score ? widget.currentSection : null,
                 sectionColor: widget.sectionColor,
-                currentBeat: widget.currentBeat,
                 colorboardNotesNotifier: widget.colorboardNotesNotifier,
                 keyboardNotesNotifier: widget.keyboardNotesNotifier,
                 focusedMelody: widget.melody,

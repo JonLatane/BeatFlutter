@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
@@ -82,6 +83,7 @@ class _SectionListState extends State<SectionList> {
         widget.selectSection(newSection);
       });
     });
+    BeatScratchPlugin.updateSections(widget.score);
     int index = widget.score.sections.indexOf(newSection);
     if (widget.scrollDirection == Axis.horizontal) {
       double position = 150.0 * (index - 1);
@@ -108,6 +110,7 @@ class _SectionListState extends State<SectionList> {
 //          }
           Section toMove = widget.score.sections.removeAt(oldIndex);
           widget.score.sections.insert(newIndex, toMove);
+          BeatScratchPlugin.updateSections(widget.score);
         });
       },
       // Called, as needed, to build list item widgets.

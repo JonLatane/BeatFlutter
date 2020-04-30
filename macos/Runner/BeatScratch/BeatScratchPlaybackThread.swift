@@ -61,4 +61,24 @@ class BeatScratchPlaybackThread {
       }
     }
   }
+  
+  var beatMinus2: Double?
+  func sendBeat() {
+    let time = CACurrentMediaTime() * 1000
+    if playing {
+      playing = false
+//      BeatScratchScorePlayer.sharedInstance.currentTick = 0
+      BeatScratchPlugin.sharedInstance.notifyPaused()
+    } else if beatMinus2 != nil && (time - beatMinus2!) < 3000 {
+      let periodMs: Double = (time - beatMinus2!)
+      bpm = 60000 / periodMs
+      beatMinus2 = nil
+      BeatScratchScorePlayer.sharedInstance.currentTick = -24
+      playing = true
+    } else {
+      BeatScratchScorePlayer.sharedInstance.playMetronome()
+      BeatScratchPlugin.sharedInstance.notifyCountInInitiated()
+      beatMinus2 = time
+    }
+  }
 }

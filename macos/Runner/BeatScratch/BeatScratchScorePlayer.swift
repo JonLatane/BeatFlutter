@@ -7,20 +7,41 @@
 //
 
 import Foundation
+import AudioKit
+
 class BeatScratchScorePlayer {
   static let sharedInstance = BeatScratchScorePlayer()
-  
-  var selectedSection: Section? = nil
-  var playing: Bool = false
-  var currentTick: Int64 = 0
-  
-  private init() {
+  struct Attack {
+    var part: Part
+    var instrument: Instrument
+    var melody: Melody
+    var tone: MIDINoteNumber
+    var velocity: MIDIVelocity
   }
+  
+  static let cChromatic: Chord = {
+    var chord = Chord()
+    chord.rootNote = NoteName()
+    chord.rootNote.noteLetter = NoteLetter.c
+    return chord
+  }()
+  
+  var currentSection: Section? = nil
+  var currentTick: Int64 = 0
+  var playbackMode = Playback.Mode.score
+  private var chord: Chord = cChromatic
+  var harmony: Harmony? { return currentSection?.harmony }
+  var activeAttacks: Array<Attack> = []
+  var outgoingAttacks: Array<Attack> = []
+  var upcomingAttacks: Array<Attack> = []
+  
+  private init() {}
   
   func tick() {
     let beatMod: Int = Int(currentTick % Int64(BeatScratchPlaybackThread.ticksPerBeat))
     if beatMod == 0 {
       playMetronome()
+      BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
     }
     doTick()
     currentTick += 1
@@ -30,7 +51,212 @@ class BeatScratchScorePlayer {
     Conductor.sharedInstance.playNote(note: 75, velocity: 127, channel: 9)
   }
   
+  private var harmonyPosition: Int {
+    //TODO - this doesn't matter yet!
+    //  get() = harmony?.let { tickPosition.convertSubdivisionPosition(ticksPerBeat, it) }
+    return 0
+  }
+  private var harmonyChord: Chord {
+    return chord
+  }
+  
   private func doTick() {
     
   }
+  
+  private func loadUpcomingAttacks(palette: Score, section: Section) {
+    //    chord = (harmonyChord ?: chord)?.also { chord ->
+    //      doAsync {
+    //        viewModel?.apply {
+    //          if (
+    //            !harmonyViewModel.isChoosingHarmonyChord && chord != orbifold.chord
+    //          ) {
+    //            orbifold.disableNextTransitionAnimation()
+    //            //viewModel?.orbifold?.prepareAnimationTo(chord)
+    //            uiThread {
+    //              orbifold.chord = chord
+    //            }
+    //          }
+    //        }
+    //      }
+    //    }
+    print("Harmony index: \(harmonyPosition); Chord: \(chord)")
+    palette.parts.forEach {
+      let part = $0
+      section.melodies.filter {
+        let reference = $0
+        return reference.playbackType != MelodyReference.PlaybackType.disabled
+        && part.melodies.contains { $0.id == reference.melodyID }
+      }.forEach {
+        let melodyReference = $0
+        if let melody: Melody = melodyReference.melodyFrom(palette) {
+          handleCurrentTickPosition(melody, part, volume: melodyReference.volume)
+        }
+      }
+    }
+  }
+  
+  func handleCurrentTickPosition(_ melody: Melody, _ part: Part, volume: Float) -> Attack? {
+    let ticks = Base24Conversion.map[Int(melody.subdivisionsPerBeat)]!
+    if let correspondingPosition = ticks.firstIndex(of: Int(currentTick) % Int(BeatScratchPlaybackThread.ticksPerBeat)) {
+      let currentBeat = Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat
+      let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
+      if let midiData = melody.midiData.data[Int32(melodyPosition)] {
+        
+      }
+    }
+    //  return Base24ConversionMap[subdivisionsPerBeat]?.indexOf(tickPosition % ticksPerBeat)?.takeIf { it >=0 }?.let { correspondingPosition ->
+    //  val currentBeat = tickPosition / ticksPerBeat
+    //  val melodyPosition = currentBeat * subdivisionsPerBeat + correspondingPosition
+    //  val attack = attackPool.borrow()
+    //  when {
+    //  //        isChangeAt(melodyPosition % length) -> {
+    //  //          val change = changeBefore(melodyPosition % length)
+    //  //          attack.part = part
+    //  //          attack.instrument = part.instrument
+    //  //          attack.melody = this
+    //  //          attack.velocity = change.velocity * volume
+    //  //
+    //  //          change.tones.forEach { tone ->
+    //  //            val playbackTone = chord?.let { chord -> tone.playbackToneUnder(chord, this) } ?: tone
+    //  //            attack.chosenTones.add(playbackTone)
+    //  //          }
+    //  //          logI("creating attack for melody=${this.hashCode()} tick=$tickPosition correspondingPosition=$correspondingPosition subdivision=$melodyPosition/$subdivisionsPerBeat beat=$currentBeat with tones ${attack.chosenTones}")
+    //  //          attack
+    //  //        }
+    //  else                                       -> null
+    //  }
+    //  }
+    return nil
+  }
+//
+//  private fun cleanUpExpiredAttacks() {
+//    activeAttacks.forEach { attack ->
+//      val attackCameFromRunningMelody = currentSection?.melodiesList
+//        ?.filter { it.playbackType != Music.MelodyReference.PlaybackType.disabled }
+//        ?.map { ref -> currentScore?.let { ref.melodyFrom(it) } }
+//        ?.contains(attack.melody) ?: false
+//      if (!attackCameFromRunningMelody) {
+//        //info("stopping active attack $attack")
+//        outgoingAttacks.add(attack)
+//      }
+//    }
+//    outgoingAttacks.forEach { attack ->
+//      destroyAttack(attack)
+//    }
+//    outgoingAttacks.clear()
+//  }
+//
+//  private val _activeAttacksCopy = Vector<Attack>()
+//  private fun Music.Melody.stopCurrentAttacks() {
+//  _activeAttacksCopy.clear()
+//  _activeAttacksCopy.addAll(activeAttacks)
+//  for (activeAttack in _activeAttacksCopy) {
+//  if (activeAttack.melody == this) {
+//  //verbose { "Ending attack $activeAttack" }
+//  destroyAttack(activeAttack)
+//  break
+//  }
+//  }
+//  }
+//
+//  private fun getNextSection(): Music.Section {
+//    var isNextSection = false
+//    var nextSection: Music.Section? = null
+//    loop@ for(candidate in currentScore!!.sectionsList) {
+//      when {
+//        candidate === currentSection -> isNextSection = true
+//        isNextSection                -> { nextSection = candidate; break@loop }
+//      }
+//    }
+//    return nextSection ?: currentScore!!.sectionsList.first()
+//  }
+//
+//  fun tick() {
+//    (currentScore to currentSection).letCheckNull { palette: Music.Score, section: Music.Section ->
+//      val totalBeats = harmony?.let { it.length.toFloat() / it.subdivisionsPerBeat } ?: 0f
+//      loadUpcomingAttacks(palette, section)
+//      cleanUpExpiredAttacks()
+//      for (attack in upcomingAttacks) {
+//      val instrument = attack.instrument!!
+//      attack.melody?.stopCurrentAttacks()
+//
+//      // And play the new notes
+//
+//      logI("Executing attack $attack")
+//
+//      attack.chosenTones.forEach { tone ->
+//      instrument.play(tone, attack.velocity.to127Int)
+//      }
+//      activeAttacks += attack
+//      }
+//      if ((tickPosition + 1) / ticksPerBeat >= totalBeats) {
+//      if(playbackMode == PlaybackMode.PALETTE) {
+//      val nextSection = getNextSection()
+//      tickPosition = 0
+//      currentSection = nextSection
+//      } else {
+//      tickPosition = 0
+//      }
+//      } else {
+//      tickPosition += 1
+//      }
+//      } ?: logW("Tick called with no Palette available")
+//
+//    upcomingAttacks.clear()
+//
+//    AndroidMidi.flushSendStream()
+//    //    viewModel?.harmonyView?.post { viewModel?.playbackTick = tickPosition }
+//  }
+//
+//  internal fun clearActiveAttacks() {
+//    for (activeAttack in listOf(*activeAttacks.toArray(arrayOf<Attack>()))) {
+//      destroyAttack(activeAttack)
+//    }
+//  }
+//
+//  @Synchronized
+//  private fun destroyAttack(attack: Attack) {
+//    attack.chosenTones.forEach { tone ->
+//      attack.instrument!!.stop(tone)
+//    }
+//    attackPool.recycle(attack)
+//    activeAttacks.remove(attack)
+//  }
+//
+//  //private fun Melody<*>.
+//
+//  /**
+//   * Based on the current [tickPosition], populates the passed [Attack] object.
+//   * Returns true if the attack should be played.
+//   */
+//  private fun Music.Melody.attackForCurrentTickPosition(
+//  part: Music.Part,
+//  chord: Music.Chord?,
+//  volume: Float
+//  ): Attack? {
+//  return Base24ConversionMap[subdivisionsPerBeat]?.indexOf(tickPosition % ticksPerBeat)?.takeIf { it >=0 }?.let { correspondingPosition ->
+//  val currentBeat = tickPosition / ticksPerBeat
+//  val melodyPosition = currentBeat * subdivisionsPerBeat + correspondingPosition
+//  val attack = attackPool.borrow()
+//  when {
+//  //        isChangeAt(melodyPosition % length) -> {
+//  //          val change = changeBefore(melodyPosition % length)
+//  //          attack.part = part
+//  //          attack.instrument = part.instrument
+//  //          attack.melody = this
+//  //          attack.velocity = change.velocity * volume
+//  //
+//  //          change.tones.forEach { tone ->
+//  //            val playbackTone = chord?.let { chord -> tone.playbackToneUnder(chord, this) } ?: tone
+//  //            attack.chosenTones.add(playbackTone)
+//  //          }
+//  //          logI("creating attack for melody=${this.hashCode()} tick=$tickPosition correspondingPosition=$correspondingPosition subdivision=$melodyPosition/$subdivisionsPerBeat beat=$currentBeat with tones ${attack.chosenTones}")
+//  //          attack
+//  //        }
+//  else                                       -> null
+//  }
+//  }
+//  }
 }
+

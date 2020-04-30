@@ -83,7 +83,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 midiInstrument = item;
               });
             });
-            BeatScratchPlugin.pushPart(widget.part, includeMelodies: false);
+            BeatScratchPlugin.updatePartConfiguration(widget.part);
           } : null,
           padding: EdgeInsets.symmetric(vertical: 7, horizontal: 5),
           child: Align(alignment: Alignment.centerLeft, child:Text(text,
@@ -126,7 +126,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
             widget.superSetState(() {
               setState(() {
                 widget.part?.instrument?.volume = value;
-                BeatScratchPlugin.pushPart(widget.part, includeMelodies: false);
+                BeatScratchPlugin.updatePartConfiguration(widget.part);
               });
             });
           }))
@@ -147,7 +147,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                     }
                   });
               });
-              BeatScratchPlugin.pushPart(widget.part, includeMelodies: false);
+              BeatScratchPlugin.updatePartConfiguration(widget.part);
                 }
               : null,
           onIncrement: (isHarmonic && midiChannel < maxMidiChannel)
@@ -160,7 +160,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                     }
                   });
                   });
-                  BeatScratchPlugin.pushPart(widget.part, includeMelodies: false);
+                  BeatScratchPlugin.updatePartConfiguration(widget.part);
                 }
               : null,
           valueWidth: 100,

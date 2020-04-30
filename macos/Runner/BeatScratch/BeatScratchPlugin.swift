@@ -20,12 +20,14 @@ class BeatScratchPlugin {
   var channel: FlutterMethodChannel?
   
   private init() {}
+  
+  private var newMelodies: Array<Melody> = []
 
   func attach(channel: FlutterMethodChannel) {
     let conductor = Conductor.sharedInstance
     self.channel = channel
     channel.setMethodCallHandler { (call, result) in
-      print("Call from macOS: " + call.method)
+      print("Call from Swift: " + call.method)
       do {
         switch call.method {
         case "sendMIDI":
@@ -45,21 +47,63 @@ class BeatScratchPlugin {
             result(FlutterMethodNotImplemented)
           }
           break
-        case "pushScore":
+        case "createScore", "updateSections":
           let score = try Score(serializedData: (call.arguments as! FlutterStandardTypedData).data)
-          self.score = score
+          if call.method == "createScore" {
+            self.score = score
+          } else if call.method == "updateSections" {
+            self.score.sections = score.sections
+          }
           result(nil)
           break
-        case "pushPart":
+        case "createPart", "updatePartConfiguration":
           var part = try Part(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           conductor.setMIDIInstrument(channel: Int(part.instrument.midiChannel), midiInstrument: Int(part.instrument.midiInstrument))
-          if(part.melodies.isEmpty) {
+          
+          if call.method == "updatePartConfiguration" {
             if let existingPart = self.score.parts.first(where: {$0.id == part.id}) {
               part.melodies = existingPart.melodies
               self.score.parts.removeAll(where: {$0.id == part.id})
               self.score.parts.append(part)
+              result(nil)
+            } else {
+              result(FlutterError(code: "500", message: "Part does not exist", details: "nope"))
             }
+          } else {
+            self.score.parts.append(part)
+            result(nil)
           }
+          break
+        case "newMelody":
+          let melody = try Melody(serializedData: (call.arguments as! FlutterStandardTypedData).data)
+          self.newMelodies.append(melody)
+          result(nil)
+          break
+        case "registerMelody":
+          let registerMelody = try RegisterMelody(serializedData: (call.arguments as! FlutterStandardTypedData).data)
+          if let melody: Melody = self.newMelodies.first(where: { $0.id == registerMelody.melodyID }) {
+            if var part: Part = self.score.parts.first(where: { $0.id == registerMelody.partID }) {
+              part.melodies.append(melody)
+              self.newMelodies.removeAll { $0.id == registerMelody.melodyID }
+              result(nil)
+            } else {
+              result(FlutterError(code: "500", message: "Part must be added first", details: "nope"))
+            }
+          } else {
+            result(FlutterError(code: "500", message: "Melody must be added first", details: "nope"))
+          }
+          break
+        case "updateMelody":
+          let melody = try Melody(serializedData: (call.arguments as! FlutterStandardTypedData).data)
+          if var part: Part = self.score.parts.first(where:{
+            $0.melodies.contains(where: { $0.id == melody.id })
+          }) {
+            part.melodies.removeAll { $0.id == melody.id }
+            part.melodies.append(melody)
+          } else {
+            result(FlutterError(code: "500", message: "Melody not found in any Part", details: "nope"))
+          }
+          self.newMelodies.append(melody)
           result(nil)
           break
         case "setKeyboardPart":
@@ -91,11 +135,11 @@ class BeatScratchPlugin {
           break
         case "countIn":
           let countInBeat = call.arguments as! Int
-          BeatScratchScorePlayer.sharedInstance.playMetronome()
+          BeatScratchPlaybackThread.sharedInstance.sendBeat()
           result(nil)
           break
         case "tickBeat":
-          BeatScratchScorePlayer.sharedInstance.playMetronome()
+          BeatScratchPlaybackThread.sharedInstance.sendBeat()
           result(nil)
           break
         default:
@@ -111,7 +155,7 @@ class BeatScratchPlugin {
   
   func sendPressedMidiNotes() {
     do {
-      print("swift: sendPressedMidiNotes")
+//      print("swift: sendPressedMidiNotes")
       var midiNotes = MidiNotes()
       midiNotes.midiNotes = Conductor.sharedInstance.pressedNotes.map { UInt32($0) }
       channel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
@@ -124,7 +168,16 @@ class BeatScratchPlugin {
     channel?.invokeMethod("setSynthesizerAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
   }
   
-  func sendCurrentBeat() {
-    channel?.invokeMethod("sendCurrentBeat", arguments: nil)
+  func notifyPlayingBeat() {
+    let beat: Int = Int(BeatScratchScorePlayer.sharedInstance.currentTick / Int64(BeatScratchPlaybackThread.ticksPerBeat))
+    channel?.invokeMethod("notifyPlayingBeat", arguments: beat)
+  }
+  
+  func notifyPaused() {
+    channel?.invokeMethod("notifyPaused", arguments: nil)
+  }
+
+  func notifyCountInInitiated() {
+    channel?.invokeMethod("notifyCountInInitiated", arguments: nil)
   }
 }

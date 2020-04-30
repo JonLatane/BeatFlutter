@@ -2,6 +2,7 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import 'base_melody_renderer.dart';
+import '../../music_theory.dart';
 
 class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   @override
@@ -69,10 +70,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     alphaDrawerPaint.color =
         ((isChange) ? Color(0xAA212121) : Color(0xAA424242)).withAlpha((alpha * 255).toInt());
 
-    List<int> tones = [];
-    if (element != null) {
-      tones = element.tones;
-    }
+    List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
 
     if (tones.isNotEmpty) {
       double leftMargin = (isChange) ? drawPadding.toDouble() : 0.0;

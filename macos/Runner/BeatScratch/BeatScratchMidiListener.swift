@@ -13,6 +13,7 @@ class BeatScratchMidiListener : AKMIDIListener {
   static let sharedInstance = BeatScratchMidiListener()
   private init(){}
   var conductorChannel: Int = 0
+
   func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note on")
     Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel))
@@ -29,11 +30,25 @@ class BeatScratchMidiListener : AKMIDIListener {
     BeatScratchPlugin.sharedInstance.sendPressedMidiNotes()
   }
   
-  func receivedMIDIController(controller: MIDIByte, value: MIDIByte, channel: MIDIChannel, portID: MIDIUniqueID?, offset: MIDITimeStamp) {
-    if portID != nil {
-      AudioKit.midi.openInput(uid: portID!)
-    } else {
-      AudioKit.midi.openInput(name: "BeatScratch Session")
+  private var sustainDown = false
+  func receivedMIDIController(_ controller: MIDIByte, value: MIDIByte, channel: MIDIChannel, portID: MIDIUniqueID?, offset: MIDITimeStamp) {
+    print("receivedMIDIController: controller=\(controller), value=\(value), channel=\(channel), portID=\(String(describing: portID)), offset=\(offset)")
+    switch controller {
+      // Sustain Pedal
+      case AKMIDIControl.damperOnOff.rawValue:
+        if value > 0 && !sustainDown {
+          BeatScratchPlaybackThread.sharedInstance.sendBeat()
+          sustainDown = true
+        } else if value == 0 {
+          sustainDown = false
+        }
+      // Mod Wheel
+      //      case AKMIDIControl.modulationWheel.rawValue:
+      //        DispatchQueue.main.async {
+      //          self.modWheelPad.setVerticalValueFrom(midiValue: value)
+      //        }
+      default:
+        break
     }
   }
   
@@ -53,7 +68,7 @@ class BeatScratchMidiListener : AKMIDIListener {
                               offset: MIDITimeStamp) {
     print("receivedMIDIPitchWheel: \(pitchWheelValue)")
     if(lastPitchWheelValue == 8192 && pitchWheelValue != 8192) {
-      BeatScratchScorePlayer.sharedInstance.playMetronome()
+      BeatScratchPlaybackThread.sharedInstance.sendBeat()
     }
     lastPitchWheelValue = pitchWheelValue
   }
