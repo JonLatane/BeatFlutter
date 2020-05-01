@@ -49,7 +49,7 @@ class CanvasToneDrawer {
   Chord chord = Chord()
     ..rootNote = NoteName()
     ..chroma = 2047;
-  double normalizedDevicePitch;
+  double normalizedDevicePitch = 0;
 
 
 

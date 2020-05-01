@@ -516,7 +516,7 @@ class _KeyboardPainter extends CustomPainter {
 //    canvas.drawRect(visibleRect(), Paint());
 //    canvas.drawRect(bounds, Paint());
 //    canvas.clipRect(bounds);
-    _KeyboardRenderer()
+    KeyboardRenderer()
       ..highestPitch = highestPitch
       ..lowestPitch = lowestPitch
       ..pressedNotes = pressedNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
@@ -562,11 +562,14 @@ class _KeyboardPainter extends CustomPainter {
 //  bool shouldRebuildSemantics(_ColorboardPainter oldDelegate) => false;
 }
 
-class _KeyboardRenderer extends CanvasToneDrawer {
+class KeyboardRenderer extends CanvasToneDrawer {
   Iterable<int> pressedNotes;
+  bool renderLettersAndNumbers = true;
 
   draw(Canvas canvas) {
     canvas.drawColor(Colors.black12, BlendMode.srcATop);
+    int alpha = alphaDrawerPaint.color.alpha;
+    print("keyboard alpha=$alpha");
     alphaDrawerPaint.preserveProperties(() {
       var halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
       // Draw white keys
@@ -588,19 +591,25 @@ class _KeyboardRenderer extends CanvasToneDrawer {
         canvas.drawRect(
             toneBounds,
             Paint()
+              ..color = Colors.black.withAlpha(alpha)
               ..style = PaintingStyle.stroke
               ..strokeWidth = 1);
 //        print("drawing white key ${visiblePitch.tone}: ${visiblePitch.tone.naturalOrSharpNote}");
-        NoteSpecification ns = visiblePitch.tone.naturalOrSharpNote;
-        String text = NoteLetter.values.firstWhere((letter) => letter.tone.mod12 == visiblePitch.tone.mod12).name;
-        TextSpan span = new TextSpan(text: text, style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.grey));
-        TextPainter tp = new TextPainter(
-          text: span,
-          textAlign: TextAlign.left,
-          textDirection: TextDirection.ltr,
-        );
-        tp.layout();
-        tp.paint(canvas, new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4.5, toneBounds.bottom - 48));
+//        NoteSpecification ns = visiblePitch.tone.naturalOrSharpNote;
+        if(renderLettersAndNumbers) {
+          String text = NoteLetter.values
+            .firstWhere((letter) => letter.tone.mod12 == visiblePitch.tone.mod12)
+            .name;
+          TextSpan span = new TextSpan(
+            text: text, style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.grey));
+          TextPainter tp = new TextPainter(
+            text: span,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout();
+          tp.paint(canvas, new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4.5, toneBounds.bottom - 48));
+        }
       });
 
       // Draw black keys
@@ -613,7 +622,7 @@ class _KeyboardRenderer extends CanvasToneDrawer {
           case 6:
           case 8:
           case 10:
-            alphaDrawerPaint.color = Color(0xFF000000).withAlpha(255);
+            alphaDrawerPaint.color = Color(0xFF000000).withAlpha(alpha);
 
             if (pressedNotes.contains(tone)) {
               alphaDrawerPaint.color = chromaticSteps[(tone - chord.rootNote.tone).mod12];
@@ -624,7 +633,7 @@ class _KeyboardRenderer extends CanvasToneDrawer {
                 alphaDrawerPaint);
             break;
         }
-        if (tone.mod12 == 0) {
+        if (renderLettersAndNumbers && tone.mod12 == 0) {
 //            alphaDrawerPaint.color = Colors.black;
           TextSpan span = new TextSpan(text: (4 + (tone / 12)).toInt().toString(),
             style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w100, color: Colors.grey));

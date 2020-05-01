@@ -340,7 +340,7 @@ class MusicSystemPainter extends CustomPainter {
       double top = visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
       Rect staffLineBounds = Rect.fromLTRB(visibleRect().left, top, visibleRect().right, top + melodyHeight);
 //      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
-      _renderStaffLines(canvas, drawContinuousColorGuide, staffLineBounds);
+      _renderStaffLines(canvas, !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
       Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
         visibleRect().left + 2*standardBeatWidth, top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
@@ -529,25 +529,33 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
-    if(staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
-      Rect highlight = Rect.fromPoints(
-        bounds.topLeft.translate(-bounds.width / 13, bounds.height / 6),
-        bounds.bottomRight.translate(bounds.width / 13, -bounds.height / 10)
-      );
-      canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
-    }
     if (notationOpacityNotifier.value > 0) {
       var clefs = (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
         ? [ Clef.drum_treble, Clef.drum_bass ]
         : [ Clef.treble, Clef.bass ];
-    MelodyClefRenderer()
+      MelodyClefRenderer()
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..clefs = clefs
         ..draw(canvas);
+    }
+    if (colorblockOpacityNotifier.value > 0) {
+      MelodyPianoClefRenderer()
+        ..xScale = xScale
+        ..yScale = yScale
+        ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
+        ..bounds = bounds
+        ..draw(canvas);
+    }
 
+    if(staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
+      Rect highlight = Rect.fromPoints(
+        bounds.topLeft.translate(-bounds.width / 13, notationOpacityNotifier.value * bounds.height / 6),
+        bounds.bottomRight.translate(bounds.width / 13, notationOpacityNotifier.value * -bounds.height / 10)
+      );
+      canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
     }
 
     String text;
@@ -558,12 +566,13 @@ class MusicSystemPainter extends CustomPainter {
     } else {
       text = "Drums";
     }
+
     TextSpan span = new TextSpan(text: text,
       style: TextStyle(
         fontFamily: "VulfSans",
         fontSize: max(11, 20 * yScale),
         fontWeight: FontWeight.w800,
-        color: colorblockOpacityNotifier.value > 0.5 ? Colors.black54 : Colors.black));
+        color: colorblockOpacityNotifier.value > 0.5 ? Colors.black87 : Colors.black));
     TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr,);
     tp.layout();
     tp.paint(canvas, bounds.topLeft.translate(5 * xScale, 7 * yScale));
