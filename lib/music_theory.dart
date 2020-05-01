@@ -205,7 +205,7 @@ extension MelodyTheory on Melody {
   Iterable<int> get tones => (type == MelodyType.melodic)
     ? melodicData.data.values.expand((it) => it.tones)
     : midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60));
-  double get averageTone => tones.reduce((a, b) => a + b) / tones.length.toDouble();
+  double get averageTone => tones.length == 0 ? 0 : tones.reduce((a, b) => a + b) / tones.length.toDouble();
   Iterable<int> tonesAt(int elementPosition) {
     if (type == MelodyType.melodic) {
      return melodicData.data[elementPosition]?.tones ?? [];

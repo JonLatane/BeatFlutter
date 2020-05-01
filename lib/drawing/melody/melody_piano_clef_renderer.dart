@@ -27,7 +27,7 @@ class MelodyPianoClefRenderer extends BaseMelodyRenderer {
     canvas.rotate(-1.5707);
     canvas.translate(-bounds.height, 0);
     var color = alphaDrawerPaint.color;
-    print("color");
+//    print("color");
     KeyboardRenderer()
       ..renderLettersAndNumbers = false
       ..highestPitch = highestPitch

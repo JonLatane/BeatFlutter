@@ -14,11 +14,70 @@ Chord cMinor = Chord()
   ..chroma = 274;
 MelodicAttack _note(int tone) => MelodicAttack()..tones.add(tone)..velocity = 1;
 
-Melody odeToJoy() => Melody()
+Melody baseMelody() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.midi
-  ..instrumentType = InstrumentType.harmonic
   ..interpretationType = MelodyInterpretationType.fixed
+  ..midiData = MidiData()
+;
+
+Melody defaultMelody() => baseMelody()
+  ..subdivisionsPerBeat = 4
+  ..length = 64
+;
+
+Melody boomChick() => baseMelody()
+  ..instrumentType = InstrumentType.drum
+  ..subdivisionsPerBeat = 1
+  ..length = 2
+  ..setMidiDataFromSimpleMelody({
+    0: [-25], 1: [-22]
+  })
+;
+
+Melody boom() => baseMelody()
+  ..name = "Boom"
+  ..instrumentType = InstrumentType.drum
+  ..subdivisionsPerBeat = 1
+  ..length = 2
+  ..setMidiDataFromSimpleMelody({
+    0: [-25],
+  })
+;
+
+Melody chick() => baseMelody()
+  ..name = "Chick"
+  ..instrumentType = InstrumentType.drum
+  ..subdivisionsPerBeat = 1
+  ..length = 2
+  ..setMidiDataFromSimpleMelody({
+    1: [-22]
+  })
+;
+
+Melody tssst() => baseMelody()
+  ..name = "Tssst"
+  ..instrumentType = InstrumentType.drum
+  ..subdivisionsPerBeat = 2
+  ..length = 2
+  ..setMidiDataFromSimpleMelody({
+    1: [-18]
+  })
+;
+
+Melody tsstTsst() => baseMelody()
+  ..name = "Tsst-tsst"
+  ..instrumentType = InstrumentType.drum
+  ..subdivisionsPerBeat = 4
+  ..length = 4
+  ..setMidiDataFromSimpleMelody({
+    1: [-18], 3: [-18]
+  })
+;
+
+Melody odeToJoy() => baseMelody()
+  ..name = "Ode to Joy"
+  ..instrumentType = InstrumentType.harmonic
   ..subdivisionsPerBeat = 2
   ..length = 64
   ..setMidiDataFromSimpleMelody(Map.from({
@@ -33,26 +92,6 @@ Melody odeToJoy() => Melody()
     24: [2], 27: [0], 28: [0]
   }.map((key, value) => MapEntry(key + 32, value))));
 
-Melody boomChick() => Melody()
-  ..id = uuid.v4()
-  ..type = MelodyType.midi
-  ..instrumentType = InstrumentType.drum
-  ..interpretationType = MelodyInterpretationType.fixed
-  ..subdivisionsPerBeat = 1
-  ..length = 2
-  ..setMidiDataFromSimpleMelody({
-    0: [-25], 1: [-22]
-  })
-;
-
-Melody defaultMelody() => Melody()
-  ..id = uuid.v4()
-  ..type = MelodyType.melodic
-  ..instrumentType = InstrumentType.harmonic
-  ..interpretationType = MelodyInterpretationType.fixed
-  ..subdivisionsPerBeat = 4
-  ..length = 64
-  ..melodicData = MelodicData();
 
 Harmony defaultHarmony() =>
   Harmony()

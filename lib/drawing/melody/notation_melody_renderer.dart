@@ -86,7 +86,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     if (tones.isNotEmpty) {
       double boundsWidth = bounds.width;
       double maxFittableNoteheadWidth = (boundsWidth / 2.6).ceilToDouble();
-      double noteheadWidth = min(letterStepSize * 2, maxFittableNoteheadWidth);
+      double noteheadWidth = 12 * xScale; //min(letterStepSize * 2, maxFittableNoteheadWidth);
       double noteheadHeight = noteheadWidth; //(bounds.right - bounds.left)
 
       var computationChord = chord;
@@ -136,15 +136,15 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         hadStaggeredNotes = hadStaggeredNotes || shouldStagger;
         if (minCenter == center) minWasStaggered = shouldStagger;
         if (maxCenter == center) maxWasStaggered = shouldStagger;
-        double top = center - (noteheadHeight / 2);
-        double bottom = center + (noteheadHeight / 2);
+        double top = center + (noteheadHeight / 2);
+        double bottom = center - (noteheadHeight / 2);
         double left, right;
         if (shouldStagger) {
-          left = bounds.right - noteheadWidth;
-          right = bounds.right;
+          left =  bounds.left;//bounds.right - noteheadWidth;
+          right = bounds.left + noteheadWidth;//bounds.right;
         } else {
-          left = bounds.right - 1.9 * noteheadWidth;
-          right = bounds.right - 0.9 * noteheadWidth;
+          left =  bounds.left + .9 * noteheadWidth;//bounds.right - 1.9 * noteheadWidth;
+          right = bounds.left + 1.9 * noteheadWidth;//bounds.right - 0.9 * noteheadWidth;
         }
         Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
         switch(notehead) {
@@ -187,18 +187,19 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         if(signToDraw != null) {
           double signLeft, signRight, signTop, signBottom;
           if(shouldStagger) {
-            signLeft = bounds.right - 2.3 * noteheadWidth;
-            signRight = bounds.right - 1.8 * noteheadWidth;
+            signLeft = bounds.left - 0.7 * noteheadWidth;// bounds.right - 2.3 * noteheadWidth;
+            signRight = bounds.left - 0.2 * noteheadWidth;//bounds.right - 1.8 * noteheadWidth;
           } else {
-            signLeft = bounds.right - 2.8 * noteheadWidth;
-            signRight = bounds.right - 2.3 * noteheadWidth;
+            signLeft = bounds.left - 0.5 * noteheadWidth; //bounds.right - 2.8 * noteheadWidth;
+            signRight = bounds.left;//bounds.right - 2.3 * noteheadWidth;
           }
 
           switch(signToDraw) {
             case NoteSign.flat:
             case NoteSign.double_flat:
-              signTop = top - 2 * noteheadHeight / 3;
-              signBottom = bottom;
+              double difference = noteheadHeight * 1.5;
+              signTop = top - 2 * noteheadHeight / 3 - difference;
+              signBottom = bottom - difference;
               break;
             case NoteSign.double_sharp:
               signTop = top + noteheadHeight / 4;
@@ -207,8 +208,9 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
             case NoteSign.sharp:
             case NoteSign.natural:
             default:
-              signTop = top - noteheadHeight / 3;
-              signBottom = bottom + noteheadHeight / 3;
+              double difference = noteheadHeight * 1.8;
+              signTop = top - difference;//- noteheadHeight / 3;
+              signBottom = bottom - difference;// + noteheadHeight / 3;
           }
           Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
           _renderSign(canvas, signRect, signToDraw);
@@ -223,22 +225,24 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         _renderLedgerLines(canvas, note, left, right);
 //      }
 //
-        // Draw the stem
-        if (stemsUp) {
-          double stemX = bounds.right - 0.965 * noteheadWidth;
-          double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
-          double stopY = minCenter - 3 * noteheadHeight;
-          canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
-        } else {
-          double stemX = (hadStaggeredNotes)
-            ? bounds.right - 0.95 * noteheadWidth
-            : bounds.right - 1.837 * noteheadWidth;
-          double startY = minCenter + noteheadHeight *
-            ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
-          double stopY = maxCenter + 3 * noteheadHeight;
-          canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
-        }
       });
+      // Draw the stem
+      if (stemsUp) {
+        double stemX = (hadStaggeredNotes)
+          ? bounds.left + 0.925 * noteheadWidth
+          : bounds.left + 1.83 * noteheadWidth;//bounds.right - 0.965 * noteheadWidth;
+        double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
+        double stopY = minCenter - 3 * noteheadHeight;
+        canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+      } else {
+        double stemX = (hadStaggeredNotes)
+          ? bounds.left+ 0.887 * noteheadWidth//bounds.right - 0.95 * noteheadWidth
+          : bounds.left + 0.97 * noteheadWidth;//bounds.right - 1.837 * noteheadWidth;
+        double startY = minCenter + noteheadHeight *
+          ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
+        double stopY = maxCenter + 3 * noteheadHeight;
+        canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+      }
     }
   }
 

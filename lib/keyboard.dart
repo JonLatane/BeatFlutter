@@ -569,7 +569,7 @@ class KeyboardRenderer extends CanvasToneDrawer {
   draw(Canvas canvas) {
     canvas.drawColor(Colors.black12, BlendMode.srcATop);
     int alpha = alphaDrawerPaint.color.alpha;
-    print("keyboard alpha=$alpha");
+//    print("keyboard alpha=$alpha");
     alphaDrawerPaint.preserveProperties(() {
       var halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
       // Draw white keys

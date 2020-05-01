@@ -491,34 +491,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     setPartVolume(part, value);
                   }),
             ),
-            SliverAppBar(
-              backgroundColor: backgroundColor,
-              floating: true,
-              pinned: false,
-              expandedHeight: 50.0,
-              flexibleSpace: FlatButton(
-                  onPressed: () {
-                    var newMelody;
-                    if (part.instrument.type != InstrumentType.drum) {
-                      newMelody = odeToJoy();
-                    } else {
-                      newMelody = boomChick();
-                    }
-                    _lastAddedMelody = newMelody;
-                    setState(() {
-                      part.melodies.insert(0, newMelody);
-                      selectMelody(newMelody);
-                      toggleMelodyReference(currentSection.referenceTo(newMelody));
-                      editingMelody = true;
-                      BeatScratchPlugin.createMelody(part, newMelody);
-                      setKeyboardPart(part);
-                    });
-                  },
-                  child: Icon(
-                    Icons.add,
-                    color: textColor,
-                  )),
-            ),
+            buildAddMelodyButton(backgroundColor, textColor, defaultMelody()..instrumentType = part.instrument.type),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
                 sliver:
@@ -624,8 +597,50 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     childCount: _items.length,
                   ),
                 )),
-          ],
+            if (part.instrument.type == InstrumentType.harmonic)
+              buildAddMelodyButton(backgroundColor, textColor, odeToJoy()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, boom()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, chick()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, tssst()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, tsstTsst()),
+          ].where((it ) => it != null).toList(),
         ));
+  }
+
+  Widget buildAddMelodyButton(Color backgroundColor, Color textColor, Melody newMelody) {
+    bool melodyExists = newMelody.name.isNotEmpty && part.melodies.any((it) => it.name == newMelody.name);
+    if(melodyExists) {
+      return null;
+    }
+    return SliverAppBar(
+            backgroundColor: backgroundColor,
+            floating: true,
+            pinned: false,
+            expandedHeight: 50.0,
+            flexibleSpace: FlatButton(
+                onPressed: () {
+                  _lastAddedMelody = newMelody;
+                  setState(() {
+                    part.melodies.insert(0, newMelody);
+                    selectMelody(newMelody);
+                    toggleMelodyReference(currentSection.referenceTo(newMelody));
+                    editingMelody = true;
+                    BeatScratchPlugin.createMelody(part, newMelody);
+                    setKeyboardPart(part);
+                  });
+                },
+                child: Row(children:[
+                  if(newMelody.name.isEmpty) Expanded(child:SizedBox()),
+                  Icon(Icons.add, color: textColor,),
+                  if(newMelody.name.isEmpty) Expanded(child:SizedBox()),
+                  if(newMelody.name.isNotEmpty) Expanded(child:
+                    Text(newMelody.name, style: TextStyle(color: textColor, fontWeight: FontWeight.w300),))
+                ])),
+          );
   }
 }
 

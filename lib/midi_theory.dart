@@ -58,7 +58,7 @@ extension MidiMelodies on Melody {
       convertedData[key] = MidiChange()..midiEvents = events;
       prevTones = tones;
     });
-    print("midiData: ${convertedData}");
+//    print("midiData: ${convertedData}");
     midiData = MidiData()..data.addAll(convertedData);
   }
 }

@@ -20,6 +20,7 @@ import 'music_theory.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'dart:math';
+import 'midi_theory.dart';
 
 class MelodyRenderer extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
@@ -469,27 +470,28 @@ class MusicSystemPainter extends CustomPainter {
     var renderQueue = List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
     renderQueue.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
     int index = 0;
+    Map<double, bool> averageToneToStemsUp = Map();
     while (renderQueue.isNotEmpty) {
       // Draw highest Melody stems up, lowest stems down, second lowest stems up, second highest
       // down. And repeat.
       Melody melody;
       bool stemsUp;
-      switch (index % 4) {
+      switch ((index + 4) % 4) {
         case 0:
           melody = renderQueue.removeAt(0);
-          stemsUp = true;
+          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
           break;
         case 1:
           melody = renderQueue.removeAt(renderQueue.length - 1);
-          stemsUp = false;
+          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
           break;
         case 2:
           melody = renderQueue.removeAt(renderQueue.length - 1);
-          stemsUp = true;
+          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
           break;
         default:
           melody = renderQueue.removeAt(0);
-          stemsUp = false;
+          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
       }
 
       _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat, stemsUp,
@@ -596,12 +598,12 @@ class MusicSystemPainter extends CustomPainter {
     bool hasColorboardPart = staffParts.any((part) => part.id == colorboardPart.value.id);
     bool hasKeyboardPart = staffParts.any((part) => part.id == keyboardPart.value.id);
     if (hasColorboardPart || hasKeyboardPart) {
-      _colorboardDummyMelody.melodicData.data[0] = MelodicAttack()
-        ..tones.addAll(colorboardNotesNotifier.value);
-      _keyboardDummyMelody.melodicData.data[0] = MelodicAttack()
-        ..tones
-          .addAll(keyboardNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value));
-
+      _colorboardDummyMelody.setMidiDataFromSimpleMelody({
+        0: colorboardNotesNotifier.value.toList()
+      });
+      _keyboardDummyMelody.setMidiDataFromSimpleMelody({
+        0: keyboardNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value).toList()
+      });
       // Stem will be up
       double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
         ? -100
