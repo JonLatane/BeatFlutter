@@ -77,13 +77,13 @@ class _SectionListState extends State<SectionList> {
   insertSection() {
     Section newSection = defaultSection();
     int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
+    widget.score.sections.insert(currentSectionIndex + 1, newSection);
+    BeatScratchPlugin.updateSections(widget.score);
     widget.setState(() {
       setState(() {
-        widget.score.sections.insert(currentSectionIndex + 1, newSection);
         widget.selectSection(newSection);
       });
     });
-    BeatScratchPlugin.updateSections(widget.score);
     int index = widget.score.sections.indexOf(newSection);
     if (widget.scrollDirection == Axis.horizontal) {
       double position = 150.0 * (index - 1);

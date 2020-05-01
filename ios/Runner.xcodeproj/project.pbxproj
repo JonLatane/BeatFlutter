@@ -20,6 +20,11 @@
 		3326BBFA243A2FA100022545 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 3326BBF9243A2FA100022545 /* Sounds */; };
 		336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */; };
 		336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */; };
+		33A494CC245B980700A75369 /* BeatScratchPlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */; };
+		33A494CD245B980700A75369 /* BeatScratchScorePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */; };
+		33A494CE245B980700A75369 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C9245B980700A75369 /* MusicTheory.swift */; };
+		33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CA245B980700A75369 /* Base24Conversion.swift */; };
+		33A494D0245B980700A75369 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CB245B980700A75369 /* Patterns.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -59,6 +64,11 @@
 		336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlugin.swift; sourceTree = "<group>"; };
 		336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchMidiListener.swift; sourceTree = "<group>"; };
 		33A494BC2456446F00A75369 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
+		33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlaybackThread.swift; sourceTree = "<group>"; };
+		33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchScorePlayer.swift; sourceTree = "<group>"; };
+		33A494C9245B980700A75369 /* MusicTheory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
+		33A494CA245B980700A75369 /* Base24Conversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
+		33A494CB245B980700A75369 /* Patterns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -128,6 +138,11 @@
 		336B79F424522A62004DA1C5 /* BeatScratch */ = {
 			isa = PBXGroup;
 			children = (
+				33A494CA245B980700A75369 /* Base24Conversion.swift */,
+				33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */,
+				33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */,
+				33A494C9245B980700A75369 /* MusicTheory.swift */,
+				33A494CB245B980700A75369 /* Patterns.swift */,
 				336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */,
 				336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */,
 			);
@@ -369,12 +384,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				3326BB90243A25EC00022545 /* AutoPan.swift in Sources */,
+				33A494CE245B980700A75369 /* MusicTheory.swift in Sources */,
+				33A494CC245B980700A75369 /* BeatScratchPlaybackThread.swift in Sources */,
 				3322C10724435DA000092C52 /* music.pb.swift in Sources */,
 				3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */,
+				33A494D0245B980700A75369 /* Patterns.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */,
 				336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
+				33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */,
 				3326BB8F243A25EC00022545 /* Fatten.swift in Sources */,
+				33A494CD245B980700A75369 /* BeatScratchScorePlayer.swift in Sources */,
 				3326BB8E243A25EC00022545 /* Conductor.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				3326BB92243A25EC00022545 /* PingPongDelay.swift in Sources */,

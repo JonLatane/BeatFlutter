@@ -398,8 +398,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get _keyboardHeight => showKeyboard ? 150 : 0;
   double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : 30;
-  double get _countInBarHeight => interactionMode == InteractionMode.edit || showViewOptions || _forceShowCountInBar ? 44 : 0;
-  bool _forceShowCountInBar = false;
+  double get _tapInBarHeight => interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar ? 44 : 0;
+  bool _forceShowTapInBar = false;
 
   bool verticalSectionList = false;
 
@@ -421,12 +421,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.onCountInInitiated = () {
       setState(() {
         _tapInBeat = -2;
-        _forceShowCountInBar = true;
+        _forceShowTapInBar = true;
       });
       Future.delayed(Duration(seconds:3), () {
         setState(() {
           _tapInBeat = null;
-          _forceShowCountInBar = false;
+          _forceShowTapInBar = false;
         });
       });
     };
@@ -692,10 +692,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     int tapInBeat = _tapInBeat;
     return AnimatedContainer(
       duration: animationDuration,
-      height: _countInBarHeight,
+      height: _tapInBarHeight,
       color: Color(0xFF424242),
       child: Row(children: [
-        AnimatedContainer(duration: Duration(milliseconds: 200), padding: EdgeInsets.only(left: 5),
+        AnimatedContainer(duration: Duration(milliseconds: 35), padding: EdgeInsets.only(left: 5),
           width: !playing && tapInBeat == null ? 37 : 0,
           child: RaisedButton(child: Text("3"),
             onPressed: tapInBeat == null ? () {
@@ -709,7 +709,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 });
               });
             } : null, padding: EdgeInsets.zero,)),
-        AnimatedContainer(duration: Duration(milliseconds: 200), padding: EdgeInsets.only(left: 5),
+        AnimatedContainer(duration: Duration(milliseconds: 120), padding: EdgeInsets.only(left: 5),
           width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 37 : 0,
           child: RaisedButton(child: Text("4"),
             onPressed: _tapInBeat == -2 ? () {
@@ -880,7 +880,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var data = MediaQuery.of(context);
     double height = data.size.height - data.padding.top - kToolbarHeight -
         _secondToolbarHeight - _midiSettingsHeight - _colorboardHeight -
-        _keyboardHeight - horizontalSectionListHeight - _countInBarHeight - _statusBarHeight
+        _keyboardHeight - horizontalSectionListHeight - _tapInBarHeight - _statusBarHeight
       + 8;
     double width = data.size.width - verticalSectionListWidth;
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {

@@ -189,8 +189,10 @@ class MelodyEditingToolbar extends StatelessWidget {
       Container(width: 5),
       Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey)),
       Container(width: 5),
+      Expanded(child:
       Text('Melody editing features are coming. Ode to Joy is nice.',
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: Colors.grey)),
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: Colors.grey))),
     ]);
   }
 }

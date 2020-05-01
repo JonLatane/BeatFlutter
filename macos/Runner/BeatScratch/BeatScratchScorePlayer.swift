@@ -8,7 +8,6 @@
 
 import Foundation
 import AudioKit
-import MIKMIDI
 
 class BeatScratchScorePlayer {
   static let sharedInstance = BeatScratchScorePlayer()
@@ -29,7 +28,13 @@ class BeatScratchScorePlayer {
   }()
   
   var playbackMode: Playback.Mode = Playback.Mode.score
-  var currentSection: Section = Section()
+  var currentSection: Section = Section() {
+    didSet {
+      if(oldValue != currentSection) {
+        Conductor.sharedInstance.stopPlayingNotes()
+      }
+    }
+  }
   var currentTick: Int64 = 0
   private var chord: Chord = cChromatic
   var harmony: Harmony { return currentSection.harmony }
@@ -53,6 +58,7 @@ class BeatScratchScorePlayer {
         if sectionIndex + 1 < score.sections.count {
           currentSection = score.sections[sectionIndex + 1]
           BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+          BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
         } else {
           currentSection = score.sections[0]
           BeatScratchPlugin.sharedInstance.notifyPlayingBeat()

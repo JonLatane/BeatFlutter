@@ -291,7 +291,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
         AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight, child: SizedBox()),
         AnimatedContainer(
             duration: animationDuration,
-            height: widget.height - touchScrollAreaHeight,
+            height: max(0,widget.height - touchScrollAreaHeight),
             color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
             child: widget.showConfiguration
                 ? Row(children: [

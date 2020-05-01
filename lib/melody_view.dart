@@ -166,6 +166,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     }
     _previousSplitMode = widget.splitMode;
     _previousMelodyViewMode = widget.melodyViewMode;
+    if(widget.part == null) {
+      isConfiguringPart = false;
+    }
     return Column(
       children: [
         AnimatedContainer(

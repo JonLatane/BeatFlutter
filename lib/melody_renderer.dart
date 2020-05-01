@@ -73,7 +73,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   double get toolbarHeight => widget.melodyViewMode == MelodyViewMode.score ? 0 : 48;
   double get renderAreaHeight => widget.height - toolbarHeight;
   double get overallCanvasHeight =>
-    max(renderAreaHeight, widget.staves.length * staffHeight * yScale);
+    max(renderAreaHeight, widget.staves.length * staffHeight * yScale)
+      + (widget.melodyViewMode == MelodyViewMode.score ? 30 : 0);
 
   double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
 
@@ -530,8 +531,8 @@ class MusicSystemPainter extends CustomPainter {
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
     if(staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
       Rect highlight = Rect.fromPoints(
-        bounds.topLeft.translate(-bounds.width / 13, 0),
-        bounds.bottomLeft.translate(bounds.width / 13, 0)
+        bounds.topLeft.translate(-bounds.width / 13, bounds.height / 6),
+        bounds.bottomRight.translate(bounds.width / 13, -bounds.height / 10)
       );
       canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
     }

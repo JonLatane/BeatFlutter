@@ -175,8 +175,8 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                             fontWeight: FontWeight.w100),
                       )),
                   Expanded(child: SizedBox()),
-                ]),
-              ))),
+                ])),
+              )),
     ]);
   }
 

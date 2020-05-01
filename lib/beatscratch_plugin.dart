@@ -102,13 +102,8 @@ class BeatScratchPlugin {
     ..name = "BeatScratch Synthesizer"
   ];
 
-  static bool get supportsMelodyEditing {
-    return Platform.isMacOS && kDebugMode;
-  }
-
-  static bool get supportsPlayback {
-    return kDebugMode;
-  }
+  static final bool supportsPlayback = Platform.isIOS || Platform.isMacOS || kDebugMode;
+  static final bool supportsRecording = false;
 
   static void _checkSynthesizerStatus() async {
     bool resultStatus;

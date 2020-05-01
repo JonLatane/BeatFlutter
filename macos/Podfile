@@ -49,8 +49,6 @@ target 'Runner' do
   pod 'SwiftProtobuf'
   # pod 'AudioKit/Core', '~> 4.9'
   pod 'AudioKit/Core', :path => '../../AudioKit/AudioKit.podspec'
-  pod 'MIKMIDI'
-
 
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.
