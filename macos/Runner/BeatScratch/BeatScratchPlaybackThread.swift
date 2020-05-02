@@ -46,7 +46,7 @@ class BeatScratchPlaybackThread {
           print("BeatScratchPlaybackThread: Tick @\(BeatScratchScorePlayer.sharedInstance.currentTick) (T:\(start)")
           try BeatScratchScorePlayer.sharedInstance.tick()
           while(CACurrentMediaTime() * 1000 < start + tickTime) {
-//            try sleep(1)
+//            sleep(0.005)
           }
         } else {
         //          BeatClockPaletteConsumer.viewModel?.editModeToolbar?.playButton?.imageResource = R.drawable.icons8_play_100

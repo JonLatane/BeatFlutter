@@ -223,24 +223,24 @@ class Conductor {
   }
   
   // Return the total number of bytes processed
-  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil) -> Int {
+  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1) -> Int {
     var bytes = [UInt8](midiData)
-    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride)
+    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier)
     var totalBytesProcessed = bytesProcessed
     while(bytes.count > bytesProcessed) {
       bytes.removeFirst(max(1,bytesProcessed))
-      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride)
+      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier)
       totalBytesProcessed += bytesProcessed
     }
     return totalBytesProcessed
   }
   
   // Return the number of bytes processed
-  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?) -> Int {
+  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float) -> Int {
     if(args.count == 0) { return 0 }
     if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
       //                    print("noteOn");
-      playNote(note: args[1], velocity: args[2], channel: channelOverride ?? args[0] & 0xF)
+      playNote(note: args[1], velocity: MIDIVelocity(velocityMultiplier * Float(args[2])), channel: channelOverride ?? args[0] & 0xF)
       return 3
     } else if((args[0] & 0xF0) == 0x80) {
       //                    print("noteOff");

@@ -116,7 +116,7 @@ extension HeptatonicConversions on int {
   }
 }
 
-const double unscaledStandardBeatWidth = 80.0;
+const double unscaledStandardBeatWidth = 70.0;
 abstract class MusicStaff {
   MusicStaff();
 

@@ -24,7 +24,19 @@ extension MidiChangeTheory on MidiChange {
 //    print("done setting midiEvents; data1=${writer.buffer}");
 //    print("done setting midiEvents; data=$data");
   }
-  Iterable<NoteOnEvent> get noteOns => midiEvents
+
+  static final Map<ArgumentList, Iterable<NoteOnEvent>> noteOnsCache = Map();
+  Iterable<NoteOnEvent> get noteOns {
+    final args = ArgumentList((data ?? []).toList());
+    try {
+      return noteOnsCache.putIfAbsent(args,
+          () => _noteOns.toList());
+    } catch (e) {
+      print("noteOns fail; args=${args.arguments}: $e");
+      return _noteOns;
+    }
+  }
+  Iterable<NoteOnEvent> get _noteOns => midiEvents
     .where((event) => event is NoteOnEvent)
     .map((event) => event as NoteOnEvent);
   Iterable<NoteOffEvent> get noteOffs => midiEvents

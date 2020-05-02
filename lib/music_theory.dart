@@ -2,6 +2,7 @@ import 'package:beatscratch_flutter_redux/midi_theory.dart';
 import 'package:unification/unification.dart';
 
 import 'generated/protos/music.pb.dart';
+import 'util.dart';
 
 extension NoteLetterTheory on NoteLetter {
   int get tone {
@@ -187,7 +188,12 @@ extension ChordTheory on Chord {
 extension HarmonyTheory on Harmony {
   int get beatCount => (length.toDouble() / subdivisionsPerBeat).ceil();
 
+  static final Map<ArgumentList, Chord> changeBeforeCache = Map();
   Chord changeBefore(int subdivision) {
+    final key = ArgumentList([subdivision, id]);
+    return changeBeforeCache.putIfAbsent(key, () => _changeBefore(subdivision));
+  }
+  Chord _changeBefore(int subdivision) {
     final int initialSubdivision = subdivision;
     Chord result = data[subdivision];
     while (result == null) {
@@ -205,8 +211,16 @@ extension MelodyTheory on Melody {
   Iterable<int> get tones => (type == MelodyType.melodic)
     ? melodicData.data.values.expand((it) => it.tones)
     : midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60));
-  double get averageTone => tones.length == 0 ? 0 : tones.reduce((a, b) => a + b) / tones.length.toDouble();
+  static final Map<String, double> averageToneCache = Map();
+  double get averageTone => averageToneCache.putIfAbsent(id, () => _averageTone);
+  double get _averageTone => tones.length == 0 ? 0 : tones.reduce((a, b) => a + b) / tones.length.toDouble();
+
+  static final Map<ArgumentList, Iterable<int>> tonesAtCache = Map();
   Iterable<int> tonesAt(int elementPosition) {
+    final key = ArgumentList([id, elementPosition]);
+    return tonesAtCache.putIfAbsent(key, () => _tonesAt(elementPosition));
+  }
+  Iterable<int> _tonesAt(int elementPosition) {
     if (type == MelodyType.melodic) {
      return melodicData.data[elementPosition]?.tones ?? [];
     } else {

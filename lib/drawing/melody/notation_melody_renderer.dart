@@ -89,28 +89,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       double noteheadWidth = 12 * xScale; //min(letterStepSize * 2, maxFittableNoteheadWidth);
       double noteheadHeight = noteheadWidth; //(bounds.right - bounds.left)
 
-      var computationChord = chord;
-      if(computationChord.chroma == 2047) {
-        int newChroma = 0;
-        addTonesToNewChroma(Iterable<int> newTones) {
-          newTones.forEach((t) {
-            int difference = (t - computationChord.rootNote.tone).mod12;
-            int bitValue = 1 << (11 - difference);
-//            print("adding $bitValue to chroma=$newChroma for tone $t");
-            newChroma |= bitValue;
-          });
-        }
-        addTonesToNewChroma(tones);
-        otherMelodiesOnStaff.forEach((otherMelody) {
-          int foreignPosition =
-          elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
-            toSubdivisionsPerBeat: otherMelody.subdivisionsPerBeat);
-          var foreignTones = otherMelody.tonesAt(foreignPosition);
-          addTonesToNewChroma(foreignTones);
-        });
-        computationChord = computationChord.copyWith((it) { it.chroma = newChroma; });
-      }
-      List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, computationChord);//computePlaybackNotes(tones, chord);
+      List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, chord);
       double maxCenter = -100000000;
       double minCenter = 100000000;
       bool hadStaggeredNotes = false;
@@ -163,6 +142,13 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         }
         // Draw signs
         NoteSign previousSign;
+        Iterable<NoteSign> previousSigns = getMostRecentSignsOf(
+          note: note.noteName,
+          relevantMelodies: otherMelodiesOnStaff.followedBy([melody]),
+        );
+        if(previousSigns.length == 1) {
+          previousSign = previousSigns.first;
+        }
 //        val previousSign = previousSignOf(melody, harmony, note, elementPosition)
         NoteSign signToDraw;
         switch(note.sign) {
@@ -246,6 +232,70 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     }
   }
 
+  static Map<ArgumentList, Iterable<NoteSign>> recentSignCache = Map();
+  Iterable<NoteSign> getMostRecentSignsOf({
+    NoteName note,
+    Iterable<Melody> relevantMelodies,
+  }) {
+    final args = ArgumentList([
+      elementPosition, note, relevantMelodies.map((e) => e.id).join(), meter.defaultBeatsPerMeasure, harmony.id
+    ]);
+    return recentSignCache.putIfAbsent(args, () {
+        return _calculateMostRecentSignsOf(
+          note: note,
+          relevantMelodies: relevantMelodies,
+        );
+      }
+    );
+  }
+
+  Iterable<NoteSign> _calculateMostRecentSignsOf({
+    NoteName note,
+    Iterable<Melody> relevantMelodies,
+  }) {
+    final currentBeatPosition = elementPosition.toDouble() / melody.subdivisionsPerBeat;
+    final lastDownbeat = range(0,1000000).firstWhere((it) {
+      return it % meter.defaultBeatsPerMeasure == 0 &&
+      it <= currentBeatPosition && it + meter.defaultBeatsPerMeasure > currentBeatPosition;
+    });
+    NoteSign result;
+    Map<double, Set<NoteSign>> resultCandidates = Map();
+    relevantMelodies.forEach((relevantMelody) {
+      int relevantMelodyIndex = elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
+      toSubdivisionsPerBeat: relevantMelody.subdivisionsPerBeat);
+      NoteSign melodyResult;
+      while(melodyResult == null) {
+        if(relevantMelodyIndex % relevantMelody.subdivisionsPerBeat == 0 && // Beginning of measure, stop searching
+          (relevantMelodyIndex / relevantMelody.subdivisionsPerBeat) % meter.defaultBeatsPerMeasure == 0
+        ) {
+          break;
+        }
+        if(relevantMelodyIndex.toDouble() / relevantMelody.subdivisionsPerBeat == elementPosition.toDouble() / melody.subdivisionsPerBeat) {
+          relevantMelodyIndex--;
+          continue;
+        }
+        List<int> tones = relevantMelody.tonesAt(relevantMelodyIndex % relevantMelody.length).toList();
+        if(tones.isNotEmpty) {
+          Iterable<NoteSign> matchingNotes = getPlaybackNotes(tones, chord)
+            .where((relevantNote) => relevantNote.noteName.noteLetter == note.noteLetter)
+            .map((relevantNote) => relevantNote.sign).toSet();
+          if(matchingNotes.isNotEmpty) {
+            final key = relevantMelodyIndex.toDouble() / relevantMelody.subdivisionsPerBeat;
+            resultCandidates.putIfAbsent(key, () => Set()).addAll(matchingNotes);
+            break;
+          }
+        }
+        relevantMelodyIndex--;
+      }
+    });
+
+    if(resultCandidates.isEmpty) {
+      return [];
+    }
+    double highestKey = resultCandidates.keys.toList().maxBy((it) => (it * 1000).toInt());
+    return resultCandidates[highestKey];
+  }
+
   static Path _sharpPath = parseSvgPathData("M 86.102000,447.45700 L 86.102000,442.75300 L 88.102000,442.20100 L 88.102000,446.88100 L 86.102000,447.45700 z M 90.040000,446.31900 L 88.665000,446.71300 L 88.665000,442.03300 L 90.040000,441.64900 L 90.040000,439.70500 L 88.665000,440.08900 L 88.665000,435.30723 L 88.102000,435.30723 L 88.102000,440.23400 L 86.102000,440.80900 L 86.102000,436.15923 L 85.571000,436.15923 L 85.571000,440.98600 L 84.196000,441.37100 L 84.196000,443.31900 L 85.571000,442.93500 L 85.571000,447.60600 L 84.196000,447.98900 L 84.196000,449.92900 L 85.571000,449.54500 L 85.571000,454.29977 L 86.102000,454.29977 L 86.102000,449.37500 L 88.102000,448.82500 L 88.102000,453.45077 L 88.665000,453.45077 L 88.665000,448.65100 L 90.040000,448.26600 L 90.040000,446.31900 z");
   static Path _flatPath = parseSvgPathData("M 98.166,443.657 C 98.166,444.232 97.950425,444.78273 97.359,445.52188 C 96.732435,446.30494 96.205,446.75313 95.51,447.28013 L 95.51,443.848 C 95.668,443.449 95.901,443.126 96.21,442.878 C 96.518,442.631 96.83,442.507 97.146,442.507 C 97.668,442.507 97.999,442.803 98.142,443.393 C 98.158,443.441 98.166,443.529 98.166,443.657 z M 98.091,441.257 C 97.66,441.257 97.222,441.376 96.776,441.615 C 96.33,441.853 95.908,442.172 95.51,442.569 L 95.51,435.29733 L 94.947,435.29733 L 94.947,447.75213 C 94.947,448.10413 95.043,448.28013 95.235,448.28013 C 95.346,448.28013 95.483913,448.18713 95.69,448.06413 C 96.27334,447.71598 96.636935,447.48332 97.032,447.23788 C 97.482617,446.95792 97.99,446.631 98.661,445.991 C 99.124,445.526 99.459,445.057 99.667,444.585 C 99.874,444.112 99.978,443.644 99.978,443.179 C 99.978,442.491 99.795,442.002 99.429,441.713 C 99.015,441.409 98.568,441.257 98.091,441.257 z ");
   static Path _doubleSharpPath = parseSvgPathData("M 125.009,448.30721 C 124.27443,448.19192 123.52769,448.19209 122.7858,448.19294 C 122.77007,447.65011 122.85674,447.0729 122.6415,446.56343 C 122.49821,446.22426 122.22532,445.95665 121.98269,445.68155 C 121.59552,446.0278 121.27751,446.48475 121.24704,447.01638 C 121.21706,447.40767 121.23902,447.80085 121.2322,448.19294 C 120.4904,448.20416 119.74082,448.16828 119.009,448.314 C 119.15012,447.5863 119.11805,446.84171 119.13083,446.1048 C 119.6957,446.08953 120.30023,446.17101 120.82484,445.92526 C 121.13441,445.78023 121.39653,445.55295 121.6591,445.33676 C 121.3173,444.94965 120.87346,444.60861 120.33665,444.57651 C 119.93573,444.54485 119.53266,444.56793 119.13083,444.56097 C 119.10566,443.82949 119.19105,443.08855 119.03921,442.3663 C 119.76267,442.49697 120.50065,442.46343 121.2322,442.47284 C 121.24306,442.99383 121.18483,443.53381 121.33191,444.0355 C 121.44414,444.41838 121.74978,444.71293 122.0051,445.01521 C 122.36553,444.70111 122.69057,444.30706 122.75011,443.81412 C 122.804,443.36793 122.76123,442.91977 122.7858,442.47284 C 123.52263,442.45348 124.28215,442.54713 124.99535,442.314 C 124.88891,443.05711 124.87889,443.81152 124.88717,444.56097 C 124.36127,444.57582 123.80954,444.51747 123.30955,444.69457 C 122.92975,444.8291 122.63114,445.12341 122.32869,445.38325 C 122.65661,445.71867 123.0516,446.02802 123.5403,446.07368 C 123.98834,446.11554 124.43829,446.09658 124.88717,446.1048 C 124.89828,446.83958 124.86193,447.5825 125.009,448.30721 z ");
@@ -305,10 +355,35 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     }
   }
 
-//  static List<List<dynamic>> _recentPlaybackNoteRequests =List();
-  static Map<ArgumentList, List<NoteSpecification>> _playbackNoteCache = Map();
   List<NoteSpecification> getPlaybackNotes(List<int> tones, Chord chord) {
-    return _playbackNoteCache.putIfAbsent(ArgumentList([tones, chord]),
+    var computationChord = chord;
+    if(computationChord.chroma == 2047) {
+      int newChroma = 0;
+      addTonesToNewChroma(Iterable<int> newTones) {
+        newTones.forEach((t) {
+          int difference = (t - computationChord.rootNote.tone).mod12;
+          int bitValue = 1 << (11 - difference);
+//            print("adding $bitValue to chroma=$newChroma for tone $t");
+          newChroma |= bitValue;
+        });
+      }
+      addTonesToNewChroma(tones);
+      otherMelodiesOnStaff.forEach((otherMelody) {
+        int foreignPosition =
+        elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
+          toSubdivisionsPerBeat: otherMelody.subdivisionsPerBeat);
+        var foreignTones = otherMelody.tonesAt(foreignPosition);
+        addTonesToNewChroma(foreignTones);
+      });
+      computationChord = computationChord.copyWith((it) { it.chroma = newChroma; });
+    }
+    return _getPlaybackNotes(tones, computationChord);
+  }
+
+//  static List<List<dynamic>> _recentPlaybackNoteRequests =List();
+  static Map<ArgumentList, List<NoteSpecification>> playbackNoteCache = Map();
+  List<NoteSpecification> _getPlaybackNotes(List<int> tones, Chord chord) {
+    return playbackNoteCache.putIfAbsent(ArgumentList([tones.join(","), chord]),
         () {
 //          _recentPlaybackNoteRequests.remove(key);
 //          _recentPlaybackNoteRequests.insert(0, key);

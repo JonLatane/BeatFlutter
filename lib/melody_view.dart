@@ -74,7 +74,7 @@ class MelodyView extends StatefulWidget {
 
 class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScale = 0.1;
-  static const double maxScale = 10.0;
+  static const double maxScale = 1.0;
   bool isConfiguringPart = false;
   Offset _previousOffset = Offset.zero;
   Offset _offset = Offset.zero;

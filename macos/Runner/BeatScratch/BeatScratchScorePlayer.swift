@@ -45,11 +45,6 @@ class BeatScratchScorePlayer {
   private init() {}
   
   func tick() {
-    let beatMod: Int = Int(currentTick % Int64(BeatScratchPlaybackThread.ticksPerBeat))
-    if beatMod == 0 {
-      playMetronome()
-      BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
-    }
     if currentTick >= Int(24 * Double(harmony.length) / Double(harmony.subdivisionsPerBeat)) {
       Conductor.sharedInstance.stopPlayingNotes()
       let sectionIndex = score.sections.firstIndex(of: currentSection) ?? -1
@@ -58,7 +53,6 @@ class BeatScratchScorePlayer {
         if sectionIndex + 1 < score.sections.count {
           currentSection = score.sections[sectionIndex + 1]
           BeatScratchPlugin.sharedInstance.notifyCurrentSection()
-          BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
         } else {
           currentSection = score.sections[0]
           BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
@@ -68,6 +62,11 @@ class BeatScratchScorePlayer {
           return
         }
       }
+    }
+    let beatMod: Int = Int(currentTick % Int64(BeatScratchPlaybackThread.ticksPerBeat))
+    if beatMod == 0 {
+      playMetronome()
+      BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
     }
     doTick()
     currentTick += 1
@@ -89,7 +88,7 @@ class BeatScratchScorePlayer {
   }
   
   private func doTick() {
-    print("BeatScratchScorePlayer: processing tick \(currentTick)")
+//    print("BeatScratchScorePlayer: processing tick \(currentTick)")
     let palette = BeatScratchPlugin.sharedInstance.score
     let section: Section = currentSection
     //    chord = (harmonyChord ?: chord)?.also { chord ->
@@ -107,7 +106,7 @@ class BeatScratchScorePlayer {
     //        }
     //      }
     //    }
-    print("BeatScratchScorePlayer: harmonyPosition=\(harmonyPosition); chord=\(chord)")
+//    print("BeatScratchScorePlayer: harmonyPosition=\(harmonyPosition); chord=\(chord)")
     palette.parts.forEach {
       let part = $0
       section.melodies.filter {
@@ -117,20 +116,20 @@ class BeatScratchScorePlayer {
       }.forEach {
         let melodyReference = $0
         if let melody: Melody = melodyReference.melodyFrom(palette) {
-          handleCurrentTickPosition(melody, part, volume: melodyReference.volume)
+          handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume)
         }
       }
     }
   }
   
-  func handleCurrentTickPosition(_ melody: Melody, _ part: Part, volume: Float) {
+  func handleCurrentTickPosition(_ melodyReference: MelodyReference, _ melody: Melody, _ part: Part, volume: Float) {
     let ticks = Base24Conversion.map[Int(melody.subdivisionsPerBeat)]!
     if let correspondingPosition = ticks.firstIndex(of: Int(currentTick) % Int(BeatScratchPlaybackThread.ticksPerBeat)) {
       let currentBeat = floor(Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat)
       let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
       if let midiData = melody.midiData.data[Int32(melodyPosition) % Int32(melody.length)] {
         let bytes = [UInt8](midiData.data)
-        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel))
+        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume)
         print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }

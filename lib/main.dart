@@ -697,7 +697,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       child: Row(children: [
         AnimatedContainer(duration: Duration(milliseconds: 35), padding: EdgeInsets.only(left: 5),
           width: !playing && tapInBeat == null ? 37 : 0,
-          child: RaisedButton(child: Text("3"),
+          child: RaisedButton(child: Text( !playing && tapInBeat == null ? "3" : ""),
             onPressed: tapInBeat == null ? () {
               BeatScratchPlugin.countIn(-2);
               setState(() {
@@ -723,8 +723,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //                });
 //              });
             } : null, padding: EdgeInsets.zero,)),
-        AnimatedContainer(duration: animationDuration, padding: EdgeInsets.only(left: 5), width: BeatScratchPlugin.playing ? 69 : 0,
-          child: RaisedButton(child: Icon(Icons.pause),
+        AnimatedContainer(duration: animationDuration, padding: EdgeInsets.only(left: 5),
+          width: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 69 : 0,
+          child: RaisedButton(child: AnimatedOpacity(duration: animationDuration,
+            opacity: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 1 : 0,
+            child:Icon(Icons.pause)),
             onPressed: BeatScratchPlugin.playing ? () {
               setState(() {
                 BeatScratchPlugin.pause();
@@ -746,7 +749,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               child: Row(children: [
                 Icon(editingMelody?Icons.fiber_manual_record:Icons.play_arrow, color: editingMelody?chromaticSteps[7]:chromaticSteps[0]),
                 SizedBox(width: 5),
-                Text("${editingMelody?"Recording":"Playback"} doesn't actually work yet...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+                Text(editingMelody && BeatScratchPlugin.supportsRecording ? "Recording"
+                  : !editingMelody && BeatScratchPlugin.supportsPlayback ? "Playing"
+                  : "${editingMelody?"Recording":"Playback"} doesn't actually work yet...",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
               ]))
           ]))),
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
