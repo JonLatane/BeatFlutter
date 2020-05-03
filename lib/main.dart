@@ -21,6 +21,7 @@ import 'ui_models.dart';
 import 'package:flutter/foundation.dart';
 import 'dummydata.dart';
 import 'main_toolbars.dart';
+import 'music_theory.dart';
 
 void main() => runApp(MyApp());
 
@@ -1047,6 +1048,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _score.sections.remove(section);
         });
       },
+      selectBeat: (beat) {
+        if(interactionMode == InteractionMode.view) {
+          int seekingBeat = 0;
+          int sectionIndex = 0;
+          Section section = _score.sections[sectionIndex++];
+          while(beat - seekingBeat >= section.beatCount) {
+            seekingBeat += section.beatCount;
+            section = _score.sections[sectionIndex++];
+          }
+          print("Setting section to $section and beat to ${beat - seekingBeat}");
+          setState(() {
+            currentSection = section;
+          });
+          BeatScratchPlugin.setCurrentSection(section);
+          BeatScratchPlugin.setBeat(beat - seekingBeat);
+        } else {
+          BeatScratchPlugin.setBeat(beat);
+        }
+      }
     );
   }
 

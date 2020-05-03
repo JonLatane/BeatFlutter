@@ -273,18 +273,6 @@ class BeatScratchPlugin {
     sendMIDI(writer.buffer);
   }
 
-  static void sendBeat(int beat) async {
-//    print("invoking sendMIDI");
-    if(kIsWeb) {
-//      print("invoking sendMIDI as JavaScript with context $context");
-      context.callMethod('sendBeat', [beat]);
-    } else {
-//      print("invoking sendMIDI through Platform Channel $_channel");
-      _channel.invokeMethod('sendBeat', beat);
-    }
-  }
-
-
   static void sendMIDI(List<int> bytes) async {
 //    print("invoking sendMIDI");
     if(kIsWeb) {

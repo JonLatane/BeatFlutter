@@ -38,9 +38,10 @@ class MelodyView extends StatefulWidget {
   final Function(Section) deleteSection;
   final double height;
   final bool enableColorboard;
+  final Function(int) selectBeat;
 
   MelodyView(
-      {this.focusPartsAndMelodies, this.melodyViewSizeFactor,
+      {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor,
         this.superSetState,
       this.melodyViewMode,
       this.score,
@@ -306,6 +307,15 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     return Container(
         color: Colors.white,
         child: GestureDetector(
+            onTapUp: (details) {
+              print("onTapUp: ${details.localPosition}");
+              int beat = ((details.localPosition.dx + melodyRendererVisibleRect.left
+                - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
+              print("beat=$beat");
+              if(beat >= 0) {
+                widget.selectBeat(beat);
+              }
+            },
             onScaleStart: (details) => setState(() {
                   _previousOffset = _offset;
                   _startFocalPoint = details.focalPoint;

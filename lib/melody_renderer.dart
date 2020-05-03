@@ -57,7 +57,7 @@ class MelodyRenderer extends StatefulWidget {
   _MelodyRendererState createState() => _MelodyRendererState();
 }
 
-Rect _visibleRect = Rect.zero;
+Rect melodyRendererVisibleRect = Rect.zero;
 
 class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStateMixin {
   bool get isViewingSection => widget.melodyViewMode != MelodyViewMode.score;
@@ -150,7 +150,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
               slivers: [
                 new CustomSliverToBoxAdapter(
                   setVisibleRect: (rect) {
-                    _visibleRect = rect;
+                    melodyRendererVisibleRect = rect;
                   },
                   child: CustomPaint(
 //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
@@ -171,7 +171,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         notationOpacityNotifier: notationOpacityNotifier,
                         colorboardNotesNotifier: widget.colorboardNotesNotifier,
                         keyboardNotesNotifier: widget.keyboardNotesNotifier,
-                        visibleRect: () => _visibleRect,
+                        visibleRect: () => melodyRendererVisibleRect,
                         keyboardPart: keyboardPart,
                       colorboardPart: colorboardPart,
                       focusedPart: focusedPart,

@@ -193,7 +193,7 @@ class Conductor {
   func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
     print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel)")
     do {
-      playingNotes[channel]!.append(note)
+      try playingNotes[channel]!.append(note)
       try channelSamplers[UInt32(channel)]?.play(noteNumber: note, velocity: velocity)
     } catch {
       print("playNote error: " + error.localizedDescription)
@@ -203,7 +203,7 @@ class Conductor {
   func stopNote(note: MIDINoteNumber, channel: MIDIChannel) {
     print("Conductor stopNote, note=\(note), channel=\(channel)")
     do {
-      playingNotes[channel]!.removeAll { $0 == note }
+      try playingNotes[channel]!.removeAll { $0 == note }
       try channelSamplers[UInt32(channel)]?.stop(noteNumber: note)
     } catch {
       print("stopNote error: " + error.localizedDescription)
