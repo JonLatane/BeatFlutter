@@ -581,9 +581,11 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   Melody _colorboardDummyMelody = defaultMelody()
+    ..id="colorboardDummy"
     ..subdivisionsPerBeat = 1
     ..length = 1;
   Melody _keyboardDummyMelody = defaultMelody()
+    ..id="keyboardDummy"
     ..subdivisionsPerBeat = 1
     ..length = 1;
 

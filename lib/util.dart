@@ -19,6 +19,18 @@ extension ContextUtils on BuildContext {
   bool get isPortrait => !isLandscape;
 }
 
+class MethodCache<KeyType, ResultType> {
+  bool enable = true;
+  Map<KeyType, ResultType> _data = Map();
+  ResultType putIfAbsent(KeyType key, ResultType Function() computation) {
+    if(!enable) {
+      return computation();
+    }
+    return _data.putIfAbsent(key, () => computation());
+  }
+  clear() { _data.clear(); }
+}
+
 /// Wrapper around [List<dynamic>] that calculates == and hashCode.
 class ArgumentList {
   final List<dynamic> arguments;

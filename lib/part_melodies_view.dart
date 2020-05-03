@@ -626,11 +626,13 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   _lastAddedMelody = newMelody;
                   setState(() {
                     part.melodies.insert(0, newMelody);
-                    selectMelody(newMelody);
-                    toggleMelodyReference(currentSection.referenceTo(newMelody));
-                    editingMelody = true;
                     BeatScratchPlugin.createMelody(part, newMelody);
-                    setKeyboardPart(part);
+                    toggleMelodyReference(currentSection.referenceTo(newMelody));
+                    if (newMelody.name.isEmpty) { // Go directly to recording mode if
+                      selectMelody(newMelody);    // not a template.
+                      editingMelody = true;
+                      setKeyboardPart(part);
+                    }
                   });
                 },
                 child: Row(children:[

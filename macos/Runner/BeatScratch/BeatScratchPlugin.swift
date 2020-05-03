@@ -170,7 +170,7 @@ class BeatScratchPlugin {
     do {
 //      print("swift: sendPressedMidiNotes")
       var midiNotes = MidiNotes()
-      midiNotes.midiNotes = Conductor.sharedInstance.pressedNotes.map { UInt32($0) }
+      midiNotes.midiNotes = BeatScratchMidiListener.sharedInstance.pressedNotes.map { UInt32($0) }
       channel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
     } catch {
       print("Failed to sendPressedMidiNotes")

@@ -25,6 +25,17 @@ extension AKSampler {
     var loopstart: Float32 = 0
     var loopend: Float32 = 0
     
+    func resetVars() {
+      lokey = 0
+      hikey = 127
+      pitch = 60
+      lovel = 0
+      hivel = 127
+      sample = ""
+      loopstart = 0
+      loopend = 0
+    }
+    
     let baseURL = URL(fileURLWithPath: folderPath)
     let sfzURL = baseURL.appendingPathComponent(sfzFileName)
     do {
@@ -36,56 +47,43 @@ extension AKSampler {
           // ignore blank lines and comment lines
           continue
         }
-        for part in trimmed.components(separatedBy: .whitespaces) {
-          if part.hasPrefix("<global>") || part.hasPrefix("<group>") {
-            lokey = 0
-            hikey = 127
-            pitch = 60
-            lovel = 0
-            hivel = 127
-            sample = ""
-            loopstart = 0
-            loopend = 0
-          }
-          if lastPrefix == "region" && (part.hasPrefix("<group>") || part.hasPrefix("<region>")) {
-            try buildSample(baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
-          }
-            // group and region don't really tell us anything in the Kawai files
-            //if part.hasPrefix("<group>") {
-            //}
-            //else if part.hasPrefix("<region>") {
-            //}
-          else if part.hasPrefix("key=") {
-            pitch = Int32(part.components(separatedBy: "=")[1])!
+        for token in trimmed.components(separatedBy: .whitespaces) {
+          if token.hasPrefix("<global>") || token.hasPrefix("<group>") || token.hasPrefix("<region>") {
+            if lastPrefix == "region" {
+              try buildSample(baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
+            }
+            resetVars()
+          } else if token.hasPrefix("key=") {
+            pitch = Int32(token.components(separatedBy: "=")[1])!
             lokey = pitch
             hikey = pitch
-          } else if part.hasPrefix("lokey") {
-            lokey = Int32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("hikey") {
-            hikey = Int32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("pitch_keycenter") {
-            pitch = Int32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("lovel") {
-            lovel = Int32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("hivel") {
-            hivel = Int32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("loop_mode") {
-            loopmode = part.components(separatedBy: "=")[1]
-          } else if part.hasPrefix("loop_start") {
-            loopstart = Float32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("loop_end") {
-            loopend = Float32(part.components(separatedBy: "=")[1])!
-          } else if part.hasPrefix("sample") {
+          } else if token.hasPrefix("lokey") {
+            lokey = Int32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("hikey") {
+            hikey = Int32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("pitch_keycenter") {
+            pitch = Int32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("lovel") {
+            lovel = Int32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("hivel") {
+            hivel = Int32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("loop_mode") {
+            loopmode = token.components(separatedBy: "=")[1]
+          } else if token.hasPrefix("loop_start") {
+            loopstart = Float32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("loop_end") {
+            loopend = Float32(token.components(separatedBy: "=")[1])!
+          } else if token.hasPrefix("sample") {
             sample = trimmed.components(separatedBy: "sample=")[1].replacingOccurrences(of: "\\", with: "/")
           }
           
-          if part.hasPrefix("<global>") {
+          if token.hasPrefix("<global>") {
             lastPrefix = "global"
           }
-          if part.hasPrefix("<group>") {
+          if token.hasPrefix("<group>") {
             lastPrefix = "group"
           }
-          if part.hasPrefix("<region>") {
+          if token.hasPrefix("<region>") {
             lastPrefix = "region"
           }
         }

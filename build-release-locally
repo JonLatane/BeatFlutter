@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+
+# Includes assume pwd is diretory of build-protos script.
+cd "$(dirname "$0")"
+
+# yes | rm -rf ~/Development/flutter/flutter/bin/cache/*
+echo "Changing to channel master"
+flutter channel master && flutter upgrade
+echo "Building for macOS and archiving app"
+flutter build macos && cd build/macos/Build/Products/Release && tar -cavf BeatFlutter.tar.bz2 BeatFlutter.app && cd -
+
+# yes | rm -rf ~/Development/flutter/flutter/bin/cache/*
+echo "Changing to channel beta"
+flutter channel beta && flutter upgrade
+echo "Building for web and copying to ../topologica-page/app-staging"
+flutter build web
+cp -r build/web/* ../topologica-page/app-staging
+echo "Building for iOS"
+flutter build ios
+echo "Manually archive/upload build to TestFlight in XCode!"
+echo "Building for Android"
+flutter build appbundle
+
+flutter channel master

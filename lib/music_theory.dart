@@ -217,6 +217,9 @@ extension MelodyTheory on Melody {
 
   static final Map<ArgumentList, Iterable<int>> tonesAtCache = Map();
   Iterable<int> tonesAt(int elementPosition) {
+    if(id == "keyboardDummy" || id == "colorboardDummy") {
+      return _tonesAt(elementPosition);
+    }
     final key = ArgumentList([id, elementPosition]);
     return tonesAtCache.putIfAbsent(key, () => _tonesAt(elementPosition));
   }

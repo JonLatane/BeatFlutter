@@ -53,8 +53,6 @@ class Conductor {
   let midi = AudioKit.midi
 //  var accessoryManager = EAAccessoryManager.shared()
   
-  var pressedNotes = [Int]()
-  
 //  func deviceConnected(notification: NSNotification) {
 //    print("EAAccessoryManager device connected, creating BeatScratch Session")
 //    midi.openInput(name: "BeatScratch Session")

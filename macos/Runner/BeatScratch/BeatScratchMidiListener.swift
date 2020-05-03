@@ -12,6 +12,12 @@ import AudioKit
 class BeatScratchMidiListener : AKMIDIListener {
   static let sharedInstance = BeatScratchMidiListener()
   private init(){}
+  private var controllerPressedNotes = Dictionary<MIDIUniqueID?, [MIDINoteNumber]>()
+  var pressedNotes: [Int] {
+    get {
+      return [Int](controllerPressedNotes.values.flatMap { $0.map { Int($0) } })
+    }
+  }
   var conductorChannel: Int = 0
   
   // Return the number of bytes processed
@@ -32,19 +38,21 @@ class BeatScratchMidiListener : AKMIDIListener {
     }
   }
 
+  let timeoutSeconds = 30
   func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note on")
     Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel))
-    Conductor.sharedInstance.pressedNotes.append(Int(noteNumber))
+    if !controllerPressedNotes.contains(where: { $0.key == portID }) {
+      controllerPressedNotes[portID] = []
+    }
+    controllerPressedNotes[portID]!.append(noteNumber)
     BeatScratchPlugin.sharedInstance.sendPressedMidiNotes()
   }
   
   func receivedMIDINoteOff(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note off")
     Conductor.sharedInstance.stopNote(note: noteNumber, channel: UInt8(conductorChannel))
-    if let indexToRemove = Conductor.sharedInstance.pressedNotes.firstIndex(of: Int(noteNumber)) {
-      Conductor.sharedInstance.pressedNotes.remove(at: indexToRemove)
-    }
+    controllerPressedNotes[portID]?.removeAll { $0 == noteNumber }
     BeatScratchPlugin.sharedInstance.sendPressedMidiNotes()
   }
   
