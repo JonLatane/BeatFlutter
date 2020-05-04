@@ -56,13 +56,14 @@ extension MidiMelodies on Melody {
       int key = entry.key;
       Iterable<int> tones = entry.value;
       List<MidiEvent> events = [];
-      if(prevTones != null) {
-        events.addAll(prevTones.map((tone) =>
-        NoteOffEvent()
-          ..noteNumber = tone + 60
-          ..velocity = 127
-          ..channel = 0));
+      if(prevTones == null) {
+        prevTones = sortedData.last.value;
       }
+      events.addAll(prevTones.map((tone) =>
+      NoteOffEvent()
+        ..noteNumber = tone + 60
+        ..velocity = 127
+        ..channel = 0));
       events.addAll(tones.map((tone) => NoteOnEvent()
         ..noteNumber = tone + 60
         ..velocity = 127

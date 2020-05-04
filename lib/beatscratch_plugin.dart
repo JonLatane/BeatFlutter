@@ -40,6 +40,7 @@ class BeatScratchPlugin {
   static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
   static Function(String) onSectionSelected;
+  static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
       _checkSynthesizerStatus();
@@ -82,6 +83,12 @@ class BeatScratchPlugin {
           break;
         case "setCurrentSection":
           onSectionSelected(call.arguments);
+          break;
+        case "sendRecordedMelody":
+          final Uint8List rawData = call.arguments;
+          final Melody response = Melody.fromBuffer(rawData);
+          onRecordingMelodyUpdated(response);
+          return Future.value(null);
           break;
       }
       return Future.value(null);
@@ -212,6 +219,15 @@ class BeatScratchPlugin {
 
   static void deleteMelody(Melody melody) async {
     _channel.invokeMethod('deleteMelody', melody.id);
+  }
+
+  /// When set to null, disables recording. When set to a melody,
+  /// any notes played while playback is running are to be recorded into this
+  /// [Melody]. Implementation-wise: this is just done by passing the [Melody.id].
+  /// This applies to notes played either with a physical MIDI controller on
+  /// the native side or from [sendMIDI] in the plugin.
+  static void setRecordingMelody(Melody melody) async {
+    _channel.invokeMethod('setRecordingMelody', melody?.id);
   }
 
   /// Starts the playback thread

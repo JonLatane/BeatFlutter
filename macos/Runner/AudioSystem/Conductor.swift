@@ -93,10 +93,6 @@ class Conductor {
     }
   }
   
-  func assignMidiControllersToChannel(channel: Int) {
-    BeatScratchMidiListener.sharedInstance.conductorChannel = channel
-  }
-  
   private func setupSamplers() {
     self.channelSamplers.merge(
       [
@@ -190,21 +186,33 @@ class Conductor {
   
   var playingNotes: Dictionary<MIDIChannel, Array<MIDINoteNumber>> = [
   0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[],15:[],]
-  func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
-    print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel)")
+  func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, record: Bool = false) {
+    print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel), record=\(record)")
     do {
+      if playingNotes[channel] == nil {
+        playingNotes[channel] = []
+      }
       try playingNotes[channel]!.append(note)
       try channelSamplers[UInt32(channel)]?.play(noteNumber: note, velocity: velocity)
+      if(record) {
+        try MelodyRecorder.sharedInstance.notifyNotePlayed(note: note, velocity: velocity, channel: channel)
+      }
     } catch {
       print("playNote error: " + error.localizedDescription)
     }
   }
   
-  func stopNote(note: MIDINoteNumber, channel: MIDIChannel) {
-    print("Conductor stopNote, note=\(note), channel=\(channel)")
+  func stopNote(note: MIDINoteNumber, channel: MIDIChannel, record: Bool = false) {
+    print("Conductor stopNote, note=\(note), channel=\(channel), record=\(record)")
     do {
+      if playingNotes[channel] == nil {
+        playingNotes[channel] = []
+      }
       try playingNotes[channel]!.removeAll { $0 == note }
       try channelSamplers[UInt32(channel)]?.stop(noteNumber: note)
+      if(record) {
+        try MelodyRecorder.sharedInstance.notifyNoteStopped(note: note, channel: channel)
+      }
     } catch {
       print("stopNote error: " + error.localizedDescription)
     }
@@ -221,28 +229,32 @@ class Conductor {
   }
   
   // Return the total number of bytes processed
-  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1) -> Int {
+  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false) -> Int {
     var bytes = [UInt8](midiData)
-    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier)
+    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record)
     var totalBytesProcessed = bytesProcessed
     while(bytes.count > bytesProcessed) {
       bytes.removeFirst(max(1,bytesProcessed))
-      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier)
+      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record)
       totalBytesProcessed += bytesProcessed
     }
     return totalBytesProcessed
   }
   
   // Return the number of bytes processed
-  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float) -> Int {
+  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool) -> Int {
     if(args.count == 0) { return 0 }
     if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
-      //                    print("noteOn");
-      playNote(note: args[1], velocity: MIDIVelocity(velocityMultiplier * Float(args[2])), channel: channelOverride ?? args[0] & 0xF)
+      let noteNumber = args[1]
+      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
+      let channel = channelOverride ?? args[0] & 0xF
+      playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
       return 3
     } else if((args[0] & 0xF0) == 0x80) {
-      //                    print("noteOff");
-      stopNote(note: args[1], channel: channelOverride ?? args[0] & 0xF)
+      let noteNumber = args[1]
+//      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
+      let channel = channelOverride ?? args[0] & 0xF
+      stopNote(note: noteNumber, channel: channel, record: record)
       return 3
     } else {
       print("unmatched MIDI bytes:");

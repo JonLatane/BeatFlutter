@@ -33,7 +33,7 @@ class BeatScratchPlugin {
         case "sendMIDI":
           let data = (call.arguments as! FlutterStandardTypedData).data
           let args = [UInt8](data)
-          let parsedBytes = conductor.parseMidi(args)
+          let parsedBytes = conductor.parseMidi(args, record: true)
           if parsedBytes > 0 {
             result(nil)
           } else {
@@ -111,7 +111,8 @@ class BeatScratchPlugin {
         case "setKeyboardPart":
           let partId = call.arguments as! String
           if let part = self.score.parts.first(where: {$0.id == partId}) {
-            Conductor.sharedInstance.assignMidiControllersToChannel(channel: Int(part.instrument.midiChannel))
+            let channel = Int(part.instrument.midiChannel)
+            BeatScratchMidiListener.sharedInstance.conductorChannel = channel
           }
           break
         case "checkSynthesizerStatus":
@@ -136,6 +137,13 @@ class BeatScratchPlugin {
           BeatScratchScorePlayer.sharedInstance.currentTick = Int64(beat) * Int64( BeatScratchPlaybackThread.ticksPerBeat)
           result(nil)
           break
+        case "setCurrentSection":
+          let sectionId = call.arguments as! String
+          if let section = self.score.sections.first(where: { $0.id == sectionId }) {
+            BeatScratchScorePlayer.sharedInstance.currentSection = section
+          }
+          Conductor.sharedInstance.stopPlayingNotes()
+          break
         case "countIn":
           let countInBeat = call.arguments as! Int
           BeatScratchPlaybackThread.sharedInstance.sendBeat()
@@ -149,11 +157,9 @@ class BeatScratchPlugin {
           let playback: Playback = try Playback(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           BeatScratchScorePlayer.sharedInstance.playbackMode = playback.mode
           break
-        case "setCurrentSection":
-          let sectionId = call.arguments as! String
-          if let section = self.score.sections.first(where: { $0.id == sectionId }) {
-            BeatScratchScorePlayer.sharedInstance.currentSection = section
-          }
+        case "setRecordingMelody":
+          let melodyId: String? = call.arguments as! String?
+          MelodyRecorder.sharedInstance.recordingMelodyId = melodyId
           break
         default:
           result(FlutterMethodNotImplemented)
@@ -173,7 +179,19 @@ class BeatScratchPlugin {
       midiNotes.midiNotes = BeatScratchMidiListener.sharedInstance.pressedNotes.map { UInt32($0) }
       channel?.invokeMethod("sendPressedMidiNotes", arguments: try midiNotes.serializedData())
     } catch {
-      print("Failed to sendPressedMidiNotes")
+      print("Failed to sendPressedMidiNotes: \(error)")
+    }
+  }
+  
+  func sendRecordedMelody() {
+    do {
+      if let recordingMelody = MelodyRecorder.sharedInstance.recordingMelody {
+        if recordingMelody.midiData.data.count > 0 {
+          channel?.invokeMethod("sendRecordedMelody", arguments: try recordingMelody.serializedData())
+        }
+      }
+    } catch {
+      print("Failed to sendRecordedMelody: \(error)")
     }
   }
   

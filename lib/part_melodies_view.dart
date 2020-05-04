@@ -21,6 +21,7 @@ import 'ui_models.dart';
 import 'util.dart';
 
 class PartMelodiesView extends StatefulWidget {
+  final MelodyViewMode melodyViewMode;
   final bool enableColorboard;
   final Score score;
   final Color sectionColor;
@@ -43,7 +44,7 @@ class PartMelodiesView extends StatefulWidget {
   final Function(VoidCallback) superSetState;
 
   PartMelodiesView(
-      {this.superSetState,
+      {this.melodyViewMode,this.superSetState,
       this.score,
       this.sectionColor,
       this.currentSection,
@@ -625,11 +626,13 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 onPressed: () {
                   _lastAddedMelody = newMelody;
                   setState(() {
-                    part.melodies.insert(0, newMelody);
+                    int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
+                    part.melodies.insert(index, newMelody);
                     BeatScratchPlugin.createMelody(part, newMelody);
                     toggleMelodyReference(currentSection.referenceTo(newMelody));
-                    if (newMelody.name.isEmpty) { // Go directly to recording mode if
-                      selectMelody(newMelody);    // not a template.
+                    selectMelody(newMelody);
+                    // Go directly to recording mode if not a template.
+                    if (newMelody.name.isEmpty) {
                       editingMelody = true;
                       setKeyboardPart(part);
                     }
@@ -687,11 +690,12 @@ class _MelodyReference extends StatefulWidget {
 
 class __MelodyReferenceState extends State<_MelodyReference> with TickerProviderStateMixin {
   MelodyReference get reference => widget.currentSection.referenceTo(widget.melody);
+  bool get isSelectedMelody => widget.melody.id == widget.selectedMelody?.id;
   AnimationController controller;
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
-    var color = widget.melody == widget.selectedMelody ? Colors.white : Color(0xFFDDDDDD);
+    var color = isSelectedMelody ? Colors.white : Color(0xFFDDDDDD);
 
     if (state == ReorderableItemState.dragProxy || state == ReorderableItemState.dragProxyFinished) {
       // slightly transparent background white dragging (just like on iOS)
@@ -710,7 +714,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
     }
 
     toggleMelody() {
-      if (widget.editingMelody && widget.melody == widget.selectedMelody) {
+      if (widget.editingMelody && isSelectedMelody) {
         widget.toggleEditingMelody();
       } else {
         if (widget.editingMelody) {
@@ -796,7 +800,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           child: RaisedButton(
                               padding: EdgeInsets.all(0),
                               onPressed: toggleMelody,
-                              color: (widget.melody == widget.selectedMelody && !widget.editingMelody)
+                              color: (isSelectedMelody && !widget.editingMelody)
                                   ? widget.sectionColor
                                   : Color(0xFFDDDDDD),
                               child: Icon(Icons.remove_red_eye))),
@@ -806,13 +810,13 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           height: 36,
                           child: RaisedButton(
                               onPressed: () {
-                                if (widget.melody != widget.selectedMelody) {
+                                if (!isSelectedMelody) {
                                   widget.selectMelody(widget.melody);
                                 }
                                 widget.toggleEditingMelody();
                               },
                               padding: EdgeInsets.all(0),
-                              color: (widget.melody == widget.selectedMelody && widget.editingMelody)
+                              color: (isSelectedMelody && widget.editingMelody)
                                   ? widget.sectionColor
                                   : Color(0xFFDDDDDD),
                               child: Image.asset(
@@ -853,6 +857,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 
     return content;
   }
+
 
   @override
   void dispose() {

@@ -6,6 +6,10 @@ import 'generated/protos/music.pb.dart';
 import 'midi_theory.dart';
 import 'util.dart';
 
+const int defaultSectionBeats = 16;
+const int defaultSectionSubdivisionsPerBeat = 4;
+const int defaultSectionLength = defaultSectionSubdivisionsPerBeat * defaultSectionBeats;
+
 Chord cChromatic = Chord()
   ..rootNote = (NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural)
   ..chroma = 2047;
@@ -19,11 +23,6 @@ Melody baseMelody() => Melody()
   ..type = MelodyType.midi
   ..interpretationType = MelodyInterpretationType.fixed
   ..midiData = MidiData()
-;
-
-Melody defaultMelody() => baseMelody()
-  ..subdivisionsPerBeat = 4
-  ..length = 64
 ;
 
 Melody boomChick() => baseMelody()
@@ -92,12 +91,18 @@ Melody odeToJoy() => baseMelody()
     24: [2], 27: [0], 28: [0]
   }.map((key, value) => MapEntry(key + 32, value))));
 
+Melody defaultMelody() => baseMelody()
+  ..subdivisionsPerBeat = 12
+  ..length = defaultSectionBeats * 12
+  ..type = MelodyType.midi
+  ..midiData = MidiData()
+;
 
 Harmony defaultHarmony() =>
   Harmony()
     ..id = uuid.v4()
-    ..subdivisionsPerBeat = 4
-    ..length = 128
+    ..subdivisionsPerBeat = defaultSectionSubdivisionsPerBeat
+    ..length = defaultSectionLength
     ..data.addAll({
       0: cChromatic,
 //      32: cMinor,

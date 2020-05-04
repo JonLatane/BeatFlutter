@@ -25,7 +25,7 @@ import 'midi_theory.dart';
 class MelodyRenderer extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final Score score;
-  final Section section;
+  final Section currentSection;
   final Color sectionColor;
   final Melody focusedMelody;
   final RenderingMode renderingMode;
@@ -42,7 +42,7 @@ class MelodyRenderer extends StatefulWidget {
   const MelodyRenderer(
       {Key key,
       this.score,
-      this.section, this.sectionColor,
+      this.currentSection, this.sectionColor,
       this.xScale,
       this.yScale,
       this.focusedMelody,
@@ -62,7 +62,7 @@ Rect melodyRendererVisibleRect = Rect.zero;
 class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStateMixin {
   bool get isViewingSection => widget.melodyViewMode != MelodyViewMode.score;
 
-  int get numberOfBeats => isViewingSection ? widget.section.harmony.beatCount : widget.score.beatCount;
+  int get numberOfBeats => isViewingSection ? widget.currentSection.harmony.beatCount : widget.score.beatCount;
 
   double get xScale => widget.xScale;
 
@@ -97,9 +97,14 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   ValueNotifier<Part> colorboardPart;
   ValueNotifier<Part> focusedPart;
   ValueNotifier<Color> sectionColor;
+
+  ScrollController timeScrollController;
+  int previousBeat;
+
   @override
   void initState() {
     super.initState();
+    timeScrollController = ScrollController();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
     colorGuideOpacityNotifier = ValueNotifier(0);
@@ -133,19 +138,37 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     String key = widget.score.id;
-    if (widget.section != null) {
-      key = widget.section.toString();
+    if (widget.currentSection != null) {
+      key = widget.currentSection.toString();
     }
     _animateOpacitiesAndScale();
     _animateStaffAndPartPositions();
     focusedPart.value = widget.focusedPart;
     sectionColor.value = widget.sectionColor;
     animationController.forward(from: 0);
+
+    int currentBeat = BeatScratchPlugin.currentBeat.value;
+    if(widget.melodyViewMode == MelodyViewMode.score) {
+      int sectionIndex = 0;
+      Section section = widget.score.sections[sectionIndex++];
+      while(section.id != widget.currentSection.id) {
+        currentBeat += section.beatCount;
+        section = widget.score.sections[sectionIndex++];
+      }
+    }
+    if(previousBeat != currentBeat) {
+      previousBeat = currentBeat;
+      double animationBeat = (currentBeat) * xScale * unscaledStandardBeatWidth;
+      if (animationBeat + MediaQuery.of(context).size.width / 3 < overallCanvasWidth) {
+        timeScrollController.animateTo(animationBeat, duration: Duration(seconds: 1), curve: Curves.ease);
+      }
+    }
     return SingleChildScrollView(
 //        key: Key(key),
         child: Container(
             height: overallCanvasHeight,
             child: CustomScrollView(
+              controller: timeScrollController,
               scrollDirection: Axis.horizontal,
               slivers: [
                 new CustomSliverToBoxAdapter(
@@ -158,7 +181,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                     painter: new MusicSystemPainter(
                         sectionScaleNotifier: sectionScaleNotifier,
                         score: widget.score,
-                        section: widget.section,
+                        section: widget.currentSection,
                         melodyViewMode: widget.melodyViewMode,
                         xScale: widget.xScale,
                         yScale: widget.yScale,
@@ -817,5 +840,13 @@ class MusicSystemPainter extends CustomPainter {
   @override
   bool shouldRepaint(MusicSystemPainter oldDelegate) {
     return false;
+  }
+}
+
+class _NoBehavior extends ScrollBehavior {
+  @override
+  Widget buildViewportChrome(
+    BuildContext context, Widget child, AxisDirection axisDirection) {
+    return child;
   }
 }

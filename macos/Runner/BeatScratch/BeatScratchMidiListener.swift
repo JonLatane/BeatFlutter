@@ -19,29 +19,11 @@ class BeatScratchMidiListener : AKMIDIListener {
     }
   }
   var conductorChannel: Int = 0
-  
-  // Return the number of bytes processed
-  static func parseFirstMidiCommand(args: [UInt8]) -> Int {
-    let conductor = Conductor.sharedInstance
-    if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
-      //                    print("noteOn");
-      conductor.playNote(note: args[1], velocity: args[2], channel: args[0] & 0xF)
-      return 3
-    } else if((args[0] & 0xF0) == 0x80) {
-      //                    print("noteOff");
-      conductor.stopNote(note: args[1], channel: args[0] & 0xF)
-      return 3
-    } else {
-      print("unmatched MIDI bytes:");
-      print(args);
-      return 0
-    }
-  }
 
   let timeoutSeconds = 30
   func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note on")
-    Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel))
+    Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel), record: true)
     if !controllerPressedNotes.contains(where: { $0.key == portID }) {
       controllerPressedNotes[portID] = []
     }
@@ -51,7 +33,7 @@ class BeatScratchMidiListener : AKMIDIListener {
   
   func receivedMIDINoteOff(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
     print("received midi note off")
-    Conductor.sharedInstance.stopNote(note: noteNumber, channel: UInt8(conductorChannel))
+    Conductor.sharedInstance.stopNote(note: noteNumber, channel: UInt8(conductorChannel), record: true)
     controllerPressedNotes[portID]?.removeAll { $0 == noteNumber }
     BeatScratchPlugin.sharedInstance.sendPressedMidiNotes()
   }

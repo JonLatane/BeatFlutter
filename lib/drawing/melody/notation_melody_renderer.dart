@@ -147,6 +147,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           relevantMelodies: otherMelodiesOnStaff.followedBy([melody]),
         );
         if(previousSigns.length == 1) {
+          print("Multiple previous signs found!");
           previousSign = previousSigns.first;
         }
 //        val previousSign = previousSignOf(melody, harmony, note, elementPosition)
@@ -307,7 +308,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 //    print("Rendering sign: $sign");
     canvas.save();
     canvas.translate(signRect.topLeft.dx, signRect.topLeft.dy);
-    Path signPath = _sharpPath;
+    Path signPath;
     switch(sign) {
       case NoteSign.sharp:
         signPath = _sharpPath;
@@ -328,11 +329,16 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         canvas.translate(-119.009,-441.814);
         break;
       case NoteSign.natural:
-      default:
         signPath = _naturalPath;
+        canvas.scale(.27 * minScale, .27 * minScale);
+//        canvas.translate(-84.19600,-436.0680 + 1);
+        break;
+      default:
         break;
     }
-    canvas.drawPath(signPath, alphaDrawerPaint);
+    if(signPath != null) {
+      canvas.drawPath(signPath, alphaDrawerPaint);
+    }
     canvas.restore();
   }
 

@@ -349,7 +349,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               MelodyRenderer(
                 melodyViewMode: widget.melodyViewMode,
                 score: widget.score,
-                section: widget.currentSection,
+                currentSection: widget.currentSection,
                 sectionColor: widget.sectionColor,
                 colorboardNotesNotifier: widget.colorboardNotesNotifier,
                 keyboardNotesNotifier: widget.keyboardNotesNotifier,

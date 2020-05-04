@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
@@ -104,6 +105,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _showMelodyView();
       var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
       _setKeyboardPart(part);
+      BeatScratchPlugin.setRecordingMelody(selectedMelody);
+    } else {
+      BeatScratchPlugin.setRecordingMelody(null);
     }
   }
 
@@ -233,6 +237,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
+        if(editingMelody) {
+          BeatScratchPlugin.setRecordingMelody(melody);
+        }
         melodyViewMode = MelodyViewMode.melody;
         _showMelodyView();
       } else {
@@ -429,6 +436,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _tapInBeat = null;
           _forceShowTapInBar = false;
         });
+      });
+    };
+    BeatScratchPlugin.onRecordingMelodyUpdated = (melody) {
+      setState(() {
+//        final midiData = melody.midiData;
+        final part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
+        final index = part.melodies.indexWhere((m) => m.id == melody.id);
+        print("Replacing ${part.melodies[index]} with $melody");
+        part.melodies[index] = melody;
+        clearMutableCaches();
+//        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });
     };
     keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
@@ -921,6 +939,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _partMelodiesView(BuildContext context, double availableWidth) {
     return PartMelodiesView(
+      melodyViewMode: melodyViewMode,
       superSetState: setState,
       currentSection: currentSection,
       score: _score,
@@ -1012,8 +1031,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       deleteMelody: (melody) {
         setState(() {
           if (melody == this.selectedMelody) {
-            Part part = this._score.parts.firstWhere((part) => part.melodies.contains(melody));
-            int index = part.melodies.indexOf(melody);
+            Part part = this._score.parts.firstWhere((part) => part.melodies.any((m) => m.id == melody.id));
+            int index = part.melodies.indexWhere((m) => m.id == melody.id);
             if (index > 0) {
               index = index - 1;
             } else {
@@ -1027,7 +1046,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           }
           _score.parts.forEach((part) {
-            part.melodies.remove(melody);
+            part.melodies.removeWhere((m) => m.id == melody.id);
           });
           _score.sections.forEach((section) {
             section.melodies.removeWhere((ref) => ref.melodyId == melody.id);

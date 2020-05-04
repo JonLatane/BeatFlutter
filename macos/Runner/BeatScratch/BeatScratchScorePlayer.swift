@@ -31,13 +31,12 @@ class BeatScratchScorePlayer {
   var currentSection: Section = Section() {
     didSet {
       if(oldValue != currentSection) {
-        Conductor.sharedInstance.stopPlayingNotes()
+//        Conductor.sharedInstance.stopPlayingNotes()
       }
     }
   }
   var currentTick: Int64 = 0
   private var chord: Chord = cChromatic
-  var harmony: Harmony { return currentSection.harmony }
   var activeAttacks: Array<Attack> = []
   var outgoingAttacks: Array<Attack> = []
   var upcomingAttacks: Array<Attack> = []
@@ -45,8 +44,9 @@ class BeatScratchScorePlayer {
   private init() {}
   
   func tick() {
+    let harmony = currentSection.harmony
     if currentTick >= Int(24 * Double(harmony.length) / Double(harmony.subdivisionsPerBeat)) {
-      Conductor.sharedInstance.stopPlayingNotes()
+//      Conductor.sharedInstance.stopPlayingNotes()
       let sectionIndex = score.sections.firstIndex(of: currentSection) ?? -1
       currentTick = 0
       if playbackMode == Playback.Mode.score {
@@ -67,8 +67,12 @@ class BeatScratchScorePlayer {
     if beatMod == 0 {
       playMetronome()
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
+      MelodyRecorder.sharedInstance.tickBeat()
     }
     doTick()
+    if playbackMode == Playback.Mode.score {
+      doPreviousSectionTickNoteOffs()
+    }
     currentTick += 1
   }
   
@@ -76,7 +80,7 @@ class BeatScratchScorePlayer {
     Conductor.sharedInstance.playNote(note: 75, velocity: 127, channel: 9)
   }
   
-  private var harmonyPosition: Int {
+  private func harmonyPosition(harmony: Harmony) -> Int {
     return Int(currentTick).convertSubdivisionPosition(
       fromSubdivisionsPerBeat: 24,
       toSubdivisionsPerBeat: Int(harmony.subdivisionsPerBeat)
@@ -117,6 +121,28 @@ class BeatScratchScorePlayer {
         let melodyReference = $0
         if let melody: Melody = melodyReference.melodyFrom(palette) {
           handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume)
+        }
+      }
+    }
+  }
+  
+  private func doPreviousSectionTickNoteOffs() {
+    //    print("BeatScratchScorePlayer: processing tick \(currentTick)")
+    let palette = BeatScratchPlugin.sharedInstance.score
+    let sectionIndex = BeatScratchPlugin.sharedInstance.score.sections.firstIndex { $0.id == currentSection.id } ?? 0
+    if sectionIndex >= 1 {
+      let previousSection: Section = BeatScratchPlugin.sharedInstance.score.sections[sectionIndex - 1]
+      palette.parts.forEach {
+        let part = $0
+        previousSection.melodies.filter {
+          let reference = $0
+          return reference.playbackType != MelodyReference.PlaybackType.disabled
+            && part.melodies.contains { $0.id == reference.melodyID }
+        }.forEach {
+          let melodyReference = $0
+          if let melody: Melody = melodyReference.melodyFrom(palette) {
+            handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume)
+          }
         }
       }
     }

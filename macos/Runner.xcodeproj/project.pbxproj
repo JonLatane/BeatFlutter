@@ -34,6 +34,7 @@
 		33A494C2245B2EB000A75369 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C1245B2EB000A75369 /* Patterns.swift */; };
 		33A494C4245B315F00A75369 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C3245B315F00A75369 /* Base24Conversion.swift */; };
 		33A494C6245B3CC600A75369 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C5245B3CC600A75369 /* MusicTheory.swift */; };
+		33A494D2245F750100A75369 /* MelodyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494D1245F750100A75369 /* MelodyRecorder.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
@@ -89,6 +90,7 @@
 		33A494C1245B2EB000A75369 /* Patterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
 		33A494C3245B315F00A75369 /* Base24Conversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
 		33A494C5245B3CC600A75369 /* MusicTheory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
+		33A494D1245F750100A75369 /* MelodyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MelodyRecorder.swift; sourceTree = "<group>"; };
 		33CC10ED2044A3C60003C045 /* BeatFlutter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeatFlutter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		33CC10F22044A3C60003C045 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Runner/Assets.xcassets; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 				33A494C1245B2EB000A75369 /* Patterns.swift */,
 				33A494C3245B315F00A75369 /* Base24Conversion.swift */,
 				33A494C5245B3CC600A75369 /* MusicTheory.swift */,
+				33A494D1245F750100A75369 /* MelodyRecorder.swift */,
 			);
 			path = BeatScratch;
 			sourceTree = "<group>";
@@ -446,6 +449,7 @@
 				330DD9E62441149500FC0203 /* music.pb.swift in Sources */,
 				33A494C4245B315F00A75369 /* Base24Conversion.swift in Sources */,
 				33F24245243A4DEC00B1FC1B /* FilterSection.swift in Sources */,
+				33A494D2245F750100A75369 /* MelodyRecorder.swift in Sources */,
 				33F24246243A4DEC00B1FC1B /* PingPongDelay.swift in Sources */,
 				33A494BE2459073D00A75369 /* BeatScratchPlaybackThread.swift in Sources */,
 			);
