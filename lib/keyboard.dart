@@ -39,12 +39,12 @@ class Keyboard extends StatefulWidget {
       : super(key: key);
 
   @override
-  _KeyboardState createState() => _KeyboardState();
+  KeyboardState createState() => KeyboardState();
 }
 
 Rect _visibleRect = Rect.zero;
 
-class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
+class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   static const double _minHalfStepWidthInPx = 5;
   static const double maxHalfStepWidthInPx = 500;
   double get minHalfStepWidthInPx => max(_minHalfStepWidthInPx, _minHalfStepWidthBasedOnScreenSize);
@@ -460,7 +460,12 @@ class _KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     ]);
   }
 
+  static final Map<ArgumentList, int> diatonicToneCache = Map();
   int diatonicTone(double left) {
+    final key = ArgumentList([left, lowestPitch, halfStepWidthInPx]);
+    return diatonicToneCache.putIfAbsent(key, () => _diatonicTone(left));
+  }
+  int _diatonicTone(double left) {
     left += (lowestPitch - CanvasToneDrawer.BOTTOM) * halfStepWidthInPx;
     int diatonicTone = ((left + 0.245 * diatonicStepWidthInPx) / diatonicStepWidthInPx).floor() - 23;
     int octave = (diatonicTone + 28) ~/ 7;

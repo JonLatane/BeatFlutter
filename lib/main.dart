@@ -112,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Section _currentSection = initialScore.sections[0];
-  get currentSection => _currentSection;
+  Section get currentSection => _currentSection;
   set currentSection(Section section) {
     _currentSection = section;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -896,6 +896,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       scrollDirection: scrollDirection,
       currentSection: currentSection,
       selectSection: _selectSection,
+      insertSection: _insertSection,
     );
     _sectionLists.add(result);
     return result;
@@ -1029,6 +1030,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       },
       deleteMelody: (melody) {
+        BeatScratchPlugin.deleteMelody(melody);
         setState(() {
           if (melody == this.selectedMelody) {
             Part part = this._score.parts.firstWhere((part) => part.melodies.any((m) => m.id == melody.id));
@@ -1055,8 +1057,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       },
       deleteSection: (section) {
         setState(() {
-          if (section == this.currentSection) {
-            int index = this._score.sections.indexOf(section);
+          if (section.id == this.currentSection.id) {
+            int index = this._score.sections.indexWhere((s) => s.id == section.id);
             if (index > 0) {
               index = index - 1;
             } else {
@@ -1064,8 +1066,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
             this.currentSection = this._score.sections[index];
           }
-          _score.sections.remove(section);
+          _score.sections.removeWhere((s) => s.id == section.id);
         });
+        BeatScratchPlugin.updateSections(_score);
       },
       selectBeat: (beat) {
         if(interactionMode == InteractionMode.view) {
@@ -1085,8 +1088,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         } else {
           BeatScratchPlugin.setBeat(beat);
         }
-      }
+      },
+      cloneCurrentSection: () {
+        if (currentSection.name == null || currentSection.name.trim().isEmpty) {
+          currentSection.name = "Verse 1";
+        }
+        Section section = currentSection.clone();
+        section.id = uuid.v4();
+        final match = RegExp(r"^(.*?)(\d*)$",).allMatches(section.name).first;
+        String prefix = match.group(1);
+        prefix = prefix.trim();
+        int number = int.tryParse(match.group(2)) ?? 1;
+        section.name = "$prefix ${number + 1}";
+        section.melodies.clear();
+        section.melodies.addAll(currentSection.melodies.map((e) => e.clone().copyWith((e) {})));
+        _insertSection(section);
+      },
     );
+  }
+
+  _insertSection(Section newSection) {
+    int currentSectionIndex = _score.sections.indexOf(currentSection);
+    _score.sections.insert(currentSectionIndex + 1, newSection);
+    BeatScratchPlugin.updateSections(_score);
+    _selectSection(newSection);
   }
 
   AnimatedContainer _midiSettings(BuildContext context) {

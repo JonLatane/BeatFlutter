@@ -74,6 +74,11 @@ class BeatScratchPlugin {
             result(nil)
           }
           break
+        case "deletePart":
+          let partId = call.arguments as! String
+          self.score.parts.removeAll { $0.id == partId }
+          result(nil)
+          break
         case "newMelody":
           let melody = try Melody(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           self.newMelodies.append(melody)
@@ -106,6 +111,16 @@ class BeatScratchPlugin {
             result(FlutterError(code: "500", message: "Melody not found in any Part", details: "nope"))
           }
           self.newMelodies.append(melody)
+          result(nil)
+          break
+        case "deleteMelody":
+          let melodyId = call.arguments as! String
+          self.score.parts.forEach {
+            var part = $0
+            part.melodies.removeAll { $0.id == melodyId }
+            self.score.parts.removeAll { $0.id == part.id }
+            self.score.parts.append(part)
+          }
           result(nil)
           break
         case "setKeyboardPart":

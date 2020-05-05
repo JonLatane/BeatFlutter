@@ -39,9 +39,10 @@ class MelodyView extends StatefulWidget {
   final double height;
   final bool enableColorboard;
   final Function(int) selectBeat;
+  final Function cloneCurrentSection;
 
   MelodyView(
-      {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor,
+      {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor, this.cloneCurrentSection,
         this.superSetState,
       this.melodyViewMode,
       this.score,
@@ -212,6 +213,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       setSectionName: widget.setSectionName,
                       deleteSection: widget.deleteSection,
                       canDeleteSection: widget.score.sections.length > 1,
+                      cloneCurrentSection: widget.cloneCurrentSection,
                     )),
                     AnimatedContainer(
                       duration: animationDuration,

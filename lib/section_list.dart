@@ -16,6 +16,7 @@ class SectionList extends StatefulWidget {
   final Color sectionColor;
   final Section currentSection;
   final Function(Section) selectSection;
+  final Function(Section) insertSection;
   final Function(VoidCallback) setState;
 
   const SectionList(
@@ -24,6 +25,7 @@ class SectionList extends StatefulWidget {
       this.score,
       this.currentSection,
       this.selectSection,
+      this.insertSection,
       this.sectionColor,
       this.setState})
       : super(key: key);
@@ -37,6 +39,7 @@ class _SectionListState extends State<SectionList> {
 
   @override
   Widget build(BuildContext context) {
+    _animateToNewlySelectedSection();
     return (widget.scrollDirection == Axis.horizontal)
         ? Row(children: [
             Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
@@ -50,7 +53,7 @@ class _SectionListState extends State<SectionList> {
                   onPressed: widget.score.sections.length < 100
                       ? () {
                           print("inserting section");
-                          insertSection();
+                          widget.insertSection(defaultSection());
                         }
                       : null,
                 ))
@@ -66,7 +69,7 @@ class _SectionListState extends State<SectionList> {
                         onPressed: widget.score.sections.length < 100
                             ? () {
                                 print("inserting section");
-                                insertSection();
+                                widget.insertSection(defaultSection());
                               }
                             : null,
                       )))
@@ -74,25 +77,20 @@ class _SectionListState extends State<SectionList> {
           ]);
   }
 
-  insertSection() {
-    Section newSection = defaultSection();
-    int currentSectionIndex = widget.score.sections.indexOf(widget.currentSection);
-    widget.score.sections.insert(currentSectionIndex + 1, newSection);
-    BeatScratchPlugin.updateSections(widget.score);
-    widget.setState(() {
-      setState(() {
-        widget.selectSection(newSection);
-      });
-    });
-    int index = widget.score.sections.indexOf(newSection);
-    if (widget.scrollDirection == Axis.horizontal) {
-      double position = 150.0 * (index - 1);
-      position = min(_scrollController.position.maxScrollExtent + 300, position);
-      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-    } else {
-      double position = 36.0 * (index - 1);
-      position = min(_scrollController.position.maxScrollExtent + 72, position);
-      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+  Section _previousSection;
+  _animateToNewlySelectedSection() {
+    if(_previousSection != null && _previousSection.id != widget.currentSection.id) {
+      int index = widget.score.sections.indexOf(widget.currentSection);
+      if (widget.scrollDirection == Axis.horizontal) {
+        double position = 150.0 * (index - 1);
+        position = min(_scrollController.position.maxScrollExtent + 300, position);
+        _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+      } else {
+        double position = 36.0 * (index - 1);
+        position = min(_scrollController.position.maxScrollExtent + 72, position);
+        _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+      }
+      _previousSection = widget.currentSection;
     }
   }
 

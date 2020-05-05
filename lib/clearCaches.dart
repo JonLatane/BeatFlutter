@@ -2,6 +2,7 @@ import 'package:beatscratch_flutter_redux/drawing/melody/melody.dart';
 
 import 'music_theory.dart';
 import 'midi_theory.dart';
+import 'keyboard.dart';
 
 clearMutableCaches() {
   _mutableCaches.forEach((element) {
@@ -23,4 +24,5 @@ var _deterministicCaches = [
   ClefNotes.diatonicMaxCache,
   ClefNotes.diatonicMinCache,
   ClefNotes.ledgersToCache,
+  KeyboardState.diatonicToneCache,
 ];

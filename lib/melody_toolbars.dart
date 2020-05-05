@@ -389,6 +389,7 @@ class SectionToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final Function(Section, String) setSectionName;
   final Function(Section) deleteSection;
+  final Function cloneCurrentSection;
   final bool editingSection;
 
   const SectionToolbar(
@@ -399,7 +400,7 @@ class SectionToolbar extends StatefulWidget {
       this.setSectionName,
       this.deleteSection,
       this.canDeleteSection,
-      this.editingSection})
+      this.editingSection, this.cloneCurrentSection})
       : super(key: key);
 
   @override
@@ -500,7 +501,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-              onPressed: null,
+              onPressed: widget.cloneCurrentSection,
               padding: EdgeInsets.zero,
               child: AnimatedOpacity(
                   duration: animationDuration,
