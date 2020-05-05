@@ -25,6 +25,7 @@
 		33A494CE245B980700A75369 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C9245B980700A75369 /* MusicTheory.swift */; };
 		33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CA245B980700A75369 /* Base24Conversion.swift */; };
 		33A494D0245B980700A75369 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CB245B980700A75369 /* Patterns.swift */; };
+		33A494D42460BB4200A75369 /* MelodyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494D32460BB4200A75369 /* MelodyRecorder.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -69,6 +70,7 @@
 		33A494C9245B980700A75369 /* MusicTheory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
 		33A494CA245B980700A75369 /* Base24Conversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
 		33A494CB245B980700A75369 /* Patterns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
+		33A494D32460BB4200A75369 /* MelodyRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MelodyRecorder.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 		336B79F424522A62004DA1C5 /* BeatScratch */ = {
 			isa = PBXGroup;
 			children = (
+				33A494D32460BB4200A75369 /* MelodyRecorder.swift */,
 				33A494CA245B980700A75369 /* Base24Conversion.swift */,
 				33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */,
 				33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */,
@@ -390,6 +393,7 @@
 				3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */,
 				33A494D0245B980700A75369 /* Patterns.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				33A494D42460BB4200A75369 /* MelodyRecorder.swift in Sources */,
 				336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */,
 				336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
 				33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */,
@@ -493,7 +497,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -628,7 +632,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -656,7 +660,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";

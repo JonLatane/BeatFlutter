@@ -599,7 +599,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   ),
                 )),
             if (part.instrument.type == InstrumentType.harmonic)
-              buildAddMelodyButton(backgroundColor, textColor, odeToJoy()),
+              buildAddMelodyButton(backgroundColor, textColor, odeToJoyA()),
+            if (part.instrument.type == InstrumentType.harmonic)
+              buildAddMelodyButton(backgroundColor, textColor, odeToJoyB()),
             if (part.instrument.type == InstrumentType.drum)
               buildAddMelodyButton(backgroundColor, textColor, boom()),
             if (part.instrument.type == InstrumentType.drum)

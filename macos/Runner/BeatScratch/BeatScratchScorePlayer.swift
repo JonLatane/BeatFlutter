@@ -69,10 +69,10 @@ class BeatScratchScorePlayer {
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
       MelodyRecorder.sharedInstance.tickBeat()
     }
-    doTick()
     if playbackMode == Playback.Mode.score {
       doPreviousSectionTickNoteOffs()
     }
+    doTick()
     currentTick += 1
   }
   
@@ -130,7 +130,7 @@ class BeatScratchScorePlayer {
     //    print("BeatScratchScorePlayer: processing tick \(currentTick)")
     let palette = BeatScratchPlugin.sharedInstance.score
     let sectionIndex = BeatScratchPlugin.sharedInstance.score.sections.firstIndex { $0.id == currentSection.id } ?? 0
-    if sectionIndex >= 1 {
+    if sectionIndex >= 1 && currentTick / 24 <= 4 {
       let previousSection: Section = BeatScratchPlugin.sharedInstance.score.sections[sectionIndex - 1]
       palette.parts.forEach {
         let part = $0
@@ -141,21 +141,21 @@ class BeatScratchScorePlayer {
         }.forEach {
           let melodyReference = $0
           if let melody: Melody = melodyReference.melodyFrom(palette) {
-            handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume)
+            handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume, playNoteOns: false)
           }
         }
       }
     }
   }
   
-  func handleCurrentTickPosition(_ melodyReference: MelodyReference, _ melody: Melody, _ part: Part, volume: Float) {
+  func handleCurrentTickPosition(_ melodyReference: MelodyReference, _ melody: Melody, _ part: Part, volume: Float, playNoteOns: Bool = true) {
     let ticks = Base24Conversion.map[Int(melody.subdivisionsPerBeat)]!
     if let correspondingPosition = ticks.firstIndex(of: Int(currentTick) % Int(BeatScratchPlaybackThread.ticksPerBeat)) {
       let currentBeat = floor(Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat)
       let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
       if let midiData = melody.midiData.data[Int32(melodyPosition) % Int32(melody.length)] {
         let bytes = [UInt8](midiData.data)
-        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume)
+        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume, playNoteOns: playNoteOns)
         print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }

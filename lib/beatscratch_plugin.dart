@@ -110,7 +110,7 @@ class BeatScratchPlugin {
   ];
 
   static final bool supportsPlayback = Platform.isIOS || Platform.isMacOS || kDebugMode;
-  static final bool supportsRecording = false;
+  static final bool supportsRecording = Platform.isIOS || Platform.isMacOS || kDebugMode;
 
   static void _checkSynthesizerStatus() async {
     bool resultStatus;

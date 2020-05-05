@@ -189,10 +189,12 @@ class Conductor {
   func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, record: Bool = false) {
     print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel), record=\(record)")
     do {
-      if playingNotes[channel] == nil {
-        playingNotes[channel] = []
+      var notes: Array<MIDINoteNumber>? = playingNotes[channel]
+      if notes == nil {
+        notes = Array()
       }
-      try playingNotes[channel]!.append(note)
+      notes!.append(note)
+      playingNotes[channel] = notes
       try channelSamplers[UInt32(channel)]?.play(noteNumber: note, velocity: velocity)
       if(record) {
         try MelodyRecorder.sharedInstance.notifyNotePlayed(note: note, velocity: velocity, channel: channel)
@@ -229,26 +231,28 @@ class Conductor {
   }
   
   // Return the total number of bytes processed
-  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false) -> Int {
+  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false, playNoteOns: Bool = true) -> Int {
     var bytes = [UInt8](midiData)
-    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record)
+    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns)
     var totalBytesProcessed = bytesProcessed
     while(bytes.count > bytesProcessed) {
       bytes.removeFirst(max(1,bytesProcessed))
-      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record)
+      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns)
       totalBytesProcessed += bytesProcessed
     }
     return totalBytesProcessed
   }
   
   // Return the number of bytes processed
-  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool) -> Int {
+  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool, _ playNoteOns: Bool) -> Int {
     if(args.count == 0) { return 0 }
-    if((args[0] & 0xF0) == 0x90) { // For now the UI can only send noteOn or noteOff events.
-      let noteNumber = args[1]
-      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
-      let channel = channelOverride ?? args[0] & 0xF
-      playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
+    if((args[0] & 0xF0) == 0x90) { // noteOn
+      if(playNoteOns) {
+        let noteNumber = args[1]
+        let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
+        let channel = channelOverride ?? args[0] & 0xF
+        playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
+      }
       return 3
     } else if((args[0] & 0xF0) == 0x80) {
       let noteNumber = args[1]

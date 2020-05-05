@@ -38,6 +38,7 @@ class MelodyRenderer extends StatefulWidget {
   final Part keyboardPart;
   final Part colorboardPart;
   final double height;
+  final double width;
 
   const MelodyRenderer(
       {Key key,
@@ -50,7 +51,7 @@ class MelodyRenderer extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
-      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.height})
+      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.width, this.height})
       : super(key: key);
 
   @override
@@ -158,8 +159,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     }
     if(previousBeat != currentBeat) {
       previousBeat = currentBeat;
-      double animationBeat = (currentBeat) * xScale * unscaledStandardBeatWidth;
-      if (animationBeat + MediaQuery.of(context).size.width / 3 < overallCanvasWidth) {
+      final beatWidth = xScale * unscaledStandardBeatWidth;
+      double animationBeat = (currentBeat) * beatWidth;
+      if (animationBeat - 2*beatWidth + widget.width < overallCanvasWidth) {
         timeScrollController.animateTo(animationBeat, duration: Duration(seconds: 1), curve: Curves.ease);
       }
     }

@@ -90,6 +90,8 @@ class MelodyRecorder {
         let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
         var subdivision = Int32((normalizedProgress * Double(melody.subdivisionsPerBeat)).rounded())
         subdivision += Int32(beat) * Int32(melody.subdivisionsPerBeat)
+        subdivision = (subdivision + Int32(melody.length)) % Int32(melody.length)
+        
         melody.midiData.data.computeUpdate(subdivision) {
           var change = $0 ?? MidiChange()
           change.data.append(contentsOf: value)

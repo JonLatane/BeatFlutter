@@ -304,6 +304,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     } else {
       staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
     }
+    var width = MediaQuery.of(context).size.width / 2;
+    if (context.isPortrait && widget.splitMode == SplitMode.half) {
+      width = width / 2;
+    }
     return Container(
         color: Colors.white,
         child: GestureDetector(
@@ -361,9 +365,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 focusedPart: mainPart,
                 keyboardPart: widget.keyboardPart,
                 colorboardPart: widget.colorboardPart,
-                height: widget.height
+                height: widget.height,
+                width: width,
               ),
-              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
+              Align(alignment: Alignment.bottomRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
                 Container(
                   width: 36,
                   child: RaisedButton(
