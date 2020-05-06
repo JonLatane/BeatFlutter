@@ -715,7 +715,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF424242),
       child: Row(children: [
         AnimatedContainer(duration: Duration(milliseconds: 35), padding: EdgeInsets.only(left: 5),
-          width: !playing && tapInBeat == null ? 37 : 0,
+          width: !playing && tapInBeat == null ? 42 : 0,
           child: RaisedButton(child: Text( !playing && tapInBeat == null ? "3" : ""),
             onPressed: tapInBeat == null ? () {
               BeatScratchPlugin.countIn(-2);
@@ -729,7 +729,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               });
             } : null, padding: EdgeInsets.zero,)),
         AnimatedContainer(duration: Duration(milliseconds: 120), padding: EdgeInsets.only(left: 5),
-          width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 37 : 0,
+          width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0,
           child: RaisedButton(child: Text("4"),
             onPressed: _tapInBeat == -2 ? () {
               BeatScratchPlugin.countIn(-1);
@@ -774,6 +774,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
               ]))
           ]))),
+        Container(width: 42, padding: EdgeInsets.only(right:5), child:
+        RaisedButton(
+          padding: EdgeInsets.all(5),
+          color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
+          child: Image.asset('assets/metronome.png'),
+          onPressed: () {
+            setState(() {
+              BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
+            });
+          },))
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
 //          child: RaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),
 //            color: chromaticSteps[0],
@@ -1101,7 +1111,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int number = int.tryParse(match.group(2)) ?? 1;
         section.name = "$prefix ${number + 1}";
         section.melodies.clear();
-        section.melodies.addAll(currentSection.melodies.map((e) => e.clone().copyWith((e) {})));
+        section.melodies.addAll(currentSection.melodies.map((e) => e.clone()));
         _insertSection(section);
       },
     );

@@ -319,7 +319,7 @@ class SecondToolbar extends StatelessWidget {
                 child: Image.asset('assets/piano.png', width: 28, height: 28),
                 onPressed: toggleKeyboard,
                 onLongPress: toggleKeyboardConfiguration,
-                color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : null,
+                color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
               ))),
       AnimatedContainer(
           width: (enableColorboard) ? width / numberOfButtons : 0,
@@ -333,7 +333,7 @@ class SecondToolbar extends StatelessWidget {
                     child: Image.asset('assets/colorboard.png')),
                 onPressed: toggleColorboard,
                 onLongPress: toggleColorboardConfiguration,
-                color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : null,
+                color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
               )))
     ]);
   }

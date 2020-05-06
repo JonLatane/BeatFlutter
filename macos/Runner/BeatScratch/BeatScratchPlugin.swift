@@ -176,6 +176,10 @@ class BeatScratchPlugin {
           let melodyId: String? = call.arguments as! String?
           MelodyRecorder.sharedInstance.recordingMelodyId = melodyId
           break
+        case "setMetronomeEnabled":
+          let metronomeEnabled: Bool = call.arguments as! Bool
+          BeatScratchScorePlayer.sharedInstance.metronomeEnabled = metronomeEnabled
+          break
         default:
           result(FlutterMethodNotImplemented)
           break

@@ -11,6 +11,7 @@ import AudioKit
 
 class BeatScratchScorePlayer {
   static let sharedInstance = BeatScratchScorePlayer()
+  var metronomeEnabled: Bool = true
   var score: Score { return BeatScratchPlugin.sharedInstance.score }
   struct Attack {
     var part: Part
@@ -77,7 +78,9 @@ class BeatScratchScorePlayer {
   }
   
   func playMetronome() {
-    Conductor.sharedInstance.playNote(note: 75, velocity: 127, channel: 9)
+    if metronomeEnabled {
+      Conductor.sharedInstance.playNote(note: 75, velocity: 127, channel: 9)
+    }
   }
   
   private func harmonyPosition(harmony: Harmony) -> Int {

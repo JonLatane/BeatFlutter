@@ -12,6 +12,12 @@ import 'package:flutter/services.dart';
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
+  static bool _metronomeEnabled = true;
+  static bool get metronomeEnabled => _metronomeEnabled;
+  static set metronomeEnabled(bool value) {
+    _metronomeEnabled = value;
+    _channel.invokeMethod('setMetronomeEnabled', value);
+  }
   static bool _playing;
   static bool get playing {
     if(_playing == null) {
@@ -265,7 +271,6 @@ class BeatScratchPlugin {
   }
 
   static void tickBeat() async {
-    print("Invoked countIn");
     _channel.invokeMethod('tickBeat');
   }
 
