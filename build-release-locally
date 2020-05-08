@@ -24,7 +24,6 @@ echo "Manually upload appbundle!"
 open "build/app/outputs/bundle/release/"
 open "https://play.google.com/apps/publish/?account=8301034569696927852#ManageReleaseTrackPlace:p=io.beatscratch.beatscratch_flutter_redux&appid=4974878702686446069&releaseTrackId=4699356462545292031"
 echo "Building for web and copying to ../topologica-page/app-staging"
-flutter build web
-cp -r build/web/* ../topologica-page/app-staging
+flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true && cp -r build/web/* ../topologica-page/app-staging
 
 #flutter channel master

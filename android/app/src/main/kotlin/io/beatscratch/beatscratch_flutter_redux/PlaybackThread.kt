@@ -1,12 +1,35 @@
 package io.beatscratch.beatscratch_flutter_redux
 
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyCountInInitiated
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPaused
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.currentTick
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.playMetronome
+import java.lang.System.currentTimeMillis
 
-internal class PlaybackThread : Thread() {
+var PlaybackThread = PlaybackThreadInstance()
+
+class PlaybackThreadInstance : Thread() {
   companion object {
     private const val subdivisionsPerBeat = 24 // This is the MIDI beat clock standard
   }
 
-  var stopped = true
+  var playing: Boolean = false
+    set(value) {
+      field = value
+      if(value) {
+        try {
+          synchronized(PlaybackThread) {
+            (PlaybackThread as Object).notify()
+          }
+        } catch(t: Throwable) {
+          logW("notify failed", t)
+        }
+      } else {
+        AndroidMidi.sendAllNotesOff(immediately = true)
+      }
+    }
+  var stopped: Boolean get() = !playing
+    set(value) { playing = !value }
   var terminated = false
   var bpm: Float = 123f
   
@@ -14,16 +37,16 @@ internal class PlaybackThread : Thread() {
     while (!terminated) {
       try {
         if (!stopped) {
-          val start = System.currentTimeMillis()
+          val start = currentTimeMillis()
           val tickTime: Long = (60000L / (bpm * subdivisionsPerBeat)).toLong()
-          logV("Tick @${BeatClockScoreConsumer.tickPosition} (T:${System.currentTimeMillis()}")
-          BeatClockScoreConsumer.tick()
-          while(System.currentTimeMillis() < start + tickTime) {
+//          logV("Tick @${ScorePlayer.currentTick} (T:${currentTimeMillis()}")
+          ScorePlayer.tick()
+          while(currentTimeMillis() < start + tickTime) {
             sleep(1L)
           }
         } else {
 //          BeatClockPaletteConsumer.viewModel?.editModeToolbar?.playButton?.imageResource = R.drawable.icons8_play_100
-          BeatClockScoreConsumer.clearActiveAttacks()
+//          ScorePlayer.clearActiveAttacks()
           AndroidMidi.flushSendStream()
           synchronized(PlaybackThread) {
             (PlaybackThread as Object).wait()
@@ -33,6 +56,25 @@ internal class PlaybackThread : Thread() {
       } catch (t: Throwable) {
         logE( "Error during background playback", t)
       }
+    }
+  }
+
+  private var beatMinus2: Long? = null
+  fun sendBeat() {
+    val time = currentTimeMillis()
+    if (playing) {
+      playing = false
+      notifyPaused()
+    } else if (beatMinus2 != null && time - beatMinus2!! < 3000) {
+      val periodMs = (time - beatMinus2!!).toFloat()
+      bpm = 60000/ periodMs
+      beatMinus2 = null
+      currentTick = -24
+      playing = true
+    } else {
+      playMetronome(immediately = true)
+      notifyCountInInitiated()
+      beatMinus2 = time
     }
   }
 

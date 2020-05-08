@@ -254,7 +254,7 @@ class Conductor {
         playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
       }
       return 3
-    } else if((args[0] & 0xF0) == 0x80) {
+    } else if((args[0] & 0xF0) == 0x80) { // noteOff
       let noteNumber = args[1]
 //      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
       let channel = channelOverride ?? args[0] & 0xF

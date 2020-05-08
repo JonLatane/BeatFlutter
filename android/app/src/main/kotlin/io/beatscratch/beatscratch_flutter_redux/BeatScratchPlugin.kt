@@ -1,16 +1,27 @@
 package io.beatscratch.beatscratch_flutter_redux
 
+import android.content.Intent
 import android.os.Handler
+import io.beatscratch.beatscratch_flutter_redux.AndroidMidi.sendAllNotesOff
+import io.beatscratch.beatscratch_flutter_redux.MelodyRecorder.recordingMelody
+import io.beatscratch.beatscratch_flutter_redux.MelodyRecorder.recordingMelodyId
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.currentTick
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.metronomeEnabled
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.playbackMode
+import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.ticksPerBeat
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiControllers
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
+import io.multifunctions.letCheckNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.beatscratch.commands.ProtobeatsPlugin.MidiNotes
+import org.beatscratch.commands.ProtobeatsPlugin
+import org.beatscratch.commands.ProtobeatsPlugin.*
 import org.beatscratch.models.Music
-import org.beatscratch.models.Music.Part
-import org.beatscratch.models.Music.Score
+import org.beatscratch.models.Music.*
 import kotlin.coroutines.CoroutineContext
 
 object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
@@ -26,7 +37,7 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       MidiDevices.refreshInstruments()
       tickPosition = 0
     }
-  var currentSection: Music.Section? = null
+  var currentSection: Section? = null
     set(value) {
       field = value
 //    viewModel?.melodyView?.post {
@@ -38,51 +49,53 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
   var keyboardPart: Part? = null
   var colorboardPart: Part? = null
 
-  //TODO probs port to a new Midi-centric proto?
-  enum class PlaybackMode { SECTION, PALETTE }
-
-  var playbackMode = PlaybackMode.PALETTE
+  private var newMelodies = mutableListOf<Melody>()
 
   override fun onMethodCall(call: MethodCall, result: Result) {
     when (call.method) {
       "sendMIDI"               -> {
-        logI("sendMIDI: Kotlin BeatScratchPlugin.onMethodCall")
-        AndroidMidi.sendImmediately(call.arguments as ByteArray)
+        AndroidMidi.sendImmediately(call.arguments as ByteArray, record = true)
+        result.success(null)
       }
-      "pushScore"              -> {
-        logI("pushScore: Kotlin BeatScratchPlugin.onMethodCall")
+      "createScore", "updateSections"              -> {
+//        logI("createScore: Kotlin BeatScratchPlugin.onMethodCall")
         try {
           val score: Score = Score.parseFrom(call.arguments as ByteArray)
-          currentScore = score
-          currentSection = score.sectionsList[0]
-          logI("deserialized score successfully: $score")
+          currentSection = score.sectionsList.firstOrNull { it.id == currentSection?.id }
+            ?: score.sectionsList[0]
+          if(call.method == "createScore") {
+            currentScore = score
+          } else if (call.method == "updateSections") {
+            currentScore = currentScore?.let { Score.newBuilder(it)
+              .clearSections()
+              .addAllSections(score.sectionsList)
+              .build() }
+//            currentScore?.sectionsList?.clear()
+//            currentScore?.sectionsList?.addAll(score.sectionsList)
+          }
+//          logI("deserialized score successfully: $score")
         } catch (e: Throwable) {
           logE("Failed to deserialize score", e)
           result.error("deserialize", "Failed to deserialize score", e)
         }
+        result.success(null)
       }
-      "pushPart"               -> {
-        logI("pushPart: Kotlin BeatScratchPlugin.onMethodCall")
+      "createPart", "updatePartConfiguration"              -> {
         try {
-          var part: Part = Part.parseFrom(call.arguments as ByteArray)
-          logI("deserialized part successfully: $part")
-          currentScore?.let { score ->
-            val oldPartIndex = score.partsList.indexOfFirst { it.id == part.id }.takeIf { it >= 0 }
-            val newScore = Score.newBuilder(score)
-            if (oldPartIndex != null) {
-              logI("updating existing Part at $oldPartIndex")
-              val oldPart = score.partsList[oldPartIndex];
-              part = Part.newBuilder(part)
-                .addAllMelodies(oldPart.melodiesList)
-                .build()
-              newScore.removeParts(oldPartIndex)
-            } else {
-              logI("adding new Part")
-            }
-            newScore.addParts(part)
-            currentScore = newScore.build()
-            part.instrument.sendSelectInstrument()
-            AndroidMidi.flushSendStream()
+          val part: Part = Part.parseFrom(call.arguments as ByteArray)
+          part.instrument.sendSelectInstrument()
+          AndroidMidi.flushSendStream()
+          if (call.method == "updatePartConfiguration") {
+            currentScore?.partsList?.firstOrNull { it.id == part.id }?.let { oldPart ->
+              part.melodiesList.clear()
+              part.melodiesList.addAll(oldPart.melodiesList)
+              currentScore?.partsList?.removeAll { it.id == part.id }
+              currentScore?.partsList?.add(part)
+              result.success(null)
+            } ?: result.error("500", "Part does not exist", "nope")
+          } else {
+            currentScore?.partsList?.add(part)
+            result.success(null)
           }
         } catch (e: Throwable) {
           logE("Failed to deserialize part", e)
@@ -92,22 +105,60 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       "deletePart"             -> {
         try {
           val partId = call.arguments as String
-          currentScore?.partsList?.removeIf { it.id == partId }
+          currentScore?.partsList?.removeAll { it.id == partId }
           result.success(null)
         } catch (e: Exception) {
           result.error("Cannot serialize data", null, e)
         }
       }
-      "playNote"               -> {
-        try {
-          val args: List<Any> = call.arguments as List<Any>
-          val tone = args[0] as Int
-          val velocity = args[1] as Int
-          val partId = args[2] as String
-          val part: Part? = currentScore?.partsList?.first { it.id == partId }
+      "newMelody" -> {
+        val melody: Melody = Melody.parseFrom(call.arguments as ByteArray)
+        newMelodies.add(melody)
+        result.success(null)
+      }
+      "registerMelody" -> {
+        val registerMelody = RegisterMelody.parseFrom(call.arguments as ByteArray)
+        newMelodies.firstOrNull { it.id == registerMelody.melodyId }?.let { melody ->
+          (currentScore to currentSection).letCheckNull { score: Score, section: Section ->
+            score.partsList.firstOrNull { it.id == registerMelody.partId }?.let { part ->
+              val partIndex = score.partsList.indexOfFirst { it.id == part.id }
+              currentScore = currentScore?.let {
+                val updatedPart = Part.newBuilder(part)
+                  .addMelodies(melody)
+                Score.newBuilder(it)
+                  .removeParts(partIndex)
+                  .addParts(updatedPart)
+                  .build()
+              }
+              result.success(null)
+            } ?: result.error("500", "Part does not exist", "nope")
+          }
+        } ?: result.error("500", "Melody must be added first", "nope")
+      }
+      "updateMelody" -> {
+        val melody: Melody = Melody.parseFrom(call.arguments as ByteArray)
+        if (updateMelody(melody)) {
           result.success(null)
-        } catch (e: Exception) {
-          result.error("Cannot serialize data", null, e)
+        } else {
+          result.error("500", "Part does not exist", "nope")
+        }
+      }
+      "deleteMelody" -> {
+        val melodyId = call.arguments as String
+        (currentScore to currentSection).letCheckNull { score: Score, section: Section ->
+          score.partsList.firstOrNull { it.melodiesList.any { it.id == melodyId } }?.let { part ->
+            val melodyIndex = part.melodiesList.indexOfFirst { it.id == melodyId }
+            val partIndex = score.partsList.indexOfFirst { it.id == part.id }
+            currentScore = currentScore?.let {
+              val updatedPart = Part.newBuilder(part)
+                .removeMelodies(melodyIndex)
+              Score.newBuilder(it)
+                .removeParts(partIndex)
+                .addParts(updatedPart)
+                .build()
+            }
+            result.success(null)
+          } ?: result.error("500", "Part does not exist", "nope")
         }
       }
       "setKeyboardPart"        -> {
@@ -126,8 +177,85 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
         }
         result.success(null)
       }
+      "play" -> {
+        val intent = Intent(MainApplication.instance, PlaybackService::class.java)
+        intent.action = PlaybackService.Companion.Action.PLAY_ACTION
+        MainApplication.instance.startService(intent)
+        result.success(null)
+      }
+      "pause" -> {
+        val intent = Intent(MainApplication.instance, PlaybackService::class.java)
+        intent.action = PlaybackService.Companion.Action.PAUSE_ACTION
+        MainApplication.instance.startService(intent)
+        result.success(null)
+      }
+      "stop" -> {
+        val intent = Intent(MainApplication.instance, PlaybackService::class.java)
+        intent.action = PlaybackService.Companion.Action.PAUSE_ACTION
+        MainApplication.instance.startService(intent)
+        result.success(null)
+        currentTick = 0
+      }
+      "setBeat" -> {
+        val beat = call.arguments as Int
+        sendAllNotesOff(immediately = true)
+        currentTick = beat * ticksPerBeat
+        result.success(null)
+      }
+      "setCurrentSection" -> {
+        val sectionId = call.arguments as String
+        currentScore?.sectionsList?.firstOrNull { it.id == sectionId }?.let { section ->
+          sendAllNotesOff(immediately = true)
+          currentSection = section
+          result.success(null)
+        } ?: result.error("500", "Section not found", "nope")
+      }
+      "countIn" -> {
+        val beat = call.arguments as Int
+        PlaybackThread.sendBeat()
+        result.success(null)
+      }
+      "tickBeat" -> {
+        PlaybackThread.sendBeat()
+        result.success(null)
+      }
+      "setPlaybackMode" -> {
+        val playback: Playback = Playback.parseFrom(call.arguments as ByteArray)
+        playbackMode = playback.mode
+        result.success(null)
+      }
+      "setRecordingMelody" -> {
+        val melodyId = call.arguments as String?
+        recordingMelodyId = melodyId
+        result.success(null)
+      }
+      "setMetronomeEnabled" -> {
+        val enabled = call.arguments as Boolean
+        metronomeEnabled = enabled
+        result.success(null)
+      }
       else                     -> result.notImplemented()
     }
+  }
+
+  fun updateMelody(melody: Melody): Boolean {
+    currentScore?.let { score: Score ->
+      score.partsList.firstOrNull { it.melodiesList.any { it.id == melody.id } }?.let { part ->
+        val melodyIndex = part.melodiesList.indexOfFirst { it.id == melody.id }
+        val partIndex = score.partsList.indexOfFirst { it.id == part.id }
+        currentScore = currentScore?.let {
+          val updatedPart = Part.newBuilder(part)
+            .removeMelodies(melodyIndex)
+            .addMelodies(melody)
+          Score.newBuilder(it)
+            .removeParts(partIndex)
+            .addParts(updatedPart)
+            .build()
+        }
+        return true
+      }
+    }
+    return false
   }
 
   fun sendPressedMidiNotes() {
@@ -139,9 +267,43 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
     }
   }
 
+  fun sendRecordedMelody() {
+    print("kotlin: sendPressedMidiNotes")
+    recordingMelody?.let { recordingMelody ->
+      handler?.post {
+        channel?.invokeMethod("sendRecordedMelody", recordingMelody.toByteArray())
+      }
+    }
+  }
+
   fun setSynthesizerAvailable() {
     handler?.post {
       channel?.invokeMethod("setSynthesizerAvailable", AndroidMidi.isMidiReady)
+    }
+  }
+
+  fun notifyPlayingBeat() {
+    handler?.post {
+      val beat: Int = currentTick / ticksPerBeat
+      channel?.invokeMethod("notifyPlayingBeat", beat)
+    }
+  }
+
+  fun notifyPaused() {
+    handler?.post {
+      channel?.invokeMethod("notifyPaused", null)
+    }
+  }
+
+  fun notifyCountInInitiated() {
+    handler?.post {
+      channel?.invokeMethod("notifyCountInInitiated", null)
+    }
+  }
+
+  fun notifyCurrentSection() {
+    handler?.post {
+      channel?.invokeMethod("notifyCurrentSection", currentSection!!.id)
     }
   }
 

@@ -64,7 +64,7 @@ class BeatScratchPlaybackThread {
     }
   }
   
-  var beatMinus2: Double?
+  private var beatMinus2: Double?
   func sendBeat() {
     let time = CACurrentMediaTime() * 1000
     if playing {

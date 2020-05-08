@@ -1,6 +1,7 @@
 package io.beatscratch.beatscratch_flutter_redux;
 
 import android.content.Intent
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
 import io.flutter.app.FlutterApplication
 import org.beatscratch.models.Music
 

@@ -44,10 +44,10 @@ class BeatScratchMidiListener : AKMIDIListener {
     switch controller {
       // Sustain Pedal
       case AKMIDIControl.damperOnOff.rawValue:
-        if value > 0 && !sustainDown {
+        if value >= 64 && !sustainDown {
           BeatScratchPlaybackThread.sharedInstance.sendBeat()
           sustainDown = true
-        } else if value == 0 {
+        } else if value < 64 {
           sustainDown = false
         }
       // Mod Wheel

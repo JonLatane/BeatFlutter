@@ -1,12 +1,15 @@
-package io.beatscratch.beatscratch_flutter_redux
+package io.beatscratch.beatscratch_flutter_redux.hardware
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.media.midi.*
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.RequiresApi
+import io.beatscratch.beatscratch_flutter_redux.AndroidMidi
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin
+import io.beatscratch.beatscratch_flutter_redux.MainApplication
+import io.beatscratch.beatscratch_flutter_redux.sendSelectInstrument
 import java.io.Closeable
 
 object MidiDevices {

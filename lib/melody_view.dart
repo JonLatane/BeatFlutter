@@ -370,7 +370,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 height: widget.height,
                 width: width,
               ),
-              Align(alignment: Alignment.bottomRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.8, child:Column(children: [
+              Column(children:[
+                Expanded(child: SizedBox()),
+              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.5, child:Column(children: [
                 Container(
                   width: 36,
                   child: RaisedButton(
@@ -399,6 +401,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     } : null,
                     child: Icon(Icons.zoom_out))),
               ]))))
+                ])
             ])
             ));
   }

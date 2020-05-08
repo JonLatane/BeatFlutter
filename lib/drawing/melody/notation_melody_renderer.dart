@@ -143,12 +143,15 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         // Draw signs
         NoteSign previousSign;
         Iterable<NoteSign> previousSigns = getMostRecentSignsOf(
-          note: note.noteName,
+          note: note,
           relevantMelodies: otherMelodiesOnStaff.followedBy([melody]),
         );
-        if(previousSigns.length == 1) {
-          print("Multiple previous signs found!");
+        bool forceShowNaturals = false;
+        if (previousSigns.length == 1) {
           previousSign = previousSigns.first;
+        } else if (previousSigns.length > 1) {
+//          print("Multiple previous signs found!");
+          forceShowNaturals = true;
         }
 //        val previousSign = previousSignOf(melody, harmony, note, elementPosition)
         NoteSign signToDraw;
@@ -167,7 +170,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
             break;
           case NoteSign.natural:
           default:
-          if(previousSign != null && previousSign != NoteSign.natural) signToDraw = NoteSign.natural;
+          if(forceShowNaturals || (previousSign != null && previousSign != NoteSign.natural)) signToDraw = NoteSign.natural;
             break;
         }
 
@@ -235,7 +238,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 
   static Map<ArgumentList, Iterable<NoteSign>> recentSignCache = Map();
   Iterable<NoteSign> getMostRecentSignsOf({
-    NoteName note,
+    NoteSpecification note,
     Iterable<Melody> relevantMelodies,
   }) {
     final args = ArgumentList([
@@ -244,14 +247,14 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     return recentSignCache.putIfAbsent(args, () {
         return _calculateMostRecentSignsOf(
           note: note,
-          relevantMelodies: relevantMelodies,
+          relevantMelodies: relevantMelodies.where((m) => m.id != "keyboardDummy" && m.id != "colorboardDummy"),
         );
       }
     );
   }
 
   Iterable<NoteSign> _calculateMostRecentSignsOf({
-    NoteName note,
+    NoteSpecification note,
     Iterable<Melody> relevantMelodies,
   }) {
     final currentBeatPosition = elementPosition.toDouble() / melody.subdivisionsPerBeat;
@@ -264,6 +267,14 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     relevantMelodies.forEach((relevantMelody) {
       int relevantMelodyIndex = elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
       toSubdivisionsPerBeat: relevantMelody.subdivisionsPerBeat);
+      while(relevantMelodyIndex.toDouble() / relevantMelody.subdivisionsPerBeat >= elementPosition.toDouble() / melody.subdivisionsPerBeat) {
+        if(relevantMelodyIndex % relevantMelody.subdivisionsPerBeat == 0 && // Beginning of measure, stop searching
+          (relevantMelodyIndex / relevantMelody.subdivisionsPerBeat) % meter.defaultBeatsPerMeasure == 0
+        ) {
+          break;
+        }
+        relevantMelodyIndex -= 1;
+      }
       NoteSign melodyResult;
       while(melodyResult == null) {
         if(relevantMelodyIndex % relevantMelody.subdivisionsPerBeat == 0 && // Beginning of measure, stop searching
@@ -278,7 +289,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         List<int> tones = relevantMelody.tonesAt(relevantMelodyIndex % relevantMelody.length).toList();
         if(tones.isNotEmpty) {
           Iterable<NoteSign> matchingNotes = getPlaybackNotes(tones, chord)
-            .where((relevantNote) => relevantNote.noteName.noteLetter == note.noteLetter)
+            .where((relevantNote) => relevantNote.letter == note.letter && relevantNote.octave == note.octave)
             .map((relevantNote) => relevantNote.sign).toSet();
           if(matchingNotes.isNotEmpty) {
             final key = relevantMelodyIndex.toDouble() / relevantMelody.subdivisionsPerBeat;

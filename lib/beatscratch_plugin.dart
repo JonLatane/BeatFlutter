@@ -12,6 +12,9 @@ import 'package:flutter/services.dart';
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
+  static final bool supportsPlayback = Platform.isIOS || Platform.isMacOS || Platform.isAndroid || kDebugMode;
+  static final bool supportsRecording = Platform.isIOS || Platform.isMacOS || Platform.isAndroid || kDebugMode;
+
   static bool _metronomeEnabled = true;
   static bool get metronomeEnabled => _metronomeEnabled;
   static set metronomeEnabled(bool value) {
@@ -87,7 +90,7 @@ class BeatScratchPlugin {
           onCountInInitiated?.call();
           return Future.value(null);
           break;
-        case "setCurrentSection":
+        case "notifyCurrentSection":
           onSectionSelected(call.arguments);
           break;
         case "sendRecordedMelody":
@@ -114,9 +117,6 @@ class BeatScratchPlugin {
     ..id = "internal"
     ..name = "BeatScratch Synthesizer"
   ];
-
-  static final bool supportsPlayback = Platform.isIOS || Platform.isMacOS || kDebugMode;
-  static final bool supportsRecording = Platform.isIOS || Platform.isMacOS || kDebugMode;
 
   static void _checkSynthesizerStatus() async {
     bool resultStatus;

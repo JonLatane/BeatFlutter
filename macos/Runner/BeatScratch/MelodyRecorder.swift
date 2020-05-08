@@ -71,7 +71,7 @@ class MelodyRecorder {
     }
   }
   
-  func tickBeat() {
+  func recordBeat() {
     if recordingMelodyId != nil {
       recordToMelody()
       beatStartTime = CACurrentMediaTime()

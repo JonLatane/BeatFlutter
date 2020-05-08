@@ -1,10 +1,11 @@
-package io.beatscratch.beatscratch_flutter_redux
+package io.beatscratch.beatscratch_flutter_redux.hardware
 
 import android.media.midi.MidiDevice
 import android.media.midi.MidiDeviceInfo
 import android.media.midi.MidiInputPort
 import android.os.Build
 import androidx.annotation.RequiresApi
+import io.beatscratch.beatscratch_flutter_redux.logE
 
 /**
  * Interface around Android's native MIDI synthesizer support.

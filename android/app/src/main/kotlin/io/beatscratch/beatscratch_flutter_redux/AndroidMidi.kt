@@ -1,17 +1,20 @@
 package io.beatscratch.beatscratch_flutter_redux
 
 import android.content.pm.PackageManager
-import android.os.Handler
 import fluidsynth.FluidSynthMidiReceiver
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiSynthesizers
 import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.experimental.or
 
 
 /**
  * Singleton interface to both the FluidSynth synthesizer ([FLUIDSYNTH])
  * and native MIDI android devices (via [PackageManager.FEATURE_MIDI]).
  */
-object AndroidMidi {
+object AndroidMidi: CoroutineScope {
 	var isMidiReady = false
 		private set
 	internal var isPlayingFromExternalDevice = false
@@ -62,7 +65,35 @@ object AndroidMidi {
 	}
 	fun sendToStream(bytes: ByteArray) = sendStream.write(bytes)
 
-	fun sendImmediately(bytes: ByteArray) {
+	private val byte3 = ByteArray(3)
+	fun playNote(midiNote: Byte, velocity: Byte, channel: Byte, immediately: Boolean = false, record: Boolean = false) {
+		byte3[0] = MidiConstants.NOTE_ON or channel  // STATUS byte: note On, 0x00 = channel 1
+		byte3[1] = midiNote // DATA byte: middle C = 60
+		byte3[2] = velocity  // DATA byte: maximum velocity = 127
+
+		if(immediately) {
+			sendImmediately(byte3, record = record)
+		} else {
+			sendToStream(byte3)
+		}
+	}
+
+	fun stopNote(midiNote: Byte, channel: Byte, immediately: Boolean = false, record: Boolean = false) {
+		byte3[0] = MidiConstants.NOTE_OFF or channel  // STATUS byte: note On, 0x00 = channel 1
+		byte3[1] = midiNote // DATA byte: middle C = 60
+		byte3[2] = 0
+
+		if(immediately) {
+			sendImmediately(byte3, record = record)
+		} else {
+			sendToStream(byte3)
+		}
+	}
+	
+	fun sendImmediately(bytes: ByteArray, record: Boolean = false) {
+    if(record) {
+      MelodyRecorder.notifyMidiRecorded(bytes)
+    }
 		if(sendToInternalFluidSynth) {
 			FLUIDSYNTH?.send(bytes, 0, bytes.size, System.currentTimeMillis())
 		}
@@ -74,10 +105,20 @@ object AndroidMidi {
 		}
 	}
 
+	fun sendAllNotesOff(immediately: Boolean = false) {
+		(0 until 16).forEach {  channel ->
+			val bytes = byteArrayOf(((0b1011 shl 4) + channel).toByte(), 123, 0) // All notes off
+			if(immediately) {
+				sendImmediately(bytes)
+			} else {
+				sendToStream(bytes)
+			}
+		}
+	}
+
 	private fun deactivateUnusedDevices() {
 		if(!sendToInternalFluidSynth) {
 			stopMidiReceiver { FLUIDSYNTH?.send(it, 0, it.size) }
-
 		}
 		if (
 			MainApplication.instance.packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)
@@ -87,10 +128,13 @@ object AndroidMidi {
 		}
 	}
 
-	fun stopMidiReceiver(send: (ByteArray) -> Unit) {
+	private fun stopMidiReceiver(send: (ByteArray) -> Unit) {
 		(0 until 16).forEach {  channel ->
 			send(byteArrayOf(((0b1011 shl 4) + channel).toByte(), 123, 0)) // All notes off
 			send(byteArrayOf(((0b1011 shl 4) + channel).toByte(), 120, 0)) // All sound off
 		}
 	}
+
+  override val coroutineContext: CoroutineContext
+    get() = Dispatchers.Default
 }

@@ -155,7 +155,7 @@ Part newPartFor(Score score) {
   Part part = Part()
     ..id = uuid.v4()
     ..instrument = (Instrument()
-      ..midiInstrument = score.parts.any((part) => part.instrument.midiInstrument == 0)
+      ..midiInstrument = score.parts.any((part) => part.instrument.midiInstrument == 0 && part.instrument.type != InstrumentType.drum)
         ? (score.parts.any((part) => part.instrument.midiInstrument == 34)
         ? (score.parts.any((part) => part.instrument.midiInstrument == 25)
         ? (score.parts.any((part) => part.instrument.midiInstrument == 4)

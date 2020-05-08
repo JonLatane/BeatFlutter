@@ -68,7 +68,7 @@ class BeatScratchScorePlayer {
     if beatMod == 0 {
       playMetronome()
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
-      MelodyRecorder.sharedInstance.tickBeat()
+      MelodyRecorder.sharedInstance.recordBeat()
     }
     if playbackMode == Playback.Mode.score {
       doPreviousSectionTickNoteOffs()
@@ -90,13 +90,13 @@ class BeatScratchScorePlayer {
     )
   }
   
-  private var harmonyChord: Chord {
-    return chord
-  }
+//  private var harmonyChord: Chord {
+//    return chord
+//  }
   
   private func doTick() {
 //    print("BeatScratchScorePlayer: processing tick \(currentTick)")
-    let palette = BeatScratchPlugin.sharedInstance.score
+    let score = BeatScratchPlugin.sharedInstance.score
     let section: Section = currentSection
     //    chord = (harmonyChord ?: chord)?.also { chord ->
     //      doAsync {
@@ -114,7 +114,7 @@ class BeatScratchScorePlayer {
     //      }
     //    }
 //    print("BeatScratchScorePlayer: harmonyPosition=\(harmonyPosition); chord=\(chord)")
-    palette.parts.forEach {
+    score.parts.forEach {
       let part = $0
       section.melodies.filter {
         let reference = $0
@@ -122,8 +122,8 @@ class BeatScratchScorePlayer {
         && part.melodies.contains { $0.id == reference.melodyID }
       }.forEach {
         let melodyReference = $0
-        if let melody: Melody = melodyReference.melodyFrom(palette) {
-          handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume)
+        if let melody: Melody = melodyReference.melodyFrom(score) {
+          handleCurrentTickPosition(melodyReference, melody, part)
         }
       }
     }
@@ -131,11 +131,11 @@ class BeatScratchScorePlayer {
   
   private func doPreviousSectionTickNoteOffs() {
     //    print("BeatScratchScorePlayer: processing tick \(currentTick)")
-    let palette = BeatScratchPlugin.sharedInstance.score
+    let score = BeatScratchPlugin.sharedInstance.score
     let sectionIndex = BeatScratchPlugin.sharedInstance.score.sections.firstIndex { $0.id == currentSection.id } ?? 0
     if sectionIndex >= 1 && currentTick / 24 <= 4 {
       let previousSection: Section = BeatScratchPlugin.sharedInstance.score.sections[sectionIndex - 1]
-      palette.parts.forEach {
+      score.parts.forEach {
         let part = $0
         previousSection.melodies.filter {
           let reference = $0
@@ -143,15 +143,15 @@ class BeatScratchScorePlayer {
             && part.melodies.contains { $0.id == reference.melodyID }
         }.forEach {
           let melodyReference = $0
-          if let melody: Melody = melodyReference.melodyFrom(palette) {
-            handleCurrentTickPosition(melodyReference, melody, part, volume: melodyReference.volume, playNoteOns: false)
+          if let melody: Melody = melodyReference.melodyFrom(score) {
+            handleCurrentTickPosition(melodyReference, melody, part, playNoteOns: false)
           }
         }
       }
     }
   }
   
-  func handleCurrentTickPosition(_ melodyReference: MelodyReference, _ melody: Melody, _ part: Part, volume: Float, playNoteOns: Bool = true) {
+  private func handleCurrentTickPosition(_ melodyReference: MelodyReference, _ melody: Melody, _ part: Part, playNoteOns: Bool = true) {
     let ticks = Base24Conversion.map[Int(melody.subdivisionsPerBeat)]!
     if let correspondingPosition = ticks.firstIndex(of: Int(currentTick) % Int(BeatScratchPlaybackThread.ticksPerBeat)) {
       let currentBeat = floor(Double(currentTick) / BeatScratchPlaybackThread.ticksPerBeat)
@@ -162,28 +162,6 @@ class BeatScratchScorePlayer {
         print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }
-    //  return Base24ConversionMap[subdivisionsPerBeat]?.indexOf(tickPosition % ticksPerBeat)?.takeIf { it >=0 }?.let { correspondingPosition ->
-    //  val currentBeat = tickPosition / ticksPerBeat
-    //  val melodyPosition = currentBeat * subdivisionsPerBeat + correspondingPosition
-    //  val attack = attackPool.borrow()
-    //  when {
-    //  //        isChangeAt(melodyPosition % length) -> {
-    //  //          val change = changeBefore(melodyPosition % length)
-    //  //          attack.part = part
-    //  //          attack.instrument = part.instrument
-    //  //          attack.melody = this
-    //  //          attack.velocity = change.velocity * volume
-    //  //
-    //  //          change.tones.forEach { tone ->
-    //  //            val playbackTone = chord?.let { chord -> tone.playbackToneUnder(chord, this) } ?: tone
-    //  //            attack.chosenTones.add(playbackTone)
-    //  //          }
-    //  //          logI("creating attack for melody=${this.hashCode()} tick=$tickPosition correspondingPosition=$correspondingPosition subdivision=$melodyPosition/$subdivisionsPerBeat beat=$currentBeat with tones ${attack.chosenTones}")
-    //  //          attack
-    //  //        }
-    //  else                                       -> null
-    //  }
-    //  }
   }
 //
 //  private fun cleanUpExpiredAttacks() {

@@ -13,42 +13,17 @@ val Music.Instrument.tones: MutableList<Int> get() = channelToneMap
 val byte2 = ByteArray(2)
 val byte3 = ByteArray(3)
 
-fun Music.Instrument.play(tone: Int, velocity: Int) {// Construct a note ON message for the middle C at maximum velocity on channel 1:
+fun Music.Instrument.play(tone: Int, velocity: Int = MidiConstants.DEFAULT_VELOCITY, immediately: Boolean = false, record: Boolean = false) {// Construct a note ON message for the middle C at maximum velocity on channel 1:
   //sendSelectInstrument(instrument)
-  byte3[0] = MidiConstants.NOTE_ON or channel  // STATUS byte: note On, 0x00 = channel 1
-  byte3[1] = (tone + 60).toByte() // DATA byte: middle C = 60
-  byte3[2] = velocity.toByte()  // DATA byte: maximum velocity = 127
-
-  // Send the MIDI byte3 to the synthesizer.
-  sendToStream(byte3)
+  AndroidMidi.playNote((tone + 60).toByte(), velocity.toByte(), channel, immediately, record)
   tones.add(tone)
 }
 
-fun Music.Instrument.play(tone: Int) {// Construct a note ON message for the middle C at maximum velocity on channel 1:
-  play(tone, MidiConstants.DEFAULT_VELOCITY)
-}
-
-fun Music.Instrument.stop() {
-  while(tones.isNotEmpty()) {
-    val tone = tones.removeAt(0)
-    doStop(tone)
-  }
-}
-
-fun Music.Instrument.stop(tone: Int) {
-  doStop(tone)
+fun Music.Instrument.stop(tone: Int, immediately: Boolean = false, record: Boolean = false) {
+  AndroidMidi.stopNote((tone + 60).toByte(), channel, immediately, record)
   tones.remove(tone)
 }
 
-private fun Music.Instrument.doStop(tone: Int) {
-  // Construct a note OFF message for the middle C at minimum velocity on channel 1:
-  byte3[0] = (MidiConstants.NOTE_OFF or channel)  // STATUS byte: 0x80 = note Off, 0x00 = channel 1
-  byte3[1] = (tone + 60).toByte()  // 0x3C = middle C
-  byte3[2] = 0x00.toByte()  // 0x00 = the minimum velocity (0)
-
-  // Send the MIDI byte3 to the synthesizer.
-  sendToStream(byte3)
-}
 fun Music.Instrument.sendSelectInstrument() {
   // Write Bank MSB Control Change
   val msb = midiGm2Msb.toByte() ?: if (drumTrack) 120.toByte() else null

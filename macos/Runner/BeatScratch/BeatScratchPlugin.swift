@@ -133,6 +133,9 @@ class BeatScratchPlugin {
         case "checkSynthesizerStatus":
           result(Conductor.sharedInstance.samplersInitialized)
           break
+        case "resetAudioSystem":
+          result(nil)
+          break
         case "play":
           BeatScratchPlaybackThread.sharedInstance.playing = true
           result(nil)
@@ -156,8 +159,11 @@ class BeatScratchPlugin {
           let sectionId = call.arguments as! String
           if let section = self.score.sections.first(where: { $0.id == sectionId }) {
             BeatScratchScorePlayer.sharedInstance.currentSection = section
+            Conductor.sharedInstance.stopPlayingNotes()
+            result(nil)
+          } else {
+            result(FlutterError(code: "500", message: "Section not found", details: "nope"))
           }
-          Conductor.sharedInstance.stopPlayingNotes()
           break
         case "countIn":
           let countInBeat = call.arguments as! Int
@@ -171,14 +177,17 @@ class BeatScratchPlugin {
         case "setPlaybackMode":
           let playback: Playback = try Playback(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           BeatScratchScorePlayer.sharedInstance.playbackMode = playback.mode
+          result(nil)
           break
         case "setRecordingMelody":
           let melodyId: String? = call.arguments as! String?
           MelodyRecorder.sharedInstance.recordingMelodyId = melodyId
+          result(nil)
           break
         case "setMetronomeEnabled":
           let metronomeEnabled: Bool = call.arguments as! Bool
           BeatScratchScorePlayer.sharedInstance.metronomeEnabled = metronomeEnabled
+          result(nil)
           break
         default:
           result(FlutterMethodNotImplemented)
@@ -233,6 +242,6 @@ class BeatScratchPlugin {
   
   func notifyCurrentSection() {
     let section = BeatScratchScorePlayer.sharedInstance.currentSection
-    channel?.invokeMethod("setCurrentSection", arguments: section.id)
+    channel?.invokeMethod("notifyCurrentSection", arguments: section.id)
   }
 }

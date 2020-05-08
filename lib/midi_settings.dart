@@ -135,7 +135,7 @@ class _MidiController extends StatelessWidget {
           Column(children:[
             Expanded(child:SizedBox()),
             Text(midiController.name, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-            if(midiController.id == "keyboard")
+            if(midiController.id == "keyboard" && !kIsWeb)
               Text("MIDI controllers connected to your device route to the Keyboard Part.", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
             if(midiController.id == "colorboard")
               Switch(

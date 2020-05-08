@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_DEFAULT
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentSection
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
 
 
 class PlaybackService : Service() {
@@ -31,14 +32,11 @@ class PlaybackService : Service() {
       private set
   }
 
-  internal lateinit var playbackThread: PlaybackThread private set
-  val isStopped get() = playbackThread.stopped
-
   override fun onCreate() {
     super.onCreate()
     instance = this
-    playbackThread = PlaybackThread()
-    playbackThread.start()
+    PlaybackThread = PlaybackThreadInstance()
+    PlaybackThread.start()
 //    AndroidMidi.ONBOARD_DRIVER.start()
     MidiDevices.refreshInstruments()
   }
@@ -51,27 +49,24 @@ class PlaybackService : Service() {
       }
       Action.PLAY_ACTION            -> {
         logI("Clicked Play")
-        playbackThread.stopped = false
-        synchronized(PlaybackThread) {
-          (PlaybackThread as java.lang.Object).notify()
-        }
+        PlaybackThread.playing = true
         showNotification()
       }
       Action.REWIND_ACTION          -> {
         logI("Clicked Rewind")
-        BeatClockScoreConsumer.tickPosition = 0
+        ScorePlayer.currentTick = 0
       }
       Action.PAUSE_ACTION           -> {
         logI("Clicked Pause")
-        playbackThread.stopped = true
+        PlaybackThread.stopped = true
         showNotification()
       }
       Action.STOP_ACTION            -> {
         logI("Clicked Stop")
-        playbackThread.stopped = true
-        BeatClockScoreConsumer.tickPosition = 0
+        PlaybackThread.stopped = true
+        ScorePlayer.currentTick = 0
 //        BeatClockPaletteConsumer.viewModel?.playbackTick = 0
-        BeatClockScoreConsumer.clearActiveAttacks()
+//        ScorePlayer.clearActiveAttacks()
         AndroidMidi.flushSendStream()
         AndroidMidi.sendImmediately(byteArrayOf(123.toByte()))// All notes off
         AndroidMidi.sendImmediately(byteArrayOf(0xFF.toByte()))// Midi reset
@@ -96,7 +91,7 @@ class PlaybackService : Service() {
   override fun onDestroy() {
     super.onDestroy()
     logI("In onDestroy")
-    playbackThread.terminated = true
+    PlaybackThread.terminated = true
 //    AudioTrackCache.releaseAll()
     AndroidMidi.sendImmediately(byteArrayOf(0xFF.toByte()))// Midi reset
 //    AndroidMidi.ONBOARD_DRIVER.stop()
@@ -146,7 +141,7 @@ class PlaybackService : Service() {
       .setContentIntent(pendingIntent)
       .setOngoing(true)
       .apply {
-        if(isStopped) {
+        if(PlaybackThread.stopped) {
           addAction(R.drawable.play_notification, "Play", pendingIntent(Action.PLAY_ACTION))
         } else {
           addAction(R.drawable.previous_notification, "Skip back", pendingIntent(Action.REWIND_ACTION))

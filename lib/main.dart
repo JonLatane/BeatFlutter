@@ -125,6 +125,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showViewOptions = false;
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
+  bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
   bool _showKeyboardConfiguration = false;
@@ -854,7 +855,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           setState(() {
             _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
             _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
+            _wereViewOptionsShowingWhenMidiConfigurationOpened = showViewOptions;
             showMidiConfiguration = true;
+            showViewOptions = true;
             if(keyboardPart != null) {
               showKeyboard = true;
               _showKeyboardConfiguration = true;
@@ -1101,7 +1104,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       },
       cloneCurrentSection: () {
         if (currentSection.name == null || currentSection.name.trim().isEmpty) {
-          currentSection.name = "Verse 1";
+          String prefix = "Section";
+          while (_score.sections.any((s) => s.name.startsWith("$prefix "))) {
+            prefix = "$prefix'";
+          }
+          currentSection.name = "$prefix 1";
         }
         Section section = currentSection.clone();
         section.id = uuid.v4();
@@ -1142,6 +1149,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _showColorboardConfiguration = false;
             showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
             showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
+            showViewOptions &= _wereViewOptionsShowingWhenMidiConfigurationOpened;
           });
       }));
   }
