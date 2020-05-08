@@ -206,7 +206,6 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   void initState() {
     super.initState();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    animationController.repeat(reverse: true);
   }
 
   @override
@@ -226,6 +225,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           recordingAnimationColor = recordingAnimation.value;
         });
       });
+    animationController.repeat(reverse: true);
     Color recordingColor;
     if(widget.melody != null && BeatScratchPlugin.playing) {
       recordingColor = recordingAnimationColor;

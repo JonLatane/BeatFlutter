@@ -684,7 +684,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        Expanded(child:SizedBox()),
                     AnimatedContainer(
                         duration: animationDuration,
-                        width: max(0, MediaQuery.of(context).size.width - 865 - (showDownloadLinks ? 0 : 130)),
+                        width: max(0, MediaQuery.of(context).size.width - 865 - (showDownloadLinks ? 0 : 180)),
                         child: SizedBox()),
                     Padding(
                         padding: EdgeInsets.only(right: 5, left: 5),
@@ -745,12 +745,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       },
                       padding: EdgeInsets.all(0),
                       child: Image.asset("assets/play_en_badge_web_generic.png")),
+                  Transform.translate(offset: Offset(-15,0), child:
                   FlatButton(
                       onPressed: () {
                         _launchURL("https://testflight.apple.com/join/dXJr9JJs");
                       },
                       padding: EdgeInsets.all(0),
-                      child: Image.asset("assets/testflight-badge.png")),
+                      child: Image.asset("assets/testflight-badge.png"))),
                   Container(
                       width: 120,
                       height: 40,
