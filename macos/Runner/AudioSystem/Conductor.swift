@@ -87,9 +87,14 @@ class Conductor {
       AKLog("AudioKit did not start")
     }
     
+    setupSamplersInBackground()
+  }
+  
+  func setupSamplersInBackground() {
+    self.samplersInitialized = false
     DispatchQueue.global(qos: .userInteractive).async {
       self.setupSamplers()
-      self.samplersInitialized = true;
+      self.samplersInitialized = true
     }
   }
   
@@ -119,7 +124,8 @@ class Conductor {
       if channel == 9 {
         setupSampler(sampler: sampler, fluidSample: "000_Standard")
       } else if channel == 0 {
-        setupSampler(sampler: sampler, fluidSample: "000_Grand Piano")
+        let instrument: UInt32 = channelInstruments[channel] ?? 0
+        setupSampler(sampler: sampler, fluidSample: instrumentPatches[Int(instrument)])
       }
     }
   }
@@ -184,17 +190,20 @@ class Conductor {
     self.channelSamplers[channel]?.masterVolume = volume
   }
   
+  private let playingNotesAccess = DispatchSemaphore(value: 1)
   var playingNotes: Dictionary<MIDIChannel, Array<MIDINoteNumber>> = [
   0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[],15:[],]
   func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, record: Bool = false) {
     print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel), record=\(record)")
     do {
+      playingNotesAccess.wait()
       var notes: Array<MIDINoteNumber>? = playingNotes[channel]
       if notes == nil {
         notes = Array()
       }
       notes!.append(note)
       playingNotes[channel] = notes
+      playingNotesAccess.signal()
       try channelSamplers[UInt32(channel)]?.play(noteNumber: note, velocity: velocity)
       if(record) {
         try MelodyRecorder.sharedInstance.notifyNotePlayed(note: note, velocity: velocity, channel: channel)
@@ -207,10 +216,14 @@ class Conductor {
   func stopNote(note: MIDINoteNumber, channel: MIDIChannel, record: Bool = false) {
     print("Conductor stopNote, note=\(note), channel=\(channel), record=\(record)")
     do {
-      if playingNotes[channel] == nil {
-        playingNotes[channel] = []
+      playingNotesAccess.wait()
+      var notes: Array<MIDINoteNumber>? = playingNotes[channel]
+      if notes == nil {
+        notes = Array()
       }
-      try playingNotes[channel]!.removeAll { $0 == note }
+      notes!.removeAll { $0 == note }
+      playingNotes[channel] = notes
+      playingNotesAccess.signal()
       try channelSamplers[UInt32(channel)]?.stop(noteNumber: note)
       if(record) {
         try MelodyRecorder.sharedInstance.notifyNoteStopped(note: note, channel: channel)

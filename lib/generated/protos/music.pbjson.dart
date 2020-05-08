@@ -40,8 +40,8 @@ const InstrumentType$json = const {
 const MelodyType$json = const {
   '1': 'MelodyType',
   '2': const [
-    const {'1': 'melodic', '2': 0},
-    const {'1': 'midi', '2': 1},
+    const {'1': 'midi', '2': 0},
+    const {'1': 'audio', '2': 1},
   ],
 };
 
@@ -136,29 +136,11 @@ const Melody$json = const {
     const {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.MelodyType', '10': 'type'},
     const {'1': 'instrument_type', '3': 6, '4': 1, '5': 14, '6': '.InstrumentType', '10': 'instrumentType'},
     const {'1': 'interpretation_type', '3': 7, '4': 1, '5': 14, '6': '.MelodyInterpretationType', '10': 'interpretationType'},
-    const {'1': 'melodic_data', '3': 100, '4': 1, '5': 11, '6': '.MelodicData', '9': 0, '10': 'melodicData'},
     const {'1': 'midi_data', '3': 101, '4': 1, '5': 11, '6': '.MidiData', '9': 0, '10': 'midiData'},
   ],
   '8': const [
     const {'1': 'data'},
   ],
-};
-
-const MelodicData$json = const {
-  '1': 'MelodicData',
-  '2': const [
-    const {'1': 'data', '3': 1, '4': 3, '5': 11, '6': '.MelodicData.DataEntry', '10': 'data'},
-  ],
-  '3': const [MelodicData_DataEntry$json],
-};
-
-const MelodicData_DataEntry$json = const {
-  '1': 'DataEntry',
-  '2': const [
-    const {'1': 'key', '3': 1, '4': 1, '5': 17, '10': 'key'},
-    const {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.MelodicAttack', '10': 'value'},
-  ],
-  '7': const {'7': true},
 };
 
 const MidiData$json = const {

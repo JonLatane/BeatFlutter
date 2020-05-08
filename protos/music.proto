@@ -83,10 +83,11 @@ enum InstrumentType {
 }
 
 enum MelodyType {
-  // Uses MelodicAttacks and represents instrument data for touch editing.
-  melodic = 0;
   // Uses MidiChanges and represents raw MIDI instrument data.
-  midi = 1;
+  midi = 0;
+  // TODO: In a future version, we will envelope audio bytes in the proto models.
+  // No corresponding message types go with this yet.
+  audio = 1;
 }
 
 // Indicates how a Melody should be interpreted when referenced in a Section under a Harmony.
@@ -155,14 +156,8 @@ message Melody {
   MelodyInterpretationType interpretation_type = 7;
   // The Melody notes/data, the type of which should match the MelodyType.
   oneof data {
-    MelodicData melodic_data = 100;
     MidiData midi_data = 101;
   }
-}
-
-// Map of subdivisions to melody attacks.
-message MelodicData {
-  map<sint32,MelodicAttack> data = 1;
 }
 
 // Map of subdivisions to MIDI data.

@@ -237,27 +237,24 @@ class Harmony extends $pb.GeneratedMessage {
 }
 
 enum Melody_Data {
-  melodicData, 
   midiData, 
   notSet
 }
 
 class Melody extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, Melody_Data> _Melody_DataByTag = {
-    100 : Melody_Data.melodicData,
     101 : Melody_Data.midiData,
     0 : Melody_Data.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('Melody', createEmptyInstance: create)
-    ..oo(0, [100, 101])
+    ..oo(0, [101])
     ..aOS(1, 'id')
     ..aOS(2, 'name')
     ..a<$core.int>(3, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
     ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
-    ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.melodic, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
+    ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.midi, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
     ..e<InstrumentType>(6, 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
     ..e<MelodyInterpretationType>(7, 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed_nonadaptive, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
-    ..aOM<MelodicData>(100, 'melodicData', subBuilder: MelodicData.create)
     ..aOM<MidiData>(101, 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false
   ;
@@ -343,52 +340,16 @@ class Melody extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearInterpretationType() => clearField(7);
 
-  @$pb.TagNumber(100)
-  MelodicData get melodicData => $_getN(7);
-  @$pb.TagNumber(100)
-  set melodicData(MelodicData v) { setField(100, v); }
-  @$pb.TagNumber(100)
-  $core.bool hasMelodicData() => $_has(7);
-  @$pb.TagNumber(100)
-  void clearMelodicData() => clearField(100);
-  @$pb.TagNumber(100)
-  MelodicData ensureMelodicData() => $_ensure(7);
-
   @$pb.TagNumber(101)
-  MidiData get midiData => $_getN(8);
+  MidiData get midiData => $_getN(7);
   @$pb.TagNumber(101)
   set midiData(MidiData v) { setField(101, v); }
   @$pb.TagNumber(101)
-  $core.bool hasMidiData() => $_has(8);
+  $core.bool hasMidiData() => $_has(7);
   @$pb.TagNumber(101)
   void clearMidiData() => clearField(101);
   @$pb.TagNumber(101)
-  MidiData ensureMidiData() => $_ensure(8);
-}
-
-class MelodicData extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodicData', createEmptyInstance: create)
-    ..m<$core.int, MelodicAttack>(1, 'data', entryClassName: 'MelodicData.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MelodicAttack.create)
-    ..hasRequiredFields = false
-  ;
-
-  MelodicData._() : super();
-  factory MelodicData() => create();
-  factory MelodicData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MelodicData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  MelodicData clone() => MelodicData()..mergeFromMessage(this);
-  MelodicData copyWith(void Function(MelodicData) updates) => super.copyWith((message) => updates(message as MelodicData));
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static MelodicData create() => MelodicData._();
-  MelodicData createEmptyInstance() => create();
-  static $pb.PbList<MelodicData> createRepeated() => $pb.PbList<MelodicData>();
-  @$core.pragma('dart2js:noInline')
-  static MelodicData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodicData>(create);
-  static MelodicData _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.Map<$core.int, MelodicAttack> get data => $_getMap(0);
+  MidiData ensureMidiData() => $_ensure(7);
 }
 
 class MidiData extends $pb.GeneratedMessage {

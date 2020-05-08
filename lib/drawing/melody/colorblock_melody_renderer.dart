@@ -64,17 +64,19 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   }
 
   _drawColorblockNotes({Canvas canvas, int elementPosition, double alpha}) {
-    MelodicAttack element = melody.melodicData.data[elementPosition % melody.length];
-    MelodicAttack nextElement = melody.melodicData.data[elementPosition % melody.length];
-    bool isChange = element != null;
+//    MelodicAttack element = melody.melodicData.data[elementPosition % melody.length];
+//    MelodicAttack nextElement = melody.melodicData.data[elementPosition % melody.length];
+//    bool isChange = element != null;
     alphaDrawerPaint.color =
-        ((isChange) ? Color(0xAA212121) : Color(0xAA424242)).withAlpha((alpha * 255).toInt());
+       Color(0xFF212121).withAlpha((alpha * 255).toInt());
 
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
+    bool isNoteStart = false;
+    bool isNoteEnd = false;
 
     if (tones.isNotEmpty) {
-      double leftMargin = (isChange) ? drawPadding.toDouble() : 0.0;
-      double rightMargin = (nextElement != null) ? drawPadding.toDouble() : 0.0;
+      double leftMargin = (isNoteStart) ? drawPadding.toDouble() : 0.0;
+      double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
       tones.forEach((tone) {
         int realTone = tone; // + melody.offsetUnder(chord)
         double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;

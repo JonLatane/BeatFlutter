@@ -181,9 +181,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double _melodyViewSizeFactor = 1.0;
 
-  bool showWebWarning = true; //kIsWeb;
+  bool showWebWarning = kIsWeb;
   double get webWarningHeight => showWebWarning ? 60 : 0;
-  bool showDownloadLinks = false; //kIsWeb;
+  bool showDownloadLinks = false;
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
   bool focusPartsAndMelodies = true;
@@ -488,10 +488,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    super.dispose();
     loadingAnimationController.dispose();
     colorboardNotesNotifier.dispose();
     keyboardNotesNotifier.dispose();
+    super.dispose();
   }
 
   Future<bool> _onWillPop() async {

@@ -142,7 +142,6 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    super.dispose();
     _scaleAnimationControllers.forEach((controller) {
       controller.dispose();
     });
@@ -152,6 +151,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
       subscription.cancel();
     }
+    super.dispose();
   }
 
   Map<int, int> _pointerIdsToTones = Map();

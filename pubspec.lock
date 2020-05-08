@@ -222,10 +222,10 @@ packages:
   implicitly_animated_reorderable_list:
     dependency: "direct main"
     description:
-      path: "../implicitly_animated_reorderable_list"
-      relative: true
-    source: path
-    version: "0.1.10"
+      name: implicitly_animated_reorderable_list
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1"
   js:
     dependency: transitive
     description:

@@ -135,6 +135,7 @@ class BeatScratchPlugin {
           result(Conductor.sharedInstance.samplersInitialized)
           break
         case "resetAudioSystem":
+          Conductor.sharedInstance.setupSamplersInBackground()
           result(nil)
           break
         case "play":

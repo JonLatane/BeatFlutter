@@ -208,9 +208,9 @@ extension HarmonyTheory on Harmony {
 }
 
 extension MelodyTheory on Melody {
-  Iterable<int> get tones => (type == MelodyType.melodic)
-    ? melodicData.data.values.expand((it) => it.tones)
-    : midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60));
+  Iterable<int> get tones => (type == MelodyType.midi)
+    ? midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60))
+    : [];
   static final Map<String, double> averageToneCache = Map();
   double get averageTone => averageToneCache.putIfAbsent(id, () => _averageTone);
   double get _averageTone => tones.length == 0 ? 0 : tones.reduce((a, b) => a + b) / tones.length.toDouble();
@@ -224,16 +224,16 @@ extension MelodyTheory on Melody {
     return tonesAtCache.putIfAbsent(key, () => _tonesAt(elementPosition));
   }
   Iterable<int> _tonesAt(int elementPosition) {
-    if (type == MelodyType.melodic) {
-     return melodicData.data[elementPosition]?.tones ?? [];
-    } else {
+    if (type == MelodyType.midi) {
       final data = midiData.data[elementPosition];
-      if(data != null) {
-        final midiEvents = data.midiEvents;
-        final convertedData = data.noteOns.map((e) => e.noteNumber - 60);
-        return convertedData;
+      if(data == null) {
+        return [];
       }
-      return [];
+      final midiEvents = data.midiEvents;
+      final convertedData = data.noteOns.map((e) => e.noteNumber - 60);
+      return convertedData;
+    } else {
+      return []; // TODO: Audio rendering?
     }
   }
 
@@ -246,19 +246,6 @@ extension MelodyTheory on Melody {
       } else {
         result = root;
       }
-    }
-    return result;
-  }
-
-  MelodicAttack melodicAttackBefore(int subdivision) {
-    final int initialSubdivision = subdivision;
-    MelodicAttack result = melodicData.data[subdivision];
-    while (result == null) {
-      subdivision = subdivision - 1;
-      if (subdivision < 0) {
-        subdivision += length;
-      }
-      result = melodicData.data[subdivision];
     }
     return result;
   }

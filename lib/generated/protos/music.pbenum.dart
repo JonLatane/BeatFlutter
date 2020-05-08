@@ -71,12 +71,12 @@ class InstrumentType extends $pb.ProtobufEnum {
 }
 
 class MelodyType extends $pb.ProtobufEnum {
-  static const MelodyType melodic = MelodyType._(0, 'melodic');
-  static const MelodyType midi = MelodyType._(1, 'midi');
+  static const MelodyType midi = MelodyType._(0, 'midi');
+  static const MelodyType audio = MelodyType._(1, 'audio');
 
   static const $core.List<MelodyType> values = <MelodyType> [
-    melodic,
     midi,
+    audio,
   ];
 
   static final $core.Map<$core.int, MelodyType> _byValue = $pb.ProtobufEnum.initByValue(values);
