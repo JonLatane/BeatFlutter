@@ -136,6 +136,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     super.dispose();
   }
 
+  bool _hasBuilt = false;
   @override
   Widget build(BuildContext context) {
     String key = widget.score.id;
@@ -161,10 +162,11 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
       previousBeat = currentBeat;
       final beatWidth = xScale * unscaledStandardBeatWidth;
       double animationBeat = (currentBeat) * beatWidth;
-      if (animationBeat - 2*beatWidth + widget.width < overallCanvasWidth) {
+      if (animationBeat - 2*beatWidth + widget.width < overallCanvasWidth && _hasBuilt) {
         timeScrollController.animateTo(animationBeat, duration: Duration(seconds: 1), curve: Curves.ease);
       }
     }
+    _hasBuilt = true;
     return SingleChildScrollView(
 //        key: Key(key),
         child: Container(
@@ -187,7 +189,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         melodyViewMode: widget.melodyViewMode,
                         xScale: widget.xScale,
                         yScale: widget.yScale,
-                        focusedMelody: widget.focusedMelody,
+                        focusedMelodyId: widget.focusedMelody?.id,
                         staves: stavesNotifier,
                         partTopOffsets: partTopOffsets,
                         staffOffsets: staffOffsets,
@@ -289,8 +291,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
 
 class MusicSystemPainter extends CustomPainter {
-  final Melody focusedMelody;
+  final String focusedMelodyId;
   final Score score;
+  Melody get focusedMelody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
   final Section section;
   final double xScale;
   final double yScale;
@@ -327,7 +330,7 @@ class MusicSystemPainter extends CustomPainter {
     this.xScale,
     this.yScale,
     this.visibleRect,
-    this.focusedMelody,
+    this.focusedMelodyId,
     this.colorblockOpacityNotifier,
     this.notationOpacityNotifier})
     : super(
@@ -526,7 +529,7 @@ class MusicSystemPainter extends CustomPainter {
 
     if (focusedMelody != null && melodiesToRender.contains(focusedMelody)) {
       _renderMelodyBeat(
-        canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue);
+        canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue, renderLoopStarts: true);
     }
 
     try {
@@ -713,12 +716,19 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   _renderMelodyBeat(Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-    bool stemsUp, double alpha, Iterable<Melody> otherMelodiesOnStaff) {
+    bool stemsUp, double alpha, Iterable<Melody> otherMelodiesOnStaff, {bool renderLoopStarts = false}) {
     double opacityFactor = 1;
     if (melodyBounds.left < visibleRect().left + standardBeatWidth) {
       opacityFactor = max(0, min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
     }
     if (melody != null) {
+      if(renderLoopStarts && renderingSectionBeat % (melody.length / melody.subdivisionsPerBeat) == 0) {
+        Rect highlight = Rect.fromPoints(
+          melodyBounds.topLeft.translate(-melodyBounds.width / 13, 0),
+          melodyBounds.bottomLeft.translate(melodyBounds.width / 13, 0)
+        );
+        canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
+      }
       try {
         if (colorblockOpacityNotifier.value > 0) {
           ColorblockMelodyRenderer()

@@ -1,8 +1,10 @@
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/main.dart';
 import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'beatscratch_plugin.dart';
 import 'melodybeat.dart';
 import 'expanded_section.dart';
 import 'part_melodies_view.dart';
@@ -182,17 +184,92 @@ class MelodyToolbarState extends State<MelodyToolbar> {
   }
 }
 
-class MelodyEditingToolbar extends StatelessWidget {
+class MelodyEditingToolbar extends StatefulWidget {
+  final String melodyId;
+  final Score score;
+  final Color sectionColor;
+  final Section currentSection;
+  Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
+
+  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection}) : super(key: key);
+
+  @override
+  _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
+}
+
+class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with TickerProviderStateMixin {
+  AnimationController animationController;
+  Color recordingAnimationColor;
+  Animation<Color> recordingAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    animationController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    recordingAnimation = ColorTween(
+      begin: Colors.grey,
+      end: chromaticSteps[7],
+    ).animate(animationController)
+      ..addListener(() {
+        setState(() {
+          recordingAnimationColor = recordingAnimation.value;
+        });
+      });
+    Color recordingColor;
+    if(widget.melody != null && BeatScratchPlugin.playing) {
+      recordingColor = recordingAnimationColor;
+    } else {
+      recordingColor = Colors.grey;
+    }
+    int beats;
+    if(widget.melody != null) {
+      beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
+    }
     return Row(children: [
-      Container(width: 5),
-      Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey)),
-      Container(width: 5),
-      Expanded(child:
-      Text('Melody editing features are coming. Ode to Joy is nice.',
+      SizedBox(width: 5),
+      Column(children: [
+        Icon(Icons.fiber_manual_record, color: recordingColor),
+        Text('Recording',
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: Colors.grey))),
+          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
+      ]),
+      Expanded(child: SizedBox(width: 5),),
+      IncrementableValue(
+        onDecrement: (widget.melody != null && beats > 1)
+          ? () {
+          widget.melody.length -= widget.melody.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateMelody(widget.melody);
+        } : null,
+        onIncrement: (widget.melody != null && beats <= 100000)
+          ? () {
+          widget.melody.length += widget.melody.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateMelody(widget.melody);
+        }
+          : null,
+        valueWidth: 100,
+        value: "$beats beat${beats == 1 ? "" : "s"}",
+      ),
+      SizedBox(width: 5),
+      IncrementableValue(
+        onDecrement: null,
+        onIncrement: null,
+        valueWidth: 100,
+        value: "${widget.melody?.subdivisionsPerBeat} / beat",
+      ),
+      SizedBox(width: 5),
     ]);
   }
 }

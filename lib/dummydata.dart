@@ -95,7 +95,7 @@ Melody odeToJoyA() => baseMelody()
   ..name = "Ode to Joy A"
   ..instrumentType = InstrumentType.harmonic
   ..subdivisionsPerBeat = 2
-  ..length = 64
+  ..length = 32
   ..setMidiDataFromSimpleMelody(Map.from({
     0:  [4],  2: [4],  4: [5],  6: [7],
     8:  [7], 10: [5], 12: [4], 14: [2],
@@ -107,7 +107,7 @@ Melody odeToJoyB() => baseMelody()
   ..name = "Ode to Joy B"
   ..instrumentType = InstrumentType.harmonic
   ..subdivisionsPerBeat = 2
-  ..length = 64
+  ..length = 32
   ..setMidiDataFromSimpleMelody(Map.from({
     0:  [4],  2: [4],  4: [5],  6: [7],
     8:  [7], 10: [5], 12: [4], 14: [2],

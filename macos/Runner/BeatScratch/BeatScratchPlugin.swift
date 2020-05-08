@@ -107,10 +107,11 @@ class BeatScratchPlugin {
           }) {
             part.melodies.removeAll { $0.id == melody.id }
             part.melodies.append(melody)
+            self.score.parts.removeAll { $0.id == part.id }
+            self.score.parts.append(part)
           } else {
             result(FlutterError(code: "500", message: "Melody not found in any Part", details: "nope"))
           }
-          self.newMelodies.append(melody)
           result(nil)
           break
         case "deleteMelody":

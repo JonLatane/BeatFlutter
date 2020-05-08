@@ -44,7 +44,8 @@ class PartMelodiesView extends StatefulWidget {
   final Function(VoidCallback) superSetState;
 
   PartMelodiesView(
-      {this.melodyViewMode,this.superSetState,
+      {this.melodyViewMode,
+      this.superSetState,
       this.score,
       this.sectionColor,
       this.currentSection,
@@ -62,7 +63,8 @@ class PartMelodiesView extends StatefulWidget {
       this.toggleEditingMelody,
       this.hideMelodyView,
       this.availableWidth,
-      this.selectedPart, this.enableColorboard});
+      this.selectedPart,
+      this.enableColorboard});
 
   @override
   _PartMelodiesViewState createState() {
@@ -89,16 +91,16 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 color: Colors.brown,
                 onPressed: canAddDrumPart
                     ? () {
-                  widget.superSetState(() {
-                        setState(() {
-                          Part part = newDrumPart();
-                          widget.score.parts.add(part);
+                        widget.superSetState(() {
+                          setState(() {
+                            Part part = newDrumPart();
+                            widget.score.parts.add(part);
 //                          BeatScratchPlugin.pushPart(part);
-                          if (widget.keyboardPart == null) {
-                            widget.setKeyboardPart(part);
-                          }
+                            if (widget.keyboardPart == null) {
+                              widget.setKeyboardPart(part);
+                            }
+                          });
                         });
-                  });
                       }
                     : null,
                 child: Column(children: [
@@ -128,56 +130,54 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
               ))),
       Expanded(
           child: AnimatedContainer(
-              duration: animationDuration,
-              width: width,
-              child: FlatButton(
-                color: Colors.grey,
-                onPressed: canAddPart
-                    ? () {
-                        widget.superSetState(() {
-                          setState(() {
-                            Part part = newPartFor(widget.score);
-                            if (widget.score.parts.isNotEmpty && widget.score.parts.last.isDrum /*&& !kIsWeb*/) {
-                              widget.score.parts.insert(widget.score.parts.length - 1, part);
-                            } else {
-                              widget.score.parts.add(part);
-                            }
-                            BeatScratchPlugin.createPart(part);
-                            if (widget.keyboardPart == null) {
-                              widget.setKeyboardPart(part);
-                            }
-                            if (widget.colorboardPart == null) {
-                              widget.setColorboardPart(part);
-                            }
-                          });
-                        });
-                      }
-                    : null,
-                child: Column(children: [
-                  Expanded(child: SizedBox()),
-                  Icon(
-                    Icons.add,
-                    color: canAddPart ? Colors.white : Colors.black26,
-                  ),
-                  Text(
-                    "Add Harmonic Part",
-                    style: TextStyle(color: canAddPart ? Colors.white : Colors.black26),
-                  ),
-                  Container(
-                      width: 270,
-                      padding: EdgeInsets.only(top: 5),
-                      child: Text(
-                        "Pianos, guitars, voice, and all other instruments that play notes. Melodies in Harmonic Parts "
-                        "can be transformed to fit Harmonies. "
-                        "\n\nMay be used on the Keyboard${widget.enableColorboard ? " or the Colorboard" : ""}.",
-                        style: TextStyle(
-                            color: canAddPart ? Colors.white : Colors.black26,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w100),
-                      )),
-                  Expanded(child: SizedBox()),
-                ])),
-              )),
+        duration: animationDuration,
+        width: width,
+        child: FlatButton(
+            color: Colors.grey,
+            onPressed: canAddPart
+                ? () {
+                    widget.superSetState(() {
+                      setState(() {
+                        Part part = newPartFor(widget.score);
+                        if (widget.score.parts.isNotEmpty && widget.score.parts.last.isDrum /*&& !kIsWeb*/) {
+                          widget.score.parts.insert(widget.score.parts.length - 1, part);
+                        } else {
+                          widget.score.parts.add(part);
+                        }
+                        BeatScratchPlugin.createPart(part);
+                        if (widget.keyboardPart == null) {
+                          widget.setKeyboardPart(part);
+                        }
+                        if (widget.colorboardPart == null) {
+                          widget.setColorboardPart(part);
+                        }
+                      });
+                    });
+                  }
+                : null,
+            child: Column(children: [
+              Expanded(child: SizedBox()),
+              Icon(
+                Icons.add,
+                color: canAddPart ? Colors.white : Colors.black26,
+              ),
+              Text(
+                "Add Harmonic Part",
+                style: TextStyle(color: canAddPart ? Colors.white : Colors.black26),
+              ),
+              Container(
+                  width: 270,
+                  padding: EdgeInsets.only(top: 5),
+                  child: Text(
+                    "Pianos, guitars, voice, and all other instruments that play notes. Melodies in Harmonic Parts "
+                    "can be transformed to fit Harmonies. "
+                    "\n\nMay be used on the Keyboard${widget.enableColorboard ? " or the Colorboard" : ""}.",
+                    style: TextStyle(
+                        color: canAddPart ? Colors.white : Colors.black26, fontSize: 10, fontWeight: FontWeight.w100),
+                  )),
+              Expanded(child: SizedBox()),
+            ])),
+      )),
     ]);
   }
 
@@ -208,12 +208,11 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                 hideMelodyView: widget.hideMelodyView,
                 enableColorboard: widget.enableColorboard,
                 removePart: (part) {
-
-    widget.superSetState(() {
-      setState(() {
-        widget.score.parts.remove(part);
-      });
-    });
+                  widget.superSetState(() {
+                    setState(() {
+                      widget.score.parts.remove(part);
+                    });
+                  });
                 }),
           )
         ]));
@@ -335,7 +334,8 @@ class _MelodiesView extends StatefulWidget {
     this.toggleEditingMelody,
     this.hideMelodyView,
     this.removePart,
-    this.selectedPart, this.enableColorboard,
+    this.selectedPart,
+    this.enableColorboard,
   });
 
   @override
@@ -422,7 +422,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
     }
     bool isSelectedPart = widget.selectedPart == part;
     Color backgroundColor, textColor;
-    if(part.instrument.type == InstrumentType.drum) {
+    if (part.instrument.type == InstrumentType.drum) {
       backgroundColor = isSelectedPart ? Colors.white : Colors.brown;
       textColor = isSelectedPart ? Colors.brown : Colors.white;
     } else {
@@ -602,52 +602,82 @@ class _MelodiesViewState extends State<_MelodiesView> {
               buildAddMelodyButton(backgroundColor, textColor, odeToJoyA()),
             if (part.instrument.type == InstrumentType.harmonic)
               buildAddMelodyButton(backgroundColor, textColor, odeToJoyB()),
-            if (part.instrument.type == InstrumentType.drum)
-              buildAddMelodyButton(backgroundColor, textColor, boom()),
-            if (part.instrument.type == InstrumentType.drum)
-              buildAddMelodyButton(backgroundColor, textColor, chick()),
-            if (part.instrument.type == InstrumentType.drum)
-              buildAddMelodyButton(backgroundColor, textColor, tssst()),
+            if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, boom()),
+            if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, chick()),
+            if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, tssst()),
             if (part.instrument.type == InstrumentType.drum)
               buildAddMelodyButton(backgroundColor, textColor, tsstTsst()),
-          ].where((it ) => it != null).toList(),
+          ].where((it) => it != null).toList(),
         ));
   }
 
   Widget buildAddMelodyButton(Color backgroundColor, Color textColor, Melody newMelody) {
     bool melodyExists = newMelody.name.isNotEmpty && part.melodies.any((it) => it.name == newMelody.name);
-    if(melodyExists) {
+    if (melodyExists) {
       return null;
     }
     return SliverAppBar(
-            backgroundColor: backgroundColor,
-            floating: true,
-            pinned: false,
-            expandedHeight: 50.0,
-            flexibleSpace: FlatButton(
-                onPressed: () {
-                  _lastAddedMelody = newMelody;
-                  setState(() {
-                    int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
-                    part.melodies.insert(index, newMelody);
-                    BeatScratchPlugin.createMelody(part, newMelody);
-                    toggleMelodyReference(currentSection.referenceTo(newMelody));
-                    selectMelody(newMelody);
-                    // Go directly to recording mode if not a template.
-                    if (newMelody.name.isEmpty) {
-                      editingMelody = true;
-                      setKeyboardPart(part);
-                    }
-                  });
-                },
-                child: Row(children:[
-                  if(newMelody.name.isEmpty) Expanded(child:SizedBox()),
-                  Icon(Icons.add, color: textColor,),
-                  if(newMelody.name.isEmpty) Expanded(child:SizedBox()),
-                  if(newMelody.name.isNotEmpty) Expanded(child:
-                    Text(newMelody.name, style: TextStyle(color: textColor, fontWeight: FontWeight.w300),))
-                ])),
-          );
+      backgroundColor: backgroundColor,
+      floating: true,
+      pinned: false,
+      expandedHeight: 50.0,
+      flexibleSpace: FlatButton(
+          onPressed: () {
+            _lastAddedMelody = newMelody;
+            setState(() {
+              int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
+              part.melodies.insert(index, newMelody);
+              BeatScratchPlugin.createMelody(part, newMelody);
+              toggleMelodyReference(currentSection.referenceTo(newMelody));
+              selectMelody(newMelody);
+              // Go directly to recording mode if not a template.
+              if (newMelody.name.isEmpty) {
+                editingMelody = true;
+                setKeyboardPart(part);
+              }
+            });
+          },
+          child: Stack(children: [
+          Align(alignment: Alignment.center, child: Row(children: [
+              if (newMelody.name.isEmpty) Expanded(child: SizedBox()),
+              Icon(
+                Icons.add,
+                color: textColor,
+              ),
+              if (newMelody.name.isEmpty) Expanded(child: SizedBox()),
+              if (newMelody.name.isNotEmpty)
+                Expanded(
+                  child: Transform.translate(offset: Offset(0, -1), child:Text(
+                  newMelody.name,
+                  style: TextStyle(color: textColor, fontWeight: FontWeight.w300),
+                )),),
+            ])),
+            Align(alignment: Alignment.centerRight, child: Transform.translate(offset: Offset(10, 0), child:
+            BeatsBadge(beats: newMelody.length ~/ newMelody.subdivisionsPerBeat),))
+          ])),
+    );
+  }
+}
+
+class BeatsBadge extends StatelessWidget {
+  final int beats;
+
+  const BeatsBadge({Key key, this.beats}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Opacity(opacity: 0.5, child: Container(
+      child: Text("$beats\nbeat${beats == 1 ? "" : "s"}", textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w200),),
+      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 3),
+      decoration: BoxDecoration(
+        color: Colors.white,
+          border: Border.all(
+            color: Colors.black,
+          ),
+          borderRadius: BorderRadius.all(Radius.circular(5))),
+    ));
   }
 }
 
@@ -692,6 +722,7 @@ class _MelodyReference extends StatefulWidget {
 
 class __MelodyReferenceState extends State<_MelodyReference> with TickerProviderStateMixin {
   MelodyReference get reference => widget.currentSection.referenceTo(widget.melody);
+
   bool get isSelectedMelody => widget.melody.id == widget.selectedMelody?.id;
   AnimationController controller;
 
@@ -752,6 +783,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                         decoration: InputDecoration(
                             border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
                       )),
+                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat),
                       ReorderableListener(
                           child: Container(
                               width: 24,
@@ -802,9 +834,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           child: RaisedButton(
                               padding: EdgeInsets.all(0),
                               onPressed: toggleMelody,
-                              color: (isSelectedMelody && !widget.editingMelody)
-                                  ? widget.sectionColor
-                                  : Color(0xFFDDDDDD),
+                              color:
+                                  (isSelectedMelody && !widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
                               child: Icon(Icons.remove_red_eye))),
                       AnimatedContainer(
                           duration: animationDuration,
@@ -818,9 +849,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                                 widget.toggleEditingMelody();
                               },
                               padding: EdgeInsets.all(0),
-                              color: (isSelectedMelody && widget.editingMelody)
-                                  ? widget.sectionColor
-                                  : Color(0xFFDDDDDD),
+                              color:
+                                  (isSelectedMelody && widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
                               child: Image.asset(
                                 'assets/edit.png',
                                 fit: BoxFit.fill,
@@ -859,7 +889,6 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 
     return content;
   }
-
 
   @override
   void dispose() {

@@ -96,45 +96,47 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
     chordNotifier = ValueNotifier(widget.chord);
-    try {
-      _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
-        if (scrollingMode != ScrollingMode.sideScroll) {
-          print("Sensor event: $event");
-          double normalizedPitch;
-          switch (scrollingMode) {
-            case ScrollingMode.pitch:
-              var absoluteScrollPosition = event.pitch;
-              if (absoluteScrollPosition < 0) {
-                absoluteScrollPosition = -absoluteScrollPosition;
-              }
-              normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
-              break;
-            case ScrollingMode.roll:
+    if(Platform.isIOS || Platform.isAndroid) {
+      try {
+        _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
+          if (scrollingMode != ScrollingMode.sideScroll) {
+            print("Sensor event: $event");
+            double normalizedPitch;
+            switch (scrollingMode) {
+              case ScrollingMode.pitch:
+                var absoluteScrollPosition = event.pitch;
+                if (absoluteScrollPosition < 0) {
+                  absoluteScrollPosition = -absoluteScrollPosition;
+                }
+                normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
+                break;
+              case ScrollingMode.roll:
 //              var maxRoll = -1.45; // All the way to the right
 //              var minRoll = 1.45; // All the way to the left
-              normalizedPitch = (1.45 - event.roll) / 2.9;
-              break;
-            case ScrollingMode.sideScroll:
-              break;
-          }
+                normalizedPitch = (1.45 - event.roll) / 2.9;
+                break;
+              case ScrollingMode.sideScroll:
+                break;
+            }
 
-          double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
-          if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
-            Animation animation;
-            animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
+            double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
+            if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
+              Animation animation;
+              animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
                 .animate(orientationAnimationController)
-                  ..addListener(() {
-                    scrollPositionNotifier.value = animation.value;
+                ..addListener(() {
+                  scrollPositionNotifier.value = animation.value;
 //                setState(() {});
-                  });
-            orientationAnimationController.forward(from: scrollPositionNotifier.value);
+                });
+              orientationAnimationController.forward(from: scrollPositionNotifier.value);
 //            scrollPositionNotifier.value = newScrollPositionValue;
+            }
           }
-        }
-      }));
-    } catch (MissingPluginException) {
-      // It's fine for this to not work on desktop
-      scrollingMode = ScrollingMode.sideScroll;
+        }));
+      } catch (MissingPluginException) {
+        // It's fine for this to not work on desktop
+        scrollingMode = ScrollingMode.sideScroll;
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/ui_models.dart';
 import 'package:flutter/material.dart';
+import 'colors.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -226,6 +227,7 @@ class SecondToolbar extends StatelessWidget {
   final VoidCallback toggleColorboard;
   final VoidCallback toggleKeyboardConfiguration;
   final VoidCallback toggleColorboardConfiguration;
+  final bool editingMelody;
   final bool showKeyboard;
   final bool showKeyboardConfiguration;
   final bool showColorboard;
@@ -248,7 +250,7 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard,
+    this.enableColorboard, this.editingMelody,
   }) : super(key: key);
 
   @override
@@ -270,8 +272,17 @@ class SecondToolbar extends StatelessWidget {
               padding: const EdgeInsets.all(2),
               child: RaisedButton(
                   padding: EdgeInsets.zero,
-                  child: AnimatedOpacity(
-                      opacity: editMode ? 1 : 0, duration: animationDuration, child: Icon(BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)),
+                  child: Stack(children:[
+                    AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
+                      duration: animationDuration, child:
+                      Icon(Icons.play_arrow,)),
+                    AnimatedOpacity(opacity: editMode && BeatScratchPlugin.playing ? 1 : 0,
+                      duration: animationDuration, child:
+                      Icon(Icons.pause,)),
+                    AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && editingMelody ? 1 : 0,
+                      duration: animationDuration, child:
+                      Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                ]),
                   onPressed: BeatScratchPlugin.supportsPlayback
                       ? () {
                     if(BeatScratchPlugin.playing) {

@@ -269,8 +269,13 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
         AnimatedContainer(
           color: Colors.white,
           duration: animationDuration,
-          height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? 24 : 0,
-          child: MelodyEditingToolbar()),
+          height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? 48 : 0,
+          child: MelodyEditingToolbar(
+            sectionColor: widget.sectionColor,
+            score: widget.score,
+            melodyId: widget.melody?.id,
+            currentSection: widget.currentSection,
+          )),
         Expanded(child: _mainMelody(context))
       ],
     );
