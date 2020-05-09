@@ -78,6 +78,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScale = 0.1;
   static const double maxScale = 1.0;
   bool isConfiguringPart = false;
+  bool isEditingSection = false;
   Offset _previousOffset = Offset.zero;
   Offset _offset = Offset.zero;
   Offset _startFocalPoint = Offset.zero;
@@ -171,6 +172,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     if(widget.part == null) {
       isConfiguringPart = false;
     }
+    if(widget.melodyViewMode != MelodyViewMode.section) {
+      isEditingSection = false;
+    }
     return Column(
       children: [
         AnimatedContainer(
@@ -214,6 +218,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       deleteSection: widget.deleteSection,
                       canDeleteSection: widget.score.sections.length > 1,
                       cloneCurrentSection: widget.cloneCurrentSection,
+                      editingSection: isEditingSection,
+                      setEditingSection: (value) { setState(() {
+                        isEditingSection = value;
+                      });},
                     )),
                     AnimatedContainer(
                       duration: animationDuration,
@@ -274,6 +282,15 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
             sectionColor: widget.sectionColor,
             score: widget.score,
             melodyId: widget.melody?.id,
+            currentSection: widget.currentSection,
+          )),
+        AnimatedContainer(
+          color: widget.sectionColor,
+          duration: animationDuration,
+          height: (widget.melodyViewMode == MelodyViewMode.section && isEditingSection) ? 48 : 0,
+          child: SectionEditingToolbar(
+            sectionColor: widget.sectionColor,
+            score: widget.score,
             currentSection: widget.currentSection,
           )),
         Expanded(child: _mainMelody(context))

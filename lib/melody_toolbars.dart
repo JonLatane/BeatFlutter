@@ -252,7 +252,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateMelody(widget.melody);
         } : null,
-        onIncrement: (widget.melody != null && beats <= 100000)
+        onIncrement: (widget.melody != null && beats <= 999)
           ? () {
           widget.melody.length += widget.melody.subdivisionsPerBeat;
           BeatScratchPlugin.onSynthesizerStatusChange();
@@ -468,6 +468,7 @@ class SectionToolbar extends StatefulWidget {
   final Function(Section) deleteSection;
   final Function cloneCurrentSection;
   final bool editingSection;
+  final Function(bool) setEditingSection;
 
   const SectionToolbar(
       {Key key,
@@ -477,7 +478,7 @@ class SectionToolbar extends StatefulWidget {
       this.setSectionName,
       this.deleteSection,
       this.canDeleteSection,
-      this.editingSection, this.cloneCurrentSection})
+      this.editingSection, this.cloneCurrentSection, this.setEditingSection})
       : super(key: key);
 
   @override
@@ -533,6 +534,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
             padding: EdgeInsets.zero,
+            color: widget.editingSection ? Colors.white : Colors.grey,
             child: Row(children: [
               Container(
                   width: 36,
@@ -570,7 +572,9 @@ class SectionToolbarState extends State<SectionToolbar> {
                 ])),
               Expanded(child:SizedBox())
             ]),
-            onPressed: null,//() => {},
+            onPressed: () {
+              widget.setEditingSection(!widget.editingSection);
+            },
           )),
       AnimatedContainer(
           duration: animationDuration,
@@ -640,5 +644,94 @@ class SectionToolbarState extends State<SectionToolbar> {
               padding: EdgeInsets.zero,
               child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
+  }
+}
+
+
+class SectionEditingToolbar extends StatefulWidget {
+  final Score score;
+  final Color sectionColor;
+  final Section currentSection;
+
+  const SectionEditingToolbar({Key key, this.sectionColor, this.score, this.currentSection}) : super(key: key);
+
+  @override
+  _SectionEditingToolbarState createState() => _SectionEditingToolbarState();
+}
+
+class _SectionEditingToolbarState extends State<SectionEditingToolbar> with TickerProviderStateMixin {
+  AnimationController animationController;
+  Color recordingAnimationColor;
+  Animation<Color> recordingAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    animationController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    recordingAnimation = ColorTween(
+      begin: Colors.grey,
+      end: chromaticSteps[7],
+    ).animate(animationController)
+      ..addListener(() {
+        setState(() {
+          recordingAnimationColor = recordingAnimation.value;
+        });
+      });
+    animationController.repeat(reverse: true);
+    Color recordingColor;
+//    if(widget.melody != null && BeatScratchPlugin.playing) {
+//      recordingColor = recordingAnimationColor;
+//    } else {
+//      recordingColor = Colors.grey;
+//    }
+    int beats = widget.currentSection.harmony.length ~/ widget.currentSection.harmony.subdivisionsPerBeat;
+    return Row(children: [
+//      SizedBox(width: 5),
+//      Column(children: [
+//        Icon(Icons.fiber_manual_record, color: recordingColor),
+//        Text('Recording',
+//          overflow: TextOverflow.ellipsis,
+//          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
+//      ]),
+      Expanded(child: SizedBox(width: 5),),
+      IncrementableValue(
+        onDecrement: (beats > 1)
+          ? () {
+          widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+
+//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
+        } : null,
+        onIncrement: (beats <= 999)
+          ? () {
+          widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+//          BeatScratchPlugin.updateMelody(widget.melody);
+        }
+          : null,
+        valueWidth: 100,
+        value: "$beats beat${beats == 1 ? "" : "s"}",
+      ),
+      SizedBox(width: 5),
+      IncrementableValue(
+        onDecrement: null,
+        onIncrement: null,
+        valueWidth: 100,
+        value: "${widget.currentSection.harmony?.subdivisionsPerBeat} / beat",
+      ),
+      SizedBox(width: 5),
+    ]);
   }
 }

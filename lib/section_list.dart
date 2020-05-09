@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/part_melodies_view.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'dummydata.dart';
@@ -184,12 +185,14 @@ class _SectionState extends State<_Section> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
-        width: 150,
+        width: 180,
         height: 36,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: FlatButton(
           padding: EdgeInsets.only(left: 5, right: 5),
-          child: Row(children: [
+          child: Stack(children:[Row(children: [
+            BeatsBadge(beats: widget.section.harmony.length ~/ widget.section.harmony.subdivisionsPerBeat),
+            SizedBox(width:3),
             Expanded(
                 child: Align(
               alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
@@ -211,6 +214,7 @@ class _SectionState extends State<_Section> {
                       size: 24,
                     )))
           ]),
+    ]),
           onPressed: () {
             widget.selectSection(widget.section);
           },

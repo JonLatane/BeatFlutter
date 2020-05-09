@@ -82,11 +82,13 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 
   _drawNoteheadsLedgersAndStems(Canvas canvas) {
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
+    double howFarIntoBeatAreWe = (elementPosition % melody.subdivisionsPerBeat) / melody.subdivisionsPerBeat;
+    double xOffset = -35 * xScale * howFarIntoBeatAreWe;
 
     if (tones.isNotEmpty) {
       double boundsWidth = bounds.width;
       double maxFittableNoteheadWidth = (boundsWidth / 2.6).ceilToDouble();
-      double noteheadWidth = 12 * xScale; //min(letterStepSize * 2, maxFittableNoteheadWidth);
+      double noteheadWidth = 18 * xScale; //min(letterStepSize * 2, maxFittableNoteheadWidth);
       double noteheadHeight = noteheadWidth; //(bounds.right - bounds.left)
 
       List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, chord);
@@ -119,11 +121,11 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         double bottom = center - (noteheadHeight / 2);
         double left, right;
         if (shouldStagger) {
-          left =  bounds.left;//bounds.right - noteheadWidth;
-          right = bounds.left + noteheadWidth;//bounds.right;
+          left =  bounds.left + xOffset;//bounds.right - noteheadWidth;
+          right = bounds.left + noteheadWidth + xOffset;//bounds.right;
         } else {
-          left =  bounds.left + .9 * noteheadWidth;//bounds.right - 1.9 * noteheadWidth;
-          right = bounds.left + 1.9 * noteheadWidth;//bounds.right - 0.9 * noteheadWidth;
+          left =  bounds.left + .9 * noteheadWidth + xOffset;//bounds.right - 1.9 * noteheadWidth;
+          right = bounds.left + 1.9 * noteheadWidth + xOffset;//bounds.right - 0.9 * noteheadWidth;
         }
         Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
         switch(notehead) {
@@ -177,11 +179,11 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         if(signToDraw != null) {
           double signLeft, signRight, signTop, signBottom;
           if(shouldStagger) {
-            signLeft = bounds.left - 0.7 * noteheadWidth;// bounds.right - 2.3 * noteheadWidth;
-            signRight = bounds.left - 0.2 * noteheadWidth;//bounds.right - 1.8 * noteheadWidth;
+            signLeft = bounds.left - 0.7 * noteheadWidth + xOffset;// bounds.right - 2.3 * noteheadWidth;
+            signRight = bounds.left - 0.2 * noteheadWidth + xOffset;//bounds.right - 1.8 * noteheadWidth;
           } else {
-            signLeft = bounds.left - 0.5 * noteheadWidth; //bounds.right - 2.8 * noteheadWidth;
-            signRight = bounds.left;//bounds.right - 2.3 * noteheadWidth;
+            signLeft = bounds.left - 0.5 * noteheadWidth + xOffset; //bounds.right - 2.8 * noteheadWidth;
+            signRight = bounds.left + xOffset;//bounds.right - 2.3 * noteheadWidth;
           }
 
           switch(signToDraw) {
@@ -202,6 +204,9 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
               signTop = top - difference;//- noteheadHeight / 3;
               signBottom = bottom - difference;// + noteheadHeight / 3;
           }
+          final signTopOffset = 8 * yScale;
+          signTop += signTopOffset;
+          signBottom += signTopOffset;
           Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
           _renderSign(canvas, signRect, signToDraw);
         }
@@ -223,7 +228,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           : bounds.left + 1.83 * noteheadWidth;//bounds.right - 0.965 * noteheadWidth;
         double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
         double stopY = minCenter - 3 * noteheadHeight;
-        canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+        canvas.drawLine(Offset(stemX + xOffset, startY), Offset(stemX + xOffset, stopY), alphaDrawerPaint);
       } else {
         double stemX = (hadStaggeredNotes)
           ? bounds.left+ 0.887 * noteheadWidth//bounds.right - 0.95 * noteheadWidth
@@ -231,7 +236,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         double startY = minCenter + noteheadHeight *
           ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
         double stopY = maxCenter + 3 * noteheadHeight;
-        canvas.drawLine(Offset(stemX, startY), Offset(stemX, stopY), alphaDrawerPaint);
+        canvas.drawLine(Offset(stemX + xOffset, startY), Offset(stemX + xOffset, stopY), alphaDrawerPaint);
       }
     }
   }

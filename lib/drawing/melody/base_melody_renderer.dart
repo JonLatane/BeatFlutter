@@ -49,14 +49,14 @@ class BaseMelodyRenderer extends ColorGuide {
 
   ///doesn't work for [renderVertically]=false.
   drawTimewiseLineRelativeToBounds(
-  {Canvas canvas, bool leftSide = true, double alpha = 1, double strokeWidth = 1, double startY, double stopY, double percentThrough = 0}) {
+  {Canvas canvas, bool leftSide = true, double alpha = 1, double strokeWidth = 1, double startY, double stopY, double percentThrough = 0, Offset offset = Offset.zero}) {
     double oldStrokeWidth = alphaDrawerPaint.strokeWidth;
     alphaDrawerPaint.preserveProperties(() {
       alphaDrawerPaint.color = Color(0xFF000000).withAlpha((alpha * 255).toInt());
       alphaDrawerPaint.strokeWidth = strokeWidth;
       double x = (leftSide) ? bounds.left : bounds.right;
       x += percentThrough * bounds.width;
-      canvas.drawLine(Offset(x, startY), Offset(x, stopY), alphaDrawerPaint);
+      canvas.drawLine(Offset(x, startY) + offset, Offset(x, stopY) + offset, alphaDrawerPaint);
       alphaDrawerPaint.strokeWidth = oldStrokeWidth;
     });
   }

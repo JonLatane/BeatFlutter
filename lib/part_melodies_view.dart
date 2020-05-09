@@ -666,11 +666,19 @@ class BeatsBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return Opacity(opacity: 0.5, child: Container(
-      child: Text("$beats\nbeat${beats == 1 ? "" : "s"}", textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w200),),
-      padding: EdgeInsets.symmetric(vertical: 2, horizontal: 3),
+    return Opacity(opacity: 0.5, child:
+    Container(
+      width: 30,
+      height: 25,
+      child: Stack(children: [
+        Align(alignment: Alignment.center, child:
+          Transform.translate(offset: Offset(0, -5), child:
+            Text("$beats", style: TextStyle(fontWeight: FontWeight.w900),))),
+      Align(alignment: Alignment.center, child:
+        Transform.translate(offset: Offset(0, 6), child:
+          Text("beat${beats == 1 ? "" : "s"}", style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),))),
+      ]),
+      padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: Colors.white,
           border: Border.all(
@@ -768,6 +776,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                 Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
                     child: Row(children: [
+                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat),
+                      SizedBox(width:3),
                       Expanded(
                           child: TextField(
                         controller: TextEditingController()..text = widget.melody.name,
@@ -783,7 +793,6 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                         decoration: InputDecoration(
                             border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
                       )),
-                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat),
                       ReorderableListener(
                           child: Container(
                               width: 24,

@@ -78,7 +78,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     max(renderAreaHeight, widget.staves.length * staffHeight * yScale)
       + (widget.melodyViewMode == MelodyViewMode.score ? 30 : 0);
 
-  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth; // + 1 for clefs
+  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth + 20 * xScale; // + 1 for clefs
 
   ScrollController verticalController = ScrollController();
   static const double staffHeight = 500;
@@ -523,7 +523,7 @@ class MusicSystemPainter extends CustomPainter {
       }
 
       _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat, stemsUp,
-        (focusedMelody == null) ? 1 : 0.66, renderQueue);
+        (focusedMelody == null) ? 1 : 0.2, renderQueue);
       index++;
     }
 
@@ -583,7 +583,7 @@ class MusicSystemPainter extends CustomPainter {
     if(staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
       Rect highlight = Rect.fromPoints(
         bounds.topLeft.translate(-bounds.width / 13, notationOpacityNotifier.value * bounds.height / 6),
-        bounds.bottomRight.translate(bounds.width / 13, notationOpacityNotifier.value * -bounds.height / 10)
+        bounds.bottomRight.translate(0, notationOpacityNotifier.value * -bounds.height / 10)
       );
       canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
     }
