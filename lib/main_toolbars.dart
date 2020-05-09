@@ -20,6 +20,8 @@ class BeatScratchToolbar extends StatelessWidget {
   final VoidCallback showMidiInputSettings;
   final bool focusPartsAndMelodies;
   final VoidCallback toggleFocusPartsAndMelodies;
+  final bool showBeatCounts;
+  final VoidCallback toggleShowBeatCounts;
 
   const BeatScratchToolbar(
       {Key key,
@@ -34,7 +36,7 @@ class BeatScratchToolbar extends StatelessWidget {
       this.renderingMode,
       this.showMidiInputSettings,
       this.focusPartsAndMelodies,
-      this.toggleFocusPartsAndMelodies})
+      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts})
       : super(key: key);
 
   @override
@@ -62,6 +64,9 @@ class BeatScratchToolbar extends StatelessWidget {
                         break;
                       case "focusPartsAndMelodies":
                         toggleFocusPartsAndMelodies();
+                        break;
+                      case "showBeatCounts":
+                        toggleShowBeatCounts();
                         break;
                     }
                     //setState(() {});
@@ -102,13 +107,20 @@ class BeatScratchToolbar extends StatelessWidget {
                           child: Text('Copy Score'),
                           enabled: false,
                         ),
-                        PopupMenuItem(
+                        if(interactionMode == InteractionMode.edit) PopupMenuItem(
                           value: "focusPartsAndMelodies",
                           child: Row(children: [
                             Checkbox(value: focusPartsAndMelodies, onChanged: null),
                             Expanded(child: Text('Focus Parts/Melodies'))
                           ]),
                         ),
+//                    if(interactionMode == InteractionMode.edit) PopupMenuItem(
+//                          value: "showBeatCounts",
+//                          child: Row(children: [
+//                            Checkbox(value: showBeatCounts, onChanged: null),
+//                            Expanded(child: Text('Show Section Beat Counts'))
+//                          ]),
+//                        ),
                         const PopupMenuItem(
                           value: "midiSettings",
                           child: Text('MIDI Settings'),

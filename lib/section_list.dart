@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'dummydata.dart';
 import 'ui_models.dart';
+import 'music_theory.dart';
 import 'util.dart';
 
 import 'animations/size_fade_transition.dart';
@@ -19,6 +20,8 @@ class SectionList extends StatefulWidget {
   final Function(Section) selectSection;
   final Function(Section) insertSection;
   final Function(VoidCallback) setState;
+  final bool showSectionBeatCounts;
+  final VoidCallback toggleShowSectionBeatCounts;
 
   const SectionList(
       {Key key,
@@ -28,7 +31,9 @@ class SectionList extends StatefulWidget {
       this.selectSection,
       this.insertSection,
       this.sectionColor,
-      this.setState})
+      this.setState,
+      this.showSectionBeatCounts,
+      this.toggleShowSectionBeatCounts})
       : super(key: key);
 
   @override
@@ -41,9 +46,19 @@ class _SectionListState extends State<SectionList> {
   @override
   Widget build(BuildContext context) {
     _animateToNewlySelectedSection();
+    int beatCount = widget.score.beatCount;
     return (widget.scrollDirection == Axis.horizontal)
         ? Row(children: [
             Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
+            AnimatedContainer(
+              duration: animationDuration,
+                width: beatsBadgeWidth(beatCount) + 5,
+                height: 32,
+                padding: EdgeInsets.only(right: 5),
+                child: FlatButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: widget.toggleShowSectionBeatCounts,
+                    child: BeatsBadge(beats: beatCount, opacity: widget.showSectionBeatCounts ? 1 : 0.5,))),
             Container(
                 width: 37,
                 height: 32,
@@ -61,6 +76,37 @@ class _SectionListState extends State<SectionList> {
           ])
         : Column(children: [
             Expanded(child: getList(context)),
+      Row(children: [
+        Expanded(child:
+          AnimatedOpacity(duration: animationDuration, opacity: widget.showSectionBeatCounts ? 1 : 0.5, child:
+    AnimatedContainer(
+            duration: animationDuration,
+//            width: widget.showSectionBeatCounts ? beatsBadgeWidth(beatCount) : 0,
+            height: 36,
+            child:
+            FlatButton(
+              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+              onPressed: widget.toggleShowSectionBeatCounts,
+              child:
+              Row(children: [
+                Expanded(child:SizedBox()),
+              Text("$beatCount", maxLines: 1, overflow: TextOverflow.fade,
+                style: TextStyle(fontWeight: FontWeight.w900),),
+              SizedBox(width:3),
+              Text("beat${beatCount == 1 ? "" : "s"}", maxLines: 1, overflow: TextOverflow.fade,
+                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),),
+                Expanded(child:SizedBox()),
+            ])),
+            padding: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: Colors.black,
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+          ))
+        )]),
+//      ]),
             Row(children: [
               Expanded(
                   child: Container(
@@ -79,8 +125,9 @@ class _SectionListState extends State<SectionList> {
   }
 
   Section _previousSection;
+
   _animateToNewlySelectedSection() {
-    if(_previousSection != null && _previousSection.id != widget.currentSection.id) {
+    if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
       int index = widget.score.sections.indexOf(widget.currentSection);
       if (widget.scrollDirection == Axis.horizontal) {
         double position = 150.0 * (index - 1);
@@ -128,6 +175,7 @@ class _SectionListState extends State<SectionList> {
                 currentSection: widget.currentSection,
                 scrollDirection: widget.scrollDirection,
                 section: section,
+                showBeatCount: widget.showSectionBeatCounts,
               );
 
               // If the item is in drag, only return the tile as the
@@ -167,9 +215,16 @@ class _Section extends StatefulWidget {
   final Color sectionColor;
   final Function(Section) selectSection;
   final Axis scrollDirection;
+  final bool showBeatCount;
 
   const _Section(
-      {Key key, this.section, this.selectSection, this.currentSection, this.sectionColor, this.scrollDirection})
+      {Key key,
+      this.section,
+      this.selectSection,
+      this.currentSection,
+      this.sectionColor,
+      this.scrollDirection,
+      this.showBeatCount})
       : super(key: key);
 
   @override
@@ -177,44 +232,45 @@ class _Section extends StatefulWidget {
 }
 
 class _SectionState extends State<_Section> {
-  TextEditingController _controller = TextEditingController();
-
   get hasName => widget.section.name.trim().length > 0;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
-        width: 180,
+        width: 165,
         height: 36,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: FlatButton(
           padding: EdgeInsets.only(left: 5, right: 5),
-          child: Stack(children:[Row(children: [
-            BeatsBadge(beats: widget.section.harmony.length ~/ widget.section.harmony.subdivisionsPerBeat),
-            SizedBox(width:3),
-            Expanded(
-                child: Align(
-              alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
-              child: Text(
-                hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    TextStyle(fontSize: 13, fontWeight: FontWeight.w100, color: hasName ? Colors.black : Colors.grey),
-              ),
-            )),
-            Handle(
-                key: Key("handle-${widget.section.id}"),
-                delay: const Duration(milliseconds: 0),
-                child: Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(
-                      Icons.reorder,
-                      size: 24,
-                    )))
+          child: Stack(children: [
+            Row(children: [
+              BeatsBadge(
+                  beats: widget.section.harmony.length ~/ widget.section.harmony.subdivisionsPerBeat,
+                  show: widget.showBeatCount),
+              SizedBox(width: 3),
+              Expanded(
+                  child: Align(
+                alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
+                child: Text(
+                  hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      TextStyle(fontSize: 13, fontWeight: FontWeight.w100, color: hasName ? Colors.black : Colors.grey),
+                ),
+              )),
+              Handle(
+                  key: Key("handle-${widget.section.id}"),
+                  delay: const Duration(milliseconds: 0),
+                  child: Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(
+                        Icons.reorder,
+                        size: 24,
+                      )))
+            ]),
           ]),
-    ]),
           onPressed: () {
             widget.selectSection(widget.section);
           },

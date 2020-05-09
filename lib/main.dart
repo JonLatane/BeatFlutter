@@ -187,6 +187,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
   bool focusPartsAndMelodies = true;
+  bool showBeatCounts = false;
 
   updateScore(Function(Score) updates) {
     setState(() {
@@ -435,7 +436,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool verticalSectionList = false;
 
-  double get verticalSectionListWidth => interactionMode == InteractionMode.edit && verticalSectionList ? 150 : 0;
+  double get verticalSectionListWidth => interactionMode == InteractionMode.edit && verticalSectionList ? 165 : 0;
 
   double get horizontalSectionListHeight => interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
@@ -990,12 +991,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           });
         },
-        focusPartsAndMelodies: focusPartsAndMelodies,
-        toggleFocusPartsAndMelodies: () {
-          setState(() {
-            focusPartsAndMelodies = !focusPartsAndMelodies;
-          });
-        },
+    focusPartsAndMelodies: focusPartsAndMelodies,
+    toggleFocusPartsAndMelodies: () {
+      setState(() {
+        focusPartsAndMelodies = !focusPartsAndMelodies;
+      });
+    },
+    showBeatCounts: showBeatCounts,
+    toggleShowBeatCounts: () {
+      setState(() {
+        showBeatCounts = !showBeatCounts;
+      });
+    },
       );
 
   SecondToolbar createSecondToolbar() => SecondToolbar(
@@ -1037,6 +1044,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       currentSection: currentSection,
       selectSection: _selectSection,
       insertSection: _insertSection,
+      showSectionBeatCounts: showBeatCounts,
+      toggleShowSectionBeatCounts: () {
+        setState(() {
+          showBeatCounts = !showBeatCounts;
+        });
+      },
     );
     _sectionLists.add(result);
     return result;

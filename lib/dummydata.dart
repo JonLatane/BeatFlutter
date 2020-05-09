@@ -8,6 +8,7 @@ import 'util.dart';
 
 const int defaultSectionBeats = 16;
 const int defaultSectionSubdivisionsPerBeat = 4;
+const int defaultMelodySubdivisionsPerBeat = 12;
 const int defaultSectionLength = defaultSectionSubdivisionsPerBeat * defaultSectionBeats;
 
 Chord cChromatic = Chord()

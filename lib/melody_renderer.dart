@@ -78,7 +78,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     max(renderAreaHeight, widget.staves.length * staffHeight * yScale)
       + (widget.melodyViewMode == MelodyViewMode.score ? 30 : 0);
 
-  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth + 20 * xScale; // + 1 for clefs
+  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth;// + 20 * xScale; // + 1 for clefs
 
   ScrollController verticalController = ScrollController();
   static const double staffHeight = 500;

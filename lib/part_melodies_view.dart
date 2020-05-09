@@ -492,7 +492,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     setPartVolume(part, value);
                   }),
             ),
-            buildAddMelodyButton(backgroundColor, textColor, defaultMelody()..instrumentType = part.instrument.type),
+            buildAddMelodyButton(backgroundColor, textColor,
+              defaultMelody()..instrumentType = part.instrument.type),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
                 sliver:
@@ -659,24 +660,38 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 }
 
+double beatsBadgeWidth(int beats) {
+  double width = 30;
+  if(beats > 99) width = 40;
+  if(beats > 999) width = 50;
+  if(beats > 9999) width = 60;
+  if(beats > 99999) width = 70;
+  return width;
+}
+
 class BeatsBadge extends StatelessWidget {
   final int beats;
+  final bool show;
+  final double opacity;
 
-  const BeatsBadge({Key key, this.beats}) : super(key: key);
+  const BeatsBadge({Key key, this.beats, this.show = true, this.opacity = 0.5}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(opacity: 0.5, child:
-    Container(
-      width: 30,
+    return AnimatedOpacity(duration: animationDuration, opacity: opacity, child:
+    AnimatedContainer(
+      duration: animationDuration,
+      width: show ? beatsBadgeWidth(beats) : 0,
       height: 25,
       child: Stack(children: [
         Align(alignment: Alignment.center, child:
           Transform.translate(offset: Offset(0, -5), child:
-            Text("$beats", style: TextStyle(fontWeight: FontWeight.w900),))),
+            Text("$beats", maxLines: 1, overflow: TextOverflow.fade,
+              style: TextStyle(fontWeight: FontWeight.w900),))),
       Align(alignment: Alignment.center, child:
         Transform.translate(offset: Offset(0, 6), child:
-          Text("beat${beats == 1 ? "" : "s"}", style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),))),
+          Text("beat${beats == 1 ? "" : "s"}", maxLines: 1, overflow: TextOverflow.fade,
+            style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),))),
       ]),
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
