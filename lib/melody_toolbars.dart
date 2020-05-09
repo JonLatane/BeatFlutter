@@ -259,15 +259,16 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           BeatScratchPlugin.updateMelody(widget.melody);
         }
           : null,
-        valueWidth: 100,
-        value: "$beats beat${beats == 1 ? "" : "s"}",
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
+//        valueWidth: 100,
+//        value: "$beats beat${beats == 1 ? "" : "s"}",
       ),
       SizedBox(width: 5),
       IncrementableValue(
         onDecrement: null,
         onIncrement: null,
-        valueWidth: 100,
-        value: "${widget.melody?.subdivisionsPerBeat} / beat",
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+          child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
       ),
       SizedBox(width: 5),
     ]);
@@ -721,15 +722,14 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
 //          BeatScratchPlugin.updateMelody(widget.melody);
         }
           : null,
-        valueWidth: 100,
-        value: "$beats beat${beats == 1 ? "" : "s"}",
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
       ),
       SizedBox(width: 5),
       IncrementableValue(
         onDecrement: null,
         onIncrement: null,
-        valueWidth: 100,
-        value: "${widget.currentSection.harmony?.subdivisionsPerBeat} / beat",
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+          child:BeatsBadge(beats: widget.currentSection.harmony.subdivisionsPerBeat, isPerBeat: true,)),
       ),
       SizedBox(width: 5),
     ]);

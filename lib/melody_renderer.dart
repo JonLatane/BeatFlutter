@@ -478,7 +478,8 @@ class MusicSystemPainter extends CustomPainter {
               renderingSectionBeat,
               renderingBeat,
               left,
-              staff);
+              staff,
+              staves.value);
             //        canvas.restore();
           });
         });
@@ -494,9 +495,10 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderMelodies(List<Melody> melodiesToRender, Canvas canvas, Rect melodyBounds, Section renderingSection,
-    int renderingSectionBeat, int renderingBeat, double left, MusicStaff staff) {
+    int renderingSectionBeat, int renderingBeat, double left, MusicStaff staff, Iterable<MusicStaff> staffConfiguration) {
     var renderQueue = List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
     renderQueue.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
+    renderQueue.removeWhere((element) => element.midiData.data.keys.isEmpty);
     int index = 0;
     Map<double, bool> averageToneToStemsUp = Map();
     while (renderQueue.isNotEmpty) {
@@ -527,9 +529,25 @@ class MusicSystemPainter extends CustomPainter {
       index++;
     }
 
-    if (focusedMelody != null && melodiesToRender.contains(focusedMelody)) {
-      _renderMelodyBeat(
-        canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, 1, renderQueue, renderLoopStarts: true);
+    if (focusedMelody != null) {
+      final part = score.parts.firstWhere((p) => p.melodies.any((m) => m.id == focusedMelodyId));
+      final parts = staff.getParts(score, staffConfiguration);
+      if(parts.any((p) => p.id == part.id)) {
+        double opacity = 1;
+        if (!melodiesToRender.contains(focusedMelody)) {
+          opacity = 0.6;
+        }
+        _renderMelodyBeat(
+          canvas,
+          focusedMelody,
+          melodyBounds,
+          renderingSection,
+          renderingSectionBeat,
+          true,
+          opacity,
+          renderQueue,
+          renderLoopStarts: true);
+      }
     }
 
     try {

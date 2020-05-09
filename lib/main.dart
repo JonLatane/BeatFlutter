@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/clearCaches.dart';
@@ -84,7 +85,18 @@ Section initialSection = initialScore.sections[0];
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = initialScore;
   InteractionMode interactionMode = InteractionMode.view;
-  SplitMode splitMode;
+  SplitMode _splitMode;
+  SplitMode get splitMode => _splitMode;
+  set splitMode(SplitMode value) {
+    _splitMode = value;
+    if(_melodyViewSizeFactor != 0) {
+      if (value == SplitMode.half && interactionMode == InteractionMode.edit) {
+        _melodyViewSizeFactor = 0.5;
+      } else {
+        _melodyViewSizeFactor = 1;
+      }
+    }
+  }
 
   MelodyViewMode _melodyViewMode = MelodyViewMode.score;
 
@@ -106,15 +118,34 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool get editingMelody => _editingMelody;
 
+  bool _hadVerticalSectionListBefore;
+  bool _hadSplitModeBefore;
   set editingMelody(value) {
     _editingMelody = value;
     if (value) {
-      _showMelodyView();
       var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
       _setKeyboardPart(part);
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
+      if(_isPhone) {
+        _hadVerticalSectionListBefore = verticalSectionList;
+        _hadSplitModeBefore = splitMode == SplitMode.half;
+        if(_isLandscapePhone) {
+          verticalSectionList = true;
+          splitMode = SplitMode.full;
+        } else {
+          verticalSectionList = false;
+          splitMode = SplitMode.full;
+        }
+      }
+      _showMelodyView();
     } else {
       BeatScratchPlugin.setRecordingMelody(null);
+      if(_isPhone && selectedMelody != null) {
+        verticalSectionList = _hadVerticalSectionListBefore ?? verticalSectionList;
+        splitMode = (_hadSplitModeBefore == true) ? SplitMode.half : splitMode;
+      }
+      _hadVerticalSectionListBefore = null;
+      _hadSplitModeBefore = null;
     }
   }
 
@@ -181,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double _melodyViewSizeFactor = 1.0;
 
-  bool showWebWarning = kIsWeb;
+  bool showWebWarning = kIsWeb || kDebugMode;
   double get webWarningHeight => showWebWarning ? 60 : 0;
   bool showDownloadLinks = false;
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
@@ -424,14 +455,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
 
-  double get _colorboardHeight => showColorboard ? 150 : 0;
+  bool _isPhone = false;
+  bool _isLandscapePhone = false;
+  double get _colorboardHeight => showColorboard ? _isLandscapePhone ? 115 : 150 : 0;
 
-  double get _keyboardHeight => showKeyboard ? 150 : 0;
+  double get _keyboardHeight => showKeyboard ? _isLandscapePhone ? 115 : 150 : 0;
 
-  double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : 30;
+  double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : _isLandscapePhone ? 25 : 30;
 
   double get _tapInBarHeight =>
-      interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar ? 44 : 0;
+      interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
+        ? (_isLandscapePhone && (showKeyboard || showColorboard)) ? 38 : 44
+        : 0;
   bool _forceShowTapInBar = false;
 
   bool verticalSectionList = false;
@@ -471,7 +506,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        final midiData = melody.midiData;
         final part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
         final index = part.melodies.indexWhere((m) => m.id == melody.id);
-        print("Replacing ${part.melodies[index]} with $melody");
+//        print("Replacing ${part.melodies[index]} with $melody");
         part.melodies[index] = melody;
         clearMutableCaches();
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
@@ -579,6 +614,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (splitMode == null) {
       splitMode = SplitMode.half; //(context.isTablet) ? SplitMode.half : SplitMode.full;
       verticalSectionList = context.isTablet;
+    }
+    _isPhone = context.isPhone;
+    _isLandscapePhone = context.isLandscapePhone;
+    if(editingMelody && _isPhone) {
+      verticalSectionList = context.isLandscape;
     }
     if (context.isLandscape) {
       SystemChrome.setEnabledSystemUIOverlays([]);
@@ -715,18 +755,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                         });
                                       },
                                 child: Text("Download App")))),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5),
-                        child: RaisedButton(
-                            color: sectionColor,
-                            onPressed: () {
-                              setState(() {
-                                showWebWarning = false;
-                                showDownloadLinks = false;
-                              });
-                            },
-                            child: Text("OK!"))),
-                  ])))
+                  ]))),
+          Padding(
+            padding: EdgeInsets.only(right: 5),
+            child: RaisedButton(
+              color: sectionColor,
+              onPressed: () {
+                setState(() {
+                  showWebWarning = false;
+                  showDownloadLinks = false;
+                });
+              },
+              child: Text("OK!"))),
         ]));
   }
 
@@ -815,7 +855,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               padding: EdgeInsets.only(left: 5),
               width: !playing && tapInBeat == null ? 42 : 0,
               child: RaisedButton(
-                child: Text(!playing && tapInBeat == null ? "3" : ""),
+                child: Text(!playing && tapInBeat == null ? "3" : "", style: TextStyle(fontWeight: FontWeight.w700)),
                 onPressed: tapInBeat == null
                     ? () {
                         BeatScratchPlugin.countIn(-2);
@@ -836,7 +876,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               padding: EdgeInsets.only(left: 5),
               width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0,
               child: RaisedButton(
-                child: Text("4"),
+                child: Text("4", style: TextStyle(fontWeight: FontWeight.w700)),
                 onPressed: _tapInBeat == -2
                     ? () {
                         BeatScratchPlugin.countIn(-1);
@@ -1127,6 +1167,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       hideMelodyView: _hideMelodyView,
       availableWidth: availableWidth,
       enableColorboard: enableColorboard,
+      showBeatCounts: showBeatCounts,
     );
   }
 

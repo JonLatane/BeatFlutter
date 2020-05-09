@@ -51,14 +51,17 @@ class _SectionListState extends State<SectionList> {
         ? Row(children: [
             Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
             AnimatedContainer(
-              duration: animationDuration,
+                duration: animationDuration,
                 width: beatsBadgeWidth(beatCount) + 5,
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
                 child: FlatButton(
                     padding: EdgeInsets.zero,
                     onPressed: widget.toggleShowSectionBeatCounts,
-                    child: BeatsBadge(beats: beatCount, opacity: widget.showSectionBeatCounts ? 1 : 0.5,))),
+                    child: BeatsBadge(
+                      beats: beatCount,
+                      opacity: widget.showSectionBeatCounts ? 1 : 0.5,
+                    ))),
             Container(
                 width: 37,
                 height: 32,
@@ -76,36 +79,44 @@ class _SectionListState extends State<SectionList> {
           ])
         : Column(children: [
             Expanded(child: getList(context)),
-      Row(children: [
-        Expanded(child:
-          AnimatedOpacity(duration: animationDuration, opacity: widget.showSectionBeatCounts ? 1 : 0.5, child:
-    AnimatedContainer(
-            duration: animationDuration,
+            Row(children: [
+              Expanded(
+                  child: AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: widget.showSectionBeatCounts ? 1 : 0.5,
+                      child: AnimatedContainer(
+                        duration: animationDuration,
 //            width: widget.showSectionBeatCounts ? beatsBadgeWidth(beatCount) : 0,
-            height: 36,
-            child:
-            FlatButton(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-              onPressed: widget.toggleShowSectionBeatCounts,
-              child:
-              Row(children: [
-                Expanded(child:SizedBox()),
-              Text("$beatCount", maxLines: 1, overflow: TextOverflow.fade,
-                style: TextStyle(fontWeight: FontWeight.w900),),
-              SizedBox(width:3),
-              Text("beat${beatCount == 1 ? "" : "s"}", maxLines: 1, overflow: TextOverflow.fade,
-                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),),
-                Expanded(child:SizedBox()),
-            ])),
-            padding: EdgeInsets.zero,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color: Colors.black,
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(5))),
-          ))
-        )]),
+                        height: 36,
+                        child: FlatButton(
+                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                            onPressed: widget.toggleShowSectionBeatCounts,
+                            child: Row(children: [
+                              Expanded(child: SizedBox()),
+                              Text(
+                                "$beatCount",
+                                maxLines: 1,
+                                overflow: TextOverflow.fade,
+                                style: TextStyle(fontWeight: FontWeight.w900),
+                              ),
+                              SizedBox(width: 3),
+                              Text(
+                                "beat${beatCount == 1 ? "" : "s"}",
+                                maxLines: 1,
+                                overflow: TextOverflow.fade,
+                                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),
+                              ),
+                              Expanded(child: SizedBox()),
+                            ])),
+                        padding: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: Colors.black,
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                      )))
+            ]),
 //      ]),
             Row(children: [
               Expanded(

@@ -16,6 +16,7 @@ class MainActivity : FlutterActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState);
     BeatScratchPlugin.handler = Handler()
+    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 //        val orientation = resources.configuration.orientation
 //        println("resources.configuration.orientation=${resources.configuration.orientation}")
     window.decorView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->

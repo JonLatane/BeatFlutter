@@ -12,6 +12,7 @@ import AudioKit
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        UIApplication.shared.isIdleTimerDisabled = true
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
         let channel = FlutterMethodChannel(name: "BeatScratchPlugin",
                                            binaryMessenger: controller.binaryMessenger)

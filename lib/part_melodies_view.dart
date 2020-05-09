@@ -42,6 +42,7 @@ class PartMelodiesView extends StatefulWidget {
   final bool editingMelody;
   final double availableWidth;
   final Function(VoidCallback) superSetState;
+  final bool showBeatCounts;
 
   PartMelodiesView(
       {this.melodyViewMode,
@@ -64,7 +65,7 @@ class PartMelodiesView extends StatefulWidget {
       this.hideMelodyView,
       this.availableWidth,
       this.selectedPart,
-      this.enableColorboard});
+      this.enableColorboard, this.showBeatCounts});
 
   @override
   _PartMelodiesViewState createState() {
@@ -213,7 +214,9 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                       widget.score.parts.remove(part);
                     });
                   });
-                }),
+                },
+                showBeatCounts: widget.showBeatCounts,
+            ),
           )
         ]));
   }
@@ -309,6 +312,7 @@ class _MelodiesView extends StatefulWidget {
   final bool editingMelody;
   final Part part;
   final bool enableColorboard;
+  final bool showBeatCounts;
 
   List<Melody> get _items {
     return part.melodies;
@@ -335,7 +339,7 @@ class _MelodiesView extends StatefulWidget {
     this.hideMelodyView,
     this.removePart,
     this.selectedPart,
-    this.enableColorboard,
+    this.enableColorboard, this.showBeatCounts,
   });
 
   @override
@@ -493,7 +497,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   }),
             ),
             buildAddMelodyButton(backgroundColor, textColor,
-              defaultMelody()..instrumentType = part.instrument.type),
+              defaultMelody(sectionBeats: currentSection.beatCount)
+                ..instrumentType = part.instrument.type),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
                 sliver:
@@ -594,6 +599,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         keyboardPart: keyboardPart,
                         editingMelody: editingMelody,
                         hideMelodyView: hideMelodyView,
+                        showBeatsBadge: widget.showBeatCounts,
                       );
                     },
                     childCount: _items.length,
@@ -629,10 +635,12 @@ class _MelodiesViewState extends State<_MelodiesView> {
               int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
               part.melodies.insert(index, newMelody);
               BeatScratchPlugin.createMelody(part, newMelody);
-              toggleMelodyReference(currentSection.referenceTo(newMelody));
+              final reference = currentSection.referenceTo(newMelody);
+              toggleMelodyReference(reference);
               selectMelody(newMelody);
               // Go directly to recording mode if not a template.
               if (newMelody.name.isEmpty) {
+                setReferenceVolume(reference, 1.0);
                 editingMelody = true;
                 setKeyboardPart(part);
               }
@@ -654,7 +662,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 )),),
             ])),
             Align(alignment: Alignment.centerRight, child: Transform.translate(offset: Offset(10, 0), child:
-            BeatsBadge(beats: newMelody.length ~/ newMelody.subdivisionsPerBeat),))
+            BeatsBadge(beats: newMelody.length ~/ newMelody.subdivisionsPerBeat, show: widget.showBeatCounts,),))
           ])),
     );
   }
@@ -662,6 +670,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
 double beatsBadgeWidth(int beats) {
   double width = 30;
+  if (beats == null) {
+    beats = 9999;
+  }
   if(beats > 99) width = 40;
   if(beats > 999) width = 50;
   if(beats > 9999) width = 60;
@@ -673,12 +684,13 @@ class BeatsBadge extends StatelessWidget {
   final int beats;
   final bool show;
   final double opacity;
+  final bool isPerBeat;
 
-  const BeatsBadge({Key key, this.beats, this.show = true, this.opacity = 0.5}) : super(key: key);
+  const BeatsBadge({Key key, this.beats, this.show = true, this.opacity = 0.5, this.isPerBeat = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(duration: animationDuration, opacity: opacity, child:
+    return AnimatedOpacity(duration: animationDuration, opacity: show ? opacity : 0, child:
     AnimatedContainer(
       duration: animationDuration,
       width: show ? beatsBadgeWidth(beats) : 0,
@@ -687,15 +699,18 @@ class BeatsBadge extends StatelessWidget {
         Align(alignment: Alignment.center, child:
           Transform.translate(offset: Offset(0, -5), child:
             Text("$beats", maxLines: 1, overflow: TextOverflow.fade,
-              style: TextStyle(fontWeight: FontWeight.w900),))),
+              style: TextStyle(fontWeight: FontWeight.w900,
+                color: isPerBeat ? Colors.white : Colors.black),))),
       Align(alignment: Alignment.center, child:
         Transform.translate(offset: Offset(0, 6), child:
-          Text("beat${beats == 1 ? "" : "s"}", maxLines: 1, overflow: TextOverflow.fade,
-            style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),))),
+          Text(isPerBeat ? "/beat" : "beat${beats == 1 ? "" : "s"}",
+            maxLines: 1, overflow: TextOverflow.fade,
+            style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8,
+            color: isPerBeat ? Colors.white : Colors.black),))),
       ]),
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isPerBeat ? Colors.black : Colors.white,
           border: Border.all(
             color: Colors.black,
           ),
@@ -707,6 +722,22 @@ class BeatsBadge extends StatelessWidget {
 Melody _lastAddedMelody;
 
 class _MelodyReference extends StatefulWidget {
+  final Melody melody;
+  final bool isFirst;
+  final bool isLast;
+  final Color sectionColor;
+  final Section currentSection;
+  final Melody selectedMelody;
+  final Function(Melody) selectMelody;
+  final VoidCallback toggleEditingMelody;
+  final VoidCallback hideMelodyView;
+  final Function(MelodyReference) toggleMelodyReference;
+  final Function(MelodyReference, double) setReferenceVolume;
+  final Part colorboardPart;
+  final Part keyboardPart;
+  final bool editingMelody;
+  final bool showBeatsBadge;
+
   _MelodyReference({
     this.melody,
     this.isFirst,
@@ -722,22 +753,8 @@ class _MelodyReference extends StatefulWidget {
     this.editingMelody,
     this.toggleEditingMelody,
     this.hideMelodyView,
+    this.showBeatsBadge,
   });
-
-  final Melody melody;
-  final bool isFirst;
-  final bool isLast;
-  final Color sectionColor;
-  final Section currentSection;
-  final Melody selectedMelody;
-  final Function(Melody) selectMelody;
-  final VoidCallback toggleEditingMelody;
-  final VoidCallback hideMelodyView;
-  final Function(MelodyReference) toggleMelodyReference;
-  final Function(MelodyReference, double) setReferenceVolume;
-  final Part colorboardPart;
-  final Part keyboardPart;
-  final bool editingMelody;
 
   @override
   __MelodyReferenceState createState() => __MelodyReferenceState();
@@ -791,7 +808,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                 Padding(
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
                     child: Row(children: [
-                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat),
+                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat, show: widget.showBeatsBadge),
                       SizedBox(width:3),
                       Expanded(
                           child: TextField(
@@ -852,33 +869,33 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                                     ? Icons.not_interested
                                     : Icons.volume_up))),
                       ),
-                      Container(
-                          width: 40,
-                          height: 36,
-                          child: RaisedButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: toggleMelody,
-                              color:
-                                  (isSelectedMelody && !widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
-                              child: Icon(Icons.remove_red_eye))),
-                      AnimatedContainer(
-                          duration: animationDuration,
-                          width: (reference.playbackType == MelodyReference_PlaybackType.disabled) ? 0 : 40,
-                          height: 36,
-                          child: RaisedButton(
-                              onPressed: () {
-                                if (!isSelectedMelody) {
-                                  widget.selectMelody(widget.melody);
-                                }
-                                widget.toggleEditingMelody();
-                              },
-                              padding: EdgeInsets.all(0),
-                              color:
-                                  (isSelectedMelody && widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
-                              child: Image.asset(
-                                'assets/edit.png',
-                                fit: BoxFit.fill,
-                              ))),
+//                      Container(
+//                          width: 40,
+//                          height: 36,
+//                          child: RaisedButton(
+//                              padding: EdgeInsets.all(0),
+//                              onPressed: toggleMelody,
+//                              color:
+//                                  (isSelectedMelody && !widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
+//                              child: Icon(Icons.remove_red_eye))),
+//                      AnimatedContainer(
+//                          duration: animationDuration,
+//                          width: (reference.playbackType == MelodyReference_PlaybackType.disabled) ? 0 : 40,
+//                          height: 36,
+//                          child: RaisedButton(
+//                              onPressed: () {
+//                                if (!isSelectedMelody) {
+//                                  widget.selectMelody(widget.melody);
+//                                }
+//                                widget.toggleEditingMelody();
+//                              },
+//                              padding: EdgeInsets.all(0),
+//                              color:
+//                                  (isSelectedMelody && widget.editingMelody) ? widget.sectionColor : Color(0xFFDDDDDD),
+//                              child: Image.asset(
+//                                'assets/edit.png',
+//                                fit: BoxFit.fill,
+//                              ))),
                       Expanded(child: SizedBox()),
                     ]))
               ]),

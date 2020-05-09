@@ -17,6 +17,7 @@ extension ContextUtils on BuildContext {
   bool get isTabletOrLandscapey => MediaQuery.of(this).size.width > 500;
   bool get isLandscape => MediaQuery.of(this).size.width > MediaQuery.of(this).size.height;
   bool get isPortrait => !isLandscape;
+  bool get isLandscapePhone => isLandscape && isPhone;
 }
 
 class MethodCache<KeyType, ResultType> {
@@ -59,8 +60,9 @@ class IncrementableValue extends StatelessWidget {
   final TextStyle textStyle;
   final double valueWidth;
   final VoidCallback onValuePressed;
+  final Widget child;
 
-  const IncrementableValue({Key key, this.onIncrement, this.onDecrement, this.value, this.textStyle, this.valueWidth = 45, this.onValuePressed,}) : super(key: key);
+  const IncrementableValue({Key key, this.onIncrement, this.onDecrement, this.value, this.textStyle, this.valueWidth = 45, this.onValuePressed, this.child,}) : super(key: key);
 
 
   @override
@@ -70,18 +72,18 @@ class IncrementableValue extends StatelessWidget {
       Container(
         width: 25,
         child: RaisedButton(
-          child: Icon(Icons.arrow_upward),
-          onPressed: onIncrement,
+          child: Icon(Icons.arrow_downward),
+          onPressed: onDecrement,
           padding: EdgeInsets.all(0),)),
-      Container(
+      child ?? Container(
         width: valueWidth,
         child: RaisedButton(onPressed: onValuePressed, padding: EdgeInsets.all(0),
           child: Text(value ?? "null", style: textStyle ?? TextStyle(color: Colors.white),))),
       Container(
         width: 25,
         child: RaisedButton(
-          child: Icon(Icons.arrow_downward),
-          onPressed: onDecrement,
+          child: Icon(Icons.arrow_upward),
+          onPressed: onIncrement,
           padding: EdgeInsets.all(0),)),
     ]);
   }

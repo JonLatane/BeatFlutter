@@ -124,6 +124,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     super.initState();
   }
 
+  double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
+
   @override
   void dispose() {
     _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
@@ -209,7 +211,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                   child: Column(children: [
                 AnimatedContainer(
                     duration: animationDuration,
-                    height: (widget.melodyViewMode == MelodyViewMode.section) ? 48 : 0,
+                    height: (widget.melodyViewMode == MelodyViewMode.section) ? toolbarHeight(context) : 0,
                     child: SectionToolbar(
                       currentSection: widget.currentSection,
                       sectionColor: widget.sectionColor,
@@ -225,7 +227,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     )),
                     AnimatedContainer(
                       duration: animationDuration,
-                      height: (widget.melodyViewMode == MelodyViewMode.part) ? 48 : 0,
+                      height: (widget.melodyViewMode == MelodyViewMode.part) ? toolbarHeight(context) : 0,
                       child: PartToolbar(
                         enableColorboard: widget.enableColorboard,
                         part: widget.part,
@@ -244,7 +246,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       sectionColor: widget.sectionColor)),
                     AnimatedContainer(
                       duration: animationDuration,
-                      height: (widget.melodyViewMode == MelodyViewMode.melody) ? 48 : 0,
+                      height: (widget.melodyViewMode == MelodyViewMode.melody) ? toolbarHeight(context) : 0,
                       child: MelodyToolbar(
                         melody: widget.melody,
                         melodyViewMode: widget.melodyViewMode,
@@ -277,7 +279,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
         AnimatedContainer(
           color: Colors.white,
           duration: animationDuration,
-          height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? 48 : 0,
+          height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? toolbarHeight(context) : 0,
           child: MelodyEditingToolbar(
             sectionColor: widget.sectionColor,
             score: widget.score,
@@ -287,7 +289,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
         AnimatedContainer(
           color: widget.sectionColor,
           duration: animationDuration,
-          height: (widget.melodyViewMode == MelodyViewMode.section && isEditingSection) ? 48 : 0,
+          height: (widget.melodyViewMode == MelodyViewMode.section && isEditingSection) ? toolbarHeight(context) : 0,
           child: SectionEditingToolbar(
             sectionColor: widget.sectionColor,
             score: widget.score,

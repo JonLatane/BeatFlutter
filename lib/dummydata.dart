@@ -116,9 +116,9 @@ Melody odeToJoyB() => baseMelody()
     24: [2], 27: [0], 28: [0]
   }));
 
-Melody defaultMelody() => baseMelody()
+Melody defaultMelody({int sectionBeats}) => baseMelody()
   ..subdivisionsPerBeat = 12
-  ..length = defaultSectionBeats * 12
+  ..length = (sectionBeats ?? defaultSectionBeats) * 12
   ..type = MelodyType.midi
   ..midiData = MidiData()
 ;

@@ -144,10 +144,13 @@ class PlaybackService : Service() {
         if(PlaybackThread.stopped) {
           addAction(R.drawable.play_notification, "Play", pendingIntent(Action.PLAY_ACTION))
         } else {
-          addAction(R.drawable.previous_notification, "Skip back", pendingIntent(Action.REWIND_ACTION))
+//          addAction(R.drawable.previous_notification, "Skip back", pendingIntent(Action.REWIND_ACTION))
+          addAction(R.drawable.pause_notification, "Pause", pendingIntent(Action.PAUSE_ACTION))
+
         }
       }
-      .addAction(R.drawable.stop_notification, "Stop", pendingIntent(Action.STOP_ACTION))
+      .addAction(R.drawable.previous_notification, "Skip back", pendingIntent(Action.REWIND_ACTION))
+//      .addAction(R.drawable.stop_notification, "Stop", pendingIntent(Action.STOP_ACTION))
       .addAction(R.drawable.close_notification, "Exit", pendingIntent(Action.STOPFOREGROUND_ACTION))
       .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(0, 1)
         .setShowCancelButton(true)
