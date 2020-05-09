@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/main.dart';
@@ -201,6 +202,8 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   AnimationController animationController;
   Color recordingAnimationColor;
   Animation<Color> recordingAnimation;
+  bool showHoldToClear = false;
+  bool showDataCleared = false;
 
   @override
   void initState() {
@@ -239,11 +242,72 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
     return Row(children: [
       SizedBox(width: 5),
       Column(children: [
-        Icon(Icons.fiber_manual_record, color: recordingColor),
+        Transform.translate(offset: Offset(0, 5), child:
+        Icon(Icons.fiber_manual_record, color: recordingColor)),
         Text('Recording',
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
       ]),
+      AnimatedContainer(
+        duration: animationDuration,
+        width: 44,
+        height: 36,
+        padding: EdgeInsets.only(left: 8),
+        child:  RaisedButton(
+          padding: EdgeInsets.zero,
+          onLongPress: widget.melody != null ? () {
+            print("clearing");
+            widget.melody.midiData.data.clear();
+            clearMutableCaches();
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateMelody(widget.melody);
+            setState(() {
+              showDataCleared = true;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showDataCleared = false;
+              });
+            });
+          } : null,
+          onPressed: () {
+            setState(() {
+              showHoldToClear = true;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showHoldToClear = false;
+              });
+            });
+          },
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null ? 1 : 0,
+            child: Icon(Icons.delete_sweep)))),
+      AnimatedContainer(
+        duration: animationDuration,
+        width: showHoldToClear ? 35 : 0,
+        height: 36,
+        padding: EdgeInsets.only(left: 5),
+        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showHoldToClear ? 1 : 0,
+          child: Stack(children:[
+            Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
+            Text("Hold", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+            Transform.translate(offset: Offset(0,  0), child:Align(alignment: Alignment.center, child:
+            Text("to", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+            Transform.translate(offset: Offset(0, 7), child: Align(alignment: Alignment.center, child:
+            Text("clear", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+          ]))),
+      AnimatedContainer(
+        duration: animationDuration,
+        width: showDataCleared ? 40 : 0,
+        height: 36,
+        padding: EdgeInsets.only(left: 5),
+        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showDataCleared ? 1 : 0,
+          child: Stack(children:[
+            Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
+            Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+            Transform.translate(offset: Offset(0, 7), child: Align(alignment: Alignment.center, child:
+            Text("cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+          ]))),
       Expanded(child: SizedBox(width: 5),),
       IncrementableValue(
         onDecrement: (widget.melody != null && beats > 1)

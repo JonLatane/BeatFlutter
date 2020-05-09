@@ -9,16 +9,20 @@ import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPaused
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPlayingBeat
 import io.beatscratch.beatscratch_flutter_redux.MelodyRecorder.recordBeat
 import io.multifunctions.letCheckNull
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.beatscratch.commands.ProtobeatsPlugin.Playback
 import org.beatscratch.models.Music.*
 import org.beatscratch.models.Music.MelodyReference.PlaybackType
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.floor
 
 /**
  * A platform-agnostic model for a playback thread that plays back [Section],
  * [Melody] and [Harmony] data as the end-user would expect.
  */
-object ScorePlayer : Patterns {
+object ScorePlayer : Patterns, CoroutineScope {
   var metronomeEnabled: Boolean = true
   var playbackMode: Playback.Mode = Playback.Mode.score
   private var chord: Chord = Chord.newBuilder()
@@ -51,6 +55,9 @@ object ScorePlayer : Patterns {
             notifyPlayingBeat()
             PlaybackThread.playing = false
             notifyCurrentSection()
+            launch {
+              PlaybackService.instance?.showNotification()
+            }
             notifyPaused()
             return
           }
@@ -133,4 +140,7 @@ object ScorePlayer : Patterns {
       }
     }
   }
+
+  override val coroutineContext: CoroutineContext
+    get() = Dispatchers.Default
 }

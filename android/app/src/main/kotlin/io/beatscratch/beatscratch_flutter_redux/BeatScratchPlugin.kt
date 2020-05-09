@@ -87,14 +87,21 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
           AndroidMidi.flushSendStream()
           if (call.method == "updatePartConfiguration") {
             currentScore?.partsList?.firstOrNull { it.id == part.id }?.let { oldPart ->
-              part.melodiesList.clear()
-              part.melodiesList.addAll(oldPart.melodiesList)
-              currentScore?.partsList?.removeAll { it.id == part.id }
-              currentScore?.partsList?.add(part)
+              val updatedPart = Part.newBuilder(part)
+                .addAllMelodies(oldPart.melodiesList)
+                .build()
+              updatePart(updatedPart)
+              if(keyboardPart?.id == part.id) {
+                keyboardPart = part
+              }
               result.success(null)
             } ?: result.error("500", "Part does not exist", "nope")
           } else {
-            currentScore?.partsList?.add(part)
+            currentScore = currentScore?.let {
+              Score.newBuilder(it)
+                .addParts(part)
+                .build()
+            }
             result.success(null)
           }
         } catch (e: Throwable) {
@@ -105,7 +112,16 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       "deletePart"             -> {
         try {
           val partId = call.arguments as String
-          currentScore?.partsList?.removeAll { it.id == partId }
+          currentScore?.let { score: Score ->
+            score.partsList.firstOrNull { it.id == partId }?.let { part ->
+              val partIndex = score.partsList.indexOfFirst { it.id == part.id }
+              currentScore = currentScore?.let {
+                Score.newBuilder(it)
+                  .removeParts(partIndex)
+                  .build()
+              }
+            }
+          }
           result.success(null)
         } catch (e: Exception) {
           result.error("Cannot serialize data", null, e)
@@ -208,6 +224,9 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
           sendAllNotesOff(immediately = true)
           currentSection = section
           result.success(null)
+          launch {
+            PlaybackService.instance?.showNotification()
+          }
         } ?: result.error("500", "Section not found", "nope")
       }
       "countIn" -> {
@@ -236,6 +255,22 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       }
       else                     -> result.notImplemented()
     }
+  }
+
+  fun updatePart(updatedPart: Part): Boolean {
+    currentScore?.let { score: Score ->
+      score.partsList.firstOrNull { it.id == updatedPart.id }?.let { part ->
+        val partIndex = score.partsList.indexOfFirst { it.id == part.id }
+        currentScore = currentScore?.let {
+          Score.newBuilder(it)
+            .removeParts(partIndex)
+            .addParts(updatedPart)
+            .build()
+        }
+        return true
+      }
+    }
+    return false
   }
 
   fun updateMelody(melody: Melody): Boolean {
