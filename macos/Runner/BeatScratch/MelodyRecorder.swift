@@ -11,9 +11,9 @@ import QuartzCore
 import AudioKit
 
 extension Dictionary {
-  mutating func computeUpdate(_ key: Key, computation: (Value?) -> Value) {
-    let value = self[key]
-    let newValue: Value = computation(value)
+  mutating func processUpdate(_ key: Key, computation: (Value?) -> Value) {
+    let oldValue = self[key]
+    let newValue: Value = computation(oldValue)
     self[key] = newValue
   }
 }
@@ -43,12 +43,12 @@ class MelodyRecorder {
   
   private var recordingBeat: Int?
   private var beatStartTime: CFTimeInterval?
-  private var recordedData = Dictionary<CFTimeInterval, [UInt8]>()
+  var recordedData = Dictionary<CFTimeInterval, [UInt8]>()
   
   func notifyNotePlayed(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
     if recordingMelody != nil {
       let time = CACurrentMediaTime()
-      recordedData.computeUpdate(time) {
+      recordedData.processUpdate(time) {
         var data = $0 ?? []
         data.append(0x90)
         data.append(note)
@@ -61,7 +61,7 @@ class MelodyRecorder {
   func notifyNoteStopped(note: MIDINoteNumber, channel: MIDIChannel) {
     if recordingMelody != nil {
       let time = CACurrentMediaTime()
-      recordedData.computeUpdate(time) {
+      recordedData.processUpdate(time) {
         var data = $0 ?? []
         data.append(0x80)
         data.append(note)
@@ -83,8 +83,8 @@ class MelodyRecorder {
     if var melody = recordingMelody, let startTime = beatStartTime, let beat = recordingBeat {
       let endTime = CACurrentMediaTime()
       recordedData.forEach {
-        let time = $0.key
-        let value = $0.value
+        let time: CFTimeInterval = $0.key
+        let value: [UInt8] = $0.value
         let beatSize = endTime - startTime
         let beatProgress = time - startTime
         let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
@@ -92,7 +92,7 @@ class MelodyRecorder {
         subdivision += Int32(beat) * Int32(melody.subdivisionsPerBeat)
         subdivision = (subdivision + Int32(melody.length)) % Int32(melody.length)
         
-        melody.midiData.data.computeUpdate(subdivision) {
+        melody.midiData.data.processUpdate(subdivision) {
           var change = $0 ?? MidiChange()
           change.data.append(contentsOf: value)
           return change

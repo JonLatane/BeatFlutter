@@ -24,7 +24,7 @@ object MelodyRecorder {
     }
   private var recordingBeat: Int? = null
   private var beatStartTime: Long? = null
-  private var recordedData = mutableMapOf<Long, MutableList<Byte>>()
+  var recordedData = mutableMapOf<Long, MutableList<Byte>>()
 
   fun notifyMidiRecorded(midiBytes: ByteArray) {
     if (recordingMelody != null) {

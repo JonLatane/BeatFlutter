@@ -124,3 +124,5 @@ fun Chord.closestTone(tone: Int): Int {
 //    print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
   return result ?: rootNote.tone
 }
+
+fun Score.partFor(melodyId: String) = partsList.firstOrNull { it.melodiesList.any { it.id == melodyId } }

@@ -13,6 +13,7 @@ clearMutableCaches() {
 var _mutableCaches = [
   HarmonyTheory.changeBeforeCache,
   MelodyTheory.tonesAtCache,
+  MelodyTheory.tonesInMeasureCache,
   MelodyTheory.averageToneCache,
   NotationMelodyRenderer.recentSignCache,
   NotationMelodyRenderer.playbackNoteCache

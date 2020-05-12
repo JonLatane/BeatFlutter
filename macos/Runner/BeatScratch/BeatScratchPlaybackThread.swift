@@ -20,6 +20,11 @@ class BeatScratchPlaybackThread {
   }
 
   var playing: Bool = false {
+    willSet {
+      if(!playing && newValue) {
+        MelodyRecorder.sharedInstance.recordedData.removeAll()
+      }
+    }
     didSet {
       if(playing) {
         semaphore.signal()

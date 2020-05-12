@@ -38,7 +38,10 @@ extension HeptatonicConversions on int {
   ) ?? _notesFor[this].firstWhere((note) => note.sign == NoteSign.sharp);
 
   static final Map<Chord, Map<int, NoteSpecification>> _noteNameChordCache = Map();
-  NoteSpecification nameNoteUnderChord(Chord chord) => _nameNoteUnderChord(chord);
+  NoteSpecification nameNoteUnderChord(Chord chord) {
+    final result = _nameNoteUnderChord(chord);
+    return result;
+  }
   /*=> _noteNameChordCache
     .putIfAbsent(chord, () => Map())
     .putIfAbsent(this, () => _nameNoteUnderChord(chord));*/

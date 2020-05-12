@@ -204,11 +204,21 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   Animation<Color> recordingAnimation;
   bool showHoldToClear = false;
   bool showDataCleared = false;
+  bool animationStarted = false;
 
   @override
   void initState() {
     super.initState();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    recordingAnimation = ColorTween(
+      begin: Colors.grey,
+      end: chromaticSteps[7],
+    ).animate(animationController)
+      ..addListener(() {
+        setState(() {
+          recordingAnimationColor = recordingAnimation.value;
+        });
+      });
   }
 
   @override
@@ -219,16 +229,13 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    recordingAnimation = ColorTween(
-      begin: Colors.grey,
-      end: chromaticSteps[7],
-    ).animate(animationController)
-      ..addListener(() {
-        setState(() {
-          recordingAnimationColor = recordingAnimation.value;
-        });
-      });
-    animationController.repeat(reverse: true);
+    if (!animationStarted && widget.melody != null && BeatScratchPlugin.playing) {
+      animationController.repeat(reverse: true);
+      animationStarted = true;
+    } else if (widget.melody == null || !BeatScratchPlugin.playing) {
+      animationController.stop(canceled: false);
+      animationStarted = false;
+    }
     Color recordingColor;
     if(widget.melody != null && BeatScratchPlugin.playing) {
       recordingColor = recordingAnimationColor;
@@ -594,49 +601,16 @@ class SectionToolbarState extends State<SectionToolbar> {
                   : Text(""))),
       AnimatedContainer(
           duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 95,
+          width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
             padding: EdgeInsets.zero,
-            color: widget.editingSection ? Colors.white : Colors.grey,
-            child: Row(children: [
-              Container(
-                  width: 36,
-                  padding: EdgeInsets.only(top: 7, bottom: 5),
-                  child: Stack(children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: Opacity(opacity: 0.2, child: Image.asset('assets/metronome.png')),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child:
-                      Transform.translate(offset: Offset(0, -7), child: Text('123', )),
-                    )
-                  ])),
-              Container(
-                width: 24,
-                height: 32,
-                padding: EdgeInsets.only(left:5),
-                child: Stack(children: [
-                  Transform.translate(offset: Offset(0, -4), child:
-                  Text("4", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900))),
-                  Transform.translate(offset: Offset(0, 11), child:
-                  Text(
-                    "4",
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-                  ))
-                ])),
-              Container(
-                width: 24,
-                height: 32,
-                child: Stack(children: [
-                  Transform.translate(offset: Offset(0, -2), child:
-                  Text("C", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w200))),
-                ])),
-              Expanded(child:SizedBox())
-            ]),
+            color: widget.editingSection ? Colors.white : null,
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
+              child: Icon(Icons.edit)),
             onPressed: () {
               widget.setEditingSection(!widget.editingSection);
             },
@@ -732,7 +706,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
   @override
   void initState() {
     super.initState();
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+//    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
   }
 
   @override
@@ -743,17 +717,17 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
 
   @override
   Widget build(BuildContext context) {
-    recordingAnimation = ColorTween(
-      begin: Colors.grey,
-      end: chromaticSteps[7],
-    ).animate(animationController)
-      ..addListener(() {
-        setState(() {
-          recordingAnimationColor = recordingAnimation.value;
-        });
-      });
-    animationController.repeat(reverse: true);
-    Color recordingColor;
+//    recordingAnimation = ColorTween(
+//      begin: Colors.grey,
+//      end: chromaticSteps[7],
+//    ).animate(animationController)
+//      ..addListener(() {
+//        setState(() {
+//          recordingAnimationColor = recordingAnimation.value;
+//        });
+//      });
+//    animationController.repeat(reverse: true);
+//    Color recordingColor;
 //    if(widget.melody != null && BeatScratchPlugin.playing) {
 //      recordingColor = recordingAnimationColor;
 //    } else {
@@ -761,13 +735,61 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
 //    }
     int beats = widget.currentSection.harmony.length ~/ widget.currentSection.harmony.subdivisionsPerBeat;
     return Row(children: [
-//      SizedBox(width: 5),
-//      Column(children: [
-//        Icon(Icons.fiber_manual_record, color: recordingColor),
-//        Text('Recording',
-//          overflow: TextOverflow.ellipsis,
-//          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
-//      ]),
+      SizedBox(width:5),
+      IncrementableValue(
+        onDecrement: (widget.currentSection.meter.defaultBeatsPerMeasure > 1)
+          ? () {
+          widget.currentSection.meter.defaultBeatsPerMeasure -= 1;
+          MelodyTheory.tonesInMeasureCache.clear();
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+
+//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
+        } : null,
+        onIncrement: (widget.currentSection.meter.defaultBeatsPerMeasure < 99)
+          ? () {
+          widget.currentSection.meter.defaultBeatsPerMeasure += 1;
+          MelodyTheory.tonesInMeasureCache.clear();
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+        }
+          : null,
+        child: Container(
+          width: 30,
+          height: 32,
+          padding: EdgeInsets.only(left:5),
+          child: Stack(children: [
+            Align(alignment: Alignment.center, child:
+            Transform.translate(offset: Offset(-1.5, -9), child:
+            Text(widget.currentSection.meter.defaultBeatsPerMeasure.toString(),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)))),
+            Align(alignment: Alignment.center, child:
+            Transform.translate(offset: Offset(-1.5, 6), child:
+            Text("4",
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+            )))
+          ])),
+      ),
+      SizedBox(width:5),
+      IncrementableValue(
+        onDecrement: null,
+        onIncrement: null,
+        child: Container(
+          width: 36,
+          padding: EdgeInsets.only(top: 7, bottom: 5),
+          child: Stack(children: [
+            Align(
+              alignment: Alignment.center,
+              child: Opacity(opacity: 0.4, child: Image.asset('assets/metronome.png')),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child:
+              Transform.translate(offset: Offset(0, -7), child:
+              Text('123', style: TextStyle(fontWeight: FontWeight.w700) )),
+            )
+          ])),
+      ),
       Expanded(child: SizedBox(width: 5),),
       IncrementableValue(
         onDecrement: (beats > 1)

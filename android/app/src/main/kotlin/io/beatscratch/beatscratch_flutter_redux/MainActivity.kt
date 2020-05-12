@@ -33,7 +33,7 @@ class MainActivity : FlutterActivity() {
       }
     })
     val channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "BeatScratchPlugin")
-    BeatScratchPlugin.channel = channel
+    BeatScratchPlugin.methodChannel = channel
   }
 
   override fun onResume() {

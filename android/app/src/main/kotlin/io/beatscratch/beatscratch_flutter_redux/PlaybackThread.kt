@@ -4,6 +4,7 @@ import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyCountInI
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPaused
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.currentTick
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.playMetronome
+import org.beatscratch.models.Music
 import java.lang.System.currentTimeMillis
 
 var PlaybackThread = PlaybackThreadInstance()
@@ -15,8 +16,12 @@ class PlaybackThreadInstance : Thread() {
 
   var playing: Boolean = false
     set(value) {
+      val wasPlaying = field;
       field = value
       if(value) {
+        if(!wasPlaying) {
+          MelodyRecorder.recordedData.clear()
+        }
         try {
           synchronized(PlaybackThread) {
             (PlaybackThread as Object).notify()

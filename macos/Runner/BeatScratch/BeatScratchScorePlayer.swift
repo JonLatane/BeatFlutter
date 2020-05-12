@@ -29,12 +29,19 @@ class BeatScratchScorePlayer {
   }()
   
   var playbackMode: Playback.Mode = Playback.Mode.score
-  var currentSection: Section = Section() {
-    didSet {
-      if(oldValue != currentSection) {
-//        Conductor.sharedInstance.stopPlayingNotes()
-      }
+  private var currentSectionId: String = ""
+  var currentSection: Section {
+    get {
+      return score.sections.first { $0.id == currentSectionId } ?? Section()
     }
+    set {
+      currentSectionId = newValue.id
+    }
+//    didSet {
+//      if(oldValue != currentSection) {
+////        Conductor.sharedInstance.stopPlayingNotes()
+//      }
+//    }
   }
   var currentTick: Int64 = 0
   private var chord: Chord = cChromatic

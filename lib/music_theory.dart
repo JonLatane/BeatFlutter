@@ -143,7 +143,7 @@ extension ChordTheory on Chord {
   bool get hasAug4 => has(6) && !hasDim5;
   bool get hasDim5 => has(6) && !hasPer5 && (hasMin3 || hasMaj3 || hasPer4 || (hasMin2 && hasMin7));
   bool get hasPer5 => has(7);
-  bool get hasAug5 => has(8) && !hasPer5 && (hasMaj6 || hasMaj3 || hasMaj7 || (!hasDim5 && hasMaj6));
+  bool get hasAug5 => has(8) && !hasPer5 && (hasMaj6 || hasMaj3 || (!hasDim5 && hasMaj6));
   bool get hasMin6 => (has(8) && !hasAug5);
   bool get hasMaj6 => has(9) && !(hasDim5 && hasMin3);
   bool get hasDim7 => has(9) && (hasDim5 && hasMin3);
@@ -232,6 +232,39 @@ extension MelodyTheory on Melody {
       final midiEvents = data.midiEvents;
       final convertedData = data.noteOns.map((e) => e.noteNumber - 60);
       return convertedData;
+    } else {
+      return []; // TODO: Audio rendering?
+    }
+  }
+
+  int measureStart(int elementPosition, Meter meter) {
+    int beat = elementPosition ~/ subdivisionsPerBeat;
+    while(beat % meter.defaultBeatsPerMeasure != 0) {
+      beat -= 1;
+    }
+    return beat * subdivisionsPerBeat;
+  }
+
+  static final Map<ArgumentList, Iterable<int>> tonesInMeasureCache = Map();
+  /// Returns only tone classes - i.e. everything is [NoteConversions.mod12],
+  /// for all data within the measure at [elementPosition].
+  Iterable<int> tonesInMeasure(int elementPosition, Meter meter) {
+    int measureStart = this.measureStart(elementPosition, meter);
+    if(id == "keyboardDummy" || id == "colorboardDummy") {
+      return _tonesInMeasure(elementPosition, meter);
+    }
+    final key = ArgumentList([id, measureStart]);
+    return tonesInMeasureCache.putIfAbsent(key, () => _tonesInMeasure(elementPosition, meter));
+  }
+  Iterable<int> _tonesInMeasure(int elementPosition, Meter meter) {
+    if (type == MelodyType.midi) {
+      Set<int> result = Set();
+      int measureStart = this.measureStart(elementPosition, meter);
+      range(measureStart, measureStart + meter.defaultBeatsPerMeasure * subdivisionsPerBeat).forEach((pos) {
+        Iterable<int> tones = tonesAt(pos).map((i) => i.mod12);
+        result.addAll(tones);
+      });
+      return result;
     } else {
       return []; // TODO: Audio rendering?
     }

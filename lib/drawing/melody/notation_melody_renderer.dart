@@ -252,7 +252,8 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     return recentSignCache.putIfAbsent(args, () {
         return _calculateMostRecentSignsOf(
           note: note,
-          relevantMelodies: relevantMelodies.where((m) => m.id != "keyboardDummy" && m.id != "colorboardDummy"),
+          relevantMelodies: relevantMelodies.where(
+              (m) => m.id != "keyboardDummy" && m.id != "colorboardDummy"),
         );
       }
     );
@@ -379,42 +380,63 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 
   List<NoteSpecification> getPlaybackNotes(List<int> tones, Chord chord) {
     var computationChord = chord;
-    if(computationChord.chroma == 2047) {
+    if(computationChord.chroma == 2047 && true) {
       int newChroma = 0;
-      addTonesToNewChroma(Iterable<int> newTones) {
-        newTones.forEach((t) {
-          int difference = (t - computationChord.rootNote.tone).mod12;
-          int bitValue = 1 << (11 - difference);
-//            print("adding $bitValue to chroma=$newChroma for tone $t");
-          newChroma |= bitValue;
-        });
+      newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, tones);
+//      addTonesToNewChroma(Iterable<int> newTones) {
+//        newTones.forEach((t) {
+//          int difference = (t - computationChord.rootNote.tone).mod12;
+//          int bitValue = 1 << (11 - difference);
+////            print("adding $bitValue to chroma=$newChroma for tone $t");
+//          newChroma |= bitValue;
+//        });
+//      }
+      bool useTonesInMeasure = true;
+      if (useTonesInMeasure) {
+        Iterable<int> tonesInMeasure = melody.tonesInMeasure(elementPosition, meter);
+        newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, tonesInMeasure);
       }
-      addTonesToNewChroma(tones);
       otherMelodiesOnStaff.forEach((otherMelody) {
-        int foreignPosition =
+        int otherPosition =
         elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
           toSubdivisionsPerBeat: otherMelody.subdivisionsPerBeat);
-        var foreignTones = otherMelody.tonesAt(foreignPosition);
-        addTonesToNewChroma(foreignTones);
+
+        Iterable<int> otherTones = otherMelody.tonesInMeasure(otherPosition, meter);
+        if (useTonesInMeasure) {
+          otherTones = otherMelody.tonesInMeasure(otherPosition, meter);
+        } else {
+          otherTones = otherMelody.tonesAt(otherPosition);
+        }
+        newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, otherTones);
       });
       computationChord = computationChord.copyWith((it) { it.chroma = newChroma; });
     }
     return _getPlaybackNotes(tones, computationChord);
   }
 
+  static int _addTonesToChroma(int chroma, int rootTone, Iterable<int> newTones) {
+    int newChroma = chroma;
+    newTones.forEach((t) {
+      int difference = (t - rootTone).mod12;
+      int bitValue = 1 << (11 - difference);
+      newChroma |= bitValue;
+    });
+    return newChroma;
+  }
+
 //  static List<List<dynamic>> _recentPlaybackNoteRequests =List();
   static Map<ArgumentList, List<NoteSpecification>> playbackNoteCache = Map();
   List<NoteSpecification> _getPlaybackNotes(List<int> tones, Chord chord) {
-    return playbackNoteCache.putIfAbsent(ArgumentList([tones.join(","), chord]),
-        () {
-//          _recentPlaybackNoteRequests.remove(key);
-//          _recentPlaybackNoteRequests.insert(0, key);
-//          if(_recentPlaybackNoteRequests.length > 30000) {
-//            _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
-//          }
+//    return playbackNoteCache.putIfAbsent(ArgumentList([tones.join(","), chord]),
+//        () {
+//          //_recentPlaybackNoteRequests.remove(key);
+//          //_recentPlaybackNoteRequests.insert(0, key);
+//          //if(_recentPlaybackNoteRequests.length > 30000) {
+//          //  _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
+//          //}
         return computePlaybackNotes(tones, chord);
-      }
-    );
+//      }
+//    );
   }
 
   List<NoteSpecification> computePlaybackNotes(List<int> tones, Chord chord) => tones.map<NoteSpecification>((int tone) {
