@@ -21,8 +21,18 @@ class BeatScratchMidiListener : AKMIDIListener {
   var conductorChannel: Int = 0
 
   let timeoutSeconds = 30
+  private var lastEventWasNoteOn = false
+  private var lastEventWasNoteOff = false
+  private var lastEventNote: MIDINoteNumber = 0
   func receivedMIDINoteOn(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
+    if (lastEventWasNoteOn && lastEventNote == noteNumber) {
+//      print("rejecting duplicate noteOn")
+      return
+    }
     print("received midi note on")
+    lastEventWasNoteOn = true
+    lastEventWasNoteOff = false
+    lastEventNote = noteNumber
     Conductor.sharedInstance.playNote(note: noteNumber, velocity: velocity, channel: UInt8(conductorChannel), record: true)
     if !controllerPressedNotes.contains(where: { $0.key == portID }) {
       controllerPressedNotes[portID] = []
@@ -32,7 +42,14 @@ class BeatScratchMidiListener : AKMIDIListener {
   }
   
   func receivedMIDINoteOff(noteNumber: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, portID: MIDIUniqueID? = nil, offset: MIDITimeStamp = 0) {
+    if (lastEventWasNoteOff && lastEventNote == noteNumber) {
+//      print("rejecting duplicate noteOff")
+      return
+    }
     print("received midi note off")
+    lastEventWasNoteOff = true
+    lastEventWasNoteOn = false
+    lastEventNote = noteNumber
     Conductor.sharedInstance.stopNote(note: noteNumber, channel: UInt8(conductorChannel), record: true)
     controllerPressedNotes[portID]?.removeAll { $0 == noteNumber }
     BeatScratchPlugin.sharedInstance.sendPressedMidiNotes()
