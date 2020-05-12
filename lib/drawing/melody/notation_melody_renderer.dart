@@ -330,7 +330,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       case NoteSign.sharp:
         signPath = _sharpPath;
         canvas.scale(1.6 * minScale, 1.6 * minScale);
-        canvas.translate(-84.19600,-436.0680 + 1);
+        canvas.translate(-84.19600, -436.0680 + 1);
 //    canvas.scale(0.1);
         break;
       case NoteSign.flat:
@@ -340,10 +340,12 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         break;
       case NoteSign.double_flat:
         signPath = _doubleFlatPath;
+        canvas.scale(0.15 * minScale, 0.15 * minScale);
+//        canvas.translate(-94.947,-433.75 + 1);
         break;
       case NoteSign.double_sharp:
         signPath = _doubleSharpPath;
-        canvas.translate(-119.009,-441.814);
+        canvas.translate(-119.009, -441.814);
         break;
       case NoteSign.natural:
         signPath = _naturalPath;

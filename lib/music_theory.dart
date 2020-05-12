@@ -94,6 +94,8 @@ extension NoteTheory on NoteName {
   NoteLetter get letter => noteLetter;
 
   NoteSign get sign => noteSign;
+
+  String get simpleString => "${letter.name}${sign.simpleString}";
 }
 
 extension NoteConversions on int {

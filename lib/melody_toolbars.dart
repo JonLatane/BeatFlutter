@@ -336,8 +336,18 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
       ),
       SizedBox(width: 5),
       IncrementableValue(
-        onDecrement: null,
-        onIncrement: null,
+        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
+          widget.melody?.subdivisionsPerBeat -= 1;
+          widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateMelody(widget.melody);
+        } : null,
+        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
+          widget.melody?.subdivisionsPerBeat += 1;
+          widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateMelody(widget.melody);
+        } : null,
         child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
           child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
       ),
@@ -703,6 +713,30 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
   Color recordingAnimationColor;
   Animation<Color> recordingAnimation;
 
+  static final List<NoteName> keys = [
+    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural,
+    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.sharp,
+    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.natural,
+    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.sharp,
+    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.natural,
+//    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.sharp,
+//    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.natural,
+    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.sharp,
+    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.natural,
+    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.sharp,
+    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.natural,
+//    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.sharp,
+    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.flat,
+    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.natural,
+//    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.sharp,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -733,6 +767,8 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
 //    } else {
 //      recordingColor = Colors.grey;
 //    }
+    NoteName key = widget.currentSection.harmony.data[0].rootNote;
+    int keyIndex = keys.indexOf(key);
     int beats = widget.currentSection.harmony.length ~/ widget.currentSection.harmony.subdivisionsPerBeat;
     return Row(children: [
       SizedBox(width:5),
@@ -743,8 +779,6 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
           MelodyTheory.tonesInMeasureCache.clear();
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateSections(widget.score);
-
-//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
         } : null,
         onIncrement: (widget.currentSection.meter.defaultBeatsPerMeasure < 99)
           ? () {
@@ -769,6 +803,38 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
             )))
           ])),
+      ),
+      SizedBox(width:5),
+      IncrementableValue(
+        onDecrement: () {
+          int newKeyIndex = keyIndex - 1;
+          if (newKeyIndex < 0) {
+            newKeyIndex += keys.length;
+          }
+          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
+          MelodyTheory.tonesInMeasureCache.clear();
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+
+//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
+        },
+        onIncrement: () {
+          int newKeyIndex = keyIndex + 1;
+          if (newKeyIndex >= keys.length) {
+            newKeyIndex -= keys.length;
+          }
+          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
+          MelodyTheory.tonesInMeasureCache.clear();
+          BeatScratchPlugin.onSynthesizerStatusChange();
+          BeatScratchPlugin.updateSections(widget.score);
+        },
+        child: Container(
+          width: 30,
+          height: 32,
+          padding: EdgeInsets.only(left:5),
+          child: Align(alignment: Alignment.center,
+            child: Transform.translate(offset: Offset(-1.5, -2),
+              child:Text(key.simpleString, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w200))))),
       ),
       SizedBox(width:5),
       IncrementableValue(
