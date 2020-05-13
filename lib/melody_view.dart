@@ -343,9 +343,14 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               int beat = ((details.localPosition.dx + melodyRendererVisibleRect.left
                 - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
               print("beat=$beat");
-              if(beat >= 0) {
-                widget.selectBeat(beat);
+              int maxBeat;
+              if (widget.melodyViewMode == MelodyViewMode.score) {
+                maxBeat = widget.score.beatCount - 1;
+              } else {
+                maxBeat = widget.currentSection.beatCount - 1;
               }
+              beat = max(0, min(beat, maxBeat));
+              widget.selectBeat(beat);
             },
             onScaleStart: (details) => setState(() {
                   _previousOffset = _offset;

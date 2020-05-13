@@ -676,6 +676,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _audioSystemWorkingBar(context),
                   _colorboard(context),
                   _keyboard(context),
+                ]),
+                Column(children:[
+                  Expanded(child: SizedBox()),
+                  // Listener overlay to block accidental input to keyboard/tempo bar
+                  // if software keyboard is open in landscape/fullscreen (Android)
+                  if(MediaQuery.of(context).viewInsets.bottom > 0)
+                    Container(color: Colors.black54, width: MediaQuery.of(context).size.width, height:100,
+                      child: Listener(
+                        onPointerDown: (event) {
+                          print("got input");
+                        },
+                        onPointerMove: (event) {
+                          print("got input");},
+                        onPointerUp: (event) {
+                          print("got input");},
+                        onPointerCancel: (event) {
+                          print("got input");},
+                      ))
                 ])
                 //]),
               ]),

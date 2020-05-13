@@ -693,6 +693,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 editingMelody = true;
                 setKeyboardPart(part);
                 requestScrollToTop(0);
+              } else {
+                requestScrollToTop(part.melodies.length - 1);
               }
             });
           },
