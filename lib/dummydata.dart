@@ -28,6 +28,7 @@ Melody baseMelody() => Melody()
 
 Melody boomChick() => baseMelody()
   ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
   ..length = 2
   ..setMidiDataFromSimpleMelody({
@@ -38,6 +39,7 @@ Melody boomChick() => baseMelody()
 Melody boom() => baseMelody()
   ..name = "Boom"
   ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
   ..length = 2
   ..setMidiDataFromSimpleMelody({
@@ -48,6 +50,7 @@ Melody boom() => baseMelody()
 Melody chick() => baseMelody()
   ..name = "Chick"
   ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
   ..length = 2
   ..setMidiDataFromSimpleMelody({
@@ -58,6 +61,7 @@ Melody chick() => baseMelody()
 Melody tssst() => baseMelody()
   ..name = "Tssst"
   ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 2
   ..length = 2
   ..setMidiDataFromSimpleMelody({
@@ -68,6 +72,7 @@ Melody tssst() => baseMelody()
 Melody tsstTsst() => baseMelody()
   ..name = "Tsst-tsst"
   ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 4
   ..length = 4
   ..setMidiDataFromSimpleMelody({
@@ -119,6 +124,7 @@ Melody odeToJoyB() => baseMelody()
 Melody defaultMelody({int sectionBeats}) => baseMelody()
   ..subdivisionsPerBeat = 12
   ..length = (sectionBeats ?? defaultSectionBeats) * 12
+  ..interpretationType = MelodyInterpretationType.fixed
   ..type = MelodyType.midi
   ..midiData = MidiData()
 ;

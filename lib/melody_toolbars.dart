@@ -57,6 +57,13 @@ class MelodyToolbarState extends State<MelodyToolbar> {
 
   bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.melody;
 
+  TextEditingController nameController = TextEditingController();
+  @override
+  dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -67,6 +74,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
     if (confirmingDeleteFor != null && confirmingDeleteFor != widget.melody) {
       confirmingDeleteFor = null;
     }
+    nameController.value = nameController.value.copyWith(text: widget.melody?.name ?? "");
     return Container(
 //        color: Colors.white,
         child: Row(children: [
@@ -75,18 +83,17 @@ class MelodyToolbarState extends State<MelodyToolbar> {
               padding: EdgeInsets.only(left: 5),
               child: (widget.melodyViewMode == MelodyViewMode.melody)
                   ? TextField(
-                      controller: (melodySelected)
-                          ? (TextEditingController()..text = widget.melody.name)
-                          : TextEditingController(),
+                      controller: nameController,
                       textCapitalization: TextCapitalization.words,
                       onChanged: (melodySelected)
                           ? (value) {
-                              widget.melody.name = value;
+                        widget.melody.name = value;
+                        widget.setMelodyName(widget.melody, widget.melody.name);
                             }
                           : null,
-                      onEditingComplete: () {
-                        widget.setMelodyName(widget.melody, widget.melody.name);
-                      },
+//                      onEditingComplete: () {
+//                        widget.setMelodyName(widget.melody, widget.melody.name);
+//                      },
                       decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: (melodySelected) ? "Melody ${widget.melody.id.substring(0, 5)}" : ""),
@@ -98,16 +105,24 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: RaisedButton(
-            color: (widget.editingMelody) ? widget.sectionColor : null,
+            color: (widget.editingMelody)
+              ? widget.sectionColor == chromaticSteps[7]
+              ? Colors.white : widget.sectionColor : null,
             onPressed: (melodyEnabled)
                 ? () {
                     widget.toggleEditingMelody();
                   }
                 : null,
             padding: EdgeInsets.all(0),
-            child: Image.asset(
-              'assets/edit.png',
-              fit: BoxFit.fill,
+            child: AnimatedOpacity(duration: animationDuration, opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
+              child: Stack(children: [
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Icon(Icons.edit,))
+              ])
             ),
           )),
       AnimatedContainer(
@@ -190,9 +205,10 @@ class MelodyEditingToolbar extends StatefulWidget {
   final Score score;
   final Color sectionColor;
   final Section currentSection;
+  final bool editingMelody;
   Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
 
-  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection}) : super(key: key);
+  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection, this.editingMelody}) : super(key: key);
 
   @override
   _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
@@ -229,15 +245,15 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    if (!animationStarted && widget.melody != null && BeatScratchPlugin.playing) {
+    if (!animationStarted && widget.editingMelody && BeatScratchPlugin.playing) {
       animationController.repeat(reverse: true);
       animationStarted = true;
-    } else if (widget.melody == null || !BeatScratchPlugin.playing) {
+    } else if (widget.editingMelody || !BeatScratchPlugin.playing) {
       animationController.stop(canceled: false);
       animationStarted = false;
     }
     Color recordingColor;
-    if(widget.melody != null && BeatScratchPlugin.playing) {
+    if(widget.editingMelody && BeatScratchPlugin.playing) {
       recordingColor = recordingAnimationColor;
     } else {
       recordingColor = Colors.grey;
@@ -287,7 +303,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
               });
             });
           },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null ? 1 : 0,
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
             child: Icon(Icons.delete_sweep)))),
       AnimatedContainer(
         duration: animationDuration,
@@ -572,6 +588,13 @@ class SectionToolbarState extends State<SectionToolbar> {
 
   bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.currentSection;
 
+  TextEditingController nameController = TextEditingController();
+  @override
+  dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -581,6 +604,7 @@ class SectionToolbarState extends State<SectionToolbar> {
     if (confirmingDeleteFor != null && confirmingDeleteFor != widget.currentSection) {
       confirmingDeleteFor = null;
     }
+    nameController.value = nameController.value.copyWith(text: widget.currentSection.name ?? "");
     return Container(
 //        color: sectionColor,
         child: Row(children: [
@@ -590,9 +614,7 @@ class SectionToolbarState extends State<SectionToolbar> {
               child: (widget.melodyViewMode == MelodyViewMode.section)
                   ? TextField(
                       style: TextStyle(fontWeight: FontWeight.w100),
-                      controller: (widget.melodyViewMode == MelodyViewMode.section)
-                          ? (TextEditingController()..text = widget.currentSection.name)
-                          : TextEditingController(),
+                      controller: nameController,
                       textCapitalization: TextCapitalization.words,
                       onChanged: (widget.melodyViewMode == MelodyViewMode.section)
                           ? (value) {
@@ -877,12 +899,12 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
         child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
       ),
       SizedBox(width: 5),
-      IncrementableValue(
-        onDecrement: null,
-        onIncrement: null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-          child:BeatsBadge(beats: widget.currentSection.harmony.subdivisionsPerBeat, isPerBeat: true,)),
-      ),
+//      IncrementableValue(
+//        onDecrement: null,
+//        onIncrement: null,
+//        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+//          child:BeatsBadge(beats: widget.currentSection.harmony.subdivisionsPerBeat, isPerBeat: true,)),
+//      ),
       SizedBox(width: 5),
     ]);
   }

@@ -31,6 +31,8 @@ class PartConfiguration extends StatefulWidget {
 }
 
 class _PartConfigurationState extends State<PartConfiguration> {
+  TextEditingController searchController = TextEditingController();
+  ScrollController scrollController = ScrollController();
   int get midiChannel => widget.part?.instrument?.midiChannel;
 
   int get midiInstrument => widget.part?.instrument?.midiInstrument;
@@ -121,19 +123,29 @@ class _PartConfigurationState extends State<PartConfiguration> {
   }
 
   @override
+  dispose() {
+    searchController.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     List<int> items = widget.part == null ? [] : isHarmonic ? range(0, 128).toList() : [-1];
     if (searchText.trim().isNotEmpty && isHarmonic) {
       items = items
-          .where((i) => i == midiInstrument || midiInstruments[i].toLowerCase().contains(searchText.toLowerCase()))
+          .where((i) => i == midiInstrument || midiInstruments[i].toLowerCase().contains(searchController.text.toLowerCase()))
           .toList();
     }
     int maxMidiChannel = 15;
     if (Platform.isIOS) {
       maxMidiChannel = 4;
     }
+    double height = 280;
+    double bottomBlankSpaceHeight = context.isLandscapePhone ? MediaQuery.of(context).size.height * 0.15 : 0;
     return SingleChildScrollView(
-      child: Container(height: 280, child:
+      controller: scrollController,
+      child: Container(height: height + bottomBlankSpaceHeight, child:
       Column(children: [
       Row(children: [
         Padding(
@@ -202,10 +214,15 @@ class _PartConfigurationState extends State<PartConfiguration> {
             width: 120,
             child: TextField(
               style: TextStyle(fontSize: 14, color: Colors.white),
-              controller: TextEditingController()..text = searchText,
+              controller: searchController,
               textCapitalization: TextCapitalization.words,
               onChanged: (value) {
                 searchText = value;
+              },
+              onTap: () {
+                if (context.isLandscapePhone) {
+                  scrollController.animateTo(100, duration: animationDuration, curve: Curves.ease);
+                }
               },
 //          onTap: () {
 //            if (!context.isTabletOrLandscapey) {
@@ -221,7 +238,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
         areItemsTheSame: (oldItem, newItem) => oldItem != newItem,
         items: items,
         itemBuilder: _buildMidiInstrumentDisplay,
-      ))
+      )),
+      Container(height: bottomBlankSpaceHeight),
     ])
     ));
   }

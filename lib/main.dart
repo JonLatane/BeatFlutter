@@ -155,6 +155,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set currentSection(Section section) {
     _currentSection = section;
+    if (editingMelody && section.referenceTo(selectedMelody).playbackType == MelodyReference_PlaybackType.disabled) {
+      editingMelody = false;
+    }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
@@ -1117,7 +1120,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Stack(children: [
       (context.isPortrait)
           ? Column(children: [
-              Expanded(child: _partMelodiesView(context, width)),
+              Expanded(child: _partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor))),
               AnimatedContainer(
                   curve: Curves.easeInOut,
                   duration: slowAnimationDuration,
@@ -1130,7 +1133,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   curve: Curves.easeInOut,
                   duration: slowAnimationDuration,
                   width: width * (1 - _melodyViewSizeFactor),
-                  child: _partMelodiesView(context, width)),
+                  child: _partMelodiesView(context, width, height)),
               Expanded(
                   child: AnimatedContainer(
                       duration: animationDuration,
@@ -1140,7 +1143,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ]);
   }
 
-  Widget _partMelodiesView(BuildContext context, double availableWidth) {
+  Widget _partMelodiesView(BuildContext context, double availableWidth, double availableHeight) {
     return PartMelodiesView(
       melodyViewMode: melodyViewMode,
       superSetState: setState,
@@ -1166,6 +1169,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       editingMelody: editingMelody,
       hideMelodyView: _hideMelodyView,
       availableWidth: availableWidth,
+      height: availableHeight,
       enableColorboard: enableColorboard,
       showBeatCounts: showBeatCounts,
     );

@@ -444,7 +444,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   List<NoteSpecification> computePlaybackNotes(List<int> tones, Chord chord) => tones.map<NoteSpecification>((int tone) {
 
     int playbackTone = tone.playbackToneUnder(chord, melody);
-    if(melody.interpretationType == MelodyInterpretationType.fixed_nonadaptive) {
+    if(melody.instrumentType == InstrumentType.drum) {
       return playbackTone.naturalOrSharpNote;
     } else {
       return playbackTone.nameNoteUnderChord(chord);

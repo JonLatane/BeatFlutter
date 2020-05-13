@@ -50,6 +50,9 @@ object ScorePlayer : Patterns, CoroutineScope {
           if (sectionIndex + 1 < score.sectionsCount) {
             currentSection = score.sectionsList[sectionIndex + 1]
             notifyCurrentSection()
+            launch {
+              PlaybackService.instance?.showNotification()
+            }
           } else {
             currentSection = score.sectionsList[0]
             notifyPlayingBeat()
