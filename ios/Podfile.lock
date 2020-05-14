@@ -442,9 +442,9 @@ SPEC CHECKSUMS:
   leveldb-library: 55d93ee664b4007aac644a782d11da33fba316f7
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
   PromisesObjC: c119f3cd559f50b7ae681fa59dc1acd19173b7e6
-  sensors: 4bd31219c4bf9d7d4401b392a1701ee3adc1a296
+  sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
   SwiftProtobuf: 2cbd9409689b7df170d82a92a33443c8e3e14a70
-  url_launcher: a1c0cc845906122c4784c542523d8cacbded5626
+  url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
   url_launcher_macos: fd7894421cd39320dce5f292fc99ea9270b2a313
   url_launcher_web: e5527357f037c87560776e36436bf2b0288b965c
   vibration: f0c5bb486671fb81e973bfb451d89f8efd07c9c9

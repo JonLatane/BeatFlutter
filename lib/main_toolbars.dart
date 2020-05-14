@@ -39,6 +39,7 @@ class BeatScratchToolbar extends StatelessWidget {
       this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts})
       : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
     return Container(

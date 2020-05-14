@@ -364,7 +364,7 @@ MelodyInterpretationType _interpretationType(InstrumentType instrumentType) {
 class _MelodiesViewState extends State<_MelodiesView> {
   get _items => widget._items;
 
-  get part => widget.part;
+  Part get part => widget.part;
 
   get setColorboardPart => widget.setColorboardPart;
 
@@ -450,7 +450,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
     super.dispose();
   }
 
-  // This widget is the root of your application.
+  String lastSelectedMelodyId;
   @override
   Widget build(BuildContext context) {
     String partName;
@@ -468,6 +468,13 @@ class _MelodiesViewState extends State<_MelodiesView> {
       backgroundColor = isSelectedPart ? Colors.white : Colors.grey;
       textColor = isSelectedPart ? Colors.grey : Colors.white;
     }
+    if(lastSelectedMelodyId != null && selectedMelody != null && lastSelectedMelodyId != selectedMelody.id) {
+      int indexOfMelody = part.melodies.indexWhere((m) => m.id == selectedMelody?.id);
+      if(indexOfMelody >= 0) {
+        requestScrollToTop(indexOfMelody);
+      }
+    }
+    lastSelectedMelodyId = selectedMelody?.id;
     return ReorderableList(
         onReorder: this._reorderCallback,
         onReorderDone: this._reorderDone,
