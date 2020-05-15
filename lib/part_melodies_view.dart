@@ -872,7 +872,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
     Widget content = Container(
         decoration: decoration,
         padding: EdgeInsets.only(bottom: 5),
-        child: FlatButton(
+        child: Stack(children:[
+          FlatButton(
             onPressed: () {
               if (!isSelectedMelody) {
                 widget.requestScrollToTop();
@@ -890,37 +891,9 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //              }
             },
             padding: EdgeInsets.zero,
-            child: Stack(children: [
+            child:
               Column(children: [
-                Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                    child: Row(children: [
-                      BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat, show: widget.showBeatsBadge),
-                      SizedBox(width:3),
-                      Expanded(
-                          child: TextField(
-                        controller: nameController,
-                        textCapitalization: TextCapitalization.words,
-                        onChanged: (value) {
-                          widget.melody.name = value;
-                          BeatScratchPlugin.onSynthesizerStatusChange();
-                        },
-                        onTap: () {
-                          if (!context.isTabletOrLandscapey) {
-                            widget.hideMelodyView();
-                          }
-                          widget.requestScrollToTop();
-                        },
-                        decoration: InputDecoration(
-                            border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
-                      )),
-                      ReorderableListener(
-                          child: Container(
-                              width: 24,
-                              height: 24,
-//                          padding: EdgeInsets.only(right:0),
-                              child: Icon(Icons.reorder)))
-                    ])),
+                SizedBox(height: 51.1),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
                 AnimatedOpacity(
                     duration: animationDuration,
@@ -988,7 +961,43 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       Expanded(child: SizedBox()),
                     ]))
               ]),
-            ])));
+            ),
+          Container(
+            padding: EdgeInsets.only(top: 5),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+              child: Row(children: [
+                BeatsBadge(beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat, show: widget.showBeatsBadge),
+                SizedBox(width:3),
+                Expanded(
+                  child:
+                  TextField(
+                    controller: nameController,
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (value) {
+                      widget.melody.name = value;
+                      //                          BeatScratchPlugin.updateMelody(widget.melody);
+                      BeatScratchPlugin.onSynthesizerStatusChange();
+                    },
+                    onTap: () {
+                      if (!context.isTabletOrLandscapey) {
+                        widget.hideMelodyView();
+                      }
+                      widget.requestScrollToTop();
+                    },
+                    decoration: InputDecoration(
+                      border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
+                  )
+                ),
+                ReorderableListener(
+                  child: Container(
+                    width: 24,
+                    height: 24,
+//                          padding: EdgeInsets.only(right:0),
+                    child: Icon(Icons.reorder)))
+              ])),
+          ),
+    ]));
 
     // For android dragging mode, wrap the entire content in DelayedReorderableListener
 //    content = DelayedReorderableListener(

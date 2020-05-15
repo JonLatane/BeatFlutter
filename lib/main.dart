@@ -510,7 +510,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         final part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
         final index = part.melodies.indexWhere((m) => m.id == melody.id);
 //        print("Replacing ${part.melodies[index]} with $melody");
-        part.melodies[index] = melody;
+        part.melodies[index].midiData = melody.midiData;
         clearMutableCaches();
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });

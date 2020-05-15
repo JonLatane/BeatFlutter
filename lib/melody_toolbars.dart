@@ -89,6 +89,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                           ? (value) {
                         widget.melody.name = value;
                         widget.setMelodyName(widget.melody, widget.melody.name);
+//                        BeatScratchPlugin.updateMelody(widget.melody);
                             }
                           : null,
 //                      onEditingComplete: () {
@@ -619,11 +620,12 @@ class SectionToolbarState extends State<SectionToolbar> {
                       onChanged: (widget.melodyViewMode == MelodyViewMode.section)
                           ? (value) {
                               widget.currentSection.name = value;
+                              widget.setSectionName(widget.currentSection, widget.currentSection.name);
                             }
                           : null,
-                      onEditingComplete: () {
-                        widget.setSectionName(widget.currentSection, widget.currentSection.name);
-                      },
+//                      onEditingComplete: () {
+//                        widget.setSectionName(widget.currentSection, widget.currentSection.name);
+//                      },
                       decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: (widget.melodyViewMode == MelodyViewMode.section)

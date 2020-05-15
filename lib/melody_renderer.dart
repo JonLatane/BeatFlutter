@@ -100,7 +100,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   ValueNotifier<Color> sectionColor;
 
   ScrollController timeScrollController;
-  int previousBeat;
+  int _prevBeat;
 
   @override
   void initState() {
@@ -136,6 +136,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     super.dispose();
   }
 
+  MelodyViewMode _prevViewMode;
   bool _hasBuilt = false;
   @override
   Widget build(BuildContext context) {
@@ -158,12 +159,18 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         section = widget.score.sections[sectionIndex++];
       }
     }
-    if(previousBeat != currentBeat) {
-      previousBeat = currentBeat;
+    Duration beatAnimationDuration = animationDuration;
+    if(_prevViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
+        && _prevBeat > widget.currentSection.beatCount - 2) {
+      beatAnimationDuration = Duration.zero;
+    }
+    _prevViewMode = widget.melodyViewMode;
+    if(_prevBeat != currentBeat) {
+      _prevBeat = currentBeat;
       final beatWidth = xScale * unscaledStandardBeatWidth;
       double animationBeat = (currentBeat) * beatWidth;
       if (animationBeat - 2*beatWidth + widget.width < overallCanvasWidth && _hasBuilt) {
-        timeScrollController.animateTo(animationBeat, duration: Duration(seconds: 1), curve: Curves.ease);
+        timeScrollController.animateTo(animationBeat, duration: beatAnimationDuration, curve: Curves.ease);
       }
     }
     _hasBuilt = true;
