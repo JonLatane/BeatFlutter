@@ -22,6 +22,7 @@ import 'util.dart';
 import 'dart:math';
 import 'midi_theory.dart';
 
+const double _extraBeatsSpaceForClefs = 2;
 class MelodyRenderer extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final Score score;
@@ -78,7 +79,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     max(renderAreaHeight, widget.staves.length * staffHeight * yScale)
       + (widget.melodyViewMode == MelodyViewMode.score ? 30 : 0);
 
-  double get overallCanvasWidth => (numberOfBeats + 2) * standardBeatWidth;// + 20 * xScale; // + 1 for clefs
+  double get overallCanvasWidth => (numberOfBeats + _extraBeatsSpaceForClefs) * standardBeatWidth;// + 20 * xScale; // + 1 for clefs
 
   ScrollController verticalController = ScrollController();
   static const double staffHeight = 500;
@@ -167,11 +168,11 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     _prevViewMode = widget.melodyViewMode;
     if(_prevBeat != currentBeat) {
       _prevBeat = currentBeat;
-      final beatWidth = xScale * unscaledStandardBeatWidth;
-      double animationBeat = (currentBeat) * beatWidth;
-      if (animationBeat - 2*beatWidth + widget.width < overallCanvasWidth && _hasBuilt) {
-        timeScrollController.animateTo(animationBeat, duration: beatAnimationDuration, curve: Curves.ease);
-      }
+      double animationPos = (currentBeat) * standardBeatWidth;
+      animationPos = min(animationPos, overallCanvasWidth - melodyRendererVisibleRect.width);
+//      if (animationBeat - 2 * standardBeatWidth + widget.width < overallCanvasWidth && _hasBuilt) {
+        timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+//      }
     }
     _hasBuilt = true;
     return SingleChildScrollView(
@@ -385,7 +386,7 @@ class MusicSystemPainter extends CustomPainter {
     });
 
 //    left += 2 * standardBeatWidth;
-    int renderingBeat = startBeat - 2; // To make room for clefs
+    int renderingBeat = startBeat - _extraBeatsSpaceForClefs.toInt(); // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
 //    while(false) {
     while (left < visibleRect().right + standardBeatWidth) {

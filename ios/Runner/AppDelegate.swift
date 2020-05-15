@@ -14,6 +14,7 @@ import AudioKit
     ) -> Bool {
         UIApplication.shared.isIdleTimerDisabled = true
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
+//      controller.preferredScreenEdgesDeferringSystemGestures = []
         let channel = FlutterMethodChannel(name: "BeatScratchPlugin",
                                            binaryMessenger: controller.binaryMessenger)
         
