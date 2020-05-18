@@ -66,7 +66,7 @@ Melody tssst() => baseMelody()
   ..length = 2
   ..setMidiDataFromSimpleMelody({
     1: [-18]
-  })
+  }, simpleVelocity: 84)
 ;
 
 Melody tsstTsst() => baseMelody()
@@ -77,7 +77,7 @@ Melody tsstTsst() => baseMelody()
   ..length = 4
   ..setMidiDataFromSimpleMelody({
     1: [-18], 3: [-18]
-  })
+  }, simpleVelocity: 42)
 ;
 
 Melody odeToJoy() => baseMelody()

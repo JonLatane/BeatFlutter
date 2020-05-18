@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Includes assume pwd is diretory of build-protos script.
+# Paths assume pwd is directory of build script.
 cd "$(dirname "$0")"
 
 protoc --dart_out=./lib/generated ./protos/*

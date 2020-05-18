@@ -81,7 +81,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
 
   double get overallCanvasWidth => (numberOfBeats + _extraBeatsSpaceForClefs) * standardBeatWidth;// + 20 * xScale; // + 1 for clefs
 
-  ScrollController verticalController = ScrollController();
+  ScrollController verticalController;
   static const double staffHeight = 500;
 
   AnimationController animationController;
@@ -106,6 +106,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   @override
   void initState() {
     super.initState();
+    verticalController = ScrollController();
     timeScrollController = ScrollController();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
@@ -167,15 +168,16 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     }
     _prevViewMode = widget.melodyViewMode;
     if(_prevBeat != currentBeat) {
-      _prevBeat = currentBeat;
       double animationPos = (currentBeat) * standardBeatWidth;
       animationPos = min(animationPos, overallCanvasWidth - melodyRendererVisibleRect.width);
-//      if (animationBeat - 2 * standardBeatWidth + widget.width < overallCanvasWidth && _hasBuilt) {
+      if(_hasBuilt) {
         timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
-//      }
+      }
     }
+    _prevBeat = currentBeat;
     _hasBuilt = true;
     return SingleChildScrollView(
+      controller: verticalController,
 //        key: Key(key),
         child: Container(
             height: overallCanvasHeight,

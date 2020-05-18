@@ -247,7 +247,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     Iterable<Melody> relevantMelodies,
   }) {
     final args = ArgumentList([
-      elementPosition, note, relevantMelodies.map((e) => e.id).join(), meter.defaultBeatsPerMeasure, harmony.id
+      relevantMelodies.map((e) => e.id).join(), elementPosition, note, meter.defaultBeatsPerMeasure, harmony.id
     ]);
     return recentSignCache.putIfAbsent(args, () {
         return _calculateMostRecentSignsOf(
@@ -429,16 +429,16 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
 //  static List<List<dynamic>> _recentPlaybackNoteRequests =List();
   static Map<ArgumentList, List<NoteSpecification>> playbackNoteCache = Map();
   List<NoteSpecification> _getPlaybackNotes(List<int> tones, Chord chord) {
-//    return playbackNoteCache.putIfAbsent(ArgumentList([tones.join(","), chord]),
-//        () {
-//          //_recentPlaybackNoteRequests.remove(key);
-//          //_recentPlaybackNoteRequests.insert(0, key);
-//          //if(_recentPlaybackNoteRequests.length > 30000) {
-//          //  _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
-//          //}
+    return playbackNoteCache.putIfAbsent(ArgumentList([tones.join(","), chord]),
+        () {
+          //_recentPlaybackNoteRequests.remove(key);
+          //_recentPlaybackNoteRequests.insert(0, key);
+          //if(_recentPlaybackNoteRequests.length > 30000) {
+          //  _recentPlaybackNoteRequests.removeRange(10000, _recentPlaybackNoteRequests.length - 1);
+          //}
         return computePlaybackNotes(tones, chord);
-//      }
-//    );
+      }
+    );
   }
 
   List<NoteSpecification> computePlaybackNotes(List<int> tones, Chord chord) => tones.map<NoteSpecification>((int tone) {

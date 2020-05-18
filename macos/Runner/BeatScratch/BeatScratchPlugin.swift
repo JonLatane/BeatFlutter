@@ -125,10 +125,11 @@ class BeatScratchPlugin {
           result(nil)
           break
         case "setKeyboardPart":
-          let partId = call.arguments as! String
-          if let part = self.score.parts.first(where: {$0.id == partId}) {
-            let channel = Int(part.instrument.midiChannel)
-            BeatScratchMidiListener.sharedInstance.conductorChannel = channel
+          if let partId = call.arguments as? String {
+            if let part = self.score.parts.first(where: {$0.id == partId}) {
+              let channel = Int(part.instrument.midiChannel)
+              BeatScratchMidiListener.sharedInstance.conductorChannel = channel
+            }
           }
           break
         case "checkSynthesizerStatus":

@@ -1,29 +1,33 @@
 #!/usr/bin/env sh
 
-# Includes assume pwd is diretory of build-protos script.
+# Paths assume pwd is directory of build script.
 cd "$(dirname "$0")"
 
-# yes | rm -rf ~/Development/flutter/flutter/bin/cache/*
-#echo "Changing to channel master"
-#flutter channel master && flutter upgrade
-echo "Building for macOS and archiving app" && \
-flutter build macos && cd build/macos/Build/Products/Release && tar -cavf BeatFlutter.tar.bz2 BeatFlutter.app && open . && cd - && \
-echo "Manually upload to Dropbox!" && \
-open "https://www.dropbox.com/home" && \
-
 # yes | rm -rf ~/Development/flutter/flutter/bin/cache/* && \
-#echo "Changing to channel beta" && \
-#flutter channel beta && flutter upgrade && \
+echo "Changing to channel beta for iOS/Android builds..." && \
+flutter channel beta && flutter upgrade && \
 echo "Building for iOS" && \
 flutter build ios && \
-echo "Manually archive/upload build to TestFlight in XCode!" && \
+echo "iOS app built! Manually archive/upload build to TestFlight in XCode." && \
 open "ios/Runner.xcworkspace" && \
 echo "Building for Android" && \
 flutter build appbundle && \
-echo "Manually upload appbundle!" && \
+echo "Manually upload appbundle to Google Play!" && \
 open "build/app/outputs/bundle/release/" && \
-open "https://play.google.com/apps/publish/?account=8301034569696927852#ManageReleaseTrackPlace:p=io.beatscratch.beatscratch_flutter_redux&appid=4974878702686446069&releaseTrackId=4699356462545292031" && \
+open 'https://play.google.com/apps/publish/?account=8301034569696927852#ManageReleaseTrackPlace:p=io.beatscratch.beatscratch_flutter_redux&appid=4974878702686446069&releaseTrackId=4699356462545292031' && \
+
+# yes | rm -rf ~/Development/flutter/flutter/bin/cache/*
+echo "Changing to channel master for macOS/web builds..."
+flutter channel master && flutter upgrade && \
+echo "Building for macOS and archiving app" && \
+flutter build macos && cd build/macos/Build/Products/Release && \
+tar -cavf BeatFlutter.tar.bz2 BeatFlutter.app && open . && cd - && \
+echo "macOS app built! Manually upload to Dropbox" && \
+open "https://www.dropbox.com/home" && \
 echo "Building for web and copying to ../topologica-page/app-staging" && \
-flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true && cp -r build/web/* ../topologica-page/app-staging
+flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true && \
+cp -r build/web/* ../topologica-page/app-staging && \
+echo "Web app built to app-staging! Manually copy to prod app and/or deploy to beatscratch.io" && \
+echo "Build complete! Have fun uploading and awaiting Apple's blessings..."
 
 #flutter channel master

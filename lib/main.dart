@@ -5,12 +5,10 @@ import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
-import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
@@ -115,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   RenderingMode renderingMode = RenderingMode.notation;
 
   bool _editingMelody = false;
+  bool _softKeyboardVisible = false;
 
   bool get editingMelody => _editingMelody;
 
@@ -282,8 +281,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  Melody selectedMelody;
-  Part selectedPart;
+  Melody _selectedMelody;
+  Melody get selectedMelody => _selectedMelody;
+  set selectedMelody(Melody selectedMelody) {
+    _selectedMelody = selectedMelody;
+    if (selectedMelody != null) {
+      Part part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
+      if(part != null) {
+        keyboardPart = selectedPart;
+      }
+    } else {
+      editingMelody = false;
+    }
+  }
+
+  Part _selectedPart;
+  Part get selectedPart => _selectedPart;
+  set selectedPart(Part selectedPart) {
+    _selectedPart = selectedPart;
+    if (selectedPart != null) {
+      keyboardPart = selectedPart;
+    }
+  }
 
   List<SectionList> _sectionLists = [];
 
@@ -483,6 +502,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    if(Platform.isIOS || Platform.isAndroid) {
+      KeyboardVisibility.onChange.listen((bool visible) {
+        setState(() {
+          _softKeyboardVisible = visible;
+        });
+      });
+    }
     BeatScratchPlugin.createScore(_score);
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
@@ -511,7 +537,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         final index = part.melodies.indexWhere((m) => m.id == melody.id);
 //        print("Replacing ${part.melodies[index]} with $melody");
         part.melodies[index].midiData = melody.midiData;
-        clearMutableCaches();
+//        clearMutableCaches();
+        clearMutableCachesForMelody(melody.id);
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });
     };
@@ -681,7 +708,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   Expanded(child: SizedBox()),
                   // Listener overlay to block accidental input to keyboard/tempo bar
                   // if software keyboard is open in landscape/fullscreen (Android)
-                  if(MediaQuery.of(context).viewInsets.bottom > 0)
+                  if(_softKeyboardVisible)
                     Container(color: Colors.black54, width: MediaQuery.of(context).size.width, height:100,
                       child: Listener(
                         onPointerDown: (event) {
@@ -724,7 +751,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Row(children: [
           Padding(
               padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-              child: Column(children: [
+              child: SingleChildScrollView(child:Column(children: [
                 Align(
                     child: Text("BeatScratch",
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
@@ -733,7 +760,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   Text("Web", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
                   Text("Preview", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
                 ])),
-              ])),
+              ]))),
           Expanded(
               child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

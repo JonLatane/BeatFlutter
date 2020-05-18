@@ -282,7 +282,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           onLongPress: widget.melody != null ? () {
             print("clearing");
             widget.melody.midiData.data.clear();
-            clearMutableCaches();
+            clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
             BeatScratchPlugin.updateMelody(widget.melody);
             setState(() {
@@ -438,34 +438,34 @@ class PartToolbarState extends State<PartToolbar> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600)))),
-        AnimatedContainer(
-            duration: animationDuration,
-            width: isConfirmingDelete ? 0 : 41,
-            height: 36,
-            padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
-                onPressed: widget.part != null
-                    ? () {
-                        widget.setKeyboardPart(widget.part);
-                      }
-                    : null,
-                padding: EdgeInsets.zero,
-                child: AnimatedOpacity(
-                    duration: animationDuration,
-                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
-                    child: Stack(children: [
-                      Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                              padding: EdgeInsets.all(2),
-                              child: Image.asset("assets/piano.png", width: 22, height: 22))),
-                      Align(
-                          alignment: Alignment.topLeft,
-                          child: Container(
-                              width: 26,
-                              height: 26,
-                              child: Checkbox(value: widget.keyboardPart == widget.part, onChanged: null)))
-                    ])))),
+//        AnimatedContainer(
+//            duration: animationDuration,
+//            width: isConfirmingDelete ? 0 : 41,
+//            height: 36,
+//            padding: EdgeInsets.only(right: 5),
+//            child: RaisedButton(
+//                onPressed: widget.part != null
+//                    ? () {
+//                        widget.setKeyboardPart(widget.part);
+//                      }
+//                    : null,
+//                padding: EdgeInsets.zero,
+//                child: AnimatedOpacity(
+//                    duration: animationDuration,
+//                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+//                    child: Stack(children: [
+//                      Align(
+//                          alignment: Alignment.bottomRight,
+//                          child: Padding(
+//                              padding: EdgeInsets.all(2),
+//                              child: Image.asset("assets/piano.png", width: 22, height: 22))),
+//                      Align(
+//                          alignment: Alignment.topLeft,
+//                          child: Container(
+//                              width: 26,
+//                              height: 26,
+//                              child: Checkbox(value: widget.keyboardPart == widget.part, onChanged: null)))
+//                    ])))),
         AnimatedContainer(
             duration: animationDuration,
             width: isConfirmingDelete || !widget.enableColorboard ? 0 : 41,

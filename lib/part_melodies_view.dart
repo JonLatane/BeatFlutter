@@ -693,9 +693,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
               BeatScratchPlugin.createMelody(part, newMelody);
               final reference = currentSection.referenceTo(newMelody);
               toggleMelodyReference(reference);
-              selectMelody(newMelody);
               // Go directly to recording mode if not a template.
               if (newMelody.name.isEmpty) {
+                selectMelody(newMelody);
                 setReferenceVolume(reference, 1.0);
                 editingMelody = true;
                 setKeyboardPart(part);

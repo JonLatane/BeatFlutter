@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/ui_models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'clearCaches.dart';
 import 'colors.dart';
 import 'ui_models.dart';
 import 'util.dart';
@@ -69,6 +71,9 @@ class BeatScratchToolbar extends StatelessWidget {
                       case "showBeatCounts":
                         toggleShowBeatCounts();
                         break;
+                      case "clearMutableCaches":
+                        clearMutableCaches();
+                        break;
                     }
                     //setState(() {});
                   },
@@ -122,6 +127,10 @@ class BeatScratchToolbar extends StatelessWidget {
 //                            Expanded(child: Text('Show Section Beat Counts'))
 //                          ]),
 //                        ),
+                        if (kDebugMode) const PopupMenuItem(
+                          value: "clearMutableCaches",
+                          child: Text('Debug: Clear Dart Caches'),
+                        ),
                         const PopupMenuItem(
                           value: "midiSettings",
                           child: Text('MIDI Settings'),

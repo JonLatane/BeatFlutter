@@ -47,7 +47,7 @@ extension MidiChangeTheory on MidiChange {
 final MidiParser _parser = MidiParser();
 
 extension MidiMelodies on Melody {
-  setMidiDataFromSimpleMelody(Map<int, Iterable<int>> simpleData) {
+  setMidiDataFromSimpleMelody(Map<int, Iterable<int>> simpleData, {int simpleVelocity = 127}) {
     Map<int, MidiChange> convertedData = Map();
     List<MapEntry<int, Iterable<int>>> sortedData = simpleData.entries.toList()
       ..sort((e1, e2) => e1.key.compareTo(e2.key));
@@ -66,7 +66,7 @@ extension MidiMelodies on Melody {
         ..channel = 0));
       events.addAll(tones.map((tone) => NoteOnEvent()
         ..noteNumber = tone + 60
-        ..velocity = 127
+        ..velocity = simpleVelocity
         ..channel = 0));
       convertedData[key] = MidiChange()..midiEvents = events;
       prevTones = tones;

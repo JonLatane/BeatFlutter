@@ -10,6 +10,15 @@ clearMutableCaches() {
   });
 }
 
+clearMutableCachesForMelody(String melodyId) {
+  MelodyTheory.averageToneCache.removeWhere((key, value) => key == melodyId);
+  MelodyTheory.tonesAtCache.removeWhere((key, value) => key.arguments[0] == melodyId);
+  MelodyTheory.tonesInMeasureCache.removeWhere((key, value) => key.arguments[0] == melodyId);
+  MelodyTheory.averageToneCache.removeWhere((key, value) => key == melodyId);
+  NotationMelodyRenderer.recentSignCache.removeWhere((key, value) => (key.arguments[0] as String).contains(melodyId));
+  NotationMelodyRenderer.playbackNoteCache.removeWhere((key, value) => key.arguments[0] == melodyId);
+}
+
 var _mutableCaches = [
   HarmonyTheory.changeBeforeCache,
   MelodyTheory.tonesAtCache,
