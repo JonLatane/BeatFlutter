@@ -99,6 +99,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                           setState(() {
                             Part part = newDrumPart();
                             widget.score.parts.add(part);
+                            BeatScratchPlugin.createPart(part);
 //                          BeatScratchPlugin.pushPart(part);
                             if (widget.keyboardPart == null) {
                               widget.setKeyboardPart(part);
@@ -122,8 +123,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                       padding: EdgeInsets.only(top: 5),
                       child: Text(
                         "Kits, whistles, gunshots, zips, zaps, crickets, screams, and more.   Drum Parts written using "
-                        "MIDI pitch values. Standards include: Kick = B1, Snare = D2, Hat = F#2."
-                        "\n\nMay only be used on the Keyboard.",
+                        "MIDI pitch values. Standards include: Kick = B1, Snare = D2, Hat = F#2.",
                         style: TextStyle(
                             color: canAddDrumPart ? Colors.white : Colors.black26,
                             fontSize: 10,
@@ -174,8 +174,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                   padding: EdgeInsets.only(top: 5),
                   child: Text(
                     "Pianos, guitars, voice, and all other instruments that play notes. Melodies in Harmonic Parts "
-                    "can be transformed to fit Harmonies. "
-                    "\n\nMay be used on the Keyboard${widget.enableColorboard ? " or the Colorboard" : ""}.",
+                    "can be transformed to fit Harmonies. ",
                     style: TextStyle(
                         color: canAddPart ? Colors.white : Colors.black26, fontSize: 10, fontWeight: FontWeight.w100),
                   )),
@@ -659,9 +658,14 @@ class _MelodiesViewState extends State<_MelodiesView> {
               buildAddMelodyButton(backgroundColor, textColor, odeToJoyB()),
             if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, boom()),
             if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, chick()),
-            if (part.instrument.type == InstrumentType.drum) buildAddMelodyButton(backgroundColor, textColor, tssst()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, tssst()),
             if (part.instrument.type == InstrumentType.drum)
               buildAddMelodyButton(backgroundColor, textColor, tsstTsst()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, tssstSwing()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddMelodyButton(backgroundColor, textColor, tsstTsstSwing()),
             // Blank space at bottom
             SliverAppBar(
             backgroundColor: Colors.transparent,

@@ -122,8 +122,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   set editingMelody(value) {
     _editingMelody = value;
     if (value) {
-      var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
-      _setKeyboardPart(part);
+//      var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
+//      if (part != null) {
+//        _setKeyboardPart(part);
+//      }
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
       if(_isPhone) {
         _hadVerticalSectionListBefore = verticalSectionList;
@@ -288,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (selectedMelody != null) {
       Part part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
       if(part != null) {
-        keyboardPart = selectedPart;
+        keyboardPart = part;
       }
     } else {
       editingMelody = false;

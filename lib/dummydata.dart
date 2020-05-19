@@ -69,6 +69,17 @@ Melody tssst() => baseMelody()
   }, simpleVelocity: 84)
 ;
 
+Melody tssstSwing() => baseMelody()
+  ..name = "Tssst (Swing)"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 3
+  ..length = 3
+  ..setMidiDataFromSimpleMelody({
+    2: [-18]
+  }, simpleVelocity: 84)
+;
+
 Melody tsstTsst() => baseMelody()
   ..name = "Tsst-tsst"
   ..instrumentType = InstrumentType.drum
@@ -77,6 +88,17 @@ Melody tsstTsst() => baseMelody()
   ..length = 4
   ..setMidiDataFromSimpleMelody({
     1: [-18], 3: [-18]
+  }, simpleVelocity: 42)
+;
+
+Melody tsstTsstSwing() => baseMelody()
+  ..name = "Tsst-tsst (Swing)"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 6
+  ..length = 6
+  ..setMidiDataFromSimpleMelody({
+    2: [-18], 5: [-18]
   }, simpleVelocity: 42)
 ;
 
