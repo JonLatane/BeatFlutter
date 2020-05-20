@@ -653,8 +653,8 @@ class MusicSystemPainter extends CustomPainter {
         ..style = PaintingStyle.fill
         ..color = Colors.black26);
     var staffParts = staff.getParts(score, staves.value);
-    bool hasColorboardPart = staffParts.any((part) => part.id == colorboardPart.value.id);
-    bool hasKeyboardPart = staffParts.any((part) => part.id == keyboardPart.value.id);
+    bool hasColorboardPart = staffParts.any((part) => part.id == colorboardPart.value?.id);
+    bool hasKeyboardPart = staffParts.any((part) => part.id == keyboardPart.value?.id);
     if (hasColorboardPart || hasKeyboardPart) {
       _colorboardDummyMelody.setMidiDataFromSimpleMelody({
         0: colorboardNotesNotifier.value.toList()
