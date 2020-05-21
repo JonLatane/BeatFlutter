@@ -4,6 +4,7 @@ import 'generated/protos/music.pb.dart';
 import 'music_theory.dart';
 import 'util.dart';
 
+
 class NoteSpecification {
   final NoteName noteName;
   final int octave;

@@ -17,6 +17,9 @@ clearMutableCachesForMelody(String melodyId) {
   MelodyTheory.averageToneCache.removeWhere((key, value) => key == melodyId);
   NotationMelodyRenderer.recentSignCache.removeWhere((key, value) => (key.arguments[0] as String).contains(melodyId));
   NotationMelodyRenderer.playbackNoteCache.removeWhere((key, value) => key.arguments[0] == melodyId);
+  NotationMelodyRenderer.notationRenderingCache.removeWhere((key, value) =>
+    key.arguments[0] == melodyId || (key.arguments[1] as String).contains(melodyId));
+
 }
 
 var _mutableCaches = [
@@ -25,7 +28,8 @@ var _mutableCaches = [
   MelodyTheory.tonesInMeasureCache,
   MelodyTheory.averageToneCache,
   NotationMelodyRenderer.recentSignCache,
-  NotationMelodyRenderer.playbackNoteCache
+  NotationMelodyRenderer.playbackNoteCache,
+  NotationMelodyRenderer.notationRenderingCache,
 ];
 
 var _deterministicCaches = [

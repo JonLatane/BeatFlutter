@@ -783,7 +783,6 @@ class MusicSystemPainter extends CustomPainter {
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
-            ..section = renderingSection
             ..notationAlpha = notationOpacityNotifier.value * alpha * opacityFactor
             ..drawPadding = 3
             ..nonRootPadding = 3
@@ -791,7 +790,7 @@ class MusicSystemPainter extends CustomPainter {
             ..isUserChoosingHarmonyChord = false
             ..isMelodyReferenceEnabled = true
             ..melody = melody
-            ..draw(canvas, true);
+            ..draw(canvas);
         }
       } catch (e, s) {
         print("exception rendering notation: $e: \n$s");

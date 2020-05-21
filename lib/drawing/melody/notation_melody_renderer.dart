@@ -14,33 +14,40 @@ import 'melody_staff_lines_renderer.dart';
 import '../canvas_tone_drawer.dart';
 
 enum Notehead { quarter, half, whole, percussion }
+
+class _RenderInstruction {
+  const _RenderInstruction();
+}
+class _NoteheadInstruction extends _RenderInstruction {
+  final Notehead notehead;
+  final NoteSign noteSign;
+  final double noteheadTop;
+  final double noteheadLeft;
+  final bool staggered;
+  final bool hadStaggeredNotes;
+  final List<double> ledgerLines;
+  const _NoteheadInstruction({this.notehead, this.noteSign, this.noteheadLeft, this.ledgerLines, this.noteheadTop, this.staggered, this.hadStaggeredNotes});
+}
+class _StemInstruction extends _RenderInstruction {
+  final Offset top;
+  final Offset bottom;
+  const _StemInstruction({this.top, this.bottom});
+}
+
 class NotationMelodyRenderer extends BaseMelodyRenderer {
-//  static final ui.Image notehead = await loadUiImage("");
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
+  @override
+  double get axisLength => bounds.height / xScale;
+
   Iterable<Melody> otherMelodiesOnStaff = [];
   double notationAlpha = 1;
-  int maxSubdivisonsPerBeatUnder7 = 7;
   bool stemsUp = true;
-
-//  (renderedMelodies + melody)
-//    .filter { it.subdivisionsPerBeat <= 7 }
-//  .maxBy { it.subdivisionsPerBeat }?.subdivisionsPerBeat ?: 7
-  int maxSubdivisonsPerBeatUnder13 = 13;
-
-//  val maxSubdivisonsPerBeatUnder13 = (renderedMelodies + melody)
-//    .filter { it.subdivisionsPerBeat <= 13 }
-//  .maxBy { it.subdivisionsPerBeat }?.subdivisionsPerBeat ?: 13
-  int maxSubdivisonsPerBeat = 24;
-
-//  val maxSubdivisonsPerBeat = (renderedMelodies + melody)
-//    .maxBy { it.subdivisionsPerBeat }?.subdivisionsPerBeat ?: 24
-
 
   @override double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
   List<Clef> clefs = [Clef.treble, Clef.bass];
 
-  draw(Canvas canvas, bool stemsUp) {
+  draw(Canvas canvas) {
     bounds = overallBounds;
     canvas.save();
     canvas.translate(0, bounds.top);
@@ -49,46 +56,118 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     canvas.restore();
   }
 
+
+  static Map<ArgumentList, List<_RenderInstruction>> notationRenderingCache = Map();
   _drawNotationMelody(Canvas canvas) {
-    double maxBoundsWidthUnder7 = min(
-      (overallBounds.right - overallBounds.left) / maxSubdivisonsPerBeatUnder7, letterStepSize * 10
-    );
-    double maxBoundsWidthUnder13 = min(
-      (overallBounds.right - overallBounds.left) / maxSubdivisonsPerBeatUnder13, letterStepSize * 10
-    );
-    double maxBoundsWidth = min(
-      (overallBounds.right - overallBounds.left) / maxSubdivisonsPerBeat, letterStepSize * 10
-    );
-    iterateSubdivisions(() {
-      double boundsWidth = maxBoundsWidth;
-      if (melody.subdivisionsPerBeat <= 7) {
-        boundsWidth = maxBoundsWidthUnder7;
-      } else if (melody.subdivisionsPerBeat <= 13) {
-        boundsWidth = maxBoundsWidthUnder13;
+    final ArgumentList key = ArgumentList(
+      [melody.id, otherMelodiesOnStaff.map((e) => e.id).join(),
+        section.id, beatPosition]);
+    List<_RenderInstruction> instructions;
+    List<_RenderInstruction> calculateInstructions() {
+      List<_RenderInstruction> result = List();
+      iterateSubdivisions(() {
+        //      canvas.drawRect(bounds, Paint()..style=PaintingStyle.stroke..strokeWidth=5);
+//        colorGuideAlpha = 0;
+        _planNoteheadsSignsAndLedgers(result);
+      });
+      return result;
+    }
+    if(melody.id == "keyboardDummy" || melody.id == "colorboardDummy") {
+      instructions = calculateInstructions();
+    } else {
+      instructions = notationRenderingCache.putIfAbsent(key, calculateInstructions);
+    }
+
+    instructions.forEach((instruction) {
+      if (instruction is _NoteheadInstruction) {
+        _renderNoteheadSignAndLedgers(canvas, instruction);
+      } else {
+        _StemInstruction stem = instruction as _StemInstruction;
+        canvas.drawLine(
+          stem.top * xScale + Offset(overallBounds.left, 0),
+          stem.bottom * xScale + Offset(overallBounds.left, 0),
+          alphaDrawerPaint
+        );
       }
-      bounds = Rect.fromLTRB(bounds.left, bounds.top, bounds.right + boundsWidth, bounds.bottom);
-
-//      canvas.drawRect(bounds, Paint()..style=PaintingStyle.stroke..strokeWidth=5);
-
-      colorGuideAlpha = 0;
-
-      _drawNoteheadsLedgersAndStems(canvas);
-
     });
+  }
+  
+  _renderNoteheadSignAndLedgers(Canvas canvas, _NoteheadInstruction instruction) {
+    NoteSign noteSign = instruction.noteSign;
+    bool staggered = instruction.staggered;
+    double noteheadWidth = 18 * xScale;
+    double noteheadHeight = noteheadWidth;
+    double top = instruction.noteheadTop * xScale;
+    double bottom = top + noteheadHeight;
+    double left = overallBounds.left + instruction.noteheadLeft * xScale;
+    double right = left + noteheadWidth;
+    Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
+    
+    switch(instruction.notehead) {
+      case Notehead.quarter:
+        _drawFilledNotehead(canvas, noteheadRect);
+        break;
+      case Notehead.half:
+        _drawFilledNotehead(canvas, noteheadRect);
+        break;
+      case Notehead.whole:
+        _drawFilledNotehead(canvas, noteheadRect);
+        break;
+      case Notehead.percussion:
+        _drawPercussionNotehead(canvas, noteheadRect);
+        break;
+    }
 
-    double overallWidth = overallBounds.right - overallBounds.left;
-    bounds = Rect.fromLTRB(overallWidth, bounds.top, overallWidth, bounds.bottom);
+    instruction.ledgerLines.forEach((position) {
+      canvas.drawLine(
+        Offset(left  - 3 * xScale, position * xScale),
+        Offset(right + 3 * xScale, position * xScale),
+        alphaDrawerPaint
+      );
+    });
+    
+    if(noteSign != null) {
+      double signLeft, signRight, signTop, signBottom;
+      if(staggered) {
+        signLeft = left - 0.7 * noteheadWidth;//bounds.left - 0.7 * noteheadWidth + xOffset;// bounds.right - 2.3 * noteheadWidth;
+      } else {
+        signLeft = left - 0.5 * noteheadWidth; //bounds.left - 0.5 * noteheadWidth + xOffset; //bounds.right - 2.8 * noteheadWidth;
+      }
+      signRight = signLeft + 0.5 * noteheadWidth;
+
+      switch(noteSign) {
+        case NoteSign.flat:
+        case NoteSign.double_flat:
+          double difference = noteheadHeight * 1.5;
+          signTop = top - 2 * noteheadHeight / 3 - difference;
+          signBottom = bottom - difference;
+          break;
+        case NoteSign.double_sharp:
+          signTop = top + noteheadHeight / 4;
+          signBottom = bottom - noteheadHeight / 4;
+          break;
+        case NoteSign.sharp:
+        case NoteSign.natural:
+        default:
+          double difference = noteheadHeight * 1.8;
+          signTop = top - difference;//- noteheadHeight / 3;
+          signBottom = bottom - difference;// + noteheadHeight / 3;
+      }
+      final signTopOffset = 8 * yScale;
+      signTop += signTopOffset;
+      signBottom += signTopOffset;
+      Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
+      _renderSign(canvas, signRect, noteSign);
+    }
   }
 
-  _drawNoteheadsLedgersAndStems(Canvas canvas) {
+  _planNoteheadsSignsAndLedgers(List<_RenderInstruction> result) {
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
     double howFarIntoBeatAreWe = (elementPosition % melody.subdivisionsPerBeat) / melody.subdivisionsPerBeat;
-    double xOffset = -35 * xScale * howFarIntoBeatAreWe;
+    double xOffset = -35 * howFarIntoBeatAreWe;
 
     if (tones.isNotEmpty) {
-      double boundsWidth = bounds.width;
-      double maxFittableNoteheadWidth = (boundsWidth / 2.6).ceilToDouble();
-      double noteheadWidth = 18 * xScale; //min(letterStepSize * 2, maxFittableNoteheadWidth);
+      double noteheadWidth = 18; //min(letterStepSize * 2, maxFittableNoteheadWidth);
       double noteheadHeight = noteheadWidth; //(bounds.right - bounds.left)
 
       List<NoteSpecification> playbackNotes = getPlaybackNotes(tones, chord);
@@ -117,31 +196,14 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         hadStaggeredNotes = hadStaggeredNotes || shouldStagger;
         if (minCenter == center) minWasStaggered = shouldStagger;
         if (maxCenter == center) maxWasStaggered = shouldStagger;
-        double top = center + (noteheadHeight / 2);
-        double bottom = center - (noteheadHeight / 2);
-        double left, right;
+        double top = center - (noteheadHeight / 2);
+        double left;
         if (shouldStagger) {
-          left =  bounds.left + xOffset;//bounds.right - noteheadWidth;
-          right = bounds.left + noteheadWidth + xOffset;//bounds.right;
+          left =  bounds.left + xOffset;
         } else {
-          left =  bounds.left + .9 * noteheadWidth + xOffset;//bounds.right - 1.9 * noteheadWidth;
-          right = bounds.left + 1.9 * noteheadWidth + xOffset;//bounds.right - 0.9 * noteheadWidth;
+          left =  bounds.left + .9 * noteheadWidth + xOffset;
         }
-        Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
-        switch(notehead) {
-          case Notehead.quarter:
-            _drawFilledNotehead(canvas, noteheadRect);
-            break;
-          case Notehead.half:
-            _drawFilledNotehead(canvas, noteheadRect);
-            break;
-          case Notehead.whole:
-            _drawFilledNotehead(canvas, noteheadRect);
-            break;
-          case Notehead.percussion:
-            _drawPercussionNotehead(canvas, noteheadRect);
-            break;
-        }
+        
         // Draw signs
         NoteSign previousSign;
         Iterable<NoteSign> previousSigns = getMostRecentSignsOf(
@@ -176,50 +238,19 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
             break;
         }
 
-        if(signToDraw != null) {
-          double signLeft, signRight, signTop, signBottom;
-          if(shouldStagger) {
-            signLeft = bounds.left - 0.7 * noteheadWidth + xOffset;// bounds.right - 2.3 * noteheadWidth;
-            signRight = bounds.left - 0.2 * noteheadWidth + xOffset;//bounds.right - 1.8 * noteheadWidth;
-          } else {
-            signLeft = bounds.left - 0.5 * noteheadWidth + xOffset; //bounds.right - 2.8 * noteheadWidth;
-            signRight = bounds.left + xOffset;//bounds.right - 2.3 * noteheadWidth;
-          }
-
-          switch(signToDraw) {
-            case NoteSign.flat:
-            case NoteSign.double_flat:
-              double difference = noteheadHeight * 1.5;
-              signTop = top - 2 * noteheadHeight / 3 - difference;
-              signBottom = bottom - difference;
-              break;
-            case NoteSign.double_sharp:
-              signTop = top + noteheadHeight / 4;
-              signBottom = bottom - noteheadHeight / 4;
-              break;
-            case NoteSign.sharp:
-            case NoteSign.natural:
-            default:
-              double difference = noteheadHeight * 1.8;
-              signTop = top - difference;//- noteheadHeight / 3;
-              signBottom = bottom - difference;// + noteheadHeight / 3;
-          }
-          final signTopOffset = 8 * yScale;
-          signTop += signTopOffset;
-          signBottom += signTopOffset;
-          Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
-          _renderSign(canvas, signRect, signToDraw);
-        }
-
         alphaDrawerPaint.strokeWidth = max(1, 1 * minScale);
 
-//        drawable.setBounds(signLeft, signTop, signRight, signBottom)
-//        drawable.alpha = (255 * alphaSource).toInt()
-//        drawable.draw(this)
-//        }
-        _renderLedgerLines(canvas, note, left, right);
-//      }
-//
+        List<double> ledgerLines = List();
+        _planLedgerLines(note, ledgerLines);
+
+        result.add(_NoteheadInstruction(
+          notehead: notehead,
+          noteSign: signToDraw,
+          noteheadTop: top,
+          noteheadLeft: left - overallBounds.left,
+          ledgerLines: ledgerLines,
+          staggered: shouldStagger,
+        ));
       });
       // Draw the stem
       if (stemsUp) {
@@ -228,7 +259,10 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           : bounds.left + 1.83 * noteheadWidth;//bounds.right - 0.965 * noteheadWidth;
         double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
         double stopY = minCenter - 3 * noteheadHeight;
-        canvas.drawLine(Offset(stemX + xOffset, startY), Offset(stemX + xOffset, stopY), alphaDrawerPaint);
+        result.add(_StemInstruction(
+          top: Offset(stemX + xOffset - overallBounds.left, startY),
+          bottom: Offset(stemX + xOffset - overallBounds.left, stopY))
+        );
       } else {
         double stemX = (hadStaggeredNotes)
           ? bounds.left+ 0.887 * noteheadWidth//bounds.right - 0.95 * noteheadWidth
@@ -236,7 +270,10 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         double startY = minCenter + noteheadHeight *
           ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
         double stopY = maxCenter + 3 * noteheadHeight;
-        canvas.drawLine(Offset(stemX + xOffset, startY), Offset(stemX + xOffset, stopY), alphaDrawerPaint);
+        result.add(_StemInstruction(
+          top: Offset(stemX + xOffset - overallBounds.left, startY),
+          bottom: Offset(stemX + xOffset - overallBounds.left, stopY))
+        );
       }
     }
   }
@@ -268,7 +305,6 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       return it % meter.defaultBeatsPerMeasure == 0 &&
       it <= currentBeatPosition && it + meter.defaultBeatsPerMeasure > currentBeatPosition;
     });
-    NoteSign result;
     Map<double, Set<NoteSign>> resultCandidates = Map();
     relevantMelodies.forEach((relevantMelody) {
       int relevantMelodyIndex = elementPosition.convertPatternIndex(fromSubdivisionsPerBeat: melody.subdivisionsPerBeat,
@@ -361,6 +397,19 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     canvas.restore();
   }
 
+  _planLedgerLines(NoteSpecification note, List<double> result) {
+    try {
+      if (!clefs.any((clef) => clef.covers(note))) {
+        Clef nearestClef = clefs.minBy((it) =>
+          min((note.diatonicValue - it.diatonicMax).abs(), (note.diatonicValue - it.diatonicMin).abs()));
+        nearestClef.ledgersTo(note).forEach((ledger) {
+          result.add(pointFor(letter: ledger.letter, octave: ledger.octave));
+        });
+      }
+    } catch(t) {
+      print(t);
+    }
+  }
   _renderLedgerLines(Canvas canvas, NoteSpecification note, double left, double right) {
     try {
       if (!clefs.any((clef) => clef.covers(note))) {
