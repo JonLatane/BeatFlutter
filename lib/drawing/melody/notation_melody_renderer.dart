@@ -15,10 +15,7 @@ import '../canvas_tone_drawer.dart';
 
 enum Notehead { quarter, half, whole, percussion }
 
-class _RenderInstruction {
-  const _RenderInstruction();
-}
-class _NoteheadInstruction extends _RenderInstruction {
+class _NoteheadInstruction {
   final Notehead notehead;
   final NoteSign noteSign;
   final double noteheadTop;
@@ -28,17 +25,24 @@ class _NoteheadInstruction extends _RenderInstruction {
   final List<double> ledgerLines;
   const _NoteheadInstruction({this.notehead, this.noteSign, this.noteheadLeft, this.ledgerLines, this.noteheadTop, this.staggered, this.hadStaggeredNotes});
 }
-class _StemInstruction extends _RenderInstruction {
+class _StemInstruction {
   final Offset top;
   final Offset bottom;
   const _StemInstruction({this.top, this.bottom});
 }
 
+class _RenderInstructions {
+  final List<_NoteheadInstruction> noteheadInstructions = List();
+  final List<_StemInstruction> stemInstructions = List();
+
+  _RenderInstructions();
+}
+
 class NotationMelodyRenderer extends BaseMelodyRenderer {
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
-  @override
-  double get axisLength => bounds.height / xScale;
+//  @override
+//  double get axisLength => bounds.height / xScale;
 
   Iterable<Melody> otherMelodiesOnStaff = [];
   double notationAlpha = 1;
@@ -48,47 +52,48 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   List<Clef> clefs = [Clef.treble, Clef.bass];
 
   draw(Canvas canvas) {
+/*
     bounds = overallBounds;
+*/
     canvas.save();
-    canvas.translate(0, bounds.top);
+    canvas.translate(0, overallBounds.top);
     alphaDrawerPaint.color = Colors.black.withAlpha((255 * notationAlpha).toInt());
     _drawNotationMelody(canvas);
     canvas.restore();
   }
-
-
-  static Map<ArgumentList, List<_RenderInstruction>> notationRenderingCache = Map();
+  
+  static Map<ArgumentList, _RenderInstructions> notationRenderingCache = Map();
   _drawNotationMelody(Canvas canvas) {
     final ArgumentList key = ArgumentList(
       [melody.id, otherMelodiesOnStaff.map((e) => e.id).join(),
         section.id, beatPosition]);
-    List<_RenderInstruction> instructions;
-    List<_RenderInstruction> calculateInstructions() {
-      List<_RenderInstruction> result = List();
+    _RenderInstructions instructions;
+    _RenderInstructions calculateInstructions() {
+      _RenderInstructions result = _RenderInstructions();
+      final originalBounds = overallBounds;
+      overallBounds = Rect.fromPoints(Offset.zero, Offset(95,500));
       iterateSubdivisions(() {
-        //      canvas.drawRect(bounds, Paint()..style=PaintingStyle.stroke..strokeWidth=5);
-//        colorGuideAlpha = 0;
         _planNoteheadsSignsAndLedgers(result);
       });
+      overallBounds = originalBounds;
       return result;
     }
-    if(melody.id == "keyboardDummy" || melody.id == "colorboardDummy") {
+    if(true || melody.id == "keyboardDummy" || melody.id == "colorboardDummy") {
       instructions = calculateInstructions();
     } else {
       instructions = notationRenderingCache.putIfAbsent(key, calculateInstructions);
     }
 
-    instructions.forEach((instruction) {
-      if (instruction is _NoteheadInstruction) {
-        _renderNoteheadSignAndLedgers(canvas, instruction);
-      } else {
-        _StemInstruction stem = instruction as _StemInstruction;
-        canvas.drawLine(
-          stem.top * xScale + Offset(overallBounds.left, 0),
-          stem.bottom * xScale + Offset(overallBounds.left, 0),
-          alphaDrawerPaint
-        );
-      }
+    instructions.noteheadInstructions.forEach((notehead) {
+      _renderNoteheadSignAndLedgers(canvas, notehead);
+    });
+
+    instructions.stemInstructions.forEach((stem) {
+      canvas.drawLine(
+        stem.top * xScale + Offset(overallBounds.left, 0),
+        stem.bottom * xScale + Offset(overallBounds.left, 0),
+        alphaDrawerPaint
+      );
     });
   }
   
@@ -161,7 +166,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
     }
   }
 
-  _planNoteheadsSignsAndLedgers(List<_RenderInstruction> result) {
+  _planNoteheadsSignsAndLedgers(_RenderInstructions result) {
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
     double howFarIntoBeatAreWe = (elementPosition % melody.subdivisionsPerBeat) / melody.subdivisionsPerBeat;
     double xOffset = -35 * howFarIntoBeatAreWe;
@@ -243,7 +248,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         List<double> ledgerLines = List();
         _planLedgerLines(note, ledgerLines);
 
-        result.add(_NoteheadInstruction(
+        result.noteheadInstructions.add(_NoteheadInstruction(
           notehead: notehead,
           noteSign: signToDraw,
           noteheadTop: top,
@@ -259,7 +264,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           : bounds.left + 1.83 * noteheadWidth;//bounds.right - 0.965 * noteheadWidth;
         double startY = maxCenter + noteheadHeight * ( (maxWasStaggered) ? .1 : -.1);
         double stopY = minCenter - 3 * noteheadHeight;
-        result.add(_StemInstruction(
+        result.stemInstructions.add(_StemInstruction(
           top: Offset(stemX + xOffset - overallBounds.left, startY),
           bottom: Offset(stemX + xOffset - overallBounds.left, stopY))
         );
@@ -270,7 +275,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         double startY = minCenter + noteheadHeight *
           ((minWasStaggered || hadStaggeredNotes) ? -.1 : .1);
         double stopY = maxCenter + 3 * noteheadHeight;
-        result.add(_StemInstruction(
+        result.stemInstructions.add(_StemInstruction(
           top: Offset(stemX + xOffset - overallBounds.left, startY),
           bottom: Offset(stemX + xOffset - overallBounds.left, stopY))
         );
