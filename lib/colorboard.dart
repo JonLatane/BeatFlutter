@@ -2,12 +2,7 @@ import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
 import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'beatscratch_plugin.dart';
-import 'drawing/drawing.dart';
-import 'package:sensors/sensors.dart';
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'dart:async';
 import 'dart:math';
@@ -445,7 +440,7 @@ class _ColorboardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    var bounds = Offset.zero & size;
+
 //    canvas.drawRect(visibleRect(), Paint());
 //    canvas.drawRect(bounds, Paint());
 //    canvas.clipRect(bounds);

@@ -59,17 +59,7 @@ class Conductor {
 //  }
   
   private init() {
-//    accessoryManager.registerForLocalNotifications()
-//    NotificationCenter.default.addObserver(self, selector: Selector(("deviceConnected:")), name: NSNotification.Name.EAAccessoryDidConnect, object: nil)
-
-    
-    // MIDI Configure
-    midi.createVirtualPorts()
-    midi.openInput()
-//    midi.openInput(name: "BeatScratch Session")
-//    midi.openInput(name: "BeatScratch Session")
-//    midi.openInput(name: "BeatScratch Session")
-    midi.openOutput()
+    initMidi()
     
     // Session settings
     //AKAudioFile.cleanTempDirectory()
@@ -92,10 +82,17 @@ class Conductor {
   
   func setupSamplersInBackground() {
     self.samplersInitialized = false
-    DispatchQueue.global(qos: .userInteractive).async {
+    DispatchQueue.global(qos: .userInitiated).async {
       self.setupSamplers()
       self.samplersInitialized = true
     }
+  }
+  
+  func initMidi() {
+    midi.closeAllInputs()
+    midi.createVirtualPorts()
+    midi.openInput()
+    midi.openOutput()
   }
   
   private func setupSamplers() {

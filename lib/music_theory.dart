@@ -188,6 +188,7 @@ extension ChordTheory on Chord {
 }
 
 extension HarmonyTheory on Harmony {
+  double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
   int get beatCount => (length.toDouble() / subdivisionsPerBeat).ceil();
 
   static final Map<ArgumentList, Chord> changeBeforeCache = Map();
@@ -210,6 +211,7 @@ extension HarmonyTheory on Harmony {
 }
 
 extension MelodyTheory on Melody {
+  double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
   Iterable<int> get tones => (type == MelodyType.midi)
     ? midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60))
     : [];
@@ -301,6 +303,7 @@ extension MelodyTheory on Melody {
 
 extension SectionTheory on Section {
   String get convenientName => (name.isEmpty) ? name : "Section ${id.substring(0, 5)}";
+  double get realBeatCount => harmony.realBeatCount;
   int get beatCount => harmony.beatCount;
 
   MelodyReference referenceTo(Melody melody) =>
@@ -326,6 +329,7 @@ extension PartTheory on Part {
 }
 
 extension ScoreTheory on Score {
+  double get realBeatCount => sections.fold(0, (p, s) => p + s.realBeatCount);
   int get beatCount => sections.fold(0, (p, s) => p + s.beatCount);
 
   Melody melodyReferencedBy(MelodyReference ref) =>

@@ -1,20 +1,13 @@
 import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/main.dart';
-import 'package:beatscratch_flutter_redux/platform_svg/platform_svg.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 import 'beatscratch_plugin.dart';
-import 'melodybeat.dart';
-import 'expanded_section.dart';
+import 'music_theory.dart';
 import 'part_melodies_view.dart';
-import 'dart:math';
-import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
-import 'package:uuid/uuid.dart';
 import 'ui_models.dart';
 import 'util.dart';
-import 'music_theory.dart';
 
 class MelodyToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
@@ -356,12 +349,14 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
         onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
           widget.melody?.subdivisionsPerBeat -= 1;
           widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+          clearMutableCachesForMelody(widget.melody.id);
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateMelody(widget.melody);
         } : null,
         onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
           widget.melody?.subdivisionsPerBeat += 1;
           widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+          clearMutableCachesForMelody(widget.melody.id);
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateMelody(widget.melody);
         } : null,
@@ -770,7 +765,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
   @override
   void dispose() {
     super.dispose();
-    animationController.dispose();
+//    animationController.dispose();
   }
 
   @override
@@ -839,6 +834,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
           MelodyTheory.tonesInMeasureCache.clear();
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateSections(widget.score);
+          clearMutableCaches();
 
 //          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
         },
@@ -851,6 +847,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
           MelodyTheory.tonesInMeasureCache.clear();
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateSections(widget.score);
+          clearMutableCaches();
         },
         child: Container(
           width: 30,

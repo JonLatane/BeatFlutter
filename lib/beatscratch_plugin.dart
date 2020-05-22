@@ -4,6 +4,7 @@ import 'fake_js.dart'
   if(dart.library.js) 'dart:js';
 import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
 import 'package:dart_midi/dart_midi.dart';
+// ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -31,12 +32,6 @@ class BeatScratchPlugin {
   }
 
   static final ValueNotifier<int> currentBeat = ValueNotifier(0);
-  static _doPlayingChangedLoop() {
-    Future.delayed(Duration(seconds:5), () {
-//      checkPlaying();
-      _doPlayingChangedLoop();
-    });
-  }
   
   static bool _isSynthesizerAvailable;
   static bool get isSynthesizerAvailable {

@@ -1,17 +1,16 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/music_theory.dart';
 import 'package:beatscratch_flutter_redux/music_notation_theory.dart';
+import 'package:beatscratch_flutter_redux/music_theory.dart';
 import 'package:beatscratch_flutter_redux/util.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
-import 'package:quiver/cache.dart';
 import 'package:unification/unification.dart';
+
+import '../canvas_tone_drawer.dart';
 import 'base_melody_renderer.dart';
 import 'melody_staff_lines_renderer.dart';
-import '../canvas_tone_drawer.dart';
 
 enum Notehead { quarter, half, whole, percussion }
 
@@ -64,9 +63,6 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   
   static Map<ArgumentList, _RenderInstructions> notationRenderingCache = Map();
   _drawNotationMelody(Canvas canvas) {
-    final ArgumentList key = ArgumentList(
-      [melody.id, otherMelodiesOnStaff.map((e) => e.id).join(),
-        section.id, beatPosition]);
     _RenderInstructions instructions;
     _RenderInstructions calculateInstructions() {
       _RenderInstructions result = _RenderInstructions();
@@ -78,9 +74,12 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
       overallBounds = originalBounds;
       return result;
     }
-    if(true || melody.id == "keyboardDummy" || melody.id == "colorboardDummy") {
+    if(melody.id == "keyboardDummy" || melody.id == "colorboardDummy") {
       instructions = calculateInstructions();
     } else {
+      final ArgumentList key = ArgumentList(
+        [melody.id, otherMelodiesOnStaff.map((e) => e.id).join(),
+          section.id, beatPosition]);
       instructions = notationRenderingCache.putIfAbsent(key, calculateInstructions);
     }
 
@@ -158,9 +157,12 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
           signTop = top - difference;//- noteheadHeight / 3;
           signBottom = bottom - difference;// + noteheadHeight / 3;
       }
-      final signTopOffset = 8 * yScale;
+      final signTopOffset = 26 * yScale;
+      final signLeftOffset = -2 * xScale;
       signTop += signTopOffset;
       signBottom += signTopOffset;
+      signLeft += signLeftOffset;
+      signRight += signLeftOffset;
       Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
       _renderSign(canvas, signRect, noteSign);
     }
@@ -381,12 +383,13 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         break;
       case NoteSign.double_flat:
         signPath = _doubleFlatPath;
-        canvas.scale(0.15 * minScale, 0.15 * minScale);
+        canvas.translate(-7, 4);
+        canvas.scale(0.12 * minScale, 0.12 * minScale);
 //        canvas.translate(-94.947,-433.75 + 1);
         break;
       case NoteSign.double_sharp:
         signPath = _doubleSharpPath;
-        canvas.translate(-119.009, -441.814);
+        canvas.translate(-120.509, -454.814);
         break;
       case NoteSign.natural:
         signPath = _naturalPath;

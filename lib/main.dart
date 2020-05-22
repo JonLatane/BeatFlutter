@@ -6,7 +6,6 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -540,7 +539,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        print("Replacing ${part.melodies[index]} with $melody");
         part.melodies[index].midiData = melody.midiData;
 //        clearMutableCaches();
-        clearMutableCachesForMelody(melody.id);
+        clearMutableCachesForMelody(melody.id,
+//          beat: BeatScratchPlugin.currentBeat.value,
+//          sectionId: currentSection.id,
+//          sectionLengthBeats: currentSection.beatCount,
+//          melodyLengthBeats: melody.realBeatCount
+        );
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });
     };
@@ -562,6 +566,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // ignore: missing_return
   Future<bool> _onWillPop() async {
     if (!_goBack()) {
       return (await showDialog(
@@ -746,6 +751,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget _webBanner(BuildContext context) {
+    bool isWeb = kIsWeb; // For faking to test
+    bool hideDownloadLinkButton = showDownloadLinks || !showWebWarning || !isWeb;
     return AnimatedContainer(
         duration: animationDuration,
         height: webWarningHeight,
@@ -759,7 +766,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
                 Align(
                     child: Row(children: [
-                  Text("Web", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  if(isWeb) Text("Web", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
                   Text("Preview", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
                 ])),
               ]))),
@@ -770,12 +777,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     Padding(
                         padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                         child: Text(
-                            "is pre-release software.\nBugs and missing features abound.\nmacOS/iOS/Android apps have playback, recording, and better performance.",
+                            "is pre-release software.\nBugs and missing features abound." +
+                              (isWeb ? "\nmacOS/iOS/Android apps have playback, recording, and better performance." : ""),
                             style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100))),
 //        Expanded(child:SizedBox()),
                     AnimatedContainer(
                         duration: animationDuration,
-                        width: max(0, MediaQuery.of(context).size.width - 865 - (showDownloadLinks ? 0 : 180)),
+                        width: max(0, MediaQuery.of(context).size.width - (isWeb ? 865 : 620) - (hideDownloadLinkButton ? 0 : 180)),
                         child: SizedBox()),
                     Padding(
                         padding: EdgeInsets.only(right: 5, left: 5),
@@ -793,7 +801,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             child: Text("Docs"))),
                     AnimatedContainer(
                         duration: animationDuration,
-                        width: showDownloadLinks || !showWebWarning ? 0 : 180,
+                        width: hideDownloadLinkButton ? 0 : 180,
                         child: Padding(
                             padding: EdgeInsets.only(right: 5),
                             child: RaisedButton(

@@ -3,7 +3,9 @@ package fluidsynth
 import android.content.Context
 import android.media.AudioManager
 import android.media.midi.MidiReceiver
-import okio.Okio
+import okio.buffer
+import okio.sink
+import okio.source
 import java.io.File
 
 
@@ -37,9 +39,10 @@ class FluidSynthMidiReceiver(
   private fun copySF2IfNecessary() {
     if (sf2file.exists() && sf2file.length() > 0) return
     File(context.soundfontDir).mkdirs()
-    Okio.source(context.assets.open("soundfont/$sf2FileName")).use { a ->
-      Okio.buffer(Okio.sink(sf2file)).use { b ->
-        b.writeAll(a)
+    val file = context.assets.open("soundfont/$sf2FileName")
+    file.source().use { source ->
+      sf2file.sink().buffer().use { bufferedSink ->
+        bufferedSink.writeAll(source)
       }
     }
   }

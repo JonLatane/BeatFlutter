@@ -75,7 +75,7 @@ class BeatScratchScorePlayer {
     if beatMod == 0 {
       playMetronome()
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
-      MelodyRecorder.sharedInstance.recordBeat()
+      MelodyRecorder.sharedInstance.notifyBeatFinished()
     }
     if playbackMode == Playback.Mode.score {
       doPreviousSectionTickNoteOffs()

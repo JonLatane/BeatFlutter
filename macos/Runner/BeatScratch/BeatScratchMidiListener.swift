@@ -82,8 +82,7 @@ class BeatScratchMidiListener : AKMIDIListener {
     
     if propertyChangeInfo.objectType == MIDIObjectType.device {
       print("Device detected, opening input")
-      AudioKit.midi.closeAllInputs()
-      AudioKit.midi.openInput()
+      Conductor.sharedInstance.initMidi()
     }
   }
   

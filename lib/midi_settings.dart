@@ -1,19 +1,14 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import 'dummydata.dart';
-import 'generated/protos/protobeats_plugin.pb.dart';
-import 'ui_models.dart';
-import 'util.dart';
 
 import 'animations/size_fade_transition.dart';
+import 'generated/protos/protobeats_plugin.pb.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;

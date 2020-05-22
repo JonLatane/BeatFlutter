@@ -1,8 +1,7 @@
 import 'package:dart_midi/dart_midi.dart';
+import 'package:dart_midi/src/byte_writer.dart';
 
 import 'generated/protos/music.pb.dart';
-import 'package:dart_midi/src/byte_writer.dart';
-import 'package:dart_midi/src/byte_reader.dart';
 import 'util.dart';
 
 extension MidiChangeTheory on MidiChange {

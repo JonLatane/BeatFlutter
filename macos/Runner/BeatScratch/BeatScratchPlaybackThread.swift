@@ -14,7 +14,7 @@ class BeatScratchPlaybackThread {
   static let ticksPerBeat: Double = 24 // This is the MIDI beat clock standard
 
   private init() {
-    DispatchQueue.global(qos: .userInteractive).async {
+    DispatchQueue.global(qos: .default).async {
       self.run()
     }
   }

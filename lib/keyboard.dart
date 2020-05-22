@@ -1,24 +1,20 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:math';
+
+import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
-import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:quiver/async.dart';
+
 import 'beatscratch_plugin.dart';
-import 'drawing/drawing.dart';
-import 'package:sensors/sensors.dart';
-import 'package:aeyrium_sensor/aeyrium_sensor.dart';
-import 'dart:async';
-import 'dart:math';
-import 'generated/protos/music.pb.dart';
-import 'ui_models.dart';
-import 'music_theory.dart';
-import 'music_notation_theory.dart';
-import 'util.dart';
 import 'colors.dart';
-import 'dart:io' show Platform;
+import 'drawing/drawing.dart';
+import 'generated/protos/music.pb.dart';
+import 'music_notation_theory.dart';
+import 'music_theory.dart';
+import 'ui_models.dart';
+import 'util.dart';
 
 class Keyboard extends StatefulWidget {
   final double height;
@@ -82,7 +78,8 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   int get keysOnScreen => highestPitch - lowestPitch + 1;
 
   double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
-  bool showScrollHint = true;
+  bool showScrollHint = false;
+  ScrollingMode previousScrollingMode;
 
   @override
   void initState() {
@@ -157,6 +154,15 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     if(halfStepWidthInPx < minNewValue) {
       halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
     }
+    if (previousScrollingMode != ScrollingMode.sideScroll && scrollingMode == ScrollingMode.sideScroll) {
+      showScrollHint = true;
+      Future.delayed(Duration(seconds: 5), () {
+        showScrollHint = false;
+      });
+    } else if (previousScrollingMode == ScrollingMode.sideScroll && scrollingMode != ScrollingMode.sideScroll) {
+      showScrollHint = false;
+    }
+    previousScrollingMode = scrollingMode;
     return Stack(children: [
       CustomScrollView(key: Key("colorboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
         CustomSliverToBoxAdapter(

@@ -1,15 +1,19 @@
+import 'dart:io';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/ui_models.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_picker_cross/file_picker_cross.dart';
+import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'beatscratch_plugin.dart';
 import 'clearCaches.dart';
 import 'colors.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
-class BeatScratchToolbar extends StatelessWidget {
+class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback viewMode;
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
@@ -41,6 +45,13 @@ class BeatScratchToolbar extends StatelessWidget {
       this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts})
       : super(key: key);
 
+  @override
+  _BeatScratchToolbarState createState() => _BeatScratchToolbarState();
+}
+
+class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
+  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
+//  FilePicker asdf = FilePicker();
 
   @override
   Widget build(BuildContext context) {
@@ -53,23 +64,42 @@ class BeatScratchToolbar extends StatelessWidget {
                   offset: Offset(0, MediaQuery.of(context).size.height),
                   onSelected: (value) {
                     switch (value) {
+                      case "import":
+                        print("Showing file picker");
+                        filePicker.pick().then((value) {
+//                          filePicker.
+                        });
+                        break;
+//                      case "duplicate":
+//                        if(Platform.isMacOS) {
+//                          print("Showing save panel");
+//                          showSavePanel(
+//                            allowedFileTypes: [FileTypeFilterGroup(label: "BeatScratch Score", fileExtensions: ["beatscratch"])]
+//                          );
+////                          FileChooserChannelController.instance.
+//                        } else {
+//                          print("This shouldn't be happening");
+//                        }
+//                        break;
+                      case "chooseBeatscratchFolder":
+                        break;
                       case "notationUi":
-                        setRenderingMode(RenderingMode.notation);
+                        widget.setRenderingMode(RenderingMode.notation);
                         break;
                       case "colorblockUi":
-                        setRenderingMode(RenderingMode.colorblock);
+                        widget.setRenderingMode(RenderingMode.colorblock);
                         break;
                       case "midiSettings":
-                        showMidiInputSettings();
+                        widget.showMidiInputSettings();
                         break;
                       case "about":
                         showAbout(context);
                         break;
                       case "focusPartsAndMelodies":
-                        toggleFocusPartsAndMelodies();
+                        widget.toggleFocusPartsAndMelodies();
                         break;
                       case "showBeatCounts":
-                        toggleShowBeatCounts();
+                        widget.toggleShowBeatCounts();
                         break;
                       case "clearMutableCaches":
                         clearMutableCaches();
@@ -94,14 +124,14 @@ class BeatScratchToolbar extends StatelessWidget {
                           enabled: false,
                         ),
                         const PopupMenuItem(
-                          value: null,
+                          value: "open",
                           child: Text('Open Score...'),
-                          enabled: false,
+                          enabled: true,
                         ),
                         const PopupMenuItem(
-                          value: null,
+                          value: "duplicate",
                           child: Text('Duplicate Score...'),
-                          enabled: false,
+                          enabled: kDebugMode,
                         ),
                         const PopupMenuItem(
                           value: null,
@@ -113,10 +143,10 @@ class BeatScratchToolbar extends StatelessWidget {
                           child: Text('Copy Score'),
                           enabled: false,
                         ),
-                        if(interactionMode == InteractionMode.edit) PopupMenuItem(
+                        if(widget.interactionMode == InteractionMode.edit) PopupMenuItem(
                           value: "focusPartsAndMelodies",
                           child: Row(children: [
-                            Checkbox(value: focusPartsAndMelodies, onChanged: null),
+                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
                             Expanded(child: Text('Focus Parts/Melodies'))
                           ]),
                         ),
@@ -141,7 +171,7 @@ class BeatScratchToolbar extends StatelessWidget {
                             Radio(
                               value: RenderingMode.notation,
                               onChanged: null,
-                              groupValue: renderingMode,
+                              groupValue: widget.renderingMode,
                             ),
                             Expanded(child: Text('Notation UI')),
                             Padding(
@@ -159,7 +189,7 @@ class BeatScratchToolbar extends StatelessWidget {
                             Radio(
                               value: RenderingMode.colorblock,
                               onChanged: null,
-                              groupValue: renderingMode,
+                              groupValue: widget.renderingMode,
                             ),
                             Expanded(child: Text('Colorblock UI')),
                             Padding(
@@ -180,39 +210,39 @@ class BeatScratchToolbar extends StatelessWidget {
                   icon: Image.asset('assets/logo.png'))),
           Expanded(
               child: FlatButton(
-                  onPressed: (interactionMode == InteractionMode.view)
+                  onPressed: (widget.interactionMode == InteractionMode.view)
                       ? (BeatScratchPlugin.supportsPlayback
                           ? () {
-                              togglePlaying();
+                              widget.togglePlaying();
                             }
                           : null)
                       : () {
-                          toggleSectionListDisplayMode();
+                          widget.toggleSectionListDisplayMode();
                         },
                   padding: EdgeInsets.all(0.0),
                   child: Icon(
-                      (interactionMode == InteractionMode.view)
+                      (widget.interactionMode == InteractionMode.view)
                           ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
                           : Icons.menu,
-                      color: (interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors.grey : sectionColor))),
+                      color: (widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors.grey : widget.sectionColor))),
           Expanded(
               child: AnimatedContainer(
                   duration: animationDuration,
-                  color: (interactionMode == InteractionMode.view) ? sectionColor : Colors.transparent,
+                  color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
                   child: FlatButton(
-                      onPressed: (interactionMode == InteractionMode.view) ? toggleViewOptions : viewMode,
+                      onPressed: (widget.interactionMode == InteractionMode.view) ? widget.toggleViewOptions : widget.viewMode,
                       padding: EdgeInsets.all(0.0),
                       child: Icon(Icons.remove_red_eye,
-                          color: (interactionMode == InteractionMode.view) ? Colors.white : sectionColor)))),
+                          color: (widget.interactionMode == InteractionMode.view) ? Colors.white : widget.sectionColor)))),
           Expanded(
               child: AnimatedContainer(
                   duration: animationDuration,
-                  color: (interactionMode == InteractionMode.edit) ? sectionColor : Colors.transparent,
+                  color: (widget.interactionMode == InteractionMode.edit) ? widget.sectionColor : Colors.transparent,
                   child: FlatButton(
-                      onPressed: editMode,
+                      onPressed: widget.editMode,
                       padding: EdgeInsets.all(0.0),
                       child: Icon(Icons.edit,
-                          color: (interactionMode == InteractionMode.edit) ? Colors.white : sectionColor))))
+                          color: (widget.interactionMode == InteractionMode.edit) ? Colors.white : widget.sectionColor))))
         ]));
   }
 
@@ -234,7 +264,7 @@ class BeatScratchToolbar extends StatelessWidget {
         ]),
         actions: <Widget>[
           FlatButton(
-            color: sectionColor,
+            color: widget.sectionColor,
             onPressed: () => Navigator.of(context).pop(true),
             child: Text('OK'),
           ),

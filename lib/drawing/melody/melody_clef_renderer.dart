@@ -1,14 +1,12 @@
+import 'dart:math';
+
 import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/melody_renderer.dart';
-import 'package:beatscratch_flutter_redux/music_notation_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
-import 'package:unification/unification.dart';
-import '../../util.dart';
-import 'melody_staff_lines_renderer.dart';
+
 import '../canvas_tone_drawer.dart';
-import 'dart:math';
+import 'melody_staff_lines_renderer.dart';
 
 class MelodyClefRenderer extends BaseMelodyRenderer {
   @override

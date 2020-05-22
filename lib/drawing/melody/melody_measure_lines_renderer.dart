@@ -1,6 +1,4 @@
 import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/music_theory.dart';
 import 'package:flutter/material.dart';
 
 import '../../music_notation_theory.dart';

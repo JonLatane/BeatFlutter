@@ -1,14 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
-//import 'sizeutil.dart';
 import '../generated/protos/music.pb.dart';
 import 'package:unification/unification.dart';
 import '../music_theory.dart';
 import '../colors.dart';
-import 'canvas_tone_drawer.dart';
+
 
 extension _HarmonyHighlight on Color {
   Color withHighlight({bool isPlaying, bool isSelected, bool isFaded}) {

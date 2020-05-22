@@ -1,11 +1,11 @@
+import 'dart:math';
+
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:unification/unification.dart';
-import 'package:collection/collection.dart';
-
 
 import 'drawing/color_guide.dart';
 import 'drawing/harmony_beat_renderer.dart';
@@ -15,12 +15,11 @@ import 'drawing/melody/melody_color_guide.dart';
 import 'drawing/melody/melody_staff_lines_renderer.dart';
 import 'dummydata.dart';
 import 'generated/protos/music.pb.dart';
+import 'midi_theory.dart';
 import 'music_notation_theory.dart';
 import 'music_theory.dart';
 import 'ui_models.dart';
 import 'util.dart';
-import 'dart:math';
-import 'midi_theory.dart';
 
 const double _extraBeatsSpaceForClefs = 2;
 class MelodyRenderer extends StatefulWidget {
@@ -236,6 +235,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
         ..addListener(() {
           staffOffsets.value[removedStaffId] = staffAnimation.value;
+          // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
           staffOffsets.notifyListeners();
         });
     });
@@ -247,6 +247,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
         ..addListener(() {
           staffOffsets.value[staff.id] = staffAnimation.value;
+          // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
           staffOffsets.notifyListeners();
         });
       staff.getParts(widget.score, widget.staves).forEach((part) {
@@ -257,6 +258,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
           .animate(CurvedAnimation(parent:animationController, curve: Curves.ease))
           ..addListener(() {
             partTopOffsets.value[part.id] = partAnimation.value;
+            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
             partTopOffsets.notifyListeners();
           });
         
