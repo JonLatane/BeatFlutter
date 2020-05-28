@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 echo "Changing to channel beta for iOS/Android builds..." && \
 flutter channel beta && flutter upgrade && \
 echo "Building for iOS" && \
-flutter build ios && \
+flutter build ios && xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration release archive && \
 echo "iOS app built! Manually archive/upload build to TestFlight in XCode." && \
 open "ios/Runner.xcworkspace" && \
 echo "Building for Android" && \
@@ -21,7 +21,7 @@ echo "Changing to channel master for macOS/web builds..."
 flutter channel master && flutter upgrade && \
 echo "Building for macOS and archiving app" && \
 flutter build macos && cd build/macos/Build/Products/Release && \
-tar -cavf BeatFlutter.tar.bz2 BeatFlutter.app && open . && cd - && \
+tar -cavf BeatFlutter.tar.bz2 BeatScratch.app && open . && cd - && \
 echo "macOS app built! Manually upload to Dropbox" && \
 open "https://www.dropbox.com/home" && \
 echo "Building for web and copying to ../topologica-page/app-staging" && \

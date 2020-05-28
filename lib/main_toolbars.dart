@@ -64,7 +64,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   offset: Offset(0, MediaQuery.of(context).size.height),
                   onSelected: (value) {
                     switch (value) {
-                      case "import":
+                      case "open":
                         print("Showing file picker");
                         filePicker.pick().then((value) {
 //                          filePicker.
@@ -126,7 +126,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                         const PopupMenuItem(
                           value: "open",
                           child: Text('Open Score...'),
-                          enabled: true,
+                          enabled: kDebugMode,
                         ),
                         const PopupMenuItem(
                           value: "duplicate",

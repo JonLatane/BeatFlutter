@@ -30,6 +30,7 @@ class PartConfiguration extends StatefulWidget {
 class _PartConfigurationState extends State<PartConfiguration> {
   TextEditingController searchController = TextEditingController();
   ScrollController scrollController = ScrollController();
+
   int get midiChannel => widget.part?.instrument?.midiChannel;
 
   int get midiInstrument => widget.part?.instrument?.midiInstrument;
@@ -131,7 +132,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
     List<int> items = widget.part == null ? [] : isHarmonic ? range(0, 128).toList() : [-1];
     if (searchText.trim().isNotEmpty && isHarmonic) {
       items = items
-          .where((i) => i == midiInstrument || midiInstruments[i].toLowerCase().contains(searchController.text.toLowerCase()))
+          .where((i) =>
+              i == midiInstrument || midiInstruments[i].toLowerCase().contains(searchController.text.toLowerCase()))
           .toList();
     }
     int maxMidiChannel = 15;
@@ -141,103 +143,107 @@ class _PartConfigurationState extends State<PartConfiguration> {
     double height = 280;
     double bottomBlankSpaceHeight = context.isLandscapePhone ? MediaQuery.of(context).size.height * 0.15 : 0;
     return SingleChildScrollView(
-      controller: scrollController,
-      child: Container(height: height + bottomBlankSpaceHeight, child:
-      Column(children: [
-      Row(children: [
-        Padding(
-            padding: EdgeInsets.only(left: 5),
-            child: Text("Volume:", style: TextStyle(fontSize: 16, color: Colors.white))),
-        SizedBox(
-          width: 50,
-        ),
-        Expanded(
-            child: Slider(
-                value: max(0.0, min(1.0, widget.part == null ? 0 : widget.part.instrument.volume)),
-                activeColor: Colors.white,
-                onChanged: (value) {
-                  widget.superSetState(() {
-                    setState(() {
-                      widget.part?.instrument?.volume = value;
-                      BeatScratchPlugin.updatePartConfiguration(widget.part);
-                    });
-                  });
-                }))
-      ]),
-      Row(children: [
-        Expanded(
-            child: Padding(
-                padding: EdgeInsets.only(left: 5),
-                child: Text("MIDI Channel:", style: TextStyle(fontSize: 16, color: Colors.white)))),
-        IncrementableValue(
-          onDecrement: (isHarmonic && midiChannel >= 0)
-              ? () {
-                  widget.superSetState(() {
-                    setState(() {
-                      midiChannel -= 1;
-                      if (midiChannel == 9) {
-                        midiChannel -= 1;
-                      }
-                    });
-                  });
-                  BeatScratchPlugin.updatePartConfiguration(widget.part);
-                }
-              : null,
-          onIncrement: (isHarmonic && midiChannel < maxMidiChannel)
-              ? () {
-                  widget.superSetState(() {
-                    setState(() {
-                      midiChannel += 1;
-                      if (midiChannel == 9) {
-                        midiChannel += 1;
-                      }
-                    });
-                  });
-                  BeatScratchPlugin.updatePartConfiguration(widget.part);
-                }
-              : null,
-          valueWidth: 100,
-          value: "Channel ${(midiChannel ?? -2) + 1}",
-        ),
-        SizedBox(width: 5)
-      ]),
-      Row(children: [
-        Expanded(
-            child: Padding(
-                padding: EdgeInsets.only(left: 5),
-                child: Text("MIDI Instrument:", style: TextStyle(fontSize: 16, color: Colors.white)))),
-        Icon(Icons.search, color: Colors.white),
-        Container(
-            width: 120,
-            child: TextField(
-              style: TextStyle(fontSize: 14, color: Colors.white),
-              controller: searchController,
-              textCapitalization: TextCapitalization.words,
-              onChanged: (value) {
-                searchText = value;
-              },
-              onTap: () {
-                if (context.isLandscapePhone) {
-                  scrollController.animateTo(100, duration: animationDuration, curve: Curves.ease);
-                }
-              },
+        controller: scrollController,
+        child: Container(
+            height: height + bottomBlankSpaceHeight,
+            child: Column(children: [
+              Row(children: [
+                Padding(
+                    padding: EdgeInsets.only(left: 5),
+                    child: Text("Volume:", style: TextStyle(fontSize: 16, color: Colors.white))),
+                SizedBox(
+                  width: 50,
+                ),
+                Expanded(
+                    child: Slider(
+                        value: max(0.0, min(1.0, widget.part == null ? 0 : widget.part.instrument.volume)),
+                        activeColor: Colors.white,
+                        onChanged: (value) {
+                          widget.superSetState(() {
+                            setState(() {
+                              widget.part?.instrument?.volume = value;
+                              BeatScratchPlugin.updatePartConfiguration(widget.part);
+                            });
+                          });
+                        }))
+              ]),
+              Row(children: [
+                Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 5),
+                        child: Text("MIDI Channel:", style: TextStyle(fontSize: 16, color: Colors.white)))),
+                IncrementableValue(
+                  onDecrement: (isHarmonic && midiChannel > 0)
+                      ? () {
+                          if (midiChannel > 0) {
+                            widget.superSetState(() {
+                              setState(() {
+                                midiChannel -= 1;
+                                if (midiChannel == 9) {
+                                  midiChannel -= 1;
+                                }
+                              });
+                            });
+                            BeatScratchPlugin.updatePartConfiguration(widget.part);
+                          }
+                        }
+                      : null,
+                  onIncrement: (isHarmonic && midiChannel < maxMidiChannel)
+                      ? () {
+                          if (midiChannel < maxMidiChannel) {
+                            widget.superSetState(() {
+                              setState(() {
+                                midiChannel += 1;
+                                if (midiChannel == 9) {
+                                  midiChannel += 1;
+                                }
+                              });
+                            });
+                            BeatScratchPlugin.updatePartConfiguration(widget.part);
+                          }
+                        }
+                      : null,
+                  valueWidth: 100,
+                  value: "Channel ${(midiChannel ?? -2) + 1}",
+                ),
+                SizedBox(width: 5)
+              ]),
+              Row(children: [
+                Expanded(
+                    child: Padding(
+                        padding: EdgeInsets.only(left: 5),
+                        child: Text("MIDI Instrument:", style: TextStyle(fontSize: 16, color: Colors.white)))),
+                Icon(Icons.search, color: Colors.white),
+                Container(
+                    width: 120,
+                    child: TextField(
+                      style: TextStyle(fontSize: 14, color: Colors.white),
+                      controller: searchController,
+                      textCapitalization: TextCapitalization.words,
+                      onChanged: (value) {
+                        searchText = value;
+                      },
+                      onTap: () {
+                        if (context.isLandscapePhone) {
+                          scrollController.animateTo(100, duration: animationDuration, curve: Curves.ease);
+                        }
+                      },
 //          onTap: () {
 //            if (!context.isTabletOrLandscapey) {
 //              widget.hideMelodyView();
 //            }
 //          },
-              decoration: InputDecoration(border: InputBorder.none, hintText: "Search"),
-            ))
-      ]),
-      Expanded(
-          child: ImplicitlyAnimatedList<int>(
-        scrollDirection: Axis.horizontal,
-        areItemsTheSame: (oldItem, newItem) => oldItem != newItem,
-        items: items,
-        itemBuilder: _buildMidiInstrumentDisplay,
-      )),
-      Container(height: bottomBlankSpaceHeight),
-    ])
-    ));
+                      decoration: InputDecoration(border: InputBorder.none, hintText: "Search"),
+                    ))
+              ]),
+              Expanded(
+                  child: ImplicitlyAnimatedList<int>(
+                scrollDirection: Axis.horizontal,
+                areItemsTheSame: (oldItem, newItem) => oldItem != newItem,
+                items: items,
+                itemBuilder: _buildMidiInstrumentDisplay,
+              )),
+              Container(height: bottomBlankSpaceHeight),
+            ])));
   }
 }

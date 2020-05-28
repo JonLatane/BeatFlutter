@@ -50,18 +50,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BeatFlutter',
       theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: MaterialColor(0xFF212121, swatch),
-          platform: TargetPlatform.iOS,
-          fontFamily: 'VulfSans'),
+        // This is the theme of your application.
+        //
+        // Try running your application with "flutter run". You'll see the
+        // application has a blue toolbar. Then, without quitting the app, try
+        // changing the primarySwatch below to Colors.green and then invoke
+        // "hot reload" (press "r" in the console where you ran "flutter run",
+        // or simply save your changes to "hot reload" in a Flutter IDE).
+        // Notice that the counter didn't reset back to zero; the application
+        // is not restarted.
+        primarySwatch: MaterialColor(0xFF212121, swatch),
+        platform: TargetPlatform.iOS,
+        fontFamily: 'VulfSans'),
       home: MyHomePage(title: 'BeatFlutter'),
     );
   }
@@ -83,10 +83,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score _score = initialScore;
   InteractionMode interactionMode = InteractionMode.view;
   SplitMode _splitMode;
+
   SplitMode get splitMode => _splitMode;
+
   set splitMode(SplitMode value) {
     _splitMode = value;
-    if(_melodyViewSizeFactor != 0) {
+    if (_melodyViewSizeFactor != 0) {
       if (value == SplitMode.half && interactionMode == InteractionMode.edit) {
         _melodyViewSizeFactor = 0.5;
       } else {
@@ -118,6 +120,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool _hadVerticalSectionListBefore;
   bool _hadSplitModeBefore;
+
   set editingMelody(value) {
     _editingMelody = value;
     if (value) {
@@ -126,10 +129,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        _setKeyboardPart(part);
 //      }
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
-      if(_isPhone) {
+      if (_isPhone) {
         _hadVerticalSectionListBefore = verticalSectionList;
         _hadSplitModeBefore = splitMode == SplitMode.half;
-        if(_isLandscapePhone) {
+        if (_isLandscapePhone) {
           verticalSectionList = true;
           splitMode = SplitMode.full;
         } else {
@@ -140,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _showMelodyView();
     } else {
       BeatScratchPlugin.setRecordingMelody(null);
-      if(_isPhone && selectedMelody != null) {
+      if (_isPhone && selectedMelody != null) {
         verticalSectionList = _hadVerticalSectionListBefore ?? verticalSectionList;
         splitMode = (_hadSplitModeBefore == true) ? SplitMode.half : splitMode;
       }
@@ -155,7 +158,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set currentSection(Section section) {
     _currentSection = section;
-    if (editingMelody && section.referenceTo(selectedMelody).playbackType == MelodyReference_PlaybackType.disabled) {
+    if (editingMelody && section
+      .referenceTo(selectedMelody)
+      .playbackType == MelodyReference_PlaybackType.disabled) {
       editingMelody = false;
     }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -216,8 +221,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double _melodyViewSizeFactor = 1.0;
 
   bool showWebWarning = kIsWeb || kDebugMode;
+
   double get webWarningHeight => showWebWarning ? 60 : 0;
   bool showDownloadLinks = false;
+
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
   bool focusPartsAndMelodies = true;
@@ -283,12 +290,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Melody _selectedMelody;
+
   Melody get selectedMelody => _selectedMelody;
+
   set selectedMelody(Melody selectedMelody) {
     _selectedMelody = selectedMelody;
     if (selectedMelody != null) {
       Part part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
-      if(part != null) {
+      if (part != null) {
         keyboardPart = part;
       }
     } else {
@@ -297,7 +306,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Part _selectedPart;
+
   Part get selectedPart => _selectedPart;
+
   set selectedPart(Part selectedPart) {
     _selectedPart = selectedPart;
     if (selectedPart != null) {
@@ -474,12 +485,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get _combineSecondAndMainToolbar => context.isTabletOrLandscapey;
 
   double get _secondToolbarHeight =>
-      (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
+    (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
 
   double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
 
   bool _isPhone = false;
   bool _isLandscapePhone = false;
+
   double get _colorboardHeight => showColorboard ? _isLandscapePhone ? 115 : 150 : 0;
 
   double get _keyboardHeight => showKeyboard ? _isLandscapePhone ? 115 : 150 : 0;
@@ -487,9 +499,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : _isLandscapePhone ? 25 : 30;
 
   double get _tapInBarHeight =>
-      interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
-        ? (_isLandscapePhone && (showKeyboard || showColorboard)) ? 38 : 44
-        : 0;
+    interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
+      ? (_isLandscapePhone && (showKeyboard || showColorboard)) ? 38 : 44
+      : 0;
   bool _forceShowTapInBar = false;
 
   bool verticalSectionList = false;
@@ -503,7 +515,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    if(Platform.isIOS || Platform.isAndroid) {
+    if (Platform.isIOS || Platform.isAndroid) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
           _softKeyboardVisible = visible;
@@ -550,7 +562,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     };
     keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
-        _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
+      _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
@@ -570,24 +582,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Future<bool> _onWillPop() async {
     if (!_goBack()) {
       return (await showDialog(
-            context: context,
-            builder: (context) => new AlertDialog(
-              title: new Text('Are you sure?'),
-              content: new Text('Do you want to exit BeatFlutter?'),
-              actions: <Widget>[
-                new FlatButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: new Text('No'),
-                ),
-                new FlatButton(
-                  color: sectionColor,
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: new Text('Yes, exit'),
-                ),
-              ],
+        context: context,
+        builder: (context) =>
+        new AlertDialog(
+          title: new Text('Are you sure?'),
+          content: new Text('Do you want to exit BeatFlutter?'),
+          actions: <Widget>[
+            new FlatButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: new Text('No'),
             ),
-          )) ??
-          false;
+            new FlatButton(
+              color: sectionColor,
+              onPressed: () => Navigator.of(context).pop(true),
+              child: new Text('Yes, exit'),
+            ),
+          ],
+        ),
+      )) ??
+        false;
     }
   }
 
@@ -654,7 +667,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
     _isPhone = context.isPhone;
     _isLandscapePhone = context.isLandscapePhone;
-    if(editingMelody && _isPhone) {
+    if (editingMelody && _isPhone) {
       verticalSectionList = context.isLandscape;
     }
     if (context.isLandscape) {
@@ -678,339 +691,351 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    ]);
     Map<LogicalKeySet, Intent> shortcuts = {LogicalKeySet(LogicalKeyboardKey.escape): Intent.doNothing};
     return WillPopScope(
-        onWillPop: _onWillPop,
-        child: Scaffold(
-            resizeToAvoidBottomPadding: false,
-            backgroundColor: Color(0xFF424242),
-            appBar: PreferredSize(
-                preferredSize: Size.fromHeight(0.0), // here the desired height
-                child: AppBar(
-                    // Here we take the value from the MyHomePage object that was created by
-                    // the App.build method, and use it to set our appbar title.
-                    //title: Row(Text(widget.title)])
-                    )),
-            body: new GestureDetector(
-              onTap: () {
-                FocusScope.of(context).requestFocus(new FocusNode());
-              },
-              child: Stack(children: [
-                Column(children: [
-                  _webBanner(context),
-                  _downloadBanner(context),
-                  if (_combineSecondAndMainToolbar) _toolbars(context),
-                  _horizontalSectionList(),
-                  Expanded(
-                      child: Row(children: [
-                    _verticalSectionList(),
-                    Expanded(child: _partsAndMelodiesAndMelodyView(context))
-                  ])),
-                  if (!_combineSecondAndMainToolbar) _toolbars(context),
-                  _midiSettings(context),
-                  _tapInBar(context),
-                  _audioSystemWorkingBar(context),
-                  _colorboard(context),
-                  _keyboard(context),
-                ]),
-                Column(children:[
-                  Expanded(child: SizedBox()),
-                  // Listener overlay to block accidental input to keyboard/tempo bar
-                  // if software keyboard is open in landscape/fullscreen (Android)
-                  if(_softKeyboardVisible)
-                    Container(color: Colors.black54, width: MediaQuery.of(context).size.width, height:100,
-                      child: Listener(
-                        onPointerDown: (event) {
-                          print("got input");
-                        },
-                        onPointerMove: (event) {
-                          print("got input");},
-                        onPointerUp: (event) {
-                          print("got input");},
-                        onPointerCancel: (event) {
-                          print("got input");},
-                      ))
-                ])
-                //]),
-              ]),
-            )));
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        resizeToAvoidBottomPadding: false,
+        backgroundColor: Color(0xFF424242),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(0.0), // here the desired height
+          child: AppBar(
+            // Here we take the value from the MyHomePage object that was created by
+            // the App.build method, and use it to set our appbar title.
+            //title: Row(Text(widget.title)])
+          )),
+        body: new GestureDetector(
+          onTap: () {
+            FocusScope.of(context).requestFocus(new FocusNode());
+          },
+          child: Stack(children: [
+            Column(children: [
+              _webBanner(context),
+              _downloadBanner(context),
+              if (_combineSecondAndMainToolbar) _toolbars(context),
+              _horizontalSectionList(),
+              Expanded(
+                child: Row(children: [
+                  _verticalSectionList(),
+                  Expanded(child: _partsAndMelodiesAndMelodyView(context))
+                ])),
+              if (!_combineSecondAndMainToolbar) _toolbars(context),
+              _midiSettings(context),
+              _tapInBar(context),
+              _audioSystemWorkingBar(context),
+              _colorboard(context),
+              _keyboard(context),
+            ]),
+            Column(children: [
+              Expanded(child: SizedBox()),
+              // Listener overlay to block accidental input to keyboard/tempo bar
+              // if software keyboard is open in landscape/fullscreen (Android)
+              if(_softKeyboardVisible)
+                Container(color: Colors.black54, width: MediaQuery
+                  .of(context)
+                  .size
+                  .width, height: 100,
+                  child: Listener(
+                    onPointerDown: (event) {
+                      print("got input");
+                    },
+                    onPointerMove: (event) {
+                      print("got input");
+                    },
+                    onPointerUp: (event) {
+                      print("got input");
+                    },
+                    onPointerCancel: (event) {
+                      print("got input");
+                    },
+                  ))
+            ])
+            //]),
+          ]),
+        )));
   }
 
   AnimatedContainer _verticalSectionList() {
     return AnimatedContainer(
-        duration: animationDuration,
-        curve: Curves.easeInOut,
-        width: verticalSectionListWidth,
-        child: createSectionList(scrollDirection: Axis.vertical));
+      duration: animationDuration,
+      curve: Curves.easeInOut,
+      width: verticalSectionListWidth,
+      child: createSectionList(scrollDirection: Axis.vertical));
   }
 
   AnimatedContainer _horizontalSectionList() {
     return AnimatedContainer(
-        duration: animationDuration,
-        curve: Curves.easeInOut,
-        height: horizontalSectionListHeight,
-        child: createSectionList(scrollDirection: Axis.horizontal));
+      duration: animationDuration,
+      curve: Curves.easeInOut,
+      height: horizontalSectionListHeight,
+      child: createSectionList(scrollDirection: Axis.horizontal));
   }
 
   Widget _webBanner(BuildContext context) {
     bool isWeb = kIsWeb; // For faking to test
     bool hideDownloadLinkButton = showDownloadLinks || !showWebWarning || !isWeb;
     return AnimatedContainer(
-        duration: animationDuration,
-        height: webWarningHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-              child: SingleChildScrollView(child:Column(children: [
-                Align(
-                    child: Text("BeatScratch",
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
-                Align(
-                    child: Row(children: [
-                  if(isWeb) Text("Web", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                  Text("Preview", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
-                ])),
-              ]))),
-          Expanded(
-              child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(children: [
-                    Padding(
-                        padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                        child: Text(
-                            "is pre-release software.\nBugs and missing features abound." +
-                              (isWeb ? "\nmacOS/iOS/Android apps have playback, recording, and better performance." : ""),
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100))),
+      duration: animationDuration,
+      height: webWarningHeight,
+      color: Color(0xFF212121),
+      child: Row(children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+          child: SingleChildScrollView(child: Column(children: [
+            Align(
+              child: Text("BeatScratch",
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
+            Align(
+              child: Row(children: [
+                if(isWeb) Text("Web", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                Text("Preview", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w100)),
+              ])),
+          ]))),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                child: Text(
+                  "is pre-release software.\nBugs and missing features abound." +
+                    (isWeb ? "\nmacOS/iOS/Android apps have playback, recording, and better performance." : ""),
+                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100))),
 //        Expanded(child:SizedBox()),
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: max(0, MediaQuery.of(context).size.width - (isWeb ? 865 : 620) - (hideDownloadLinkButton ? 0 : 180)),
-                        child: SizedBox()),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5, left: 5),
-                        child: RaisedButton(
-                            onPressed: () {
-                              _launchURL("https://beatscratch.io/privacy.html");
-                            },
-                            child: Text("Privacy"))),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5),
-                        child: RaisedButton(
-                            onPressed: () {
-                              _launchURL("https://beatscratch.io/usage.html");
-                            },
-                            child: Text("Docs"))),
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: hideDownloadLinkButton ? 0 : 180,
-                        child: Padding(
-                            padding: EdgeInsets.only(right: 5),
-                            child: RaisedButton(
-                                onPressed: showDownloadLinks
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          showDownloadLinks = true;
-                                        });
-                                      },
-                                child: Text("Download App")))),
-                  ]))),
-          Padding(
-            padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
-              color: sectionColor,
-              onPressed: () {
-                setState(() {
-                  showWebWarning = false;
-                  showDownloadLinks = false;
-                });
-              },
-              child: Text("OK!"))),
-        ]));
+              AnimatedContainer(
+                duration: animationDuration,
+                width: max(0, MediaQuery
+                  .of(context)
+                  .size
+                  .width - (isWeb ? 865 : 620) - (hideDownloadLinkButton ? 0 : 180)),
+                child: SizedBox()),
+              Padding(
+                padding: EdgeInsets.only(right: 5, left: 5),
+                child: RaisedButton(
+                  onPressed: () {
+                    _launchURL("https://beatscratch.io/privacy.html");
+                  },
+                  child: Text("Privacy"))),
+              Padding(
+                padding: EdgeInsets.only(right: 5),
+                child: RaisedButton(
+                  onPressed: () {
+                    _launchURL("https://beatscratch.io/usage.html");
+                  },
+                  child: Text("Docs"))),
+              AnimatedContainer(
+                duration: animationDuration,
+                width: hideDownloadLinkButton ? 0 : 180,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 5),
+                  child: RaisedButton(
+                    onPressed: showDownloadLinks
+                      ? null
+                      : () {
+                      setState(() {
+                        showDownloadLinks = true;
+                      });
+                    },
+                    child: Text("Download App")))),
+            ]))),
+        Padding(
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+            color: sectionColor,
+            onPressed: () {
+              setState(() {
+                showWebWarning = false;
+                showDownloadLinks = false;
+              });
+            },
+            child: Text("OK!"))),
+      ]));
   }
 
   Widget _downloadBanner(BuildContext context) {
     return AnimatedContainer(
-        duration: animationDuration,
-        height: downloadLinksHeight,
-        color: Color(0xFF212121),
-        child: Align(
-            alignment: Alignment.center,
-            child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  FlatButton(
-                      onPressed: () {
-                        _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
-                      },
-                      padding: EdgeInsets.all(0),
-                      child: Image.asset("assets/play_en_badge_web_generic.png")),
-                  Transform.translate(offset: Offset(-15,0), child:
-                  FlatButton(
-                      onPressed: () {
-                        _launchURL("https://testflight.apple.com/join/dXJr9JJs");
-                      },
-                      padding: EdgeInsets.all(0),
-                      child: Image.asset("assets/testflight-badge.png"))),
-                  Container(
-                      width: 120,
-                      height: 40,
-                      padding: EdgeInsets.only(right: 5),
-                      child: FlatButton(
-                          color: Colors.white,
-                          onPressed: () {
-                            _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
-                          },
-                          padding: EdgeInsets.all(0),
-                          child: Stack(children: [
-                            Align(
-                                alignment: Alignment.bottomRight,
-                                child: Padding(
-                                    padding: EdgeInsets.only(right: 5, bottom: 2),
-                                    child: Text("macOS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)))),
-                            Align(
-                                alignment: Alignment.topLeft,
-                                child: Padding(
-                                    padding: EdgeInsets.only(top: 2, left: 5),
-                                    child: Text("Download For",
-                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
-                          ]))),
-                  Padding(
-                      padding: EdgeInsets.only(right: 5, left: 5),
-                      child: RaisedButton(
-                          onPressed: () {
-                            _launchURL("https://beatscratch.io/platforms.html");
-                          },
-                          child: Text("Platform Feature Comparison"))),
-                ]))));
+      duration: animationDuration,
+      height: downloadLinksHeight,
+      color: Color(0xFF212121),
+      child: Align(
+        alignment: Alignment.center,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: [
+            FlatButton(
+              onPressed: () {
+                _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
+              },
+              padding: EdgeInsets.all(0),
+              child: Image.asset("assets/play_en_badge_web_generic.png")),
+            Transform.translate(offset: Offset(-15, 0), child:
+            FlatButton(
+              onPressed: () {
+                _launchURL("https://testflight.apple.com/join/dXJr9JJs");
+              },
+              padding: EdgeInsets.all(0),
+              child: Image.asset("assets/testflight-badge.png"))),
+            Container(
+              width: 120,
+              height: 40,
+              padding: EdgeInsets.only(right: 5),
+              child: FlatButton(
+                color: Colors.white,
+                onPressed: () {
+                  _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+                },
+                padding: EdgeInsets.all(0),
+                child: Stack(children: [
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: EdgeInsets.only(right: 5, bottom: 2),
+                      child: Text("macOS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)))),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 2, left: 5),
+                      child: Text("Download For",
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400))))
+                ]))),
+            Padding(
+              padding: EdgeInsets.only(right: 5, left: 5),
+              child: RaisedButton(
+                onPressed: () {
+                  _launchURL("https://beatscratch.io/platforms.html");
+                },
+                child: Text("Platform Feature Comparison"))),
+          ]))));
   }
 
   Widget _audioSystemWorkingBar(BuildContext context) {
     return AnimatedContainer(
-        duration: animationDuration,
-        height: _statusBarHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          SizedBox(width: 5),
-          Icon(Icons.warning, size: 18, color: chromaticSteps[5]),
-          SizedBox(width: 5),
-          Text("BeatScratch Synthesizer is loading...",
-              style: TextStyle(
-                color: Colors.white,
-              ))
-        ]));
+      duration: animationDuration,
+      height: _statusBarHeight,
+      color: Color(0xFF212121),
+      child: Row(children: [
+        SizedBox(width: 5),
+        Icon(Icons.warning, size: 18, color: chromaticSteps[5]),
+        SizedBox(width: 5),
+        Text("BeatScratch Synthesizer is loading...",
+          style: TextStyle(
+            color: Colors.white,
+          ))
+      ]));
   }
 
   Widget _tapInBar(BuildContext context) {
     bool playing = BeatScratchPlugin.playing;
     int tapInBeat = _tapInBeat;
     return AnimatedContainer(
-        duration: animationDuration,
-        height: _tapInBarHeight,
-        color: Color(0xFF424242),
-        child: Row(children: [
-          AnimatedContainer(
-              duration: Duration(milliseconds: 35),
-              padding: EdgeInsets.only(left: 5),
-              width: !playing && tapInBeat == null ? 42 : 0,
-              child: RaisedButton(
-                child: Text(!playing && tapInBeat == null ? "3" : "", style: TextStyle(fontWeight: FontWeight.w700)),
-                onPressed: tapInBeat == null
-                    ? () {
-                        BeatScratchPlugin.countIn(-2);
-                        setState(() {
-                          _tapInBeat = -2;
-                        });
-                        Future.delayed(Duration(seconds: 3), () {
-                          setState(() {
-                            _tapInBeat = null;
-                          });
-                        });
-                      }
-                    : null,
-                padding: EdgeInsets.zero,
-              )),
-          AnimatedContainer(
-              duration: Duration(milliseconds: 120),
-              padding: EdgeInsets.only(left: 5),
-              width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0,
-              child: RaisedButton(
-                child: Text("4", style: TextStyle(fontWeight: FontWeight.w700)),
-                onPressed: _tapInBeat == -2
-                    ? () {
-                        BeatScratchPlugin.countIn(-1);
-                        setState(() {
-                          _tapInBeat = null;
-                        });
+      duration: animationDuration,
+      height: _tapInBarHeight,
+      color: Color(0xFF424242),
+      child: Row(children: [
+        AnimatedContainer(
+          duration: Duration(milliseconds: 35),
+          padding: EdgeInsets.only(left: 5),
+          width: !playing && tapInBeat == null ? 42 : 0,
+          child: Listener(
+            onPointerDown: (event) {
+              BeatScratchPlugin.countIn(-2);
+              setState(() {
+                _tapInBeat = -2;
+              });
+              Future.delayed(Duration(seconds: 3), () {
+                setState(() {
+                  _tapInBeat = null;
+                });
+              });
+            },
+            child: RaisedButton(
+              child: Text(
+                !playing && tapInBeat == null ? (currentSection.meter.defaultBeatsPerMeasure - 1).toString() : "",
+                style: TextStyle(fontWeight: FontWeight.w700)),
+              onPressed: tapInBeat == null ? () {} : null,
+              padding: EdgeInsets.zero,
+            ))),
+        AnimatedContainer(
+          duration: Duration(milliseconds: 120),
+          padding: EdgeInsets.only(left: 5),
+          width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0,
+          child: Listener(
+            onPointerDown: (event) {
+              BeatScratchPlugin.countIn(-1);
+              setState(() {
+                _tapInBeat = null;
+              });
 //              Future.delayed(Duration(seconds: 3), () {
 //                setState(() {
 //                  _tapInBeat = null;
 //                });
 //              });
-                      }
-                    : null,
-                padding: EdgeInsets.zero,
-              )),
-          AnimatedContainer(
+            },
+            child: RaisedButton(
+              child: Text(
+                currentSection.meter.defaultBeatsPerMeasure.toString(), style: TextStyle(fontWeight: FontWeight.w700)),
+              onPressed: _tapInBeat == -2 ? () {} : null,
+              padding: EdgeInsets.zero,
+            ))),
+        AnimatedContainer(
+          duration: animationDuration,
+          padding: EdgeInsets.only(left: 5),
+          width: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 69 : 0,
+          child: RaisedButton(
+            child: AnimatedOpacity(
               duration: animationDuration,
-              padding: EdgeInsets.only(left: 5),
-              width: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 69 : 0,
-              child: RaisedButton(
-                child: AnimatedOpacity(
-                    duration: animationDuration,
-                    opacity: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 1 : 0,
-                    child: Icon(Icons.pause)),
-                onPressed: BeatScratchPlugin.playing
-                    ? () {
-                        setState(() {
-                          BeatScratchPlugin.pause();
-                          _tapInBeat = null;
-                        });
-                      }
-                    : null,
-                padding: EdgeInsets.zero,
-              )),
-          Expanded(
-              child: Padding(
-                  padding: EdgeInsets.only(left: 7),
-                  child: Stack(children: [
-                    AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: !BeatScratchPlugin.playing ? 1 : 0,
-                        child: Row(children: [
-                          Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
-                          SizedBox(width: 5),
-                          Text("Tap in to ${editingMelody ? "record" : "play"}",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
-                        ])),
-                    AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: BeatScratchPlugin.playing ? 1 : 0,
-                        child: Row(children: [
-                          Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow,
-                              color: editingMelody ? chromaticSteps[7] : chromaticSteps[0]),
-                          SizedBox(width: 5),
-                          Text(
-                              editingMelody && BeatScratchPlugin.supportsRecording
-                                  ? "Recording"
-                                  : !editingMelody && BeatScratchPlugin.supportsPlayback
-                                      ? "Playing"
-                                      : "${editingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
-                        ]))
-                  ]))),
-          Container(
-              width: 42,
-              padding: EdgeInsets.only(right: 5),
-              child: RaisedButton(
-                padding: EdgeInsets.all(5),
-                color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
-                child: Image.asset('assets/metronome.png'),
-                onPressed: () {
-                  setState(() {
-                    BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
-                  });
-                },
-              ))
+              opacity: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 1 : 0,
+              child: Icon(Icons.pause)),
+            onPressed: BeatScratchPlugin.playing
+              ? () {
+              setState(() {
+                BeatScratchPlugin.pause();
+                _tapInBeat = null;
+              });
+            }
+              : null,
+            padding: EdgeInsets.zero,
+          )),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 7),
+            child: Stack(children: [
+              AnimatedOpacity(
+                duration: animationDuration,
+                opacity: !BeatScratchPlugin.playing ? 1 : 0,
+                child: Row(children: [
+                  Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
+                  SizedBox(width: 5),
+                  Text("Tap in to ${editingMelody ? "record" : "play"}",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+                ])),
+              AnimatedOpacity(
+                duration: animationDuration,
+                opacity: BeatScratchPlugin.playing ? 1 : 0,
+                child: Row(children: [
+                  Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow,
+                    color: editingMelody ? chromaticSteps[7] : chromaticSteps[0]),
+                  SizedBox(width: 5),
+                  Text(
+                    editingMelody && BeatScratchPlugin.supportsRecording
+                      ? "Recording"
+                      : !editingMelody && BeatScratchPlugin.supportsPlayback
+                      ? "Playing"
+                      : "${editingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+                ]))
+            ]))),
+        Container(
+          width: 42,
+          padding: EdgeInsets.only(right: 5),
+          child: RaisedButton(
+            padding: EdgeInsets.all(5),
+            color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
+            child: Image.asset('assets/metronome.png'),
+            onPressed: () {
+              setState(() {
+                BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
+              });
+            },
+          ))
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
 //          child: RaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),
 //            color: chromaticSteps[0],
@@ -1019,119 +1044,124 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //                _tapInBeat = null;
 //              });
 //            } : null, padding: EdgeInsets.zero,)),
-        ]));
+      ]));
   }
 
   Widget _toolbars(BuildContext context) {
     return _combineSecondAndMainToolbar
-        ? Container(
-            height: 48,
-            child: Row(
-              children: <Widget>[
-                Expanded(child: createBeatScratchToolbar()),
-                Container(
-                    height: 36,
-                    child: AnimatedContainer(
-                        duration: animationDuration,
-                        width:
-                            context.isTabletOrLandscapey || interactionMode == InteractionMode.edit || showViewOptions
-                                ? MediaQuery.of(context).size.width / 2
-                                : 0,
-                        child: createSecondToolbar()))
-              ],
-            ))
-        : Column(children: <Widget>[
-            createBeatScratchToolbar(),
-            AnimatedContainer(duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
-          ]);
+      ? Container(
+      height: 48,
+      child: Row(
+        children: <Widget>[
+          Expanded(child: createBeatScratchToolbar()),
+          Container(
+            height: 36,
+            child: AnimatedContainer(
+              duration: animationDuration,
+              width:
+              context.isTabletOrLandscapey || interactionMode == InteractionMode.edit || showViewOptions
+                ? MediaQuery
+                .of(context)
+                .size
+                .width / 2
+                : 0,
+              child: createSecondToolbar()))
+        ],
+      ))
+      : Column(children: <Widget>[
+      createBeatScratchToolbar(),
+      AnimatedContainer(duration: animationDuration, height: _secondToolbarHeight, child: createSecondToolbar())
+    ]);
   }
 
-  BeatScratchToolbar createBeatScratchToolbar() => BeatScratchToolbar(
-        sectionColor: sectionColor,
-        viewMode: _viewMode,
-        editMode: _editMode,
-        toggleViewOptions: _toggleViewOptions,
-        interactionMode: interactionMode,
-        togglePlaying: () {
-          setState(() {
-            if (!BeatScratchPlugin.playing) {
-              BeatScratchPlugin.play();
-            } else {
-              BeatScratchPlugin.pause();
-            }
-          });
-        },
-        toggleSectionListDisplayMode: () {
-          setState(() {
-            verticalSectionList = !verticalSectionList;
-          });
-        },
-        renderingMode: renderingMode,
-        setRenderingMode: (value) {
-          setState(() {
-            renderingMode = value;
-          });
-        },
-        showMidiInputSettings: () {
-          setState(() {
-            _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
-            _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
-            _wereViewOptionsShowingWhenMidiConfigurationOpened = showViewOptions;
-            showMidiConfiguration = true;
-            showViewOptions = true;
-            if (keyboardPart != null) {
-              showKeyboard = true;
-              _showKeyboardConfiguration = true;
-            }
-            if (_enableColorboard && colorboardPart != null) {
-              showColorboard = true;
-              _showColorboardConfiguration = true;
-            }
-          });
-        },
-    focusPartsAndMelodies: focusPartsAndMelodies,
-    toggleFocusPartsAndMelodies: () {
-      setState(() {
-        focusPartsAndMelodies = !focusPartsAndMelodies;
-      });
-    },
-    showBeatCounts: showBeatCounts,
-    toggleShowBeatCounts: () {
-      setState(() {
-        showBeatCounts = !showBeatCounts;
-      });
-    },
-      );
+  BeatScratchToolbar createBeatScratchToolbar() =>
+    BeatScratchToolbar(
+      sectionColor: sectionColor,
+      viewMode: _viewMode,
+      editMode: _editMode,
+      toggleViewOptions: _toggleViewOptions,
+      interactionMode: interactionMode,
+      togglePlaying: () {
+        setState(() {
+          if (!BeatScratchPlugin.playing) {
+            BeatScratchPlugin.play();
+          } else {
+            BeatScratchPlugin.pause();
+          }
+        });
+      },
+      toggleSectionListDisplayMode: () {
+        setState(() {
+          verticalSectionList = !verticalSectionList;
+        });
+      },
+      renderingMode: renderingMode,
+      setRenderingMode: (value) {
+        setState(() {
+          renderingMode = value;
+        });
+      },
+      showMidiInputSettings: () {
+        setState(() {
+          _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
+          _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
+          _wereViewOptionsShowingWhenMidiConfigurationOpened = showViewOptions;
+          showMidiConfiguration = true;
+          showViewOptions = true;
+          if (keyboardPart != null) {
+            showKeyboard = true;
+            _showKeyboardConfiguration = true;
+          }
+          if (_enableColorboard && colorboardPart != null) {
+            showColorboard = true;
+            _showColorboardConfiguration = true;
+          }
+        });
+      },
+      focusPartsAndMelodies: focusPartsAndMelodies,
+      toggleFocusPartsAndMelodies: () {
+        setState(() {
+          focusPartsAndMelodies = !focusPartsAndMelodies;
+        });
+      },
+      showBeatCounts: showBeatCounts,
+      toggleShowBeatCounts: () {
+        setState(() {
+          showBeatCounts = !showBeatCounts;
+        });
+      },
+    );
 
-  SecondToolbar createSecondToolbar() => SecondToolbar(
-        editingMelody: editingMelody,
-        enableColorboard: enableColorboard,
-        toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
-        toggleKeyboardConfiguration: keyboardPart != null
-            ? () {
-                setState(() {
-                  showKeyboard = true;
-                  _showKeyboardConfiguration = !_showKeyboardConfiguration;
-                });
-              }
-            : null,
-        toggleColorboard: colorboardPart != null ? _toggleColorboard : null,
-        toggleColorboardConfiguration: colorboardPart != null
-            ? () {
-                setState(() {
-                  showColorboard = true;
-                  _showColorboardConfiguration = !_showColorboardConfiguration;
-                });
-              }
-            : null,
-        showKeyboard: showKeyboard,
-        showColorboard: showColorboard,
-        interactionMode: interactionMode,
-        showViewOptions: showViewOptions,
-        showColorboardConfiguration: _showColorboardConfiguration,
-        showKeyboardConfiguration: _showKeyboardConfiguration,
-        sectionColor: sectionColor,
-      );
+  SecondToolbar createSecondToolbar() =>
+    SecondToolbar(
+      editingMelody: editingMelody,
+      enableColorboard: enableColorboard,
+      toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
+      toggleKeyboardConfiguration: keyboardPart != null
+        ? () {
+        setState(() {
+          showKeyboard = true;
+          _showKeyboardConfiguration = !_showKeyboardConfiguration;
+        });
+      }
+        : null,
+      toggleColorboard: colorboardPart != null ? _toggleColorboard : null,
+      toggleColorboardConfiguration: colorboardPart != null
+        ? () {
+        setState(() {
+          showColorboard = true;
+          _showColorboardConfiguration = !_showColorboardConfiguration;
+        });
+      }
+        : null,
+      showKeyboard: showKeyboard,
+      showColorboard: showColorboard,
+      interactionMode: interactionMode,
+      showViewOptions: showViewOptions,
+      showColorboardConfiguration: _showColorboardConfiguration,
+      showKeyboardConfiguration: _showKeyboardConfiguration,
+      sectionColor: sectionColor,
+    );
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
@@ -1156,45 +1186,45 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
-        data.padding.top -
-        kToolbarHeight -
-        _secondToolbarHeight -
-        _midiSettingsHeight -
-        _colorboardHeight -
-        _keyboardHeight -
-        horizontalSectionListHeight -
-        _tapInBarHeight -
-        _statusBarHeight -
-        webWarningHeight -
-        downloadLinksHeight +
-        8;
+      data.padding.top -
+      kToolbarHeight -
+      _secondToolbarHeight -
+      _midiSettingsHeight -
+      _colorboardHeight -
+      _keyboardHeight -
+      horizontalSectionListHeight -
+      _tapInBarHeight -
+      _statusBarHeight -
+      webWarningHeight -
+      downloadLinksHeight +
+      8;
     double width = data.size.width - verticalSectionListWidth;
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
 //      height += 36;
 //    }
     return Stack(children: [
       (context.isPortrait)
-          ? Column(children: [
-              Expanded(child: _partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor))),
-              AnimatedContainer(
-                  curve: Curves.easeInOut,
-                  duration: slowAnimationDuration,
-                  padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                  height: height * _melodyViewSizeFactor,
-                  child: _melodyView(context, height * _melodyViewSizeFactor))
-            ])
-          : Row(children: [
-              AnimatedContainer(
-                  curve: Curves.easeInOut,
-                  duration: slowAnimationDuration,
-                  width: width * (1 - _melodyViewSizeFactor),
-                  child: _partMelodiesView(context, width, height)),
-              Expanded(
-                  child: AnimatedContainer(
-                      duration: animationDuration,
-                      padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                      child: _melodyView(context, height)))
-            ])
+        ? Column(children: [
+        Expanded(child: _partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor))),
+        AnimatedContainer(
+          curve: Curves.easeInOut,
+          duration: slowAnimationDuration,
+          padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
+          height: height * _melodyViewSizeFactor,
+          child: _melodyView(context, height * _melodyViewSizeFactor))
+      ])
+        : Row(children: [
+        AnimatedContainer(
+          curve: Curves.easeInOut,
+          duration: slowAnimationDuration,
+          width: width * (1 - _melodyViewSizeFactor),
+          child: _partMelodiesView(context, width, height)),
+        Expanded(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
+            child: _melodyView(context, height)))
+      ])
     ]);
   }
 
@@ -1352,7 +1382,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
       },
       cloneCurrentSection: () {
-        if (currentSection.name == null || currentSection.name.trim().isEmpty) {
+        if (currentSection.name == null || currentSection.name
+          .trim()
+          .isEmpty) {
           String prefix = "Section";
           while (_score.sections.any((s) => s.name.startsWith("$prefix "))) {
             prefix = "$prefix'";
@@ -1363,7 +1395,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         section.id = uuid.v4();
         final match = RegExp(
           r"^(.*?)(\d*)$",
-        ).allMatches(section.name).first;
+        )
+          .allMatches(section.name)
+          .first;
         String prefix = match.group(1);
         prefix = prefix.trim();
         int number = int.tryParse(match.group(2)) ?? 1;
@@ -1384,61 +1418,70 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   AnimatedContainer _midiSettings(BuildContext context) {
     return AnimatedContainer(
-        curve: Curves.easeInOut,
-        duration: animationDuration,
-        height: _midiSettingsHeight,
-        width: MediaQuery.of(context).size.width,
-        color: Color(0xFF424242),
-        child: MidiSettings(
-            sectionColor: sectionColor,
-            enableColorboard: enableColorboard,
-            setColorboardEnabled: (value) {
-              setState(() {
-                enableColorboard = value;
-              });
-            },
-            close: () {
-              setState(() {
-                showMidiConfiguration = false;
-                _showKeyboardConfiguration = false;
-                _showColorboardConfiguration = false;
-                showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
-                showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
-                showViewOptions &= _wereViewOptionsShowingWhenMidiConfigurationOpened;
-              });
-            }));
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _midiSettingsHeight,
+      width: MediaQuery
+        .of(context)
+        .size
+        .width,
+      color: Color(0xFF424242),
+      child: MidiSettings(
+        sectionColor: sectionColor,
+        enableColorboard: enableColorboard,
+        setColorboardEnabled: (value) {
+          setState(() {
+            enableColorboard = value;
+          });
+        },
+        close: () {
+          setState(() {
+            showMidiConfiguration = false;
+            _showKeyboardConfiguration = false;
+            _showColorboardConfiguration = false;
+            showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
+            showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
+            showViewOptions &= _wereViewOptionsShowingWhenMidiConfigurationOpened;
+          });
+        }));
   }
 
   AnimatedContainer _keyboard(BuildContext context) {
     return AnimatedContainer(
-        curve: Curves.easeInOut,
-        duration: animationDuration,
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _keyboardHeight,
+      width: MediaQuery
+        .of(context)
+        .size
+        .width,
+      color: Colors.white,
+      child: Keyboard(
+        part: keyboardPart,
         height: _keyboardHeight,
-        width: MediaQuery.of(context).size.width,
-        color: Colors.white,
-        child: Keyboard(
-          part: keyboardPart,
-          height: _keyboardHeight,
-          showConfiguration: _showKeyboardConfiguration,
-          sectionColor: sectionColor,
-          pressedNotesNotifier: keyboardNotesNotifier,
-        ));
+        showConfiguration: _showKeyboardConfiguration,
+        sectionColor: sectionColor,
+        pressedNotesNotifier: keyboardNotesNotifier,
+      ));
   }
 
   AnimatedContainer _colorboard(BuildContext context) {
     return AnimatedContainer(
-        curve: Curves.easeInOut,
-        duration: animationDuration,
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _colorboardHeight,
+      width: MediaQuery
+        .of(context)
+        .size
+        .width,
+      color: Colors.white,
+      child: Colorboard(
+        part: colorboardPart,
         height: _colorboardHeight,
-        width: MediaQuery.of(context).size.width,
-        color: Colors.white,
-        child: Colorboard(
-          part: colorboardPart,
-          height: _colorboardHeight,
-          showConfiguration: _showColorboardConfiguration,
-          sectionColor: sectionColor,
-          pressedNotesNotifier: colorboardNotesNotifier,
-          distanceFromBottom: _keyboardHeight,
-        ));
+        showConfiguration: _showColorboardConfiguration,
+        sectionColor: sectionColor,
+        pressedNotesNotifier: colorboardNotesNotifier,
+        distanceFromBottom: _keyboardHeight,
+      ));
   }
 }

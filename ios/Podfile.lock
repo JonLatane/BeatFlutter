@@ -118,6 +118,10 @@ PODS:
     - nanopb/encode (= 0.3.9011)
   - nanopb/decode (0.3.9011)
   - nanopb/encode (0.3.9011)
+  - path_provider (0.0.1):
+    - Flutter
+  - path_provider_macos (0.0.1):
+    - Flutter
   - PromisesObjC (1.2.8)
   - SDWebImage (5.8.0):
     - SDWebImage/Core (= 5.8.0)
@@ -148,6 +152,8 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
+  - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - path_provider_macos (from `.symlinks/plugins/path_provider_macos/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
   - SwiftProtobuf
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
@@ -196,6 +202,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
   flutter_plugin_android_lifecycle:
     :path: ".symlinks/plugins/flutter_plugin_android_lifecycle/ios"
+  path_provider:
+    :path: ".symlinks/plugins/path_provider/ios"
+  path_provider_macos:
+    :path: ".symlinks/plugins/path_provider_macos/ios"
   sensors:
     :path: ".symlinks/plugins/sensors/ios"
   url_launcher:
@@ -232,6 +242,8 @@ SPEC CHECKSUMS:
   GoogleDataTransportCCTSupport: 32f75fbe904c82772fcbb6b6bd4525bfb6f2a862
   GoogleUtilities: 06eb53bb579efe7099152735900dd04bf09e7275
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
+  path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
+  path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
   PromisesObjC: c119f3cd559f50b7ae681fa59dc1acd19173b7e6
   SDWebImage: 84000f962cbfa70c07f19d2234cbfcf5d779b5dc
   SDWebImageFLPlugin: 6c2295fb1242d44467c6c87dc5db6b0a13228fd8

@@ -188,8 +188,8 @@ extension ChordTheory on Chord {
 }
 
 extension HarmonyTheory on Harmony {
+  int get beatCount => length ~/ subdivisionsPerBeat;
   double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
-  int get beatCount => (length.toDouble() / subdivisionsPerBeat).ceil();
 
   static final Map<ArgumentList, Chord> changeBeforeCache = Map();
   Chord changeBefore(int subdivision) {
@@ -211,6 +211,7 @@ extension HarmonyTheory on Harmony {
 }
 
 extension MelodyTheory on Melody {
+  int get beatCount => length ~/ subdivisionsPerBeat;
   double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
   Iterable<int> get tones => (type == MelodyType.midi)
     ? midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60))

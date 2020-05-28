@@ -9,27 +9,38 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
 var uuid = Uuid();
+
 extension ContextUtils on BuildContext {
   bool get isTablet => MediaQuery.of(this).size.width > 500 && MediaQuery.of(this).size.height > 500;
+
   bool get isPhone => !isTablet;
+
   bool get isTabletOrLandscapey => MediaQuery.of(this).size.width > 500;
+
   bool get isLandscape => MediaQuery.of(this).size.width > MediaQuery.of(this).size.height;
+
   bool get isPortrait => !isLandscape;
+
   bool get isLandscapePhone => isLandscape && isPhone;
 }
 
 class MethodCache<KeyType, ResultType> {
   bool enable = true;
   Map<KeyType, ResultType> _data = Map();
+
   ResultType putIfAbsent(KeyType key, ResultType Function() computation) {
-    if(!enable) {
+    if (!enable) {
       return computation();
     }
     return _data.putIfAbsent(key, () => computation());
   }
-  clear() { _data.clear(); }
+
+  clear() {
+    _data.clear();
+  }
 }
 
 /// Wrapper around [List<dynamic>] that calculates == and hashCode.
@@ -38,12 +49,17 @@ class ArgumentList {
 
   ArgumentList(this.arguments);
 
-  @override bool operator ==(other) => other is ArgumentList && arguments.length == other.arguments.length
-    && !arguments.asMap().entries.any((entry) => other.arguments[entry.key] != entry.value);
-  @override int get hashCode {
+  @override
+  bool operator ==(other) =>
+      other is ArgumentList &&
+      arguments.length == other.arguments.length &&
+      !arguments.asMap().entries.any((entry) => other.arguments[entry.key] != entry.value);
+
+  @override
+  int get hashCode {
     int result;
     arguments.forEach((arg) {
-      if(result == null) {
+      if (result == null) {
         result = arg.hashCode;
       } else {
         result = result ^ arg.hashCode;
@@ -53,7 +69,7 @@ class ArgumentList {
   }
 }
 
-class IncrementableValue extends StatelessWidget {
+class IncrementableValue extends StatefulWidget {
   final Function onIncrement;
   final Function onDecrement;
   final String value;
@@ -61,35 +77,109 @@ class IncrementableValue extends StatelessWidget {
   final double valueWidth;
   final VoidCallback onValuePressed;
   final Widget child;
+  final double incrementDistance;
+  final double incrementTimingDifferenceMs;
 
-  const IncrementableValue({Key key, this.onIncrement, this.onDecrement, this.value, this.textStyle, this.valueWidth = 45, this.onValuePressed, this.child,}) : super(key: key);
-
+  const IncrementableValue({
+    Key key,
+    this.onIncrement,
+    this.onDecrement,
+    this.value,
+    this.textStyle,
+    this.valueWidth = 45,
+    this.onValuePressed,
+    this.child, this.incrementDistance = 10, this.incrementTimingDifferenceMs = 50,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Row(children:[
-      Container(
-        width: 25,
-        child: RaisedButton(
-          child: Icon(Icons.arrow_downward),
-          onPressed: onDecrement,
-          padding: EdgeInsets.all(0),)),
-      child ?? Container(
-        width: valueWidth,
-        child: RaisedButton(onPressed: onValuePressed, padding: EdgeInsets.all(0),
-          child: Text(value ?? "null", style: textStyle ?? TextStyle(color: Colors.white),))),
-      Container(
-        width: 25,
-        child: RaisedButton(
-          child: Icon(Icons.arrow_upward),
-          onPressed: onIncrement,
-          padding: EdgeInsets.all(0),)),
-    ]);
-  }
-
+  _IncrementableValueState createState() => _IncrementableValueState();
 }
 
+class _IncrementableValueState extends State<IncrementableValue> {
+  Offset incrementStartPos;
+  int incrementStartTimeMs;
+  bool hasVibration = false;
+  vibrate() {
+    if(hasVibration) {
+      Vibration.vibrate(duration: 25);
+    }
+  }
+  @override
+  void initState() {
+    Vibration.hasVibrator().then((value) => hasVibration = value);
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+          width: 25,
+          child: RaisedButton(
+            child: Icon(Icons.arrow_downward),
+            onPressed: widget.onDecrement,
+            padding: EdgeInsets.all(0),
+          )),
+      Listener(
+        onPointerDown: (event) {
+          incrementStartPos = event.position;
+          incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
+          vibrate();
+        },
+        onPointerMove: (event) {
+          Offset difference = event.position - incrementStartPos;
+          int eventTime = DateTime.now().millisecondsSinceEpoch;
+          if(difference.distanceSquared < widget.incrementDistance || eventTime - incrementStartTimeMs < widget.incrementTimingDifferenceMs) {
+            return; // Hasn't moved far enough/had enough time to increment again.
+          }
+          bool isUp = false;
+          bool isDown = false;
+          double direction = difference.direction;
+          if(direction >= -0.75 * pi && direction < 0.25 * pi) {
+            isUp = true;
+          } else if(direction >= 0.25 * pi) {
+            isDown = true;
+          } else if(direction < -0.75 * pi) {
+            isDown = true;
+          }
+//          print("direction=$direction | isUp=$isUp | isDown=$isDown");
+          if(isUp && widget.onIncrement != null) {
+            vibrate();
+            incrementStartPos = event.position;
+            incrementStartTimeMs = eventTime;
+            widget.onIncrement();
+          } else if(isDown && widget.onDecrement != null) {
+            vibrate();
+            incrementStartPos = event.position;
+            incrementStartTimeMs = eventTime;
+            widget.onDecrement();
+          }
+        },
+        onPointerUp: (event) {
+          incrementStartPos = null;
+        },
+        onPointerCancel: (event) {
+          incrementStartPos = null;
+        },
+          child: widget.child ??
+              Container(
+                  width: widget.valueWidth,
+                  child: RaisedButton(
+                      onPressed: widget.onValuePressed,
+                      padding: EdgeInsets.all(0),
+                      child: Text(
+                        widget.value ?? "null",
+                        style: widget.textStyle ?? TextStyle(color: Colors.white),
+                      )))),
+      Container(
+          width: 25,
+          child: RaisedButton(
+            child: Icon(Icons.arrow_upward),
+            onPressed: widget.onIncrement,
+            padding: EdgeInsets.all(0),
+          )),
+    ]);
+  }
+}
 
 Future<ui.Image> loadUiImage(String imageAssetPath) async {
   final ByteData data = await rootBundle.load(imageAssetPath);
@@ -102,6 +192,7 @@ Future<ui.Image> loadUiImage(String imageAssetPath) async {
 
 class CustomSliverToBoxAdapter extends SingleChildRenderObjectWidget {
   final Function(Rect) setVisibleRect;
+
   const CustomSliverToBoxAdapter({
     this.setVisibleRect,
     Key key,
@@ -109,8 +200,8 @@ class CustomSliverToBoxAdapter extends SingleChildRenderObjectWidget {
   }) : super(key: key, child: child);
 
   @override
-  _CustomRenderSliverToBoxAdapter createRenderObject(BuildContext context)
-  => _CustomRenderSliverToBoxAdapter(setVisibleRect: setVisibleRect);
+  _CustomRenderSliverToBoxAdapter createRenderObject(BuildContext context) =>
+      _CustomRenderSliverToBoxAdapter(setVisibleRect: setVisibleRect);
 }
 
 class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
@@ -153,34 +244,33 @@ class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
     // Expose geometry
     setVisibleRect(Rect.fromLTWH(constraints.scrollOffset, 0.0, geometry.paintExtent, child.size.height));
   }
-
 }
 
 extension Iterables<E> on Iterable<E> {
-  Map<K, List<E>> groupBy<K>(K Function(E) keyFunction) => fold(
-    <K, List<E>>{},
-      (Map<K, List<E>> map, E element) =>
-    map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
+  Map<K, List<E>> groupBy<K>(K Function(E) keyFunction) => fold(<K, List<E>>{},
+      (Map<K, List<E>> map, E element) => map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
 
-  E maxBy(int Function(E) valueFunction) => (isEmpty) ? null : reduce((value, element) {
-    if(value == null) {
-      return element;
-    }
-    if(valueFunction(element) > valueFunction(value)) {
-      return element;
-    }
-    return value;
-  });
+  E maxBy(int Function(E) valueFunction) => (isEmpty)
+      ? null
+      : reduce((value, element) {
+          if (value == null) {
+            return element;
+          }
+          if (valueFunction(element) > valueFunction(value)) {
+            return element;
+          }
+          return value;
+        });
 
   E minBy(int Function(E) valueFunction) => reduce((value, element) {
-    if(value == null) {
-      return element;
-    }
-    if(valueFunction(element) < valueFunction(value)) {
-      return element;
-    }
-    return value;
-  });
+        if (value == null) {
+          return element;
+        }
+        if (valueFunction(element) < valueFunction(value)) {
+          return element;
+        }
+        return value;
+      });
 
   Iterable<Iterable<E>> chunked(int chunkSize) {
     return _chunkIterable(this, chunkSize);
@@ -188,13 +278,10 @@ extension Iterables<E> on Iterable<E> {
 }
 
 Iterable<Iterable<E>> _chunkIterable<E>(Iterable<E> iterable, int chunkSize) {
-  if(iterable.isEmpty) {
+  if (iterable.isEmpty) {
     return [];
   }
-  return [iterable.take(chunkSize)]
-      ..addAll(
-        _chunkIterable(iterable.skip(chunkSize).toList(), chunkSize)
-      );
+  return [iterable.take(chunkSize)]..addAll(_chunkIterable(iterable.skip(chunkSize).toList(), chunkSize));
 }
 
 extension FancyIterable on Iterable<int> {

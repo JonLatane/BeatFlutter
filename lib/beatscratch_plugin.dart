@@ -160,7 +160,7 @@ class BeatScratchPlugin {
   }
 
   static void _pushScore(Score score, String remoteMethod, {bool includeParts = true, includeSections = true}) async {
-    print("invoking $remoteMethod");
+//    print("invoking $remoteMethod");
     if(!includeParts) {
       score = score.clone().copyWith((it) { it.parts.clear(); });
     }

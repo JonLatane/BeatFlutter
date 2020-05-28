@@ -327,17 +327,21 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           ]))),
       Expanded(child: SizedBox(width: 5),),
       IncrementableValue(
-        onDecrement: (widget.melody != null && beats > 1)
+        onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
           ? () {
-          widget.melody.length -= widget.melody.subdivisionsPerBeat;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateMelody(widget.melody);
+          if(widget.melody != null && widget.melody.beatCount > 1) {
+            widget.melody.length -= widget.melody.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
         } : null,
-        onIncrement: (widget.melody != null && beats <= 999)
+        onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
           ? () {
-          widget.melody.length += widget.melody.subdivisionsPerBeat;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateMelody(widget.melody);
+          if (widget.melody != null && widget.melody.beatCount <= 999) {
+            widget.melody.length += widget.melody.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
         }
           : null,
         child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
@@ -347,18 +351,22 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
       SizedBox(width: 5),
       IncrementableValue(
         onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
-          widget.melody?.subdivisionsPerBeat -= 1;
-          widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-          clearMutableCachesForMelody(widget.melody.id);
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateMelody(widget.melody);
+          if((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
+            widget.melody?.subdivisionsPerBeat -= 1;
+            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
         } : null,
         onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
-          widget.melody?.subdivisionsPerBeat += 1;
-          widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-          clearMutableCachesForMelody(widget.melody.id);
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateMelody(widget.melody);
+          if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
+            widget.melody?.subdivisionsPerBeat += 1;
+            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
         } : null,
         child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
           child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
@@ -788,25 +796,27 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
 //    }
     NoteName key = widget.currentSection.harmony.data[0].rootNote;
     int keyIndex = keys.indexOf(key);
-    int beats = widget.currentSection.harmony.length ~/ widget.currentSection.harmony.subdivisionsPerBeat;
     return Row(children: [
       SizedBox(width:5),
       IncrementableValue(
         onDecrement: (widget.currentSection.meter.defaultBeatsPerMeasure > 1)
           ? () {
-          widget.currentSection.meter.defaultBeatsPerMeasure -= 1;
-          MelodyTheory.tonesInMeasureCache.clear();
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
+          if(widget.currentSection.meter.defaultBeatsPerMeasure > 1) {
+            widget.currentSection.meter.defaultBeatsPerMeasure -= 1;
+            MelodyTheory.tonesInMeasureCache.clear();
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
         } : null,
         onIncrement: (widget.currentSection.meter.defaultBeatsPerMeasure < 99)
           ? () {
-          widget.currentSection.meter.defaultBeatsPerMeasure += 1;
-          MelodyTheory.tonesInMeasureCache.clear();
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
-        }
-          : null,
+          if(widget.currentSection.meter.defaultBeatsPerMeasure < 99) {
+            widget.currentSection.meter.defaultBeatsPerMeasure += 1;
+            MelodyTheory.tonesInMeasureCache.clear();
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
+        } : null,
         child: Container(
           width: 30,
           height: 32,
@@ -879,23 +889,27 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
       ),
       Expanded(child: SizedBox(width: 5),),
       IncrementableValue(
-        onDecrement: (beats > 1)
+        onDecrement: (widget.currentSection.beatCount > 1)
           ? () {
-          widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
+          if(widget.currentSection.beatCount > 1) {
+            widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
 
 //          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
         } : null,
-        onIncrement: (beats <= 999)
+        onIncrement: (widget.currentSection.beatCount <= 999)
           ? () {
-          widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
+          if(widget.currentSection.beatCount <= 999) {
+            widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
 //          BeatScratchPlugin.updateMelody(widget.melody);
         }
           : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: widget.currentSection.beatCount)),
       ),
       SizedBox(width: 5),
 //      IncrementableValue(
