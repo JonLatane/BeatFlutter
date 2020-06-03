@@ -14,6 +14,7 @@ import 'ui_models.dart';
 import 'util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
+  final VoidCallback showScorePicker;
   final VoidCallback viewMode;
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
@@ -42,7 +43,7 @@ class BeatScratchToolbar extends StatefulWidget {
       this.renderingMode,
       this.showMidiInputSettings,
       this.focusPartsAndMelodies,
-      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts})
+      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker})
       : super(key: key);
 
   @override
@@ -65,6 +66,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   onSelected: (value) {
                     switch (value) {
                       case "open":
+                        widget.showScorePicker();
+                        break;
+                      case "import":
                         print("Showing file picker");
                         filePicker.pick().then((value) {
 //                          filePicker.

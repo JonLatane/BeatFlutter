@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
 import 'melody_view.dart';
+import 'score_picker.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
 import 'colorboard.dart';
@@ -174,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
   bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
+  bool showScorePicker = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
   bool _showKeyboardConfiguration = false;
@@ -488,6 +490,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
 
   double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
+  double get _scorePickerHeight => showScorePicker ? 150 : 0;
 
   bool _isPhone = false;
   bool _isLandscapePhone = false;
@@ -710,6 +713,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             Column(children: [
               _webBanner(context),
               _downloadBanner(context),
+              if (_combineSecondAndMainToolbar) _scorePicker(context),
               if (_combineSecondAndMainToolbar) _toolbars(context),
               _horizontalSectionList(),
               Expanded(
@@ -717,6 +721,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _verticalSectionList(),
                   Expanded(child: _partsAndMelodiesAndMelodyView(context))
                 ])),
+              if (!_combineSecondAndMainToolbar) _scorePicker(context),
               if (!_combineSecondAndMainToolbar) _toolbars(context),
               _midiSettings(context),
               _tapInBar(context),
@@ -1101,6 +1106,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           renderingMode = value;
         });
       },
+      showScorePicker: () {
+        setState(() {
+          showScorePicker = true;
+        });
+      },
       showMidiInputSettings: () {
         setState(() {
           _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
@@ -1190,6 +1200,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       kToolbarHeight -
       _secondToolbarHeight -
       _midiSettingsHeight -
+      _scorePickerHeight -
       _colorboardHeight -
       _keyboardHeight -
       horizontalSectionListHeight -
@@ -1442,6 +1453,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             showKeyboard &= _wasKeyboardShowingWhenMidiConfigurationOpened;
             showColorboard &= _wasColorboardShowingWhenMidiConfigurationOpened;
             showViewOptions &= _wereViewOptionsShowingWhenMidiConfigurationOpened;
+          });
+        }));
+  }
+
+  AnimatedContainer _scorePicker(BuildContext context) {
+    return AnimatedContainer(
+      curve: Curves.easeInOut,
+      duration: animationDuration,
+      height: _scorePickerHeight,
+      width: MediaQuery
+        .of(context)
+        .size
+        .width,
+      color: Color(0xFF424242),
+      child: ScorePicker(
+        sectionColor: sectionColor,
+        close: () {
+          setState(() {
+            showScorePicker = false;
           });
         }));
   }
