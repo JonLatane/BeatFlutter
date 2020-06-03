@@ -1,9 +1,9 @@
 # BeatScratch for Flutter
 
 BeatScratch is a new type of music app that combines fantastically readable musical notation with 
-looping features similar to Boss or Ableton products. Its grandparent also has some revolutionary
-means of visualizing and composing chord changes that your loops can adapt to, but those haven't
-yet been ported to the Flutter version.
+looping features similar to Boss or Ableton products. [Its grandparent](https://github.com/falrm/beatpad) 
+also has some revolutionary means of visualizing and composing chord changes that your loops can 
+adapt to, but those haven't yet been ported to the Flutter version.
 
 On the backend, BeatScratch uses Platform Channels to delegate audio generation to FluidSynth
 on Android, AudioKit on iOS/macOS, and MIDI.js for the web (web has much more limited support).
