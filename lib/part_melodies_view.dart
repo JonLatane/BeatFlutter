@@ -16,6 +16,7 @@ import 'beatscratch_plugin.dart';
 import 'dummydata.dart';
 import 'midi_theory.dart';
 import 'music_theory.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -90,7 +91,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
           child: AnimatedContainer(
               duration: animationDuration,
               width: width,
-              child: FlatButton(
+              child: MyFlatButton(
                 color: Colors.brown,
                 onPressed: canAddDrumPart
                     ? () {
@@ -135,7 +136,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
           child: AnimatedContainer(
         duration: animationDuration,
         width: width,
-        child: FlatButton(
+        child: MyFlatButton(
             color: Colors.grey,
             onPressed: canAddPart
                 ? () {
@@ -525,7 +526,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   titlePadding: EdgeInsets.all(0),
 //                titlePadding: EdgeInsets.only(left: 8, bottom: 15),
 //                titlePadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-                  title: FlatButton(
+                  title: MyFlatButton(
                       onPressed: () {
                         selectPart(part);
                         requestScrollToTop(-1);
@@ -546,7 +547,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               floating: true,
               pinned: false,
               expandedHeight: 50.0,
-              flexibleSpace: Slider(
+              flexibleSpace: MySlider(
                   value: max(0.0, min(1.0, part.instrument.volume)),
                   activeColor: textColor,
                   onChanged: (value) {
@@ -729,7 +730,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       floating: false,
       pinned: false,
       expandedHeight: 80.0,
-      flexibleSpace: FlatButton(
+      flexibleSpace: MyFlatButton(
         padding: EdgeInsets.zero,
         onPressed: () {
           _lastAddedMelody = newMelody;
@@ -789,7 +790,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       floating: true,
       pinned: false,
       expandedHeight: 50.0,
-      flexibleSpace: FlatButton(
+      flexibleSpace: MyFlatButton(
           onPressed: () {
             _lastAddedMelody = newMelody;
             setState(() {
@@ -837,7 +838,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
     return Row(
       children: <Widget>[SizedBox(width:5)].followedBy(newMelodyBeatCounts.asMap().entries.map((entry) {
         return Expanded(
-          child: FlatButton(
+          child: MyFlatButton(
             padding: EdgeInsets.zero,
             onPressed: () {
               setState(() {
@@ -1012,7 +1013,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
         decoration: decoration,
         padding: EdgeInsets.only(bottom: 5),
         child: Stack(children: [
-          FlatButton(
+          MyFlatButton(
             onPressed: () {
               if (!isSelectedMelody) {
                 widget.requestScrollToTop();
@@ -1039,7 +1040,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                   child: AnimatedContainer(
                     duration: animationDuration,
                     height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
-                    child: Slider(
+                    child: MySlider(
                         value: reference.volume,
                         activeColor: widget.sectionColor,
                         onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
@@ -1055,7 +1056,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                     Container(
                       width: 40,
                       height: 36,
-                      child: RaisedButton(
+                      child: MyRaisedButton(
                           padding: EdgeInsets.all(0),
                           onPressed: () {
                             widget.toggleMelodyReference(reference);
@@ -1072,7 +1073,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //                      Container(
 //                          width: 40,
 //                          height: 36,
-//                          child: RaisedButton(
+//                          child: MyRaisedButton(
 //                              padding: EdgeInsets.all(0),
 //                              onPressed: toggleMelody,
 //                              color:
@@ -1082,7 +1083,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //                          duration: animationDuration,
 //                          width: (reference.playbackType == MelodyReference_PlaybackType.disabled) ? 0 : 40,
 //                          height: 36,
-//                          child: RaisedButton(
+//                          child: MyRaisedButton(
 //                              onPressed: () {
 //                                if (!isSelectedMelody) {
 //                                  widget.selectMelody(widget.melody);

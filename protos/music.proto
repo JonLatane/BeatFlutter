@@ -226,6 +226,14 @@ message Section {
   Tempo tempo = 5;
   NoteName key = 6;
   repeated MelodyReference melodies = 100;
+
+  enum Color {
+    major = 0;
+    minor = 1;
+    dominant = 2;
+    augmented = 3;
+    diminished = 4;
+  }
 }
 
 message Score {

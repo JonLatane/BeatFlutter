@@ -7,6 +7,7 @@ import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'dart:async';
 import 'dart:math';
 import 'generated/protos/music.pb.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'music_notation_theory.dart';
@@ -214,7 +215,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                 child: AnimatedOpacity(
                     opacity: showScrollHint ? 1 : 0,
                     duration: animationDuration,
-                    child: FlatButton(
+                    child: MyFlatButton(
                       padding: EdgeInsets.zero,
                         onPressed: () {
                           setState(() {
@@ -338,7 +339,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                         ])),
                     Expanded(
                         flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: RaisedButton(
+                        child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
                             onPressed: () {
                               setState(() {
@@ -349,7 +350,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                             child: Text("Scroll"))),
                     Expanded(
                         flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: RaisedButton(
+                        child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
                             onPressed: (Platform.isAndroid || Platform.isIOS || kDebugMode)
                                 ? () {
@@ -385,7 +386,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                           Expanded(child: SizedBox()),
                           Container(
                               width: 36,
-                              child: RaisedButton(
+                              child: MyRaisedButton(
                                   padding: EdgeInsets.all(0),
                                   onPressed: (halfStepWidthInPx < 500)
                                       ? () {
@@ -397,7 +398,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                                   child: Icon(Icons.zoom_in))),
                           Container(
                               width: 36,
-                              child: RaisedButton(
+                              child: MyRaisedButton(
                                   padding: EdgeInsets.all(0),
                                   onPressed: (halfStepWidthInPx > 10)
                                       ? () {

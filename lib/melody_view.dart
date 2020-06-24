@@ -8,6 +8,7 @@ import 'melody_renderer.dart';
 import 'melody_toolbars.dart';
 import 'music_theory.dart';
 import 'music_notation_theory.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -198,7 +199,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     duration: animationDuration,
                     width: 36,
                     height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
-                    child: RaisedButton(
+                    child: MyRaisedButton(
                         onPressed: widget.toggleSplitMode,
                         padding: EdgeInsets.all(7),
                         child: widget.splitMode == SplitMode.half
@@ -265,7 +266,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       duration: animationDuration,
                       width: 36,
                       height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
-                      child: RaisedButton(
+                      child: MyRaisedButton(
                           onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: Icon(Icons.close))))
             ],
           ),
@@ -405,7 +406,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.5, child:Column(children: [
                 Container(
                   width: 36,
-                  child: RaisedButton(
+                  child: MyRaisedButton(
                     padding: EdgeInsets.all(0),
                     onPressed: (xScale < maxScale || yScale < maxScale)
                       ? () {
@@ -418,7 +419,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     child: Icon(Icons.zoom_in))),
                 Container(
                   width: 36,
-                  child: RaisedButton(
+                  child: MyRaisedButton(
                     padding: EdgeInsets.all(0),
                     onPressed: (xScale > minScale || yScale > minScale)
                       ? () {

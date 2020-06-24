@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'beatscratch_plugin.dart';
 import 'music_theory.dart';
+import 'no_stupid_hands.dart';
 import 'part_melodies_view.dart';
 import 'ui_models.dart';
 import 'util.dart';
@@ -98,7 +99,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
             color: (widget.editingMelody)
               ? widget.sectionColor == chromaticSteps[7]
               ? Colors.white : widget.sectionColor : null,
@@ -124,7 +125,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           width: isConfirmingDelete ? 0 : 40,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: melodySelected
                   ? () {
                       widget.toggleMelodyReference(melodyReference);
@@ -151,7 +152,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: () {
                 setState(() {
                   widget.deleteMelody(confirmingDeleteFor);
@@ -169,7 +170,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: () {
                 setState(() {
                   confirmingDeleteFor = null;
@@ -182,7 +183,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: () {
                 setState(() {
                   confirmingDeleteFor = widget.melody;
@@ -270,7 +271,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
         width: 44,
         height: 36,
         padding: EdgeInsets.only(left: 8),
-        child:  RaisedButton(
+        child:  MyRaisedButton(
           padding: EdgeInsets.zero,
           onLongPress: widget.melody != null ? () {
             print("clearing");
@@ -426,7 +427,7 @@ class PartToolbarState extends State<PartToolbar> {
             width: isConfirmingDelete ? 0 : 41,
             height: 36,
             padding: EdgeInsets.only(left: 5),
-            child: RaisedButton(
+            child: MyRaisedButton(
                 onPressed: widget.toggleConfiguringPart,
                 padding: EdgeInsets.zero,
                 color: widget.configuringPart ? Colors.black : null,
@@ -446,7 +447,7 @@ class PartToolbarState extends State<PartToolbar> {
 //            width: isConfirmingDelete ? 0 : 41,
 //            height: 36,
 //            padding: EdgeInsets.only(right: 5),
-//            child: RaisedButton(
+//            child: MyRaisedButton(
 //                onPressed: widget.part != null
 //                    ? () {
 //                        widget.setKeyboardPart(widget.part);
@@ -474,7 +475,7 @@ class PartToolbarState extends State<PartToolbar> {
             width: isConfirmingDelete || !widget.enableColorboard ? 0 : 41,
             height: 36,
             padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
+            child: MyRaisedButton(
                 onPressed: (widget.part != null && widget.part.instrument.type != InstrumentType.drum)
                     ? () {
                         widget.setColorboardPart(widget.part);
@@ -516,7 +517,7 @@ class PartToolbarState extends State<PartToolbar> {
             width: isConfirmingDelete ? 48 : 0,
             height: 36,
             padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
+            child: MyRaisedButton(
                 onPressed: () {
                   setState(() {
                     widget.deletePart(widget.part);
@@ -534,7 +535,7 @@ class PartToolbarState extends State<PartToolbar> {
             width: isConfirmingDelete ? 48 : 0,
             height: 36,
             padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
+            child: MyRaisedButton(
                 onPressed: () {
                   setState(() {
                     confirmingDeleteFor = null;
@@ -547,7 +548,7 @@ class PartToolbarState extends State<PartToolbar> {
             width: isConfirmingDelete ? 0 : 41,
             height: 36,
             padding: EdgeInsets.only(right: 5),
-            child: RaisedButton(
+            child: MyRaisedButton(
                 onPressed: () {
                   setState(() {
                     confirmingDeleteFor = widget.part;
@@ -641,7 +642,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
             padding: EdgeInsets.zero,
             color: widget.editingSection ? Colors.white : null,
             child: AnimatedOpacity(
@@ -657,7 +658,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: widget.cloneCurrentSection,
               padding: EdgeInsets.zero,
               child: AnimatedOpacity(
@@ -678,7 +679,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: () {
                 setState(() {
                   widget.deleteSection(confirmingDeleteFor);
@@ -696,7 +697,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           width: isConfirmingDelete ? 48 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: () {
                 setState(() {
                   confirmingDeleteFor = null;
@@ -709,7 +710,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           width: isConfirmingDelete ? 0 : 41,
           height: 36,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
               onPressed: widget.canDeleteSection
                   ? () {
                       setState(() {

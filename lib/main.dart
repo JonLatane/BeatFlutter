@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
 import 'melody_view.dart';
+import 'no_stupid_hands.dart';
 import 'score_picker.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -591,11 +592,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           title: new Text('Are you sure?'),
           content: new Text('Do you want to exit BeatFlutter?'),
           actions: <Widget>[
-            new FlatButton(
+            MyFlatButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: new Text('No'),
             ),
-            new FlatButton(
+            MyFlatButton(
               color: sectionColor,
               onPressed: () => Navigator.of(context).pop(true),
               child: new Text('Yes, exit'),
@@ -713,16 +714,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             Column(children: [
               _webBanner(context),
               _downloadBanner(context),
-              if (_combineSecondAndMainToolbar) _scorePicker(context),
               if (_combineSecondAndMainToolbar) _toolbars(context),
+              if (_combineSecondAndMainToolbar) _scorePicker(context),
               _horizontalSectionList(),
               Expanded(
                 child: Row(children: [
                   _verticalSectionList(),
                   Expanded(child: _partsAndMelodiesAndMelodyView(context))
                 ])),
-              if (!_combineSecondAndMainToolbar) _scorePicker(context),
               if (!_combineSecondAndMainToolbar) _toolbars(context),
+              if (!_combineSecondAndMainToolbar) _scorePicker(context),
               _midiSettings(context),
               _tapInBar(context),
               _audioSystemWorkingBar(context),
@@ -814,14 +815,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: SizedBox()),
               Padding(
                 padding: EdgeInsets.only(right: 5, left: 5),
-                child: RaisedButton(
+                child: MyRaisedButton(
                   onPressed: () {
                     _launchURL("https://beatscratch.io/privacy.html");
                   },
                   child: Text("Privacy"))),
               Padding(
                 padding: EdgeInsets.only(right: 5),
-                child: RaisedButton(
+                child: MyRaisedButton(
                   onPressed: () {
                     _launchURL("https://beatscratch.io/usage.html");
                   },
@@ -831,7 +832,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 width: hideDownloadLinkButton ? 0 : 180,
                 child: Padding(
                   padding: EdgeInsets.only(right: 5),
-                  child: RaisedButton(
+                  child: MyRaisedButton(
                     onPressed: showDownloadLinks
                       ? null
                       : () {
@@ -843,7 +844,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ]))),
         Padding(
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
             color: sectionColor,
             onPressed: () {
               setState(() {
@@ -865,14 +866,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(children: [
-            FlatButton(
+            MyFlatButton(
               onPressed: () {
                 _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
               },
               padding: EdgeInsets.all(0),
               child: Image.asset("assets/play_en_badge_web_generic.png")),
             Transform.translate(offset: Offset(-15, 0), child:
-            FlatButton(
+            MyFlatButton(
               onPressed: () {
                 _launchURL("https://testflight.apple.com/join/dXJr9JJs");
               },
@@ -882,7 +883,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               width: 120,
               height: 40,
               padding: EdgeInsets.only(right: 5),
-              child: FlatButton(
+              child: MyFlatButton(
                 color: Colors.white,
                 onPressed: () {
                   _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
@@ -903,7 +904,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ]))),
             Padding(
               padding: EdgeInsets.only(right: 5, left: 5),
-              child: RaisedButton(
+              child: MyRaisedButton(
                 onPressed: () {
                   _launchURL("https://beatscratch.io/platforms.html");
                 },
@@ -951,7 +952,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 });
               });
             },
-            child: RaisedButton(
+            child: MyRaisedButton(
               child: Text(
                 !playing && tapInBeat == null ? (currentSection.meter.defaultBeatsPerMeasure - 1).toString() : "",
                 style: TextStyle(fontWeight: FontWeight.w700)),
@@ -974,7 +975,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //                });
 //              });
             },
-            child: RaisedButton(
+            child: MyRaisedButton(
               child: Text(
                 currentSection.meter.defaultBeatsPerMeasure.toString(), style: TextStyle(fontWeight: FontWeight.w700)),
               onPressed: _tapInBeat == -2 ? () {} : null,
@@ -984,7 +985,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           duration: animationDuration,
           padding: EdgeInsets.only(left: 5),
           width: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 69 : 0,
-          child: RaisedButton(
+          child: MyRaisedButton(
             child: AnimatedOpacity(
               duration: animationDuration,
               opacity: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 1 : 0,
@@ -1031,7 +1032,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         Container(
           width: 42,
           padding: EdgeInsets.only(right: 5),
-          child: RaisedButton(
+          child: MyRaisedButton(
             padding: EdgeInsets.all(5),
             color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
             child: Image.asset('assets/metronome.png'),
@@ -1042,7 +1043,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             },
           ))
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
-//          child: RaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),
+//          child: MyRaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),
 //            color: chromaticSteps[0],
 //            onPressed: _tapInBeat != null ? () {
 //              setState(() {

@@ -13,6 +13,7 @@ import 'package:unification/unification.dart';
 
 import 'animations/animations.dart';
 import 'music_theory.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -87,7 +88,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
           Expanded(
               child: RotatedBox(
             quarterTurns: 3,
-            child: FlatButton(
+            child: MyFlatButton(
                 onPressed: isHarmonic && BeatScratchPlugin.isSynthesizerAvailable
                     ? () {
                         widget.superSetState(() {
@@ -155,7 +156,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                   width: 50,
                 ),
                 Expanded(
-                    child: Slider(
+                    child: MySlider(
                         value: max(0.0, min(1.0, widget.part == null ? 0 : widget.part.instrument.volume)),
                         activeColor: Colors.white,
                         onChanged: (value) {

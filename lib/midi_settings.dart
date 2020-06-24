@@ -9,6 +9,7 @@ import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorder
 
 import 'animations/size_fade_transition.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
+import 'no_stupid_hands.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;
@@ -43,7 +44,7 @@ class _MidiSettingsState extends State<MidiSettings> {
         width: 44,
 //    height: 32,
         padding: EdgeInsets.zero,
-        child: Column(children: [Expanded(child:RaisedButton(
+        child: Column(children: [Expanded(child:MyRaisedButton(
           color: ChordColor.tonic.color,
           child: Column(children:[
             Expanded(child: SizedBox()),
@@ -176,7 +177,7 @@ class _MidiSynthesizer extends StatelessWidget {
           if(midiSynthesizer.id == "internal" && Platform.isAndroid)
             Text("FluidSynth", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           if(midiSynthesizer.id == "internal")
-            Container(height: 24, padding: EdgeInsets.only(top:3), child:RaisedButton(child: Text("Reset"), padding: EdgeInsets.zero,
+            Container(height: 24, padding: EdgeInsets.only(top:3), child:MyRaisedButton(child: Text("Reset"), padding: EdgeInsets.zero,
               onPressed: () { BeatScratchPlugin.resetAudioSystem(); },
             )),
           Expanded(child:SizedBox()),

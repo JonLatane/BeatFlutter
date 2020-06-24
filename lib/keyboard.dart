@@ -13,6 +13,7 @@ import 'drawing/drawing.dart';
 import 'generated/protos/music.pb.dart';
 import 'music_notation_theory.dart';
 import 'music_theory.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -223,7 +224,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             child: AnimatedOpacity(
               opacity: showScrollHint ? 1 : 0,
               duration: animationDuration,
-              child: FlatButton(
+              child: MyFlatButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {
                   setState(() {
@@ -317,7 +318,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               ),
                               Container(
                                   width: 25,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: false ? () {
                                         setState(() {
                                           highestPitch++;
@@ -327,14 +328,14 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                       child: Icon(Icons.arrow_upward))),
                               Container(
                                   width: 45,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: null,
                                       padding: EdgeInsets.all(0),
                                       child: Text(highestPitch.naturalOrSharpNote.uiString,
                                           style: TextStyle(color: Colors.white)))),
                               Container(
                                   width: 25,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: false ? () {
                                         setState(() {
                                           highestPitch--;
@@ -354,7 +355,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               ),
                               Container(
                                   width: 25,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: false ? () {
                                         setState(() {
                                           lowestPitch++;
@@ -364,14 +365,14 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                       child: Icon(Icons.arrow_upward))),
                               Container(
                                   width: 45,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: null,
                                       padding: EdgeInsets.all(0),
                                       child: Text(lowestPitch.naturalOrSharpNote.uiString,
                                           style: TextStyle(color: Colors.white)))),
                               Container(
                                   width: 25,
-                                  child: RaisedButton(
+                                  child: MyRaisedButton(
                                       onPressed: false ? () {
                                         setState(() {
                                           lowestPitch--;
@@ -388,7 +389,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         ])),
                     Expanded(
                         flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: RaisedButton(
+                        child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
                             onPressed: () {
                               setState(() {
@@ -399,7 +400,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                             child: Text("Scroll"))),
                     Expanded(
                         flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: RaisedButton(
+                        child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
                             onPressed: (Platform.isAndroid || Platform.isIOS || kDebugMode)
                                 ? () {
@@ -435,7 +436,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                           Expanded(child: SizedBox()),
                           Container(
                               width: 36,
-                              child: RaisedButton(
+                              child: MyRaisedButton(
                                   padding: EdgeInsets.all(0),
                                   onPressed: (halfStepWidthInPx < maxHalfStepWidthInPx)
                                       ? () {
@@ -447,7 +448,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                   child: Icon(Icons.zoom_in))),
                           Container(
                               width: 36,
-                              child: RaisedButton(
+                              child: MyRaisedButton(
                                   padding: EdgeInsets.all(0),
                                   onPressed: (halfStepWidthInPx > minHalfStepWidthInPx)
                                       ? () {

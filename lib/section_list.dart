@@ -6,6 +6,7 @@ import 'package:beatscratch_flutter_redux/part_melodies_view.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'dummydata.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'music_theory.dart';
 import 'util.dart';
@@ -55,7 +56,7 @@ class _SectionListState extends State<SectionList> {
                 width: beatsBadgeWidth(beatCount) + 5,
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
-                child: FlatButton(
+                child: MyFlatButton(
                     padding: EdgeInsets.zero,
                     onPressed: widget.toggleShowSectionBeatCounts,
                     child: BeatsBadge(
@@ -66,7 +67,7 @@ class _SectionListState extends State<SectionList> {
                 width: 37,
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
-                child: RaisedButton(
+                child: MyRaisedButton(
                   child: Image.asset("assets/add.png"),
                   padding: EdgeInsets.all(2),
                   onPressed: widget.score.sections.length < 100
@@ -88,7 +89,7 @@ class _SectionListState extends State<SectionList> {
                         duration: animationDuration,
 //            width: widget.showSectionBeatCounts ? beatsBadgeWidth(beatCount) : 0,
                         height: 36,
-                        child: FlatButton(
+                        child: MyFlatButton(
                             padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                             onPressed: widget.toggleShowSectionBeatCounts,
                             child: Row(children: [
@@ -122,7 +123,7 @@ class _SectionListState extends State<SectionList> {
               Expanded(
                   child: Container(
                       height: 36,
-                      child: RaisedButton(
+                      child: MyRaisedButton(
                         child: Image.asset("assets/add.png"),
                         onPressed: widget.score.sections.length < 100
                             ? () {
@@ -252,7 +253,7 @@ class _SectionState extends State<_Section> {
         width: 165,
         height: 36,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
-        child: FlatButton(
+        child: MyFlatButton(
           padding: EdgeInsets.only(left: 5, right: 5),
           child: Stack(children: [
             Row(children: [

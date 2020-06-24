@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'beatscratch_plugin.dart';
 import 'clearCaches.dart';
 import 'colors.dart';
+import 'no_stupid_hands.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -62,6 +63,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
           Expanded(
               child: PopupMenuButton(
 //                        onPressed: _doNothing,
+              tooltip: null,
                   offset: Offset(0, MediaQuery.of(context).size.height),
                   onSelected: (value) {
                     switch (value) {
@@ -112,7 +114,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                     //setState(() {});
                   },
                   itemBuilder: (BuildContext context) => [
-                        PopupMenuItem(
+                        MyPopupMenuItem(
                           value: null,
                           child: Column(children: [
                             Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -122,54 +124,54 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                           ]),
                           enabled: false,
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: null,
                           child: Text('New Score'),
                           enabled: false,
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: "open",
                           child: Text('Open Score...'),
                           enabled: kDebugMode,
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: "duplicate",
                           child: Text('Duplicate Score...'),
                           enabled: kDebugMode,
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: null,
                           child: Text('Save Score'),
                           enabled: false,
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: null,
                           child: Text('Copy Score'),
                           enabled: false,
                         ),
-                        if(widget.interactionMode == InteractionMode.edit) PopupMenuItem(
+                        if(widget.interactionMode == InteractionMode.edit) MyPopupMenuItem(
                           value: "focusPartsAndMelodies",
                           child: Row(children: [
                             Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
                             Expanded(child: Text('Focus Parts/Melodies'))
                           ]),
                         ),
-//                    if(interactionMode == InteractionMode.edit) PopupMenuItem(
+//                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
 //                            Checkbox(value: showBeatCounts, onChanged: null),
 //                            Expanded(child: Text('Show Section Beat Counts'))
 //                          ]),
 //                        ),
-                        if (kDebugMode) const PopupMenuItem(
+                        if (kDebugMode) const MyPopupMenuItem(
                           value: "clearMutableCaches",
-                          child: Text('Debug: Clear Dart Caches'),
+                          child: Text('Debug: Clear Rendering Caches'),
                         ),
-                        const PopupMenuItem(
+                        const MyPopupMenuItem(
                           value: "midiSettings",
                           child: Text('MIDI Settings'),
                         ),
-                        PopupMenuItem(
+                        MyPopupMenuItem(
                           value: "notationUi",
                           child: Row(children: [
                             Radio(
@@ -187,7 +189,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                                 ))
                           ]),
                         ),
-                        PopupMenuItem(
+                        MyPopupMenuItem(
                           value: "colorblockUi",
                           child: Row(children: [
                             Radio(
@@ -205,7 +207,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                                 ))
                           ]),
                         ),
-//              const PopupMenuItem(
+//              const MyPopupMenuItem(
 //                value: "about",
 //                child: Text('About BeatScratch'),
 //              ),
@@ -213,7 +215,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   padding: EdgeInsets.only(bottom: 10.0),
                   icon: Image.asset('assets/logo.png'))),
           Expanded(
-              child: FlatButton(
+              child: MyFlatButton(
                   onPressed: (widget.interactionMode == InteractionMode.view)
                       ? (BeatScratchPlugin.supportsPlayback
                           ? () {
@@ -233,7 +235,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
               child: AnimatedContainer(
                   duration: animationDuration,
                   color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
-                  child: FlatButton(
+                  child: MyFlatButton(
                       onPressed: (widget.interactionMode == InteractionMode.view) ? widget.toggleViewOptions : widget.viewMode,
                       padding: EdgeInsets.all(0.0),
                       child: Icon(Icons.remove_red_eye,
@@ -242,7 +244,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
               child: AnimatedContainer(
                   duration: animationDuration,
                   color: (widget.interactionMode == InteractionMode.edit) ? widget.sectionColor : Colors.transparent,
-                  child: FlatButton(
+                  child: MyFlatButton(
                       onPressed: widget.editMode,
                       padding: EdgeInsets.all(0.0),
                       child: Icon(Icons.edit,
@@ -267,7 +269,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
           ]),
         ]),
         actions: <Widget>[
-          FlatButton(
+          MyFlatButton(
             color: widget.sectionColor,
             onPressed: () => Navigator.of(context).pop(true),
             child: Text('OK'),
@@ -326,7 +328,7 @@ class SecondToolbar extends StatelessWidget {
           duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
-              child: RaisedButton(
+              child: MyRaisedButton(
                   padding: EdgeInsets.zero,
                   child: Stack(children:[
                     AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
@@ -353,7 +355,7 @@ class SecondToolbar extends StatelessWidget {
           duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
-              child: RaisedButton(
+              child: MyRaisedButton(
                   child:
                       AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Icon(Icons.skip_previous)),
                   onPressed: BeatScratchPlugin.supportsPlayback
@@ -365,7 +367,7 @@ class SecondToolbar extends StatelessWidget {
       Expanded(
           child: Padding(
               padding: const EdgeInsets.all(2),
-              child: RaisedButton(
+              child: MyRaisedButton(
                   padding: EdgeInsets.only(top: 7, bottom: 5),
                   child: Stack(children: [
                     Align(
@@ -382,7 +384,7 @@ class SecondToolbar extends StatelessWidget {
       Expanded(
           child: Padding(
               padding: const EdgeInsets.all(2),
-              child: RaisedButton(
+              child: MyRaisedButton(
                 child: Image.asset('assets/piano.png', width: 28, height: 28),
                 onPressed: toggleKeyboard,
                 onLongPress: toggleKeyboardConfiguration,
@@ -393,7 +395,7 @@ class SecondToolbar extends StatelessWidget {
           duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
-              child: RaisedButton(
+              child: MyRaisedButton(
                 child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: toggleColorboard != null ? 1 : 0.25,

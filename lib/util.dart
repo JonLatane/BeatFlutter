@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
+
+import 'no_stupid_hands.dart';
 
 var uuid = Uuid();
 
@@ -106,7 +109,9 @@ class _IncrementableValueState extends State<IncrementableValue> {
   }
   @override
   void initState() {
-    Vibration.hasVibrator().then((value) => hasVibration = value);
+    if(Platform.isIOS || Platform.isAndroid) {
+      Vibration.hasVibrator().then((value) => hasVibration = value);
+    }
     super.initState();
   }
   @override
@@ -114,7 +119,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
     return Row(children: [
       Container(
           width: 25,
-          child: RaisedButton(
+          child: MyRaisedButton(
             child: Icon(Icons.arrow_downward),
             onPressed: widget.onDecrement,
             padding: EdgeInsets.all(0),
@@ -163,7 +168,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
           child: widget.child ??
               Container(
                   width: widget.valueWidth,
-                  child: RaisedButton(
+                  child: MyRaisedButton(
                       onPressed: widget.onValuePressed,
                       padding: EdgeInsets.all(0),
                       child: Text(
@@ -172,7 +177,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       )))),
       Container(
           width: 25,
-          child: RaisedButton(
+          child: MyRaisedButton(
             child: Icon(Icons.arrow_upward),
             onPressed: widget.onIncrement,
             padding: EdgeInsets.all(0),
