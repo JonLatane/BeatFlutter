@@ -16,7 +16,7 @@ import 'beatscratch_plugin.dart';
 import 'dummydata.dart';
 import 'midi_theory.dart';
 import 'music_theory.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
 

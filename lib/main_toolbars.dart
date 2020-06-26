@@ -10,7 +10,8 @@ import 'package:flutter/material.dart';
 import 'beatscratch_plugin.dart';
 import 'clearCaches.dart';
 import 'colors.dart';
-import 'no_stupid_hands.dart';
+import 'my_popup_menu.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -61,7 +62,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
         height: 48,
         child: Row(children: [
           Expanded(
-              child: PopupMenuButton(
+              child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
               tooltip: null,
                   offset: Offset(0, MediaQuery.of(context).size.height),

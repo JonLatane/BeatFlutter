@@ -1,16 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:flutter/rendering.dart';
-
-import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vibration/vibration.dart';
+
+import 'my_popup_menu.dart';
 
 class MyFlatButton extends FlatButton {
   const MyFlatButton({
@@ -170,25 +170,5 @@ class MySlider extends Slider {
     semanticFormatterCallback: semanticFormatterCallback,
     focusNode: focusNode,
     autofocus: autofocus,
-  );
-}
-
-class MyPopupMenuItem<T> extends PopupMenuItem<T> {
-  const MyPopupMenuItem({
-    Key key,
-    T value,
-    bool enabled = true,
-    double height = kMinInteractiveDimension,
-    TextStyle textStyle,
-    MouseCursor mouseCursor = SystemMouseCursors.basic,
-    @required Widget child,
-  }) : super(
-    key: key,
-    value: value,
-    enabled: enabled,
-    height: height,
-    textStyle: textStyle,
-    mouseCursor: mouseCursor,
-    child: child,
   );
 }

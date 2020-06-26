@@ -6,7 +6,7 @@ import 'package:beatscratch_flutter_redux/part_melodies_view.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'dummydata.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'music_theory.dart';
 import 'util.dart';

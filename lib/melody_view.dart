@@ -8,7 +8,7 @@ import 'melody_renderer.dart';
 import 'melody_toolbars.dart';
 import 'music_theory.dart';
 import 'music_notation_theory.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
 

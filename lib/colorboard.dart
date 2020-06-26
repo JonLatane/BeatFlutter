@@ -7,7 +7,7 @@ import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'dart:async';
 import 'dart:math';
 import 'generated/protos/music.pb.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'music_notation_theory.dart';

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'beatscratch_plugin.dart';
 import 'music_theory.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'part_melodies_view.dart';
 import 'ui_models.dart';
 import 'util.dart';

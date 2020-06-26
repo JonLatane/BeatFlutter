@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:path_provider/path_provider.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'score_manager.dart';
 
 import 'animations/size_fade_transition.dart';
@@ -67,14 +67,14 @@ class _ScorePickerState extends State<ScorePicker> {
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Row(
               children: [
-                TextField(
-                  controller: nameController,
-                  style: TextStyle(color: Colors.white),
-                  enabled: widget.mode != ScorePickerMode.open,
-                  decoration: InputDecoration(
-//                border: InputBorder.none,
-                    hintText: "Score Name"),
-                ),
+//                TextField(
+//                  controller: nameController,
+//                  style: TextStyle(color: Colors.white),
+//                  enabled: widget.mode != ScorePickerMode.open,
+//                  decoration: InputDecoration(
+////                border: InputBorder.none,
+//                    hintText: "Score Name"),
+//                ),
                 FlatButton(
                   onPressed: () {  },
                   child: Text(

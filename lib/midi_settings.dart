@@ -9,7 +9,7 @@ import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorder
 
 import 'animations/size_fade_transition.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;

@@ -12,7 +12,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 
 var uuid = Uuid();
 

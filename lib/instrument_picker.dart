@@ -13,7 +13,7 @@ import 'package:unification/unification.dart';
 
 import 'animations/animations.dart';
 import 'music_theory.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
 

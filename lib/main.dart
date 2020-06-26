@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
 import 'melody_view.dart';
-import 'no_stupid_hands.dart';
+import 'my_buttons.dart';
 import 'score_picker.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
