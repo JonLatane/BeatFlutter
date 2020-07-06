@@ -12,11 +12,12 @@ import 'clearCaches.dart';
 import 'colors.dart';
 import 'my_popup_menu.dart';
 import 'my_buttons.dart';
+import 'score_picker.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
-  final VoidCallback showScorePicker;
+  final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
@@ -68,8 +69,14 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   offset: Offset(0, MediaQuery.of(context).size.height),
                   onSelected: (value) {
                     switch (value) {
+                      case "create":
+                        widget.showScorePicker(ScorePickerMode.create);
+                        break;
                       case "open":
-                        widget.showScorePicker();
+                        widget.showScorePicker(ScorePickerMode.open);
+                        break;
+                      case "duplicate":
+                        widget.showScorePicker(ScorePickerMode.duplicate);
                         break;
                       case "import":
                         print("Showing file picker");
@@ -126,9 +133,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                           enabled: false,
                         ),
                         const MyPopupMenuItem(
-                          value: null,
+                          value: "create",
                           child: Text('New Score'),
-                          enabled: false,
+                          enabled: kDebugMode,
                         ),
                         const MyPopupMenuItem(
                           value: "open",

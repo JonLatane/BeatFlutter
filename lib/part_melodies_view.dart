@@ -729,6 +729,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       backgroundColor: backgroundColor,
       floating: false,
       pinned: false,
+      forceElevated: false,
       expandedHeight: 80.0,
       flexibleSpace: MyFlatButton(
         padding: EdgeInsets.zero,
@@ -741,15 +742,15 @@ class _MelodiesViewState extends State<_MelodiesView> {
             final reference = currentSection.referenceTo(newMelody);
             toggleMelodyReference(reference);
             // Go directly to recording mode if not a template.
-            if (newMelody.name.isEmpty) {
+//            if (newMelody.name.isEmpty) {
               selectMelody(newMelody);
               setReferenceVolume(reference, 1.0);
               editingMelody = true;
               setKeyboardPart(part);
               requestScrollToTop(0);
-            } else {
-              requestScrollToTop(part.melodies.length - 1);
-            }
+//            } else {
+//              requestScrollToTop(part.melodies.length - 1);
+//            }
           });
         },
         child:

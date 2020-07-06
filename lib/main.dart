@@ -176,6 +176,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
   bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
+  ScorePickerMode scorePickerMode = ScorePickerMode.open;
   bool showScorePicker = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
@@ -1107,8 +1108,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           renderingMode = value;
         });
       },
-      showScorePicker: () {
+      showScorePicker: (mode) {
         setState(() {
+          scorePickerMode = mode;
           showScorePicker = true;
         });
       },
@@ -1469,6 +1471,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         .width,
       color: Color(0xFF424242),
       child: ScorePicker(
+        mode: scorePickerMode,
         sectionColor: sectionColor,
         close: () {
           setState(() {

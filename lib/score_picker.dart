@@ -67,21 +67,35 @@ class _ScorePickerState extends State<ScorePicker> {
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: Row(
               children: [
-//                TextField(
-//                  controller: nameController,
-//                  style: TextStyle(color: Colors.white),
-//                  enabled: widget.mode != ScorePickerMode.open,
-//                  decoration: InputDecoration(
-////                border: InputBorder.none,
-//                    hintText: "Score Name"),
-//                ),
-                FlatButton(
-                  onPressed: () {  },
-                  child: Text(
-                    widget.mode == ScorePickerMode.create ? "Create" :
-                    widget.mode == ScorePickerMode.duplicate ? "Duplicate" : ""
-                  )
-                )
+                Expanded(child:TextField(
+                  controller: nameController,
+                  style: TextStyle(color: Colors.white),
+                  enabled: widget.mode != ScorePickerMode.open,
+                  decoration: InputDecoration(
+                border: InputBorder.none,
+                    hintText: "Score Name"),
+                )),
+                Container(
+                  width: 80,
+                  child: MyFlatButton(
+                    color: chromaticSteps[0],
+                    onPressed: () {  },
+                    padding: EdgeInsets.zero,
+                    child: Text(
+                      widget.mode == ScorePickerMode.create ? "Create" :
+                      widget.mode == ScorePickerMode.duplicate ? "Duplicate" : ""
+                    )
+                  ),
+                ),
+                Container(
+                  width: 80,
+                  child: MyFlatButton(
+                    color: chromaticSteps[7],
+                    onPressed: widget.close,
+                    padding: EdgeInsets.zero,
+                    child: Text("Cancel")
+                  ),
+                ),
               ],
             ),
           ),
@@ -90,8 +104,9 @@ class _ScorePickerState extends State<ScorePicker> {
           child: (widget.scrollDirection == Axis.horizontal)
               ? Row(children: [
                   Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
-            Container(
-              width: 44,
+            AnimatedContainer(
+              duration: animationDuration,
+              width: widget.mode == ScorePickerMode.open ? 44 : 0,
 //    height: 32,
               padding: EdgeInsets.zero,
               child: Column(children: [Expanded(child:MyRaisedButton(
