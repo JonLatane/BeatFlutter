@@ -32,6 +32,8 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback toggleFocusPartsAndMelodies;
   final bool showBeatCounts;
   final VoidCallback toggleShowBeatCounts;
+  final VoidCallback saveCurrentScore;
+  final String currentScoreName;
 
   const BeatScratchToolbar(
       {Key key,
@@ -46,7 +48,7 @@ class BeatScratchToolbar extends StatefulWidget {
       this.renderingMode,
       this.showMidiInputSettings,
       this.focusPartsAndMelodies,
-      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker})
+      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName})
       : super(key: key);
 
   @override
@@ -70,13 +72,19 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   onSelected: (value) {
                     switch (value) {
                       case "create":
+                        widget.saveCurrentScore();
                         widget.showScorePicker(ScorePickerMode.create);
                         break;
                       case "open":
+                        widget.saveCurrentScore();
                         widget.showScorePicker(ScorePickerMode.open);
                         break;
                       case "duplicate":
+                        widget.saveCurrentScore();
                         widget.showScorePicker(ScorePickerMode.duplicate);
+                        break;
+                      case "save":
+                        widget.saveCurrentScore();
                         break;
                       case "import":
                         print("Showing file picker");
@@ -125,32 +133,39 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                         MyPopupMenuItem(
                           value: null,
                           child: Column(children: [
-                            Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900)),
+                            Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                             Container(height: 5),
                             Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
-                                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12)),
+                                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10)),
                           ]),
                           enabled: false,
                         ),
+                    MyPopupMenuItem(
+                      value: null,
+                      child: Column(children: [
+                        Text(widget.currentScoreName, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                      ]),
+                      enabled: false,
+                    ),
                         const MyPopupMenuItem(
                           value: "create",
-                          child: Text('New Score'),
-                          enabled: kDebugMode,
+                          child: Text('Create Score'),
+                          enabled: true,
                         ),
                         const MyPopupMenuItem(
                           value: "open",
                           child: Text('Open Score...'),
-                          enabled: kDebugMode,
+                          enabled: true,
                         ),
                         const MyPopupMenuItem(
                           value: "duplicate",
                           child: Text('Duplicate Score...'),
-                          enabled: kDebugMode,
+                          enabled: true,
                         ),
                         const MyPopupMenuItem(
-                          value: null,
+                          value: "save",
                           child: Text('Save Score'),
-                          enabled: false,
+                          enabled: true,
                         ),
                         const MyPopupMenuItem(
                           value: null,

@@ -71,6 +71,7 @@ class PlaybackThreadInstance : Thread() {
       playing = false
       notifyPaused()
     } else if (beatMinus2 != null && time - beatMinus2!! < 3000) {
+//      playMetronome(immediately = true)
       val periodMs = (time - beatMinus2!!).toFloat()
       bpm = 60000/ periodMs
       beatMinus2 = null

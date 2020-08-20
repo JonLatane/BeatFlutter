@@ -39,6 +39,7 @@ class MelodyRenderer extends StatefulWidget {
   final Part colorboardPart;
   final double height;
   final double width;
+  final bool previewMode;
 
   const MelodyRenderer(
       {Key key,
@@ -51,7 +52,7 @@ class MelodyRenderer extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
-      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.width, this.height})
+      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.width, this.height, this.previewMode})
       : super(key: key);
 
   @override
@@ -99,14 +100,22 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
   ValueNotifier<Part> focusedPart;
   ValueNotifier<Color> sectionColor;
 
-  ScrollController timeScrollController;
+  ScrollController timeScrollController = ScrollController();
   int _prevBeat;
+  Rect visibleRect = Rect.zero;
+  Rect get myVisibleRect => (widget.previewMode) ? visibleRect : melodyRendererVisibleRect;
+  set myVisibleRect(value) {
+    if (widget.previewMode) {
+      visibleRect = value;
+    } else {
+      melodyRendererVisibleRect = value;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     verticalController = ScrollController();
-    timeScrollController = ScrollController();
     animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
     colorGuideOpacityNotifier = ValueNotifier(0);
@@ -166,11 +175,15 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
       beatAnimationDuration = Duration.zero;
     }
     _prevViewMode = widget.melodyViewMode;
-    if(_prevBeat != currentBeat) {
+    if(_prevBeat != currentBeat && currentBeat % widget.currentSection.meter.defaultBeatsPerMeasure == 0) {
       double animationPos = (currentBeat) * standardBeatWidth;
-      animationPos = min(animationPos, overallCanvasWidth - melodyRendererVisibleRect.width);
+      animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width);
       if(_hasBuilt) {
-        timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+        try {
+          timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+        } catch(e) {
+
+        }
       }
     }
     _prevBeat = currentBeat;
@@ -186,7 +199,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
               slivers: [
                 new CustomSliverToBoxAdapter(
                   setVisibleRect: (rect) {
-                    melodyRendererVisibleRect = rect;
+                    myVisibleRect = rect;
                   },
                   child: CustomPaint(
 //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
@@ -207,7 +220,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                         notationOpacityNotifier: notationOpacityNotifier,
                         colorboardNotesNotifier: widget.colorboardNotesNotifier,
                         keyboardNotesNotifier: widget.keyboardNotesNotifier,
-                        visibleRect: () => melodyRendererVisibleRect,
+                        visibleRect: () => myVisibleRect,
                         keyboardPart: keyboardPart,
                       colorboardPart: colorboardPart,
                       focusedPart: focusedPart,

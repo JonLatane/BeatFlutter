@@ -41,6 +41,8 @@ class MelodyView extends StatefulWidget {
   final bool enableColorboard;
   final Function(int) selectBeat;
   final Function cloneCurrentSection;
+  final double initialScale;
+  final bool previewMode;
 
   MelodyView(
       {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor, this.cloneCurrentSection,
@@ -69,7 +71,7 @@ class MelodyView extends StatefulWidget {
       this.deleteMelody,
       this.deleteSection,
       this.renderingMode,
-  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard});
+  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard, this.initialScale, this.previewMode = false});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -146,7 +148,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   @override
   Widget build(context) {
     if(_xScale == null) {
-      if(context.isTablet) {
+      if(widget.initialScale != null) {
+        _xScale = widget.initialScale;
+        _yScale = widget.initialScale;
+      } else if(context.isTablet) {
         _xScale = 0.33;
         _yScale = 0.33;
       } else {
@@ -267,7 +272,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                       width: 36,
                       height: (widget.melodyViewMode != MelodyViewMode.score) ? 36 : 0,
                       child: MyRaisedButton(
-                          onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: Icon(Icons.close))))
+                          onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: widget.previewMode ? SizedBox() : Icon(Icons.close))))
             ],
           ),
         ),
@@ -321,7 +326,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       } else if (mainPart != null && mainPart.isDrum) {
         staves.add(DrumStaff());
       }
-      staves.addAll(widget.score.parts.where((part) => part.id != mainPart.id)
+      staves.addAll(widget.score.parts.where((part) => part.id != mainPart?.id)
         .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false));
 //      if (widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
 //        staves.add(AccompanimentStaff());
@@ -337,7 +342,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       width = width / 2;
     }
     return Container(
-        color: Colors.white,
+        color: widget.previewMode ? Colors.white.withOpacity(0.5) : Colors.white,
         child: GestureDetector(
             onTapUp: (details) {
               print("onTapUp: ${details.localPosition}");
@@ -400,8 +405,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 colorboardPart: widget.colorboardPart,
                 height: widget.height,
                 width: width,
+                previewMode: widget.previewMode
               ),
-              Column(children:[
+              if(!widget.previewMode) Column(children:[
                 Expanded(child: SizedBox()),
               Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.5, child:Column(children: [
                 Container(

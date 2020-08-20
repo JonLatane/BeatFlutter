@@ -1,5 +1,5 @@
 PODS:
-  - AudioKit/Core (0.1.0)
+  - AudioKit/Core (4.10.1)
   - file_chooser (0.0.2):
     - FlutterMacOS
   - Firebase/Core (6.18.0):
@@ -47,10 +47,10 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - AudioKit/Core (from `../../AudioKit/AudioKit.podspec`)
+  - AudioKit/Core (~> 4.10)
   - file_chooser (from `Flutter/ephemeral/.symlinks/plugins/file_chooser/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
-  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
+  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64-release`)
   - path_provider (from `Flutter/ephemeral/.symlinks/plugins/path_provider/macos`)
   - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
   - shared_preferences (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences/macos`)
@@ -61,6 +61,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AudioKit
     - Firebase
     - FirebaseCore
     - FirebaseCoreDiagnostics
@@ -72,14 +73,12 @@ SPEC REPOS:
     - SwiftProtobuf
 
 EXTERNAL SOURCES:
-  AudioKit:
-    :path: "../../AudioKit/AudioKit.podspec"
   file_chooser:
     :path: Flutter/ephemeral/.symlinks/plugins/file_chooser/macos
   firebase_core:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
   FlutterMacOS:
-    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
+    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64-release
   path_provider:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider/macos
   path_provider_macos:
@@ -94,7 +93,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  AudioKit: 075df5fdd9c5a09f2747b09ff6f5fb81f68802b8
+  AudioKit: b8e508a0af3dc7d53caf0ca1002b187a662f949e
   file_chooser: 24432cf5dc836722b05c11c2a0a30d19c3c9b996
   Firebase: 0490eca762a72e4f1582319539153897f1508dee
   firebase_core: 2e20c83fefb704fc827d429f38c0492818b5f1f1
@@ -114,6 +113,6 @@ SPEC CHECKSUMS:
   url_launcher: af78307ef9bafff91273b34f1c6c0c86a0004fd7
   url_launcher_macos: 45af3d61de06997666568a7149c1be98b41c95d4
 
-PODFILE CHECKSUM: 92df7f58d47c7de9e958740462d44f37c4704086
+PODFILE CHECKSUM: af281894397a056ce0ad440c4e9e334f6c039a56
 
 COCOAPODS: 1.8.4

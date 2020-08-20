@@ -142,16 +142,27 @@ class _SectionListState extends State<SectionList> {
     if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
       int index = widget.score.sections.indexOf(widget.currentSection);
       if (widget.scrollDirection == Axis.horizontal) {
-        double position = 150.0 * (index - 1);
-        position = min(_scrollController.position.maxScrollExtent + 300, position);
-        _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+        double currentPosition = _scrollController.position.pixels;
+        double position = _Section.width * (index);
+        double widthOfExtraStuff = 120.0;
+        if(currentPosition > position) {
+          position = min(_scrollController.position.maxScrollExtent, position);
+          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+        } else if(currentPosition + MediaQuery.of(context).size.width - _Section.width - widthOfExtraStuff < position) {
+          position = position - MediaQuery.of(context).size.width + _Section.width + widthOfExtraStuff;
+          position = min(_scrollController.position.maxScrollExtent, position);
+          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+        }
+//        if(_scrollController.position.pixels < position) {
+//          _scrollController.position.
+//        }
       } else {
-        double position = 36.0 * (index - 1);
-        position = min(_scrollController.position.maxScrollExtent + 72, position);
+        double position = _Section.height * (index);
+        position = min(_scrollController.position.maxScrollExtent, position);
         _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
       }
-      _previousSection = widget.currentSection;
     }
+    _previousSection = widget.currentSection;
   }
 
   Widget getList(BuildContext context) {
@@ -222,6 +233,8 @@ class _SectionListState extends State<SectionList> {
 }
 
 class _Section extends StatefulWidget {
+  static const double width = 165.0;
+  static const double height = 36.0;
   final Section currentSection;
   final Section section;
   final Color sectionColor;
@@ -250,8 +263,8 @@ class _SectionState extends State<_Section> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
-        width: 165,
-        height: 36,
+        width: _Section.width,
+        height: _Section.height,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: MyFlatButton(
           padding: EdgeInsets.only(left: 5, right: 5),

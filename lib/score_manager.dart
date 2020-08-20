@@ -6,36 +6,68 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'generated/protos/music.pb.dart';
 
-
 class ScoreManager {
-  Directory _documentsDirectory;
+  Function(Score) doOpenScore;
+  Directory _scoresDirectory;
   SharedPreferences _prefs;
-  String get currentScoreName => _prefs.getString('currentScoreName') ?? "Untitled Score";
 
-  List<FileSystemEntity> get files => _documentsDirectory?.listSync() ?? [];
+  String get currentScoreName => _prefs?.getString('currentScoreName') ?? "Untitled Score";
+
+  set currentScoreName(String value) => _prefs?.setString("currentScoreName", value);
+
+  File get _currentScoreFile => File("${_scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
+
+  List<FileSystemEntity> get scoreFiles {
+    if (_scoresDirectory != null) {
+      List<FileSystemEntity> result = _scoresDirectory?.listSync();
+      result.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      return result;
+    }
+    return [];
+  }
 
   ScoreManager() {
-    _getLocalPath();
+    _initialize();
   }
 
-  _getLocalPath() async {
-    _documentsDirectory = await getApplicationDocumentsDirectory();
+  _initialize() async {
     _prefs = await SharedPreferences.getInstance();
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
+    _scoresDirectory.createSync();
+    loadCurrentScoreIntoUI();
   }
 
-  File get currentScoreFile => File("${_documentsDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
-
-  Future<Score> loadCurrentScore() async {
-    FileSystemEntity file = files.firstWhere((f) => f.path.endsWith("${Uri.encodeComponent(currentScoreName)}.beatscratch"), orElse: null);
-    if (file != null) {
-      final data = File(file.path).readAsBytesSync();
-      return Score.fromBuffer(data);
-    } else {
-      return defaultScore();
-    }
+  createScore(String name, { Score score }) {
+    score = score ?? defaultScore();
+    currentScoreName = name;
+    saveCurrentScore(score);
+    doOpenScore(score);
   }
 
   saveCurrentScore(Score score) async {
-    currentScoreFile.writeAsBytes(score.clone().writeToBuffer());
+    _currentScoreFile.writeAsBytes(score.clone().writeToBuffer());
+  }
+
+  openScore(File file) async {
+    currentScoreName = file.scoreName;
+    loadCurrentScoreIntoUI();
+  }
+
+  loadCurrentScoreIntoUI() async {
+    Score score = await loadCurrentScore();
+    doOpenScore(score);
+  }
+
+  Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);
+  Future<Score> loadScore(File file) async => Score.fromBuffer(file.readAsBytesSync());
+}
+
+extension ScoreName on FileSystemEntity {
+  String get scoreName {
+    String fileName = path.split("/")?.last ?? ".beatscratch";
+    fileName = fileName.substring(0, fileName.length - 12);
+    String scoreName = Uri.decodeComponent(fileName);
+    return scoreName;
   }
 }

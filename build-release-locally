@@ -7,7 +7,9 @@ cd "$(dirname "$0")"
 echo "Changing to channel beta for iOS/Android builds..." && \
 flutter channel beta && flutter upgrade && \
 echo "Building for iOS" && \
-flutter build ios && xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration release archive && \
+flutter build ios && \
+echo "Archiving iOS app" && \
+xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration release archive && \
 echo "iOS app built! Manually archive/upload build to TestFlight in XCode." && \
 open "ios/Runner.xcworkspace" && \
 echo "Building for Android" && \
@@ -17,17 +19,15 @@ open "build/app/outputs/bundle/release/" && \
 open 'https://play.google.com/apps/publish/?account=8301034569696927852#ManageReleaseTrackPlace:p=io.beatscratch.beatscratch_flutter_redux&appid=4974878702686446069&releaseTrackId=4699356462545292031' && \
 
 # yes | rm -rf ~/Development/flutter/flutter/bin/cache/*
-echo "Changing to channel master for macOS/web builds..."
-flutter channel master && flutter upgrade && \
+echo "Changing to channel dev for macOS/web builds..."
+flutter channel dev && flutter upgrade && \
 echo "Building for macOS and archiving app" && \
 flutter build macos && cd build/macos/Build/Products/Release && \
 tar -cavf BeatFlutter.tar.bz2 BeatScratch.app && open . && cd - && \
 echo "macOS app built! Manually upload to Dropbox" && \
 open "https://www.dropbox.com/home" && \
 echo "Building for web and copying to ../topologica-page/app-staging" && \
-flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true && \
+flutter build web && \
 cp -r build/web/* ../topologica-page/app-staging && \
 echo "Web app built to app-staging! Manually copy to prod app and/or deploy to beatscratch.io" && \
 echo "Build complete! Have fun uploading and awaiting Apple's blessings..."
-
-#flutter channel master

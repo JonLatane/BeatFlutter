@@ -6,10 +6,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.RequiresApi
-import io.beatscratch.beatscratch_flutter_redux.AndroidMidi
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin
-import io.beatscratch.beatscratch_flutter_redux.MainApplication
-import io.beatscratch.beatscratch_flutter_redux.sendSelectInstrument
+import io.beatscratch.beatscratch_flutter_redux.*
+import kotlinx.coroutines.yield
 import java.io.Closeable
 
 object MidiDevices {
@@ -51,15 +49,21 @@ object MidiDevices {
 	fun initialize(context: Context) {
 		val infos = manager.devices
 		for (info in infos) {
-			setupDevice(info)
+			try {
+				setupDevice(info)
+			} catch(t: Throwable) {
+				logE("Failed to initialize device on startup", t)
+			}
 		}
 		manager.registerDeviceCallback(object : MidiManager.DeviceCallback() {
 			@RequiresApi(Build.VERSION_CODES.M)
 			override fun onDeviceAdded(info: MidiDeviceInfo) {
 				try {
+					setupDevice(info)
 //						context.toast("Connecting to ${info.properties[MidiDeviceInfo.PROPERTY_NAME]}...")
-				} catch(t: Throwable) {}
-				setupDevice(info)
+				} catch(t: Throwable) {
+					logE("Failed to setup device", t)
+				}
 			}
 
 			@RequiresApi(Build.VERSION_CODES.M)
@@ -76,7 +80,10 @@ object MidiDevices {
 
 	@RequiresApi(Build.VERSION_CODES.M)
 	private fun setupDevice(info: MidiDeviceInfo) {
-		manager.openDevice(info, { device ->
+		manager.openDevice(info, { device: MidiDevice? ->
+			if(device == null) {
+				return@openDevice
+			}
 			// Again, kinda weirdly, we'll be using input ports to set up output devices
 			val inputPort = if (info.inputPortCount > 0) {
 				MidiSynthesizers.setupSynthesizer(info, device)

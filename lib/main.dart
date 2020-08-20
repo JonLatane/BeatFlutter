@@ -5,6 +5,7 @@ import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
+import 'package:beatscratch_flutter_redux/score_manager.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -44,6 +45,7 @@ const Map<int, Color> swatch = {
   900: Color.fromRGBO(0x00, 0x00, 0x00, 1),
 };
 
+ScoreManager _scoreManager = ScoreManager();
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -51,6 +53,7 @@ class MyApp extends StatelessWidget {
 //    debugPaintSizeEnabled = true;
     return MaterialApp(
       title: 'BeatFlutter',
+      onGenerateTitle: (context) => "BeatFlutter: ${_scoreManager.currentScoreName}",
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -159,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Section get currentSection => _currentSection;
 
   set currentSection(Section section) {
+    BeatScratchPlugin.setCurrentSection(section);
     _currentSection = section;
     if (editingMelody && section
       .referenceTo(selectedMelody)
@@ -176,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
   bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
-  ScorePickerMode scorePickerMode = ScorePickerMode.open;
+  ScorePickerMode scorePickerMode = ScorePickerMode.none;
   bool showScorePicker = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
@@ -466,7 +470,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   _selectSection(Section section) {
-    BeatScratchPlugin.setCurrentSection(section);
     setState(() {
       if (currentSection == section) {
         editingMelody = false;
@@ -492,7 +495,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
 
   double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
-  double get _scorePickerHeight => showScorePicker ? 150 : 0;
+  double get _scorePickerHeight => showScorePicker ? 170 : 0;
 
   bool _isPhone = false;
   bool _isLandscapePhone = false;
@@ -502,6 +505,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _keyboardHeight => showKeyboard ? _isLandscapePhone ? 115 : 150 : 0;
 
   double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : _isLandscapePhone ? 25 : 30;
+  bool _savingScore = false;
 
   double get _tapInBarHeight =>
     interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
@@ -520,6 +524,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _scoreManager.doOpenScore = (Score scoreToOpen) {
+      setState(() {
+        BeatScratchPlugin.createScore(scoreToOpen);
+        _score = scoreToOpen;
+        currentSection = scoreToOpen.sections.first;
+        selectedMelody = null;
+        selectedPart = null;
+        keyboardPart = scoreToOpen.parts.first;
+        colorboardPart = scoreToOpen.parts.firstWhere((Part p) => p.instrument.type != InstrumentType.drum, orElse: null);
+      });
+    };
+//    _scoreManager.loadCurrentScoreIntoUI();
     if (Platform.isIOS || Platform.isAndroid) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
@@ -527,7 +543,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       });
     }
-    BeatScratchPlugin.createScore(_score);
+//    BeatScratchPlugin.createScore(_score);
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
         currentSection = _score.sections.firstWhere((section) => section.id == sectionId);
@@ -727,6 +743,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               if (!_combineSecondAndMainToolbar) _scorePicker(context),
               _midiSettings(context),
               _tapInBar(context),
+              _savingScoreBar(context),
               _audioSystemWorkingBar(context),
               _colorboard(context),
               _keyboard(context),
@@ -929,6 +946,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ]));
   }
 
+  Widget _savingScoreBar(BuildContext context) {
+    return AnimatedContainer(
+      duration: animationDuration,
+      height: !_savingScore ? 0 : _isLandscapePhone ? 25 : 30,
+      color: Color(0xFF212121),
+      child: Row(children: [
+        SizedBox(width: 5),
+        Icon(Icons.info, size: 18, color: chromaticSteps[0]),
+        SizedBox(width: 5),
+        Text("Saving score...",
+          style: TextStyle(
+            color: Colors.white,
+          ))
+      ]));
+  }
+
   Widget _tapInBar(BuildContext context) {
     bool playing = BeatScratchPlugin.playing;
     int tapInBeat = _tapInBeat;
@@ -1083,6 +1116,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   BeatScratchToolbar createBeatScratchToolbar() =>
     BeatScratchToolbar(
+      currentScoreName: _scoreManager.currentScoreName,
       sectionColor: sectionColor,
       viewMode: _viewMode,
       editMode: _editMode,
@@ -1141,6 +1175,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       toggleShowBeatCounts: () {
         setState(() {
           showBeatCounts = !showBeatCounts;
+        });
+      },
+      saveCurrentScore: () {
+        Future.microtask(() {
+          setState(() { _savingScore = true; });
+          _scoreManager.saveCurrentScore(_score);
+          Future.delayed(animationDuration*2, () {
+            setState(() { _savingScore = false; });
+          });
         });
       },
     );
@@ -1389,7 +1432,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           setState(() {
             currentSection = section;
           });
-          BeatScratchPlugin.setCurrentSection(section);
           BeatScratchPlugin.setBeat(beat - seekingBeat);
         } else {
           BeatScratchPlugin.setBeat(beat);
@@ -1462,6 +1504,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   AnimatedContainer _scorePicker(BuildContext context) {
     return AnimatedContainer(
+      padding: (!_combineSecondAndMainToolbar) ? EdgeInsets.only(top:5) : EdgeInsets.zero,
       curve: Curves.easeInOut,
       duration: animationDuration,
       height: _scorePickerHeight,
@@ -1471,10 +1514,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         .width,
       color: Color(0xFF424242),
       child: ScorePicker(
+        scoreManager: _scoreManager,
         mode: scorePickerMode,
         sectionColor: sectionColor,
+        openedScore: _score,
         close: () {
           setState(() {
+            scorePickerMode = ScorePickerMode.none;
             showScorePicker = false;
           });
         }));

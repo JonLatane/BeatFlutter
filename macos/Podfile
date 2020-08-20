@@ -1,4 +1,4 @@
-platform :osx, '10.13'
+platform :osx, '10.11'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -45,10 +45,10 @@ end
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-  
+
   pod 'SwiftProtobuf'
-  # pod 'AudioKit/Core', '~> 4.9'
-  pod 'AudioKit/Core', :path => '../../AudioKit/AudioKit.podspec'
+  pod 'AudioKit/Core', '~> 4.10'
+  # pod 'AudioKit/Core', :path => '../../AudioKit/AudioKit.podspec'
 
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.

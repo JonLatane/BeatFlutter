@@ -16,7 +16,15 @@ import Flutter
 class BeatScratchPlugin {
   // Globally accessible
   static let sharedInstance = BeatScratchPlugin()
-  var score: Score = Score()
+  var score: Score = Score() {
+    didSet {
+      setSynthesizerAvailable()
+      score.parts.forEach {
+        setupPart(part: $0)
+      }
+      setSynthesizerAvailable()
+    }
+  }
   var channel: FlutterMethodChannel?
   
   private init() {}
@@ -54,8 +62,7 @@ class BeatScratchPlugin {
           break
         case "createPart", "updatePartConfiguration":
           var part = try Part(serializedData: (call.arguments as! FlutterStandardTypedData).data)
-          conductor.setMIDIInstrument(channel: part.instrument.midiChannel, midiInstrument: part.instrument.midiInstrument)
-          conductor.setVolume(channel: part.instrument.midiChannel, volume: Double(part.instrument.volume))
+          self.setupPart(part: part)
           if call.method == "updatePartConfiguration" {
             if let existingPart = self.score.parts.first(where: {$0.id == part.id}) {
               do {
@@ -246,5 +253,10 @@ class BeatScratchPlugin {
   func notifyCurrentSection() {
     let section = BeatScratchScorePlayer.sharedInstance.currentSection
     channel?.invokeMethod("notifyCurrentSection", arguments: section.id)
+  }
+  
+  func setupPart(part: Part) {
+    Conductor.sharedInstance.setMIDIInstrument(channel: part.instrument.midiChannel, midiInstrument: part.instrument.midiInstrument)
+    Conductor.sharedInstance.setVolume(channel: part.instrument.midiChannel, volume: Double(part.instrument.volume))
   }
 }

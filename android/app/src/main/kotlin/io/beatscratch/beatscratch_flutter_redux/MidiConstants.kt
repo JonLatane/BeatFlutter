@@ -5,6 +5,7 @@ import kotlin.experimental.and
 object MidiConstants {
 	const val NOTE_ON = 0x90.toByte()
 	const val NOTE_OFF: Byte = 0x80.toByte()
+	const val PITCH_WHEEL: Byte = 0xE0.toByte()
 	const val ALL_CONTROLLERS_OFF: Byte = 121.toByte()
 	const val ALL_NOTES_OFF: Byte = 123.toByte()
 	const val PROGRAM_CHANGE = 0xC0.toByte()
@@ -23,4 +24,6 @@ object MidiConstants {
 	inline val Byte.rightHalf: Byte get() = (this and RIGHT_MASK)
 	fun Byte.leftHalfMatches(value: Byte): Boolean = this.leftHalf == value.leftHalf
 	fun Byte.leftHalfMatchesAny(vararg values: Byte): Boolean = values.any { leftHalfMatches(it) }
+	fun Byte.rightHalfMatches(value: Byte): Boolean = this.rightHalf == value.rightHalf
+	fun Byte.rightHalfMatchesAny(vararg values: Byte): Boolean = values.any { rightHalfMatches(it) }
 }

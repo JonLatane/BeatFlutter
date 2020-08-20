@@ -1,6 +1,7 @@
 package io.beatscratch.beatscratch_flutter_redux.hardware
 
 //import kotlinx.coroutines.experimental.*
+import kotlin.experimental.*
 import android.media.midi.MidiDevice
 import android.media.midi.MidiDeviceInfo
 import android.media.midi.MidiOutputPort
@@ -10,8 +11,11 @@ import androidx.annotation.RequiresApi
 import io.beatscratch.beatscratch_flutter_redux.*
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.keyboardPart
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.leftHalf
+import io.beatscratch.beatscratch_flutter_redux.MidiConstants.leftHalfMatches
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.leftHalfMatchesAny
 import io.beatscratch.beatscratch_flutter_redux.MidiConstants.rightHalf
+import io.beatscratch.beatscratch_flutter_redux.MidiConstants.rightHalfMatches
+import io.beatscratch.beatscratch_flutter_redux.MidiConstants.rightHalfMatchesAny
 
 object MidiControllers {
 	val pressedNotes: MutableSet<Int> = mutableSetOf()
@@ -32,6 +36,7 @@ object MidiControllers {
 
 	class Receiver : MidiReceiver() {
 		private var sustainDown = false
+		private var lastPitchWheelValue: Int = 8192
 		override fun onSend(msg: ByteArray, offset: Int, count: Int, timestamp: Long) {
 			//info("MIDI data: ${msg.hexString(offset, count)}")
 			var byteIndex = offset
@@ -86,7 +91,17 @@ object MidiControllers {
 							byteIndex += 3
 						}
 					}
-          msg[byteIndex].leftHalfMatchesAny(MidiConstants.CONTROL_CHANGE) -> {
+					msg[byteIndex].leftHalfMatches(MidiConstants.PITCH_WHEEL) && msg[byteIndex].rightHalfMatches(0) -> {
+						val pitchWheelValue = msg[byteIndex + 1].toInt() +
+							(msg[byteIndex + 2].toInt() shl 7)
+						logI("receivedMIDIPitchWheel: $pitchWheelValue from ${msg.hexString(byteIndex, 3)}")
+						if(lastPitchWheelValue == 8192 && pitchWheelValue != 8192) {
+							PlaybackThread.sendBeat()
+						}
+						lastPitchWheelValue = pitchWheelValue
+						byteIndex += 3
+					}
+          msg[byteIndex].leftHalfMatches(MidiConstants.CONTROL_CHANGE) -> {
 						val channel =  msg[byteIndex].rightHalf
 						when {
 							msg[byteIndex + 1] == 64.toByte() -> {
@@ -106,7 +121,7 @@ object MidiControllers {
 
 					}
 					else                                                                             -> {
-						error("Unable to parse MIDI: ${msg.hexString(offset, count)}@byte ${byteIndex - offset}")
+						logW("Unable to parse MIDI: ${msg.hexString(offset, count)}@byte ${byteIndex - offset}")
 						byteIndex += 1
 					}
 				}
