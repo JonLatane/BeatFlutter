@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'generated/protos/music.pb.dart';
+import 'dummydata.dart';
 
 class ScoreManager {
   Function(Score) doOpenScore;
@@ -55,7 +56,12 @@ class ScoreManager {
   }
 
   loadCurrentScoreIntoUI() async {
-    Score score = await loadCurrentScore();
+    Score score;
+    try {
+      score = await loadCurrentScore();
+    } catch(e) {
+      score = defaultScore();
+    }
     doOpenScore(score);
   }
 

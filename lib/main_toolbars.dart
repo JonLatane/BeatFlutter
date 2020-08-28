@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:file_picker_cross/file_picker_cross.dart';
-import 'package:file_chooser/file_chooser.dart';
+//import 'package:file_picker/file_picker.dart';
+//import 'package:file_picker_cross/file_picker_cross.dart';
+//import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -56,7 +56,7 @@ class BeatScratchToolbar extends StatefulWidget {
 }
 
 class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
-  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
+//  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
 //  FilePicker asdf = FilePicker();
 
   @override
@@ -88,9 +88,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                         break;
                       case "import":
                         print("Showing file picker");
-                        filePicker.pick().then((value) {
-//                          filePicker.
-                        });
+//                        filePicker.pick().then((value) {
+////                          filePicker.
+//                        });
                         break;
 //                      case "duplicate":
 //                        if(Platform.isMacOS) {

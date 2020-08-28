@@ -85,27 +85,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0-nullsafety"
-  file_chooser:
-    dependency: transitive
-    description:
-      name: file_chooser
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.2"
-  file_picker:
-    dependency: "direct main"
-    description:
-      name: file_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.9.0+1"
-  file_picker_cross:
-    dependency: "direct main"
-    description:
-      name: file_picker_cross
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   firebase:
     dependency: transitive
     description:
@@ -160,13 +139,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  flutter_plugin_android_lifecycle:
-    dependency: transitive
-    description:
-      name: flutter_plugin_android_lifecycle
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.8"
   flutter_reorderable_list:
     dependency: "direct main"
     description:
