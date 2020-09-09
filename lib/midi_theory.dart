@@ -6,6 +6,16 @@ import 'util.dart';
 
 extension MidiChangeTheory on MidiChange {
   Iterable<MidiEvent> get midiEvents {
+    final args = ArgumentList((data ?? []).toList());
+    try {
+      return midiEventsCache.putIfAbsent(args,
+          () => _midiEvents.toList());
+    } catch (e) {
+      print("midiEvents fail; args=${args.arguments}: $e");
+      return _midiEvents;
+    }
+  }
+  Iterable<MidiEvent> get _midiEvents {
     if(data == null || data.isEmpty) {
       return [];
     }
@@ -24,18 +34,8 @@ extension MidiChangeTheory on MidiChange {
 //    print("done setting midiEvents; data=$data");
   }
 
-  static final Map<ArgumentList, Iterable<NoteOnEvent>> noteOnsCache = Map();
-  Iterable<NoteOnEvent> get noteOns {
-    final args = ArgumentList((data ?? []).toList());
-    try {
-      return noteOnsCache.putIfAbsent(args,
-          () => _noteOns.toList());
-    } catch (e) {
-      print("noteOns fail; args=${args.arguments}: $e");
-      return _noteOns;
-    }
-  }
-  Iterable<NoteOnEvent> get _noteOns => midiEvents
+  static final Map<ArgumentList, Iterable<MidiEvent>> midiEventsCache = Map();
+  Iterable<NoteOnEvent> get noteOns => midiEvents
     .where((event) => event is NoteOnEvent)
     .map((event) => event as NoteOnEvent);
   Iterable<NoteOffEvent> get noteOffs => midiEvents

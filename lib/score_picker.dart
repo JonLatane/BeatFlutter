@@ -34,6 +34,7 @@ class ScorePicker extends StatefulWidget {
   final ScorePickerMode mode;
   final Score openedScore;
   final ScoreManager scoreManager;
+  final Function(bool) requestKeyboardFocused;
 
   const ScorePicker(
       {Key key,
@@ -43,7 +44,8 @@ class ScorePicker extends StatefulWidget {
       this.close,
       this.mode,
       this.openedScore,
-      this.scoreManager})
+      this.scoreManager,
+      this.requestKeyboardFocused})
       : super(key: key);
 
   @override
@@ -55,6 +57,8 @@ class _ScorePickerState extends State<ScorePicker> {
   Iterable<MidiController> midiControllers = BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> midiSynthesizers = BeatScratchPlugin.midiSynthesizers;
   TextEditingController nameController = TextEditingController();
+  FocusNode nameFocus = FocusNode();
+
 
   ScoreManager get scoreManager => widget.scoreManager;
   String overwritingScoreName;
@@ -63,17 +67,29 @@ class _ScorePickerState extends State<ScorePicker> {
   initState() {
     super.initState();
     nameController.value = nameController.value.copyWith(text: scoreManager.currentScoreName);
+    nameFocus.addListener(() {
+      widget.requestKeyboardFocused(nameFocus.hasFocus);
+    });
   }
 
   @override
   dispose() {
     nameController.dispose();
+    nameFocus.dispose();
     super.dispose();
   }
 
+  bool _wasShowingScoreNameEntry = false;
   @override
   Widget build(BuildContext context) {
     bool showScoreNameEntry = widget.mode == ScorePickerMode.duplicate || widget.mode == ScorePickerMode.create;
+    if (!showScoreNameEntry && _wasShowingScoreNameEntry) {
+      Future.delayed(Duration(milliseconds: 1), () { widget.requestKeyboardFocused(false); });
+    }
+    if (showScoreNameEntry && !_wasShowingScoreNameEntry) {
+      nameFocus.requestFocus();
+    }
+    _wasShowingScoreNameEntry = showScoreNameEntry;
     return Column(
       children: [
         AnimatedContainer(
@@ -91,11 +107,12 @@ class _ScorePickerState extends State<ScorePicker> {
                       child: Transform.translate(
                     offset: Offset(0, 4.5),
                     child: TextField(
-                      controller: nameController,
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 18),
-                      enabled: showScoreNameEntry,
-                      decoration: InputDecoration(border: InputBorder.none, hintText: "Score Name"),
-                    ),
+                        focusNode: nameFocus,
+                        controller: nameController,
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 18),
+                        enabled: showScoreNameEntry,
+                        decoration: InputDecoration(border: InputBorder.none, hintText: "Score Name"),
+                      ),
                   )),
                   AnimatedContainer(
                     duration: animationDuration,
@@ -296,7 +313,7 @@ class __ScoreState extends State<_Score> {
   @override
   Widget build(BuildContext context) {
     String scoreName = widget.file?.scoreName ?? "";
-    DateTime lastModified = widget.file.lastModifiedSync();
+    DateTime lastModified = widget.file?.lastModifiedSync() ?? DateTime(0);
     if (lastModified != lastFileLastModified) {
       _confirmingDelete = false;
       _previewScore = null;

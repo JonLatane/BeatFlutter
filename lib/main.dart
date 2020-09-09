@@ -26,6 +26,7 @@ import 'package:flutter/foundation.dart';
 import 'dummydata.dart';
 import 'main_toolbars.dart';
 import 'music_theory.dart';
+import 'music_utils.dart';
 
 void main() => runApp(MyApp());
 
@@ -125,6 +126,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool _hadVerticalSectionListBefore;
   bool _hadSplitModeBefore;
+  bool _showBottomKeyboardPadding = false;
+  double get bottomKeyboardPadding => _showBottomKeyboardPadding && context.isPortraitPhone
+    ? (showKeyboard ^ showColorboard) ? 50 : 150
+    : 0;
 
   set editingMelody(value) {
     _editingMelody = value;
@@ -495,7 +500,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     (_combineSecondAndMainToolbar) ? 0 : interactionMode == InteractionMode.edit || showViewOptions ? 36 : 0;
 
   double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
-  double get _scorePickerHeight => showScorePicker ? 170 : 0;
+  double get _scorePickerHeight => showScorePicker ? 170 + bottomKeyboardPadding : 0;
 
   bool _isPhone = false;
   bool _isLandscapePhone = false;
@@ -504,7 +509,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get _keyboardHeight => showKeyboard ? _isLandscapePhone ? 115 : 150 : 0;
 
-  double get _statusBarHeight => BeatScratchPlugin.isSynthesizerAvailable ? 0 : _isLandscapePhone ? 25 : 30;
+  bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
+  double get _statusBarHeight => _showStatusBar ? 0 : _isLandscapePhone ? 25 : 30;
   bool _savingScore = false;
 
   double get _tapInBarHeight =>
@@ -526,6 +532,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
     _scoreManager.doOpenScore = (Score scoreToOpen) {
       setState(() {
+        scoreToOpen.parts.expand((p) => p.melodies).forEach((melody) {
+          melody.separateNoteOnAndOffs();
+        });
         BeatScratchPlugin.createScore(scoreToOpen);
         _score = scoreToOpen;
         currentSection = scoreToOpen.sections.first;
@@ -937,7 +946,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF212121),
       child: Row(children: [
         SizedBox(width: 5),
-        Icon(Icons.warning, size: 18, color: chromaticSteps[5]),
+        Icon(Icons.warning, size: 18, color: chromaticSteps[5].withOpacity(_showStatusBar ? 1 : 0)),
         SizedBox(width: 5),
         Text("BeatScratch Synthesizer is loading...",
           style: TextStyle(
@@ -953,7 +962,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF212121),
       child: Row(children: [
         SizedBox(width: 5),
-        Icon(Icons.info, size: 18, color: chromaticSteps[0]),
+        Icon(Icons.info, size: 18, color: chromaticSteps[0].withOpacity(_showStatusBar ? 1 : 0)),
         SizedBox(width: 5),
         Text("Saving score...",
           style: TextStyle(
@@ -1018,11 +1027,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         AnimatedContainer(
           duration: animationDuration,
           padding: EdgeInsets.only(left: 5),
-          width: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 69 : 0,
+          width: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 69 : 0,
           child: MyRaisedButton(
             child: AnimatedOpacity(
               duration: animationDuration,
-              opacity: BeatScratchPlugin.playing && !(context.isPortrait && context.isPhone) ? 1 : 0,
+              opacity: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 1 : 0,
               child: Icon(Icons.pause)),
             onPressed: BeatScratchPlugin.playing
               ? () {
@@ -1518,6 +1527,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         mode: scorePickerMode,
         sectionColor: sectionColor,
         openedScore: _score,
+        requestKeyboardFocused: (focused) {
+          setState(() {
+            _showBottomKeyboardPadding = focused;
+          });
+        },
         close: () {
           setState(() {
             scorePickerMode = ScorePickerMode.none;

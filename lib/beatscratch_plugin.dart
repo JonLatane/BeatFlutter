@@ -8,6 +8,7 @@ import 'package:dart_midi/dart_midi.dart';
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'music_utils.dart';
 
 /// The native platform side of the app is expected to maintain one [Score].
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
@@ -91,6 +92,9 @@ class BeatScratchPlugin {
         case "sendRecordedMelody":
           final Uint8List rawData = call.arguments;
           final Melody response = Melody.fromBuffer(rawData);
+          if (response.separateNoteOnAndOffs()) {
+            updateMelody(response);
+          }
           onRecordingMelodyUpdated(response);
           return Future.value(null);
           break;
