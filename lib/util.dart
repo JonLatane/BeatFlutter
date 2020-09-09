@@ -28,6 +28,8 @@ extension ContextUtils on BuildContext {
   bool get isPortrait => !isLandscape;
 
   bool get isLandscapePhone => isLandscape && isPhone;
+
+  bool get isPortraitPhone => isPortrait && isPhone;
 }
 
 class MethodCache<KeyType, ResultType> {

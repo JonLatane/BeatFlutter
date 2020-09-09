@@ -44,7 +44,7 @@ var _mutableCaches = [
 ];
 
 var _deterministicCaches = [
-  MidiChangeTheory.noteOnsCache,
+  MidiChangeTheory.midiEventsCache,
   ClefNotes.coversCache,
   ClefNotes.diatonicMaxCache,
   ClefNotes.diatonicMinCache,
