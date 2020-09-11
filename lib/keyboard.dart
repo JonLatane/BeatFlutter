@@ -14,6 +14,7 @@ import 'generated/protos/music.pb.dart';
 import 'music_notation_theory.dart';
 import 'music_theory.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -87,7 +88,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
-    if(Platform.isIOS || Platform.isAndroid) {
+    if(MyPlatform.isMobile) {
       try {
         _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
           if (scrollingMode != ScrollingMode.sideScroll) {

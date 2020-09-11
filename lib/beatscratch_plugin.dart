@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:beatscratch_flutter_redux/my_platform.dart';
+
 import 'fake_js.dart'
   if(dart.library.js) 'dart:js';
 import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
@@ -14,8 +16,9 @@ import 'music_utils.dart';
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
-  static final bool supportsPlayback = Platform.isIOS || Platform.isMacOS || Platform.isAndroid || kDebugMode;
-  static final bool supportsRecording = Platform.isIOS || Platform.isMacOS || Platform.isAndroid || kDebugMode;
+  static final bool supportsStorage = !MyPlatform.isWeb || kDebugMode;
+  static final bool supportsPlayback = !MyPlatform.isWeb || kDebugMode;
+  static final bool supportsRecording = !MyPlatform.isWeb || kDebugMode;
 
   static bool _metronomeEnabled = true;
   static bool get metronomeEnabled => _metronomeEnabled;

@@ -4,6 +4,7 @@ import 'dart:ui';
 //import 'package:file_picker/file_picker.dart';
 //import 'package:file_picker_cross/file_picker_cross.dart';
 //import 'package:file_chooser/file_chooser.dart';
+import 'package:beatscratch_flutter_redux/my_platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -35,21 +36,20 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback saveCurrentScore;
   final String currentScoreName;
 
-  const BeatScratchToolbar(
-      {Key key,
-      this.interactionMode,
-      this.viewMode,
-      this.editMode,
-      this.toggleViewOptions,
-      this.sectionColor,
-      this.togglePlaying,
-      this.toggleSectionListDisplayMode,
-      this.setRenderingMode,
-      this.renderingMode,
-      this.showMidiInputSettings,
-      this.focusPartsAndMelodies,
-      this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName})
-      : super(key: key);
+  const BeatScratchToolbar({Key key,
+    this.interactionMode,
+    this.viewMode,
+    this.editMode,
+    this.toggleViewOptions,
+    this.sectionColor,
+    this.togglePlaying,
+    this.toggleSectionListDisplayMode,
+    this.setRenderingMode,
+    this.renderingMode,
+    this.showMidiInputSettings,
+    this.focusPartsAndMelodies,
+    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName})
+    : super(key: key);
 
   @override
   _BeatScratchToolbarState createState() => _BeatScratchToolbarState();
@@ -62,36 +62,39 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 48,
-        child: Row(children: [
-          Expanded(
-              child: MyPopupMenuButton(
+      height: 48,
+      child: Row(children: [
+        Expanded(
+          child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
-              tooltip: null,
-                  offset: Offset(0, MediaQuery.of(context).size.height),
-                  onSelected: (value) {
-                    switch (value) {
-                      case "create":
-                        widget.saveCurrentScore();
-                        widget.showScorePicker(ScorePickerMode.create);
-                        break;
-                      case "open":
-                        widget.saveCurrentScore();
-                        widget.showScorePicker(ScorePickerMode.open);
-                        break;
-                      case "duplicate":
-                        widget.saveCurrentScore();
-                        widget.showScorePicker(ScorePickerMode.duplicate);
-                        break;
-                      case "save":
-                        widget.saveCurrentScore();
-                        break;
-                      case "import":
-                        print("Showing file picker");
+            tooltip: null,
+            offset: Offset(0, MediaQuery
+              .of(context)
+              .size
+              .height),
+            onSelected: (value) {
+              switch (value) {
+                case "create":
+                  widget.saveCurrentScore();
+                  widget.showScorePicker(ScorePickerMode.create);
+                  break;
+                case "open":
+                  widget.saveCurrentScore();
+                  widget.showScorePicker(ScorePickerMode.open);
+                  break;
+                case "duplicate":
+                  widget.saveCurrentScore();
+                  widget.showScorePicker(ScorePickerMode.duplicate);
+                  break;
+                case "save":
+                  widget.saveCurrentScore();
+                  break;
+                case "import":
+                  print("Showing file picker");
 //                        filePicker.pick().then((value) {
 ////                          filePicker.
 //                        });
-                        break;
+                  break;
 //                      case "duplicate":
 //                        if(Platform.isMacOS) {
 //                          print("Showing save panel");
@@ -103,82 +106,83 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 //                          print("This shouldn't be happening");
 //                        }
 //                        break;
-                      case "chooseBeatscratchFolder":
-                        break;
-                      case "notationUi":
-                        widget.setRenderingMode(RenderingMode.notation);
-                        break;
-                      case "colorblockUi":
-                        widget.setRenderingMode(RenderingMode.colorblock);
-                        break;
-                      case "midiSettings":
-                        widget.showMidiInputSettings();
-                        break;
-                      case "about":
-                        showAbout(context);
-                        break;
-                      case "focusPartsAndMelodies":
-                        widget.toggleFocusPartsAndMelodies();
-                        break;
-                      case "showBeatCounts":
-                        widget.toggleShowBeatCounts();
-                        break;
-                      case "clearMutableCaches":
-                        clearMutableCaches();
-                        break;
-                    }
-                    //setState(() {});
-                  },
-                  itemBuilder: (BuildContext context) => [
-                        MyPopupMenuItem(
-                          value: null,
-                          child: Column(children: [
-                            Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                            Container(height: 5),
-                            Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
-                                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10)),
-                          ]),
-                          enabled: false,
-                        ),
-                    MyPopupMenuItem(
-                      value: null,
-                      child: Column(children: [
-                        Text(widget.currentScoreName, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
-                      ]),
-                      enabled: false,
-                    ),
-                        const MyPopupMenuItem(
-                          value: "create",
-                          child: Text('Create Score'),
-                          enabled: true,
-                        ),
-                        const MyPopupMenuItem(
-                          value: "open",
-                          child: Text('Open Score...'),
-                          enabled: true,
-                        ),
-                        const MyPopupMenuItem(
-                          value: "duplicate",
-                          child: Text('Duplicate Score...'),
-                          enabled: true,
-                        ),
-                        const MyPopupMenuItem(
-                          value: "save",
-                          child: Text('Save Score'),
-                          enabled: true,
-                        ),
-                        const MyPopupMenuItem(
-                          value: null,
-                          child: Text('Copy Score'),
-                          enabled: false,
-                        ),
-                        if(widget.interactionMode == InteractionMode.edit) MyPopupMenuItem(
-                          value: "focusPartsAndMelodies",
-                          child: Row(children: [
-                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
-                            Expanded(child: Text('Focus Parts/Melodies'))
-                          ]),
-                        ),
+                case "chooseBeatscratchFolder":
+                  break;
+                case "notationUi":
+                  widget.setRenderingMode(RenderingMode.notation);
+                  break;
+                case "colorblockUi":
+                  widget.setRenderingMode(RenderingMode.colorblock);
+                  break;
+                case "midiSettings":
+                  widget.showMidiInputSettings();
+                  break;
+                case "about":
+                  showAbout(context);
+                  break;
+                case "focusPartsAndMelodies":
+                  widget.toggleFocusPartsAndMelodies();
+                  break;
+                case "showBeatCounts":
+                  widget.toggleShowBeatCounts();
+                  break;
+                case "clearMutableCaches":
+                  clearMutableCaches();
+                  break;
+              }
+              //setState(() {});
+            },
+            itemBuilder: (BuildContext context) =>
+            [
+              MyPopupMenuItem(
+                value: null,
+                child: Column(children: [
+                  Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  Container(height: 5),
+                  Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
+                    style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10)),
+                ]),
+                enabled: false,
+              ),
+              MyPopupMenuItem(
+                value: null,
+                child: Column(children: [
+                  Text(widget.currentScoreName, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                ]),
+                enabled: false,
+              ),
+              MyPopupMenuItem(
+                value: "create",
+                child: Text('Create Score'),
+                enabled: BeatScratchPlugin.supportsStorage,
+              ),
+              MyPopupMenuItem(
+                value: "open",
+                child: Text('Open Score...'),
+                enabled: BeatScratchPlugin.supportsStorage,
+              ),
+              MyPopupMenuItem(
+                value: "duplicate",
+                child: Text('Duplicate Score...'),
+                enabled: BeatScratchPlugin.supportsStorage,
+              ),
+              MyPopupMenuItem(
+                value: "save",
+                child: Text('Save Score'),
+                enabled: BeatScratchPlugin.supportsStorage,
+              ),
+              const MyPopupMenuItem(
+                value: null,
+                child: Text('Copy Score'),
+                enabled: false,
+              ),
+              if(widget.interactionMode == InteractionMode.edit) MyPopupMenuItem(
+                value: "focusPartsAndMelodies",
+                child: Row(children: [
+                  Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
+                  Expanded(child: Text('Focus Parts/Melodies'))
+                ]),
+              ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
@@ -186,119 +190,121 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 //                            Expanded(child: Text('Show Section Beat Counts'))
 //                          ]),
 //                        ),
-                        if (kDebugMode) const MyPopupMenuItem(
-                          value: "clearMutableCaches",
-                          child: Text('Debug: Clear Rendering Caches'),
-                        ),
-                        const MyPopupMenuItem(
-                          value: "midiSettings",
-                          child: Text('MIDI Settings'),
-                        ),
-                        MyPopupMenuItem(
-                          value: "notationUi",
-                          child: Row(children: [
-                            Radio(
-                              value: RenderingMode.notation,
-                              onChanged: null,
-                              groupValue: widget.renderingMode,
-                            ),
-                            Expanded(child: Text('Notation UI')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                child: Image.asset(
-                                  'assets/notehead_filled.png',
-                                  width: 20,
-                                  height: 20,
-                                ))
-                          ]),
-                        ),
-                        MyPopupMenuItem(
-                          value: "colorblockUi",
-                          child: Row(children: [
-                            Radio(
-                              value: RenderingMode.colorblock,
-                              onChanged: null,
-                              groupValue: widget.renderingMode,
-                            ),
-                            Expanded(child: Text('Colorblock UI')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                child: Image.asset(
-                                  'assets/colorboard_vertical.png',
-                                  width: 20,
-                                  height: 20,
-                                ))
-                          ]),
-                        ),
+              if (kDebugMode) const MyPopupMenuItem(
+                value: "clearMutableCaches",
+                child: Text('Debug: Clear Rendering Caches'),
+              ),
+              const MyPopupMenuItem(
+                value: "midiSettings",
+                child: Text('MIDI Settings'),
+              ),
+              MyPopupMenuItem(
+                value: "notationUi",
+                child: Row(children: [
+                  Radio(
+                    value: RenderingMode.notation,
+                    onChanged: null,
+                    groupValue: widget.renderingMode,
+                  ),
+                  Expanded(child: Text('Notation UI')),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                    child: Image.asset(
+                      'assets/notehead_filled.png',
+                      width: 20,
+                      height: 20,
+                    ))
+                ]),
+              ),
+              MyPopupMenuItem(
+                value: "colorblockUi",
+                child: Row(children: [
+                  Radio(
+                    value: RenderingMode.colorblock,
+                    onChanged: null,
+                    groupValue: widget.renderingMode,
+                  ),
+                  Expanded(child: Text('Colorblock UI')),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                    child: Image.asset(
+                      'assets/colorboard_vertical.png',
+                      width: 20,
+                      height: 20,
+                    ))
+                ]),
+              ),
 //              const MyPopupMenuItem(
 //                value: "about",
 //                child: Text('About BeatScratch'),
 //              ),
-                      ],
-                  padding: EdgeInsets.only(bottom: 10.0),
-                  icon: Image.asset('assets/logo.png'))),
-          Expanded(
-              child: MyFlatButton(
-                  onPressed: (widget.interactionMode == InteractionMode.view)
-                      ? (BeatScratchPlugin.supportsPlayback
-                          ? () {
-                              widget.togglePlaying();
-                            }
-                          : null)
-                      : () {
-                          widget.toggleSectionListDisplayMode();
-                        },
-                  padding: EdgeInsets.all(0.0),
-                  child: Icon(
-                      (widget.interactionMode == InteractionMode.view)
-                          ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
-                          : Icons.menu,
-                      color: (widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors.grey : widget.sectionColor))),
-          Expanded(
-              child: AnimatedContainer(
-                  duration: animationDuration,
-                  color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
-                  child: MyFlatButton(
-                      onPressed: (widget.interactionMode == InteractionMode.view) ? widget.toggleViewOptions : widget.viewMode,
-                      padding: EdgeInsets.all(0.0),
-                      child: Icon(Icons.remove_red_eye,
-                          color: (widget.interactionMode == InteractionMode.view) ? Colors.white : widget.sectionColor)))),
-          Expanded(
-              child: AnimatedContainer(
-                  duration: animationDuration,
-                  color: (widget.interactionMode == InteractionMode.edit) ? widget.sectionColor : Colors.transparent,
-                  child: MyFlatButton(
-                      onPressed: widget.editMode,
-                      padding: EdgeInsets.all(0.0),
-                      child: Icon(Icons.edit,
-                          color: (widget.interactionMode == InteractionMode.edit) ? Colors.white : widget.sectionColor))))
-        ]));
+            ],
+            padding: EdgeInsets.only(bottom: 10.0),
+            icon: Image.asset('assets/logo.png'))),
+        Expanded(
+          child: MyFlatButton(
+            onPressed: (widget.interactionMode == InteractionMode.view)
+              ? (BeatScratchPlugin.supportsPlayback
+              ? () {
+              widget.togglePlaying();
+            }
+              : null)
+              : () {
+              widget.toggleSectionListDisplayMode();
+            },
+            padding: EdgeInsets.all(0.0),
+            child: Icon(
+              (widget.interactionMode == InteractionMode.view)
+                ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
+                : Icons.menu,
+              color: (widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors
+                .grey : widget.sectionColor))),
+        Expanded(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
+            child: MyFlatButton(
+              onPressed: (widget.interactionMode == InteractionMode.view) ? widget.toggleViewOptions : widget.viewMode,
+              padding: EdgeInsets.all(0.0),
+              child: Icon(Icons.remove_red_eye,
+                color: (widget.interactionMode == InteractionMode.view) ? Colors.white : widget.sectionColor)))),
+        Expanded(
+          child: AnimatedContainer(
+            duration: animationDuration,
+            color: (widget.interactionMode == InteractionMode.edit) ? widget.sectionColor : Colors.transparent,
+            child: MyFlatButton(
+              onPressed: widget.editMode,
+              padding: EdgeInsets.all(0.0),
+              child: Icon(Icons.edit,
+                color: (widget.interactionMode == InteractionMode.edit) ? Colors.white : widget.sectionColor))))
+      ]));
   }
 
   showAbout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('About BeatScratch'),
-        content: Column(children: [
-          Padding(padding: EdgeInsets.only(bottom: 5), child: Text("Icons provided by:")),
-          Row(children: [
-            Image.asset(
-              "assets/piano.png",
-              width: 24,
-              height: 24,
-            ),
-            Text("Piano by André Luiz Gollo from the Noun Project")
+      builder: (context) =>
+        AlertDialog(
+          title: Text('About BeatScratch'),
+          content: Column(children: [
+            Padding(padding: EdgeInsets.only(bottom: 5), child: Text("Icons provided by:")),
+            Row(children: [
+              Image.asset(
+                "assets/piano.png",
+                width: 24,
+                height: 24,
+              ),
+              Text("Piano by André Luiz Gollo from the Noun Project")
+            ]),
           ]),
-        ]),
-        actions: <Widget>[
-          MyFlatButton(
-            color: widget.sectionColor,
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('OK'),
-          ),
-        ],
-      ),
+          actions: <Widget>[
+            MyFlatButton(
+              color: widget.sectionColor,
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('OK'),
+            ),
+          ],
+        ),
     );
   }
 }
@@ -336,7 +342,10 @@ class SecondToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.of(context).size.width;
+    var width = MediaQuery
+      .of(context)
+      .size
+      .width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
@@ -347,86 +356,86 @@ class SecondToolbar extends StatelessWidget {
     }
     return Row(children: [
       AnimatedContainer(
-          width: editMode ? width / numberOfButtons : 0,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                  padding: EdgeInsets.zero,
-                  child: Stack(children:[
-                    AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
-                      duration: animationDuration, child:
-                      Icon(Icons.play_arrow,)),
-                    AnimatedOpacity(opacity: editMode && BeatScratchPlugin.playing ? 1 : 0,
-                      duration: animationDuration, child:
-                      Icon(Icons.pause,)),
-                    AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && editingMelody ? 1 : 0,
-                      duration: animationDuration, child:
-                      Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
-                ]),
-                  onPressed: BeatScratchPlugin.supportsPlayback
-                      ? () {
-                    if(BeatScratchPlugin.playing) {
-                      BeatScratchPlugin.pause();
-                    } else {
-                      BeatScratchPlugin.play();
-                    }
-                        }
-                      : null))),
+        width: editMode ? width / numberOfButtons : 0,
+        duration: animationDuration,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            padding: EdgeInsets.zero,
+            child: Stack(children: [
+              AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
+                duration: animationDuration, child:
+                Icon(Icons.play_arrow,)),
+              AnimatedOpacity(opacity: editMode && BeatScratchPlugin.playing ? 1 : 0,
+                duration: animationDuration, child:
+                Icon(Icons.pause,)),
+              AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && editingMelody ? 1 : 0,
+                duration: animationDuration, child:
+                Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+            ]),
+            onPressed: BeatScratchPlugin.supportsPlayback
+              ? () {
+              if (BeatScratchPlugin.playing) {
+                BeatScratchPlugin.pause();
+              } else {
+                BeatScratchPlugin.play();
+              }
+            }
+              : null))),
       AnimatedContainer(
-          width: editMode ? width / numberOfButtons : 0,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                  child:
-                      AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Icon(Icons.skip_previous)),
-                  onPressed: BeatScratchPlugin.supportsPlayback
-                      ? () {
-                    BeatScratchPlugin.setBeat(0);
+        width: editMode ? width / numberOfButtons : 0,
+        duration: animationDuration,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            child:
+            AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Icon(Icons.skip_previous)),
+            onPressed: BeatScratchPlugin.supportsPlayback
+              ? () {
+              BeatScratchPlugin.setBeat(0);
 //                          BeatScratchPlugin.stop();
-                        }
-                      : null))),
+            }
+              : null))),
       Expanded(
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                  padding: EdgeInsets.only(top: 7, bottom: 5),
-                  child: Stack(children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: Image.asset('assets/metronome.png'),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
-                    )
-                  ]),
-                  onPressed: null //() => {},
-                  ))),
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            padding: EdgeInsets.only(top: 7, bottom: 5),
+            child: Stack(children: [
+              Align(
+                alignment: Alignment.center,
+                child: Image.asset('assets/metronome.png'),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
+              )
+            ]),
+            onPressed: null //() => {},
+          ))),
       Expanded(
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                child: Image.asset('assets/piano.png', width: 28, height: 28),
-                onPressed: toggleKeyboard,
-                onLongPress: toggleKeyboardConfiguration,
-                color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
-              ))),
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            child: Image.asset('assets/piano.png', width: 28, height: 28),
+            onPressed: toggleKeyboard,
+            onLongPress: toggleKeyboardConfiguration,
+            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
+          ))),
       AnimatedContainer(
-          width: (enableColorboard) ? width / numberOfButtons : 0,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                child: AnimatedOpacity(
-                    duration: animationDuration,
-                    opacity: toggleColorboard != null ? 1 : 0.25,
-                    child: Image.asset('assets/colorboard.png')),
-                onPressed: toggleColorboard,
-                onLongPress: toggleColorboardConfiguration,
-                color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
-              )))
+        width: (enableColorboard) ? width / numberOfButtons : 0,
+        duration: animationDuration,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: toggleColorboard != null ? 1 : 0.25,
+              child: Image.asset('assets/colorboard.png')),
+            onPressed: toggleColorboard,
+            onLongPress: toggleColorboardConfiguration,
+            color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
+          )))
     ]);
   }
 }

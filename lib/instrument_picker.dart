@@ -14,6 +14,7 @@ import 'package:unification/unification.dart';
 import 'animations/animations.dart';
 import 'music_theory.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 import 'ui_models.dart';
 import 'util.dart';
 
@@ -138,7 +139,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
           .toList();
     }
     int maxMidiChannel = 15;
-    if (Platform.isIOS) {
+    if (MyPlatform.isIOS) {
       maxMidiChannel = 4;
     }
     double height = 280;

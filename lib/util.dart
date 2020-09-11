@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 
 import 'my_buttons.dart';
+import 'my_platform.dart';
 
 var uuid = Uuid();
 
@@ -111,7 +112,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
   }
   @override
   void initState() {
-    if(Platform.isIOS || Platform.isAndroid) {
+    if(MyPlatform.isMobile) {
       Vibration.hasVibrator().then((value) => hasVibration = value);
     }
     super.initState();

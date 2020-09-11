@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
@@ -83,6 +84,26 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
         double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
         canvas.drawRect(
             Rect.fromLTRB(bounds.left + leftMargin, top, bounds.right - rightMargin, bottom), alphaDrawerPaint);
+      });
+    }
+
+
+    tones = melody.noteOffsAt(elementPosition % melody.length).toList();
+
+    if (tones.isNotEmpty) {
+      double leftMargin = (isNoteStart) ? drawPadding.toDouble() : 0.0;
+      double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
+      tones.forEach((tone) {
+        int realTone = tone; // + melody.offsetUnder(chord)
+        double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;
+        double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
+        canvas.drawRect(
+          Rect.fromLTRB(bounds.left + leftMargin + xScale, top - xScale, bounds.right - rightMargin - xScale, bottom + xScale),
+          Paint()
+          ..strokeWidth = 1.2 * xScale
+          ..style = PaintingStyle.stroke
+          ..color = Colors.black.withOpacity(1)
+        );
       });
     }
   }

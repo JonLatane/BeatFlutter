@@ -12,9 +12,11 @@ import io.multifunctions.letCheckNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.io.pool.DefaultPool
 import org.beatscratch.commands.ProtobeatsPlugin.Playback
 import org.beatscratch.models.Music.*
 import org.beatscratch.models.Music.MelodyReference.PlaybackType
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.floor
 
@@ -23,6 +25,27 @@ import kotlin.math.floor
  * [Melody] and [Harmony] data as the end-user would expect.
  */
 object ScorePlayer : Patterns, CoroutineScope {
+
+  private data class Attack private constructor(
+    var melodyId: String? = null,
+    var channel: Byte = 0,
+    var midiNote: Byte = 0,
+    var velocity: Byte = 0
+  ) {
+    companion object {
+      fun create() = attackPool.borrow()
+      private val attackPool: DefaultPool<Attack> = object : DefaultPool<Attack>(16) {
+        override fun produceInstance() = Attack()
+      }
+    }
+    fun dispose() {
+      attackPool.recycle(this)
+    }
+  }
+
+
+  private val activeAttacks = Vector<Attack>(16)
+
   var metronomeEnabled: Boolean = true
   var playbackMode: Playback.Mode = Playback.Mode.score
   private var chord: Chord = Chord.newBuilder()
@@ -69,12 +92,22 @@ object ScorePlayer : Patterns, CoroutineScope {
       val beatMod = currentTick % ticksPerBeat
       if (beatMod == 0) {
         playMetronome()
+        if (playbackMode == Playback.Mode.score && currentTick == 0) {
+          activeAttacks.removeAll { attack ->
+            val remove = currentSection?.melodiesList?.map { it.melodyId }?.none { it == attack.melodyId } ?: true
+            if (remove) {
+              attack.dispose()
+              NoteOffEvent(midiNote = attack.midiNote, channel = attack.channel).send()
+            }
+            remove
+          }
+        }
         notifyPlayingBeat()
         recordBeat()
       }
-      if (playbackMode == Playback.Mode.score) {
-        doPreviousSectionNoteOffs()
-      }
+//      if (playbackMode == Playback.Mode.score) {
+//        doPreviousSectionNoteOffs()
+//      }
       doTick()
       currentTick++
     } ?: logW("Tick called with no Score available")
@@ -135,8 +168,26 @@ object ScorePlayer : Patterns, CoroutineScope {
         midiChange ->
         val bytes = midiChange.data.toByteArray()
         val events = if(playNoteOns) bytes.midiEvents else bytes.noteOffs
-        events.forEach {
-          it.withChannelOverride(part.instrument.midiChannel.toByte())
+        events.forEach { midiEvent ->
+          (midiEvent as? NoteOnEvent)?.let { noteOn ->
+            activeAttacks.add(
+              Attack.create().apply {
+                melodyId = melody.id
+                channel = part.instrument.channel
+                midiNote = noteOn.midiNote
+                velocity = noteOn.velocity
+              }
+            )
+          }
+          (midiEvent as? NoteOffEvent)?.let { noteOff ->
+            activeAttacks.removeAll { attack ->
+              val remove = attack.midiNote == noteOff.midiNote && attack.channel == noteOff.channel
+              if (remove) attack.dispose()
+              remove
+            }
+          }
+
+          midiEvent.withChannelOverride(part.instrument.midiChannel.toByte())
             .withVelocityMultiplier(melodyReference.volume)
             .send()
         }
@@ -144,6 +195,7 @@ object ScorePlayer : Patterns, CoroutineScope {
     }
   }
 
+  /** Used only for showing notifications */
   override val coroutineContext: CoroutineContext
-    get() = Dispatchers.Default
+    get() = Dispatchers.IO
 }

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:math';
 import 'generated/protos/music.pb.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 import 'ui_models.dart';
 import 'util.dart';
 import 'music_notation_theory.dart';
@@ -92,7 +93,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
     chordNotifier = ValueNotifier(widget.chord);
-    if(Platform.isIOS || Platform.isAndroid) {
+    if(MyPlatform.isMobile) {
       try {
         _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
           if (scrollingMode != ScrollingMode.sideScroll) {
@@ -352,7 +353,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                         flex: context.isTabletOrLandscapey ? 3 : 2,
                         child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: (Platform.isAndroid || Platform.isIOS || kDebugMode)
+                            onPressed: (MyPlatform.isMobile || MyPlatform.isDebug)
                                 ? () {
                                     setState(() {
                                       switch (scrollingMode) {

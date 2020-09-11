@@ -14,6 +14,7 @@ import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
 import 'melody_view.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 import 'score_picker.dart';
 import 'section_list.dart';
 import 'part_melodies_view.dart';
@@ -54,7 +55,7 @@ class MyApp extends StatelessWidget {
 //    debugPaintSizeEnabled = true;
     return MaterialApp(
       title: 'BeatFlutter',
-      onGenerateTitle: (context) => "BeatFlutter: ${_scoreManager.currentScoreName}",
+      onGenerateTitle: (context) => "BeatScratch: ${_scoreManager.currentScoreName}",
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -545,7 +546,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
     };
 //    _scoreManager.loadCurrentScoreIntoUI();
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (MyPlatform.isMobile) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
           _softKeyboardVisible = visible;
@@ -946,7 +947,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF212121),
       child: Row(children: [
         SizedBox(width: 5),
-        Icon(Icons.warning, size: 18, color: chromaticSteps[5].withOpacity(_showStatusBar ? 1 : 0)),
+        Icon(Icons.warning, size: 18, color: chromaticSteps[5]),
         SizedBox(width: 5),
         Text("BeatScratch Synthesizer is loading...",
           style: TextStyle(
@@ -962,7 +963,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       color: Color(0xFF212121),
       child: Row(children: [
         SizedBox(width: 5),
-        Icon(Icons.info, size: 18, color: chromaticSteps[0].withOpacity(_showStatusBar ? 1 : 0)),
+        Icon(Icons.info, size: 18, color: chromaticSteps[0]),
         SizedBox(width: 5),
         Text("Saving score...",
           style: TextStyle(
@@ -999,7 +1000,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               child: Text(
                 !playing && tapInBeat == null ? (currentSection.meter.defaultBeatsPerMeasure - 1).toString() : "",
                 style: TextStyle(fontWeight: FontWeight.w700)),
-              onPressed: tapInBeat == null ? () {} : null,
+              onPressed: tapInBeat == null && BeatScratchPlugin.supportsPlayback ? () {} : null,
               padding: EdgeInsets.zero,
             ))),
         AnimatedContainer(
@@ -1053,8 +1054,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: Row(children: [
                   Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
                   SizedBox(width: 5),
-                  Text("Tap in to ${editingMelody ? "record" : "play"}",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+                  Text(BeatScratchPlugin.supportsPlayback ? "Tap in to ${editingMelody ? "record" : "play"}" : "Playback not supported",
+                    style: TextStyle(color: BeatScratchPlugin.supportsPlayback ? Colors.white : Colors.grey, fontWeight: FontWeight.w100))
                 ])),
               AnimatedOpacity(
                 duration: animationDuration,
@@ -1079,11 +1080,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             padding: EdgeInsets.all(5),
             color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
             child: Image.asset('assets/metronome.png'),
-            onPressed: () {
+            onPressed: BeatScratchPlugin.supportsPlayback ? () {
               setState(() {
                 BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
               });
-            },
+            } : null,
           ))
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
 //          child: MyRaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),

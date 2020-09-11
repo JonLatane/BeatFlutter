@@ -242,6 +242,29 @@ extension MelodyTheory on Melody {
     }
   }
 
+
+  static final Map<ArgumentList, Iterable<int>> noteOffsCache = Map();
+  Iterable<int> noteOffsAt(int elementPosition) {
+    if(id == "keyboardDummy" || id == "colorboardDummy") {
+      return [];
+    }
+    final key = ArgumentList([id, elementPosition]);
+    return noteOffsCache.putIfAbsent(key, () => _noteOffsAt(elementPosition));
+  }
+  Iterable<int> _noteOffsAt(int elementPosition) {
+    if (type == MelodyType.midi) {
+      final data = midiData.data[elementPosition];
+      if(data == null) {
+        return [];
+      }
+      final midiEvents = data.midiEvents;
+      final convertedData = data.noteOffs.map((e) => e.noteNumber - 60);
+      return convertedData;
+    } else {
+      return []; // TODO: Audio rendering?
+    }
+  }
+
   int measureStart(int elementPosition, Meter meter) {
     int beat = elementPosition ~/ subdivisionsPerBeat;
     while(beat % meter.defaultBeatsPerMeasure != 0) {
