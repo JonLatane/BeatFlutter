@@ -93,14 +93,7 @@ object ScorePlayer : Patterns, CoroutineScope {
       if (beatMod == 0) {
         playMetronome()
         if (playbackMode == Playback.Mode.score && currentTick == 0) {
-          activeAttacks.removeAll { attack ->
-            val remove = currentSection?.melodiesList?.map { it.melodyId }?.none { it == attack.melodyId } ?: true
-            if (remove) {
-              attack.dispose()
-              NoteOffEvent(midiNote = attack.midiNote, channel = attack.channel).send()
-            }
-            remove
-          }
+          clearNonSectionActiveAttacks()
         }
         notifyPlayingBeat()
         recordBeat()
@@ -112,6 +105,17 @@ object ScorePlayer : Patterns, CoroutineScope {
       currentTick++
     } ?: logW("Tick called with no Score available")
     AndroidMidi.flushSendStream()
+  }
+
+  fun clearNonSectionActiveAttacks() {
+    activeAttacks.removeAll { attack ->
+      val remove = currentSection?.melodiesList?.map { it.melodyId }?.none { it == attack.melodyId } ?: true
+      if (remove) {
+        attack.dispose()
+        NoteOffEvent(midiNote = attack.midiNote, channel = attack.channel).send()
+      }
+      remove
+    }
   }
 
   fun playMetronome(immediately: Boolean = false) {

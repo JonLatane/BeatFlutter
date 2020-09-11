@@ -14,9 +14,8 @@ class BeatScratchScorePlayer {
   var metronomeEnabled: Bool = true
   var score: Score { return BeatScratchPlugin.sharedInstance.score }
   struct Attack {
-    var part: Part
-    var instrument: Instrument
-    var melody: Melody
+    var melodyId: String? = nil
+    var channel: MIDIChannel
     var tone: MIDINoteNumber
     var velocity: MIDIVelocity
   }
@@ -36,12 +35,8 @@ class BeatScratchScorePlayer {
     }
     set {
       currentSectionId = newValue.id
+      clearNonSectionActiveAttacks()
     }
-//    didSet {
-//      if(oldValue != currentSection) {
-////        Conductor.sharedInstance.stopPlayingNotes()
-//      }
-//    }
   }
   var currentTick: Int64 = 0
   private var chord: Chord = cChromatic
@@ -74,6 +69,9 @@ class BeatScratchScorePlayer {
     let beatMod: Int = Int(currentTick % Int64(BeatScratchPlaybackThread.ticksPerBeat))
     if beatMod == 0 {
       playMetronome()
+      if (playbackMode == Playback.Mode.score && currentTick == 0) {
+        clearNonSectionActiveAttacks()
+      }
       BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
       MelodyRecorder.sharedInstance.notifyBeatFinished()
     }
@@ -165,10 +163,29 @@ class BeatScratchScorePlayer {
       let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
       if let midiData = melody.midiData.data[Int32(melodyPosition) % Int32(melody.length)] {
         let bytes = [UInt8](midiData.data)
-        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume, playNoteOns: playNoteOns)
+        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume, playNoteOns: playNoteOns, attacks: &activeAttacks)
         print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }
+  }
+  
+  func clearNonSectionActiveAttacks() {
+    activeAttacks.removeAll(where: { (attack) -> Bool in
+      let remove: Bool = !currentSection.melodies.contains(where: { $0.melodyID == attack.melodyId })
+      if (remove) {
+        Conductor.sharedInstance.stopNote(note: attack.tone, channel: attack.channel)
+      }
+      return remove
+    })
+//    activeAttacks
+//    activeAttacks.removeAll { attack ->
+//      val remove = currentSection?.melodiesList?.map { it.melodyId }?.none { it == attack.melodyId } ?: true
+//      if (remove) {
+//        attack.dispose()
+//        NoteOffEvent(midiNote = attack.midiNote, channel = attack.channel).send()
+//      }
+//      remove
+//    }
   }
 //
 //  private fun cleanUpExpiredAttacks() {

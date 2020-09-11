@@ -200,9 +200,10 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       "setCurrentSection"                     -> {
         val sectionId = call.arguments as String
         currentScore?.sectionsList?.firstOrNull { it.id == sectionId }?.let { section ->
-          sendAllNotesOff(immediately = true)
+//          sendAllNotesOff(immediately = true)
           currentSection = section
           result.success(null)
+          ScorePlayer.clearNonSectionActiveAttacks()
           launch {
             PlaybackService.instance?.showNotification()
           }

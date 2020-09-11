@@ -41,7 +41,8 @@ class BeatScratchPlugin {
         case "sendMIDI":
           let data = (call.arguments as! FlutterStandardTypedData).data
           let args = [UInt8](data)
-          let parsedBytes = conductor.parseMidi(args, record: true)
+          var attacks = Array<BeatScratchScorePlayer.Attack>()
+          let parsedBytes = conductor.parseMidi(args, record: true, attacks: &attacks)
           if parsedBytes > 0 {
             result(nil)
           } else {
@@ -169,7 +170,7 @@ class BeatScratchPlugin {
           let sectionId = call.arguments as! String
           if let section = self.score.sections.first(where: { $0.id == sectionId }) {
             BeatScratchScorePlayer.sharedInstance.currentSection = section
-            Conductor.sharedInstance.stopPlayingNotes()
+//            Conductor.sharedInstance.stopPlayingNotes()
             result(nil)
           } else {
             result(FlutterError(code: "500", message: "Section not found", details: "nope"))

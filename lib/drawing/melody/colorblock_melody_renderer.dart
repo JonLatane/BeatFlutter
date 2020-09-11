@@ -102,7 +102,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
           Paint()
           ..strokeWidth = 1.2 * xScale
           ..style = PaintingStyle.stroke
-          ..color = Colors.black.withOpacity(1)
+          ..color = Colors.black.withOpacity(alphaDrawerPaint.color.opacity)
         );
       });
     }

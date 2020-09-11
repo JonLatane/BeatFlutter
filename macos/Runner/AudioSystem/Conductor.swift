@@ -241,20 +241,20 @@ class Conductor {
   }
   
   // Return the total number of bytes processed
-  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false, playNoteOns: Bool = true) -> Int {
+  func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false, playNoteOns: Bool = true, melodyId: String? = nil, attacks: inout Array<BeatScratchScorePlayer.Attack>) -> Int {
     var bytes = [UInt8](midiData)
-    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns)
+    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns, melodyId, &attacks)
     var totalBytesProcessed = bytesProcessed
     while(bytes.count > bytesProcessed) {
       bytes.removeFirst(max(1,bytesProcessed))
-      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns)
+      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns, melodyId, &attacks)
       totalBytesProcessed += bytesProcessed
     }
     return totalBytesProcessed
   }
   
   // Return the number of bytes processed
-  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool, _ playNoteOns: Bool) -> Int {
+  private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool, _ playNoteOns: Bool, _ melodyId: String?, _ attacks: inout Array<BeatScratchScorePlayer.Attack>) -> Int {
     if(args.count == 0) { return 0 }
     if((args[0] & 0xF0) == 0x90) { // noteOn
       if(playNoteOns) {
@@ -262,6 +262,10 @@ class Conductor {
         let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
         let channel = channelOverride ?? args[0] & 0xF
         playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
+        if(melodyId != nil) {
+          let attack = BeatScratchScorePlayer.Attack(melodyId: melodyId, channel: channel, tone: noteNumber, velocity: velocity)
+          attacks.append(attack)
+        }
       }
       return 3
     } else if((args[0] & 0xF0) == 0x80) { // noteOff

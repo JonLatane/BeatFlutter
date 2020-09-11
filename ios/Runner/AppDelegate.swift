@@ -43,7 +43,9 @@ import AudioKit
 
 @objc class FullscreenFlutterViewController: FlutterViewController {
   override var preferredScreenEdgesDeferringSystemGestures : UIRectEdge {
-    super.preferredScreenEdgesDeferringSystemGestures
+    if #available(iOS 11.0, *) {
+      super.preferredScreenEdgesDeferringSystemGestures
+    }
     return [UIRectEdge.bottom, UIRectEdge.right]
   }
 }
