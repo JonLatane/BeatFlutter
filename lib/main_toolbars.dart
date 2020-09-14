@@ -1,23 +1,25 @@
-import 'dart:io';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 //import 'package:file_picker/file_picker.dart';
 //import 'package:file_picker_cross/file_picker_cross.dart';
 //import 'package:file_chooser/file_chooser.dart';
-import 'package:beatscratch_flutter_redux/my_platform.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'beatscratch_plugin.dart';
 import 'clearCaches.dart';
 import 'colors.dart';
-import 'my_popup_menu.dart';
+import 'generated/protos/music.pb.dart';
 import 'my_buttons.dart';
+import 'my_popup_menu.dart';
 import 'score_picker.dart';
 import 'ui_models.dart';
+import 'url_conversions.dart';
 import 'util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
+  final Score score;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
   final VoidCallback editMode;
@@ -48,7 +50,7 @@ class BeatScratchToolbar extends StatefulWidget {
     this.renderingMode,
     this.showMidiInputSettings,
     this.focusPartsAndMelodies,
-    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName})
+    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score})
     : super(key: key);
 
   @override
@@ -129,6 +131,12 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                 case "clearMutableCaches":
                   clearMutableCaches();
                   break;
+                case "copyScore":
+                  Future.microtask(() {
+                    final urlString = widget.score.convertToUrl();
+                    Clipboard.setData(ClipboardData(text: urlString));
+                  });
+                  break;
               }
               //setState(() {});
             },
@@ -172,9 +180,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                 enabled: BeatScratchPlugin.supportsStorage,
               ),
               const MyPopupMenuItem(
-                value: null,
-                child: Text('Copy Score'),
-                enabled: false,
+                value: "copyScore",
+                child: Text('Copy Score URL'),
+                enabled: true,
               ),
               if(widget.interactionMode == InteractionMode.edit) MyPopupMenuItem(
                 value: "focusPartsAndMelodies",

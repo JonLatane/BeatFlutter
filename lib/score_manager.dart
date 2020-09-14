@@ -1,11 +1,18 @@
 import 'dart:io';
 
+import 'package:beatscratch_flutter_redux/my_platform.dart';
+
+import 'fake_js.dart'
+if(dart.library.js) 'dart:js';
+
 import 'package:beatscratch_flutter_redux/dummydata.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'generated/protos/music.pb.dart';
 import 'dummydata.dart';
+import 'url_conversions.dart';
 
 class ScoreManager {
   Function(Score) doOpenScore;
@@ -33,10 +40,15 @@ class ScoreManager {
 
   _initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
-    _scoresDirectory.createSync();
-    loadCurrentScoreIntoUI();
+
+    if(MyPlatform.isWeb) {
+      loadUrlScoreIntoUI();
+    } else {
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
+      _scoresDirectory.createSync();
+      loadCurrentScoreIntoUI();
+    }
   }
 
   createScore(String name, { Score score }) {
@@ -60,6 +72,18 @@ class ScoreManager {
     try {
       score = await loadCurrentScore();
     } catch(e) {
+      score = defaultScore();
+    }
+    doOpenScore(score);
+  }
+  
+  loadUrlScoreIntoUI() async {
+    String data = context.callMethod('getPageHashValueOnLoad', []);
+    data = data.replaceFirst("score=", "");
+    Score score;
+    try {
+      score = scoreFromUrlHashValue(data);
+    } catch(any) {
       score = defaultScore();
     }
     doOpenScore(score);

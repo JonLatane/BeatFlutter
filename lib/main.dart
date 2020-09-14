@@ -87,7 +87,7 @@ Score initialScore = defaultScore();
 Section initialSection = initialScore.sections[0];
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  Score _score = initialScore;
+  Score score = initialScore;
   InteractionMode interactionMode = InteractionMode.view;
   SplitMode _splitMode;
 
@@ -246,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   updateScore(Function(Score) updates) {
     setState(() {
-      _score = _score.copyWith(updates);
+      score = score.copyWith(updates);
     });
   }
 
@@ -310,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   set selectedMelody(Melody selectedMelody) {
     _selectedMelody = selectedMelody;
     if (selectedMelody != null) {
-      Part part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
+      Part part = score.parts.firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
       if (part != null) {
         keyboardPart = part;
       }
@@ -332,7 +332,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<SectionList> _sectionLists = [];
 
-  Color get sectionColor => sectionColors[_score.sections.indexOf(currentSection) % sectionColors.length];
+  Color get sectionColor => sectionColors[score.sections.indexOf(currentSection) % sectionColors.length];
 
   _selectOrDeselectMelody(Melody melody) {
     setState(() {
@@ -383,14 +383,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
       });
     }
-    BeatScratchPlugin.updateSections(_score);
+    BeatScratchPlugin.updateSections(score);
   }
 
   _setReferenceVolume(MelodyReference ref, double volume) {
     setState(() {
       ref.volume = volume;
     });
-    BeatScratchPlugin.updateSections(_score);
+    BeatScratchPlugin.updateSections(score);
   }
 
   _setPartVolume(Part part, double volume) {
@@ -537,7 +537,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           melody.separateNoteOnAndOffs();
         });
         BeatScratchPlugin.createScore(scoreToOpen);
-        _score = scoreToOpen;
+        score = scoreToOpen;
+        clearMutableCaches();
         currentSection = scoreToOpen.sections.first;
         selectedMelody = null;
         selectedPart = null;
@@ -545,7 +546,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         colorboardPart = scoreToOpen.parts.firstWhere((Part p) => p.instrument.type != InstrumentType.drum, orElse: null);
       });
     };
-//    _scoreManager.loadCurrentScoreIntoUI();
     if (MyPlatform.isMobile) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
@@ -556,7 +556,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //    BeatScratchPlugin.createScore(_score);
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
-        currentSection = _score.sections.firstWhere((section) => section.id == sectionId);
+        currentSection = score.sections.firstWhere((section) => section.id == sectionId);
       });
     };
     BeatScratchPlugin.onSynthesizerStatusChange = () {
@@ -577,7 +577,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.onRecordingMelodyUpdated = (melody) {
       setState(() {
 //        final midiData = melody.midiData;
-        final part = _score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
+        final part = score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
         final index = part.melodies.indexWhere((m) => m.id == melody.id);
 //        print("Replacing ${part.melodies[index]} with $melody");
         part.melodies[index].midiData = melody.midiData;
@@ -591,9 +591,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });
     };
-    keyboardPart = _score.parts.firstWhere((part) => true, orElse: () => null);
+    keyboardPart = score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
-      _score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
+      score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
@@ -896,7 +896,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: Row(children: [
             MyFlatButton(
               onPressed: () {
-                _launchURL("https://play.google.com/store/apps/details?id=com.jonlatane.beatpad");
+//                _launchURL("https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
+                _launchURL("https://play.google.com/apps/testing/io.beatscratch.beatscratch_flutter_redux");
               },
               padding: EdgeInsets.all(0),
               child: Image.asset("assets/play_en_badge_web_generic.png")),
@@ -1126,6 +1127,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   BeatScratchToolbar createBeatScratchToolbar() =>
     BeatScratchToolbar(
+      score: score,
       currentScoreName: _scoreManager.currentScoreName,
       sectionColor: sectionColor,
       viewMode: _viewMode,
@@ -1190,7 +1192,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       saveCurrentScore: () {
         Future.microtask(() {
           setState(() { _savingScore = true; });
-          _scoreManager.saveCurrentScore(_score);
+          _scoreManager.saveCurrentScore(score);
           Future.delayed(animationDuration*2, () {
             setState(() { _savingScore = false; });
           });
@@ -1232,7 +1234,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
       sectionColor: sectionColor,
-      score: _score,
+      score: score,
       setState: setState,
       scrollDirection: scrollDirection,
       currentSection: currentSection,
@@ -1300,7 +1302,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       melodyViewMode: melodyViewMode,
       superSetState: setState,
       currentSection: currentSection,
-      score: _score,
+      score: score,
       sectionColor: sectionColor,
       selectMelody: _selectOrDeselectMelody,
       selectPart: _selectOrDeselectPart,
@@ -1334,7 +1336,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       focusPartsAndMelodies: focusPartsAndMelodies,
       melodyViewSizeFactor: _melodyViewSizeFactor,
       melodyViewMode: melodyViewMode,
-      score: _score,
+      score: score,
       currentSection: currentSection,
       colorboardNotesNotifier: colorboardNotesNotifier,
       keyboardNotesNotifier: keyboardNotesNotifier,
@@ -1364,14 +1366,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       deletePart: (part) {
         setState(() {
           if (part == this.selectedPart) {
-            int index = this._score.parts.indexOf(part);
+            int index = this.score.parts.indexOf(part);
             if (index > 0) {
               index = index - 1;
             } else {
               index = index + 1;
             }
-            if (index < this._score.parts.length) {
-              this.selectedPart = this._score.parts[index];
+            if (index < this.score.parts.length) {
+              this.selectedPart = this.score.parts[index];
             } else {
               this.selectedPart = null;
               this.melodyViewMode = MelodyViewMode.section;
@@ -1383,7 +1385,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (part == this.colorboardPart) {
             this.colorboardPart = null;
           }
-          _score.parts.remove(part);
+          score.parts.remove(part);
 
           BeatScratchPlugin.deletePart(part);
         });
@@ -1392,7 +1394,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         BeatScratchPlugin.deleteMelody(melody);
         setState(() {
           if (melody == this.selectedMelody) {
-            Part part = this._score.parts.firstWhere((part) => part.melodies.any((m) => m.id == melody.id));
+            Part part = this.score.parts.firstWhere((part) => part.melodies.any((m) => m.id == melody.id));
             int index = part.melodies.indexWhere((m) => m.id == melody.id);
             if (index > 0) {
               index = index - 1;
@@ -1406,10 +1408,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               this._selectOrDeselectPart(part);
             }
           }
-          _score.parts.forEach((part) {
+          score.parts.forEach((part) {
             part.melodies.removeWhere((m) => m.id == melody.id);
           });
-          _score.sections.forEach((section) {
+          score.sections.forEach((section) {
             section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
           });
         });
@@ -1417,28 +1419,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       deleteSection: (section) {
         setState(() {
           if (section.id == this.currentSection.id) {
-            int index = this._score.sections.indexWhere((s) => s.id == section.id);
+            int index = this.score.sections.indexWhere((s) => s.id == section.id);
             if (index > 0) {
               index = index - 1;
             } else {
               index = index + 1;
             }
-            this.currentSection = this._score.sections[index];
+            this.currentSection = this.score.sections[index];
           }
-          _score.sections.removeWhere((s) => s.id == section.id);
+          score.sections.removeWhere((s) => s.id == section.id);
         });
-        BeatScratchPlugin.updateSections(_score);
+        BeatScratchPlugin.updateSections(score);
       },
       selectBeat: (beat) {
         if (interactionMode == InteractionMode.view) {
           int seekingBeat = 0;
           int sectionIndex = 0;
-          Section section = _score.sections[sectionIndex++];
+          Section section = score.sections[sectionIndex++];
           while (beat - seekingBeat >= section.beatCount) {
             seekingBeat += section.beatCount;
-            section = _score.sections[sectionIndex++];
+            section = score.sections[sectionIndex++];
           }
-          print("Setting section to $section and beat to ${beat - seekingBeat}");
+//          print("Setting section to $section and beat to ${beat - seekingBeat}");
           setState(() {
             currentSection = section;
           });
@@ -1452,7 +1454,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           .trim()
           .isEmpty) {
           String prefix = "Section";
-          while (_score.sections.any((s) => s.name.startsWith("$prefix "))) {
+          while (score.sections.any((s) => s.name.startsWith("$prefix "))) {
             prefix = "$prefix'";
           }
           currentSection.name = "$prefix 1";
@@ -1476,9 +1478,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   _insertSection(Section newSection) {
-    int currentSectionIndex = _score.sections.indexOf(currentSection);
-    _score.sections.insert(currentSectionIndex + 1, newSection);
-    BeatScratchPlugin.updateSections(_score);
+    int currentSectionIndex = score.sections.indexOf(currentSection);
+    score.sections.insert(currentSectionIndex + 1, newSection);
+    BeatScratchPlugin.updateSections(score);
     _selectSection(newSection);
   }
 
@@ -1527,7 +1529,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         scoreManager: _scoreManager,
         mode: scorePickerMode,
         sectionColor: sectionColor,
-        openedScore: _score,
+        openedScore: score,
         requestKeyboardFocused: (focused) {
           setState(() {
             _showBottomKeyboardPadding = focused;

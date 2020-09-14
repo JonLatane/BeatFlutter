@@ -260,4 +260,8 @@ class BeatScratchPlugin {
     Conductor.sharedInstance.setMIDIInstrument(channel: part.instrument.midiChannel, midiInstrument: part.instrument.midiInstrument)
     Conductor.sharedInstance.setVolume(channel: part.instrument.midiChannel, volume: Double(part.instrument.volume))
   }
+  
+  func openScoreFromUrl(_ url: String) {
+    channel?.invokeMethod("openScoreFromUrl", arguments: url)
+  }
 }

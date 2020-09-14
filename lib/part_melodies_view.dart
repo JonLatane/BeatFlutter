@@ -381,7 +381,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
 
   Section get currentSection => widget.currentSection;
 
-  get selectedMelody => widget.selectedMelody;
+  Melody get selectedMelody => widget.selectedMelody;
 
   get setReferenceVolume => widget.setReferenceVolume;
 
@@ -695,6 +695,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     childCount: _items.length,
                   ),
                 )),
+            if (part.instrument.type == selectedMelody?.instrumentType)
+              buildAddFromTemplateButton(backgroundColor, textColor, selectedMelody.clone(),
+              icon: Icons.control_point_duplicate),
             if (part.instrument.type == InstrumentType.harmonic)
               buildAddFromTemplateButton(backgroundColor, textColor, odeToJoyA()),
             if (part.instrument.type == InstrumentType.harmonic)
@@ -781,7 +784,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 
   Widget buildAddFromTemplateButton(Color backgroundColor, Color textColor, Melody newMelody,
-      {bool forceShowBeatCount = false}) {
+      {bool forceShowBeatCount = false, IconData icon = Icons.add}) {
     bool melodyExists = newMelody.name.isNotEmpty && part.melodies.any((it) => it.name == newMelody.name);
     if (melodyExists) {
       return null;
@@ -797,6 +800,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
             setState(() {
               int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
               part.melodies.insert(index, newMelody);
+              if(icon == Icons.control_point_duplicate) {
+                newMelody.id = uuid.v4();
+              }
               BeatScratchPlugin.createMelody(part, newMelody);
               final reference = currentSection.referenceTo(newMelody);
               toggleMelodyReference(reference);
@@ -813,24 +819,29 @@ class _MelodiesViewState extends State<_MelodiesView> {
             });
           },
           child: Stack(children: [
+            if (icon != Icons.add)
+            Align(alignment: Alignment.center, child: Row(children: [
+              Expanded(child: SizedBox()),
+              Text(
+                newMelody.name?.isNotEmpty ?? false ? newMelody.name : "Melody ${newMelody.id.substring(0, 5)}",
+                style: TextStyle(color: newMelody.name?.isNotEmpty ?? false ? textColor : textColor.withOpacity(0.5), fontWeight: FontWeight.w300),
+              ),
+              Expanded(child: SizedBox()),
+            ])),
           Align(alignment: Alignment.center, child: Row(children: [
-              if (newMelody.name.isEmpty) Expanded(child: SizedBox()),
               Icon(
-                Icons.add,
+                icon,
                 color: textColor,
               ),
-              if (newMelody.name.isEmpty) Expanded(child: SizedBox()),
-              if (newMelody.name.isNotEmpty)
-                Expanded(
+
+            if (icon == Icons.add) Expanded(
                   child: Transform.translate(offset: Offset(0, -1), child:Text(
-                  newMelody.name,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w300),
+                  newMelody.name?.isNotEmpty ?? false ? newMelody.name : "Melody ${newMelody.id.substring(0, 5)}",
+                  style: TextStyle(color: newMelody.name?.isNotEmpty ?? false ? textColor : textColor.withOpacity(0.5), fontWeight: FontWeight.w300),
                 )),),
             ])),
             Align(alignment: Alignment.centerRight, child: Transform.translate(offset: Offset(10, 0), child:
             BeatsBadge(beats: newMelody.length ~/ newMelody.subdivisionsPerBeat, show: widget.showBeatCounts,),)),
-            if (newMelody.name.isEmpty) Align(alignment: Alignment.centerLeft, child: Transform.translate(offset: Offset(-10, 0), child:
-            Icon(Icons.fiber_manual_record, color: chromaticSteps[7].withAlpha(127)),))
           ])),
     );
   }
