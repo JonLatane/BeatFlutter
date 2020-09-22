@@ -7,8 +7,11 @@ import 'generated/protos/music.pb.dart';
 import 'util.dart';
 
 extension ScoreReKey on Score {
-  reKeyMelodies() {
+  reKeyMelodies({bool andParts: true}) {
     parts.forEach((part) {
+      if (andParts) {
+        part.id = uuid.v4();
+      }
       part.melodies.forEach((melody) {
         String oldMelodyId = melody.id;
         String newMelodyId = uuid.v4();

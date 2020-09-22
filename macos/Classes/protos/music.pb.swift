@@ -776,6 +776,43 @@ struct Section {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
+  enum Color: SwiftProtobuf.Enum {
+    typealias RawValue = Int
+    case major // = 0
+    case minor // = 1
+    case dominant // = 2
+    case augmented // = 3
+    case diminished // = 4
+    case UNRECOGNIZED(Int)
+
+    init() {
+      self = .major
+    }
+
+    init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .major
+      case 1: self = .minor
+      case 2: self = .dominant
+      case 3: self = .augmented
+      case 4: self = .diminished
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    var rawValue: Int {
+      switch self {
+      case .major: return 0
+      case .minor: return 1
+      case .dominant: return 2
+      case .augmented: return 3
+      case .diminished: return 4
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
   init() {}
 
   fileprivate var _harmony: Harmony? = nil
@@ -783,6 +820,21 @@ struct Section {
   fileprivate var _tempo: Tempo? = nil
   fileprivate var _key: NoteName? = nil
 }
+
+#if swift(>=4.2)
+
+extension Section.Color: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [Section.Color] = [
+    .major,
+    .minor,
+    .dominant,
+    .augmented,
+    .diminished,
+  ]
+}
+
+#endif  // swift(>=4.2)
 
 struct Score {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -1441,6 +1493,16 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension Section.Color: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "major"),
+    1: .same(proto: "minor"),
+    2: .same(proto: "dominant"),
+    3: .same(proto: "augmented"),
+    4: .same(proto: "diminished"),
+  ]
 }
 
 extension Score: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

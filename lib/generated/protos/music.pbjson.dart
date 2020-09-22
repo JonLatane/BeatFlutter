@@ -226,6 +226,18 @@ const Section$json = const {
     const {'1': 'key', '3': 6, '4': 1, '5': 11, '6': '.NoteName', '10': 'key'},
     const {'1': 'melodies', '3': 100, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
   ],
+  '4': const [Section_Color$json],
+};
+
+const Section_Color$json = const {
+  '1': 'Color',
+  '2': const [
+    const {'1': 'major', '2': 0},
+    const {'1': 'minor', '2': 1},
+    const {'1': 'dominant', '2': 2},
+    const {'1': 'augmented', '2': 3},
+    const {'1': 'diminished', '2': 4},
+  ],
 };
 
 const Score$json = const {

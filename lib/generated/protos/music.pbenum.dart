@@ -154,3 +154,24 @@ class MelodyReference_PlaybackType extends $pb.ProtobufEnum {
   const MelodyReference_PlaybackType._($core.int v, $core.String n) : super(v, n);
 }
 
+class Section_Color extends $pb.ProtobufEnum {
+  static const Section_Color major = Section_Color._(0, 'major');
+  static const Section_Color minor = Section_Color._(1, 'minor');
+  static const Section_Color dominant = Section_Color._(2, 'dominant');
+  static const Section_Color augmented = Section_Color._(3, 'augmented');
+  static const Section_Color diminished = Section_Color._(4, 'diminished');
+
+  static const $core.List<Section_Color> values = <Section_Color> [
+    major,
+    minor,
+    dominant,
+    augmented,
+    diminished,
+  ];
+
+  static final $core.Map<$core.int, Section_Color> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static Section_Color valueOf($core.int value) => _byValue[value];
+
+  const Section_Color._($core.int v, $core.String n) : super(v, n);
+}
+

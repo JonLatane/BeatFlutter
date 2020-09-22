@@ -20,22 +20,22 @@ class Conductor {
   var samplersInitialized = false {
     didSet { BeatScratchPlugin.sharedInstance.setSynthesizerAvailable() }
   }
-  var sampler1 = AKSampler()
-  var sampler2 = maxNonDrumChannels > 1 ? AKSampler() : nil
-  var sampler3 = maxNonDrumChannels > 2 ? AKSampler() : nil
-  var sampler4 = maxNonDrumChannels > 3 ? AKSampler() : nil
-  var sampler5 = maxNonDrumChannels > 4 ? AKSampler() : nil
-  var sampler6 = maxNonDrumChannels > 5 ? AKSampler() : nil
-  var sampler7 = maxNonDrumChannels > 6 ? AKSampler() : nil
-  var sampler8 = maxNonDrumChannels > 7 ? AKSampler() : nil
-  var sampler9 = maxNonDrumChannels > 8 ? AKSampler() : nil
-  var drumSampler = AKSampler()
-  var sampler11 = maxNonDrumChannels > 9 ? AKSampler() : nil
-  var sampler12 = maxNonDrumChannels > 10 ? AKSampler() : nil
-  var sampler13 = maxNonDrumChannels > 11 ? AKSampler() : nil
-  var sampler14 = maxNonDrumChannels > 12 ? AKSampler() : nil
-  var sampler15 = maxNonDrumChannels > 13 ? AKSampler() : nil
-  var sampler16 = maxNonDrumChannels > 14 ? AKSampler() : nil
+  var sampler1 = AKSampler(masterVolume:1.0)
+  var sampler2 = maxNonDrumChannels > 1 ? AKSampler(masterVolume:1.0) : nil
+  var sampler3 = maxNonDrumChannels > 2 ? AKSampler(masterVolume:1.0) : nil
+  var sampler4 = maxNonDrumChannels > 3 ? AKSampler(masterVolume:1.0) : nil
+  var sampler5 = maxNonDrumChannels > 4 ? AKSampler(masterVolume:1.0) : nil
+  var sampler6 = maxNonDrumChannels > 5 ? AKSampler(masterVolume:1.0) : nil
+  var sampler7 = maxNonDrumChannels > 6 ? AKSampler(masterVolume:1.0) : nil
+  var sampler8 = maxNonDrumChannels > 7 ? AKSampler(masterVolume:1.0) : nil
+  var sampler9 = maxNonDrumChannels > 8 ? AKSampler(masterVolume:1.0) : nil
+  var drumSampler = AKSampler(masterVolume:1.0)
+  var sampler11 = maxNonDrumChannels > 9 ? AKSampler(masterVolume:1.0) : nil
+  var sampler12 = maxNonDrumChannels > 10 ? AKSampler(masterVolume:1.0) : nil
+  var sampler13 = maxNonDrumChannels > 11 ? AKSampler(masterVolume:1.0) : nil
+  var sampler14 = maxNonDrumChannels > 12 ? AKSampler(masterVolume:1.0) : nil
+  var sampler15 = maxNonDrumChannels > 13 ? AKSampler(masterVolume:1.0) : nil
+  var sampler16 = maxNonDrumChannels > 14 ? AKSampler(masterVolume:1.0) : nil
   var channelSamplers: [UInt32: AKSampler] = [:]
   
   //    var decimator: AKDecimator
@@ -50,7 +50,7 @@ class Conductor {
   //    var masterVolume = AKMixer()
   //    var reverb: AKCostelloReverb
   //    var reverbMixer: AKDryWetMixer
-  let midi = AudioKit.midi
+  let midi = AKManager.midi
 //  var accessoryManager = EAAccessoryManager.shared()
   
 //  func deviceConnected(notification: NSNotification) {
@@ -70,9 +70,9 @@ class Conductor {
     
     // Set Output & Start AudioKit
     let mix = AKMixer(sampler1, sampler2, sampler3, sampler4, sampler5, drumSampler)
-    AudioKit.output = mix
+    AKManager.output = mix
     do {
-      try AudioKit.start()
+      try AKManager.start()
     } catch {
       AKLog("AudioKit did not start")
     }

@@ -409,7 +409,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               ),
               if(!widget.previewMode) Column(children:[
                 Expanded(child: SizedBox()),
-              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5), child:Opacity(opacity: 0.5, child:Column(children: [
+              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5),
+                child:Opacity(opacity: 0.5, child:Column(children: [
                 Container(
                   width: 36,
                   child: MyRaisedButton(

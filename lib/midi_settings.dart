@@ -10,6 +10,7 @@ import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorder
 import 'animations/size_fade_transition.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;
@@ -170,11 +171,11 @@ class _MidiSynthesizer extends StatelessWidget {
         Column(children:[
           Expanded(child:SizedBox()),
           Text(midiSynthesizer.name, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-          if(midiSynthesizer.id == "internal" && (Platform.isMacOS || Platform.isIOS))
+          if(midiSynthesizer.id == "internal" && (MyPlatform.isMacOS || MyPlatform.isIOS))
             Text("AudioKit", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           if(midiSynthesizer.id == "internal" && kIsWeb)
             Text("MIDI.js", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
-          if(midiSynthesizer.id == "internal" && Platform.isAndroid)
+          if(midiSynthesizer.id == "internal" && MyPlatform.isAndroid)
             Text("FluidSynth", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           if(midiSynthesizer.id == "internal")
             Container(height: 24, padding: EdgeInsets.only(top:3), child:MyRaisedButton(child: Text("Reset"), padding: EdgeInsets.zero,

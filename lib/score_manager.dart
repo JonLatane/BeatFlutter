@@ -42,7 +42,7 @@ class ScoreManager {
     _prefs = await SharedPreferences.getInstance();
 
     if(MyPlatform.isWeb) {
-      loadUrlScoreIntoUI();
+      // loadUrlScoreIntoUI();
     } else {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
@@ -76,17 +76,11 @@ class ScoreManager {
     }
     doOpenScore(score);
   }
-  
-  loadUrlScoreIntoUI() async {
-    String data = context.callMethod('getPageHashValueOnLoad', []);
-    data = data.replaceFirst("score=", "");
-    Score score;
-    try {
-      score = scoreFromUrlHashValue(data);
-    } catch(any) {
-      score = defaultScore();
-    }
+
+  openClipboardScore(Score score) async {
+    currentScoreName = "Pasted Score";
     doOpenScore(score);
+    saveCurrentScore(score);
   }
 
   Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);

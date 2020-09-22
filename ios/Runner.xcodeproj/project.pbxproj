@@ -3,35 +3,36 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		330B43392431872E00141FC5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 330B43382431872E00141FC5 /* GoogleService-Info.plist */; };
-		3322C10624435DA000092C52 /* protobeats_plugin.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */; };
-		3322C10724435DA000092C52 /* music.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C10524435DA000092C52 /* music.pb.swift */; };
-		3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3322C1082443613100092C52 /* AKSamplerExtensions.swift */; };
-		3326BB8E243A25EC00022545 /* Conductor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB89243A25EC00022545 /* Conductor.swift */; };
-		3326BB8F243A25EC00022545 /* Fatten.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8A243A25EC00022545 /* Fatten.swift */; };
-		3326BB90243A25EC00022545 /* AutoPan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8B243A25EC00022545 /* AutoPan.swift */; };
-		3326BB91243A25EC00022545 /* FilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8C243A25EC00022545 /* FilterSection.swift */; };
-		3326BB92243A25EC00022545 /* PingPongDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3326BB8D243A25EC00022545 /* PingPongDelay.swift */; };
-		3326BBFA243A2FA100022545 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 3326BBF9243A2FA100022545 /* Sounds */; };
-		336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */; };
-		336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */; };
-		33A494CC245B980700A75369 /* BeatScratchPlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */; };
-		33A494CD245B980700A75369 /* BeatScratchScorePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */; };
-		33A494CE245B980700A75369 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494C9245B980700A75369 /* MusicTheory.swift */; };
-		33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CA245B980700A75369 /* Base24Conversion.swift */; };
-		33A494D0245B980700A75369 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494CB245B980700A75369 /* Patterns.swift */; };
-		33A494D42460BB4200A75369 /* MelodyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33A494D32460BB4200A75369 /* MelodyRecorder.swift */; };
-		33CFA0CE24645B2900519F97 /* MidiProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CFA0CD24645B2900519F97 /* MidiProcessing.swift */; };
+		33F1C68C25191ADC00B664E6 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 33F1C68B25191ADC00B664E6 /* Sounds */; };
+		33F1C68E25191AFA00B664E6 /* AudioKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */; };
+		33F1C6AF25191C8300B664E6 /* Conductor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69A25191C8300B664E6 /* Conductor.swift */; };
+		33F1C6B125191C8300B664E6 /* Fatten.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69C25191C8300B664E6 /* Fatten.swift */; };
+		33F1C6B225191C8300B664E6 /* AutoPan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69D25191C8300B664E6 /* AutoPan.swift */; };
+		33F1C6B325191C8300B664E6 /* AKSamplerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69E25191C8300B664E6 /* AKSamplerExtensions.swift */; };
+		33F1C6B425191C8300B664E6 /* FilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69F25191C8300B664E6 /* FilterSection.swift */; };
+		33F1C6B525191C8300B664E6 /* PingPongDelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A025191C8300B664E6 /* PingPongDelay.swift */; };
+		33F1C6B625191C8300B664E6 /* protobeats_plugin.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A325191C8300B664E6 /* protobeats_plugin.pb.swift */; };
+		33F1C6B725191C8300B664E6 /* music.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A425191C8300B664E6 /* music.pb.swift */; };
+		33F1C6B825191C8300B664E6 /* MelodyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A625191C8300B664E6 /* MelodyRecorder.swift */; };
+		33F1C6B925191C8300B664E6 /* Base24Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A725191C8300B664E6 /* Base24Conversion.swift */; };
+		33F1C6BA25191C8300B664E6 /* MidiProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A825191C8300B664E6 /* MidiProcessing.swift */; };
+		33F1C6BB25191C8300B664E6 /* Patterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6A925191C8300B664E6 /* Patterns.swift */; };
+		33F1C6BC25191C8300B664E6 /* BeatScratchScorePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6AA25191C8300B664E6 /* BeatScratchScorePlayer.swift */; };
+		33F1C6BD25191C8300B664E6 /* BeatScratchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6AB25191C8300B664E6 /* BeatScratchPlugin.swift */; };
+		33F1C6BE25191C8300B664E6 /* BeatScratchMidiListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6AC25191C8300B664E6 /* BeatScratchMidiListener.swift */; };
+		33F1C6BF25191C8300B664E6 /* MusicTheory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6AD25191C8300B664E6 /* MusicTheory.swift */; };
+		33F1C6C025191C8300B664E6 /* BeatScratchPlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C6AE25191C8300B664E6 /* BeatScratchPlaybackThread.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		F956A7532CC29B19DDCF8236 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8E15580A494871CED3E5147 /* Pods_Runner.framework */; };
+		A8EA785E4EA7366B4C4F842A /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA8F65D0DE510B5CD40935D0 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -48,42 +49,43 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		08A07E643B164A3A598B7A16 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
-		1292649B87F6D6D664D55F2B /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
-		330B43382431872E00141FC5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
-		3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = protobeats_plugin.pb.swift; sourceTree = "<group>"; };
-		3322C10524435DA000092C52 /* music.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = music.pb.swift; sourceTree = "<group>"; };
-		3322C1082443613100092C52 /* AKSamplerExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AKSamplerExtensions.swift; sourceTree = "<group>"; };
-		3326BB89243A25EC00022545 /* Conductor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Conductor.swift; sourceTree = "<group>"; };
-		3326BB8A243A25EC00022545 /* Fatten.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fatten.swift; sourceTree = "<group>"; };
-		3326BB8B243A25EC00022545 /* AutoPan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPan.swift; sourceTree = "<group>"; };
-		3326BB8C243A25EC00022545 /* FilterSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterSection.swift; sourceTree = "<group>"; };
-		3326BB8D243A25EC00022545 /* PingPongDelay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PingPongDelay.swift; sourceTree = "<group>"; };
-		3326BBF9243A2FA100022545 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
-		336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlugin.swift; sourceTree = "<group>"; };
-		336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchMidiListener.swift; sourceTree = "<group>"; };
-		33A494BC2456446F00A75369 /* RunnerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerDebug.entitlements; sourceTree = "<group>"; };
-		33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlaybackThread.swift; sourceTree = "<group>"; };
-		33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchScorePlayer.swift; sourceTree = "<group>"; };
-		33A494C9245B980700A75369 /* MusicTheory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
-		33A494CA245B980700A75369 /* Base24Conversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
-		33A494CB245B980700A75369 /* Patterns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
-		33A494D32460BB4200A75369 /* MelodyRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MelodyRecorder.swift; sourceTree = "<group>"; };
-		33CFA0CD24645B2900519F97 /* MidiProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MidiProcessing.swift; sourceTree = "<group>"; };
+		33F1C68B25191ADC00B664E6 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
+		33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = AudioKit.xcframework; path = "../../AudioKit Frameworks/AudioKit-4.11.1/AudioKit.xcframework"; sourceTree = "<group>"; };
+		33F1C69A25191C8300B664E6 /* Conductor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Conductor.swift; sourceTree = "<group>"; };
+		33F1C69B25191C8300B664E6 /* BeatScratch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BeatScratch; sourceTree = "<group>"; };
+		33F1C69C25191C8300B664E6 /* Fatten.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fatten.swift; sourceTree = "<group>"; };
+		33F1C69D25191C8300B664E6 /* AutoPan.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPan.swift; sourceTree = "<group>"; };
+		33F1C69E25191C8300B664E6 /* AKSamplerExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AKSamplerExtensions.swift; sourceTree = "<group>"; };
+		33F1C69F25191C8300B664E6 /* FilterSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilterSection.swift; sourceTree = "<group>"; };
+		33F1C6A025191C8300B664E6 /* PingPongDelay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PingPongDelay.swift; sourceTree = "<group>"; };
+		33F1C6A325191C8300B664E6 /* protobeats_plugin.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = protobeats_plugin.pb.swift; sourceTree = "<group>"; };
+		33F1C6A425191C8300B664E6 /* music.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = music.pb.swift; sourceTree = "<group>"; };
+		33F1C6A625191C8300B664E6 /* MelodyRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MelodyRecorder.swift; sourceTree = "<group>"; };
+		33F1C6A725191C8300B664E6 /* Base24Conversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Base24Conversion.swift; sourceTree = "<group>"; };
+		33F1C6A825191C8300B664E6 /* MidiProcessing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MidiProcessing.swift; sourceTree = "<group>"; };
+		33F1C6A925191C8300B664E6 /* Patterns.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Patterns.swift; sourceTree = "<group>"; };
+		33F1C6AA25191C8300B664E6 /* BeatScratchScorePlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchScorePlayer.swift; sourceTree = "<group>"; };
+		33F1C6AB25191C8300B664E6 /* BeatScratchPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlugin.swift; sourceTree = "<group>"; };
+		33F1C6AC25191C8300B664E6 /* BeatScratchMidiListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchMidiListener.swift; sourceTree = "<group>"; };
+		33F1C6AD25191C8300B664E6 /* MusicTheory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicTheory.swift; sourceTree = "<group>"; };
+		33F1C6AE25191C8300B664E6 /* BeatScratchPlaybackThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeatScratchPlaybackThread.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		6C9C9951AA2290978E33479A /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		97C146FB1CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B8E15580A494871CED3E5147 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		C2E796F8645C9087CDB485E3 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		B6DDDABF0A2AAA3F5DC8F6DA /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		BA8F65D0DE510B5CD40935D0 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3F778E8294A425F95887137 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,77 +93,62 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F956A7532CC29B19DDCF8236 /* Pods_Runner.framework in Frameworks */,
+				A8EA785E4EA7366B4C4F842A /* Pods_Runner.framework in Frameworks */,
+				33F1C68E25191AFA00B664E6 /* AudioKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		176C7FA292C51803E6E17722 /* Frameworks */ = {
+		33F1C69925191C8300B664E6 /* AudioSystem */ = {
 			isa = PBXGroup;
 			children = (
-				B8E15580A494871CED3E5147 /* Pods_Runner.framework */,
+				33F1C69A25191C8300B664E6 /* Conductor.swift */,
+				33F1C69B25191C8300B664E6 /* BeatScratch */,
+				33F1C69C25191C8300B664E6 /* Fatten.swift */,
+				33F1C69D25191C8300B664E6 /* AutoPan.swift */,
+				33F1C69E25191C8300B664E6 /* AKSamplerExtensions.swift */,
+				33F1C69F25191C8300B664E6 /* FilterSection.swift */,
+				33F1C6A025191C8300B664E6 /* PingPongDelay.swift */,
 			);
-			name = Frameworks;
+			name = AudioSystem;
+			path = ../../macos/Runner/AudioSystem;
 			sourceTree = "<group>";
 		};
-		3322C10224435D9F00092C52 /* Classes */ = {
+		33F1C6A125191C8300B664E6 /* Protos */ = {
 			isa = PBXGroup;
 			children = (
-				3322C10324435DA000092C52 /* protos */,
+				33F1C6A225191C8300B664E6 /* protos */,
 			);
-			path = Classes;
-			sourceTree = SOURCE_ROOT;
+			name = Protos;
+			path = ../../macos/Runner/Protos;
+			sourceTree = "<group>";
 		};
-		3322C10324435DA000092C52 /* protos */ = {
+		33F1C6A225191C8300B664E6 /* protos */ = {
 			isa = PBXGroup;
 			children = (
-				3322C10424435DA000092C52 /* protobeats_plugin.pb.swift */,
-				3322C10524435DA000092C52 /* music.pb.swift */,
+				33F1C6A325191C8300B664E6 /* protobeats_plugin.pb.swift */,
+				33F1C6A425191C8300B664E6 /* music.pb.swift */,
 			);
 			path = protos;
 			sourceTree = "<group>";
 		};
-		3326BB88243A25EC00022545 /* AudioSystem */ = {
+		33F1C6A525191C8300B664E6 /* BeatScratch */ = {
 			isa = PBXGroup;
 			children = (
-				3326BB89243A25EC00022545 /* Conductor.swift */,
-				3326BB8A243A25EC00022545 /* Fatten.swift */,
-				3326BB8B243A25EC00022545 /* AutoPan.swift */,
-				3326BB8C243A25EC00022545 /* FilterSection.swift */,
-				3322C1082443613100092C52 /* AKSamplerExtensions.swift */,
-				3326BB8D243A25EC00022545 /* PingPongDelay.swift */,
-			);
-			name = AudioSystem;
-			path = ../macos/Runner/AudioSystem;
-			sourceTree = SOURCE_ROOT;
-		};
-		336B79F424522A62004DA1C5 /* BeatScratch */ = {
-			isa = PBXGroup;
-			children = (
-				33A494D32460BB4200A75369 /* MelodyRecorder.swift */,
-				33A494CA245B980700A75369 /* Base24Conversion.swift */,
-				33A494C7245B980600A75369 /* BeatScratchPlaybackThread.swift */,
-				33A494C8245B980600A75369 /* BeatScratchScorePlayer.swift */,
-				33A494C9245B980700A75369 /* MusicTheory.swift */,
-				33A494CB245B980700A75369 /* Patterns.swift */,
-				336B79F524522A62004DA1C5 /* BeatScratchPlugin.swift */,
-				336B79F624522A62004DA1C5 /* BeatScratchMidiListener.swift */,
-				33CFA0CD24645B2900519F97 /* MidiProcessing.swift */,
+				33F1C6A625191C8300B664E6 /* MelodyRecorder.swift */,
+				33F1C6A725191C8300B664E6 /* Base24Conversion.swift */,
+				33F1C6A825191C8300B664E6 /* MidiProcessing.swift */,
+				33F1C6A925191C8300B664E6 /* Patterns.swift */,
+				33F1C6AA25191C8300B664E6 /* BeatScratchScorePlayer.swift */,
+				33F1C6AB25191C8300B664E6 /* BeatScratchPlugin.swift */,
+				33F1C6AC25191C8300B664E6 /* BeatScratchMidiListener.swift */,
+				33F1C6AD25191C8300B664E6 /* MusicTheory.swift */,
+				33F1C6AE25191C8300B664E6 /* BeatScratchPlaybackThread.swift */,
 			);
 			name = BeatScratch;
-			path = ../macos/Runner/BeatScratch;
-			sourceTree = SOURCE_ROOT;
-		};
-		7D326150031D03879EE7C618 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				08A07E643B164A3A598B7A16 /* Pods-Runner.debug.xcconfig */,
-				1292649B87F6D6D664D55F2B /* Pods-Runner.release.xcconfig */,
-				C2E796F8645C9087CDB485E3 /* Pods-Runner.profile.xcconfig */,
-			);
-			path = Pods;
+			path = ../../macos/Runner/BeatScratch;
 			sourceTree = "<group>";
 		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
@@ -181,8 +168,8 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
-				7D326150031D03879EE7C618 /* Pods */,
-				176C7FA292C51803E6E17722 /* Frameworks */,
+				9F2B91A1210610201AAA2D7B /* Pods */,
+				BD49D6151F3746366C351079 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -197,29 +184,39 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
-				33A494BC2456446F00A75369 /* RunnerDebug.entitlements */,
-				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
-				330B43382431872E00141FC5 /* GoogleService-Info.plist */,
-				3326BB88243A25EC00022545 /* AudioSystem */,
-				336B79F424522A62004DA1C5 /* BeatScratch */,
-				3322C10224435D9F00092C52 /* Classes */,
+				33F1C69925191C8300B664E6 /* AudioSystem */,
+				33F1C6A525191C8300B664E6 /* BeatScratch */,
+				33F1C6A125191C8300B664E6 /* Protos */,
+				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
-				3326BBF9243A2FA100022545 /* Sounds */,
 				97C147021CF9000F007C117D /* Info.plist */,
-				97C146F11CF9000F007C117D /* Supporting Files */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
+				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
+				33F1C68B25191ADC00B664E6 /* Sounds */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
 		};
-		97C146F11CF9000F007C117D /* Supporting Files */ = {
+		9F2B91A1210610201AAA2D7B /* Pods */ = {
 			isa = PBXGroup;
 			children = (
+				B6DDDABF0A2AAA3F5DC8F6DA /* Pods-Runner.debug.xcconfig */,
+				6C9C9951AA2290978E33479A /* Pods-Runner.release.xcconfig */,
+				D3F778E8294A425F95887137 /* Pods-Runner.profile.xcconfig */,
 			);
-			name = "Supporting Files";
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		BD49D6151F3746366C351079 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */,
+				BA8F65D0DE510B5CD40935D0 /* Pods_Runner.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -229,14 +226,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
-				40F2EDD069363B756FFA5FF5 /* [CP] Check Pods Manifest.lock */,
+				3F64956D5F7CBAA17EF0416B /* [CP] Check Pods Manifest.lock */,
 				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
-				44E7FC77CDF6B8A96A2D3E2C /* [CP] Embed Pods Frameworks */,
+				28395DE0B35DB2AAF84EA0DB /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -253,18 +250,17 @@
 		97C146E61CF9000F007C117D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1160;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					97C146ED1CF9000F007C117D = {
 						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = Q94XRK95RT;
 						LastSwiftMigration = 1100;
 					};
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -286,17 +282,34 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3326BBFA243A2FA100022545 /* Sounds in Resources */,
+				33F1C68C25191ADC00B664E6 /* Sounds in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
-				330B43392431872E00141FC5 /* GoogleService-Info.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
+				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		28395DE0B35DB2AAF84EA0DB /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -311,7 +324,7 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
 		};
-		40F2EDD069363B756FFA5FF5 /* [CP] Check Pods Manifest.lock */ = {
+		3F64956D5F7CBAA17EF0416B /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -331,46 +344,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		44E7FC77CDF6B8A96A2D3E2C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh",
-				"${PODS_ROOT}/../Flutter/Flutter.framework",
-				"${BUILT_PRODUCTS_DIR}/GoogleUtilities/GoogleUtilities.framework",
-				"${BUILT_PRODUCTS_DIR}/PromisesObjC/FBLPromises.framework",
-				"${BUILT_PRODUCTS_DIR}/SwiftProtobuf/SwiftProtobuf.framework",
-				"${BUILT_PRODUCTS_DIR}/aeyrium_sensor/aeyrium_sensor.framework",
-				"${BUILT_PRODUCTS_DIR}/flutter_keyboard_visibility/flutter_keyboard_visibility.framework",
-				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
-				"${BUILT_PRODUCTS_DIR}/path_provider/path_provider.framework",
-				"${BUILT_PRODUCTS_DIR}/sensors/sensors.framework",
-				"${BUILT_PRODUCTS_DIR}/shared_preferences/shared_preferences.framework",
-				"${BUILT_PRODUCTS_DIR}/url_launcher/url_launcher.framework",
-				"${BUILT_PRODUCTS_DIR}/vibration/vibration.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleUtilities.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FBLPromises.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftProtobuf.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/aeyrium_sensor.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_keyboard_visibility.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/path_provider.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/sensors.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/shared_preferences.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/url_launcher.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/vibration.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
@@ -394,31 +367,39 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3326BB90243A25EC00022545 /* AutoPan.swift in Sources */,
-				33A494CE245B980700A75369 /* MusicTheory.swift in Sources */,
-				33A494CC245B980700A75369 /* BeatScratchPlaybackThread.swift in Sources */,
-				3322C10724435DA000092C52 /* music.pb.swift in Sources */,
-				33CFA0CE24645B2900519F97 /* MidiProcessing.swift in Sources */,
-				3322C1092443613100092C52 /* AKSamplerExtensions.swift in Sources */,
-				33A494D0245B980700A75369 /* Patterns.swift in Sources */,
+				33F1C6B325191C8300B664E6 /* AKSamplerExtensions.swift in Sources */,
+				33F1C6C025191C8300B664E6 /* BeatScratchPlaybackThread.swift in Sources */,
+				33F1C6B225191C8300B664E6 /* AutoPan.swift in Sources */,
+				33F1C6B825191C8300B664E6 /* MelodyRecorder.swift in Sources */,
+				33F1C6B625191C8300B664E6 /* protobeats_plugin.pb.swift in Sources */,
+				33F1C6B925191C8300B664E6 /* Base24Conversion.swift in Sources */,
+				33F1C6BD25191C8300B664E6 /* BeatScratchPlugin.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
-				33A494D42460BB4200A75369 /* MelodyRecorder.swift in Sources */,
-				336B79F724522A62004DA1C5 /* BeatScratchPlugin.swift in Sources */,
-				336B79F824522A62004DA1C5 /* BeatScratchMidiListener.swift in Sources */,
-				33A494CF245B980700A75369 /* Base24Conversion.swift in Sources */,
-				3326BB8F243A25EC00022545 /* Fatten.swift in Sources */,
-				33A494CD245B980700A75369 /* BeatScratchScorePlayer.swift in Sources */,
-				3326BB8E243A25EC00022545 /* Conductor.swift in Sources */,
+				33F1C6BB25191C8300B664E6 /* Patterns.swift in Sources */,
+				33F1C6B725191C8300B664E6 /* music.pb.swift in Sources */,
+				33F1C6B125191C8300B664E6 /* Fatten.swift in Sources */,
+				33F1C6BF25191C8300B664E6 /* MusicTheory.swift in Sources */,
+				33F1C6AF25191C8300B664E6 /* Conductor.swift in Sources */,
+				33F1C6BC25191C8300B664E6 /* BeatScratchScorePlayer.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
-				3326BB92243A25EC00022545 /* PingPongDelay.swift in Sources */,
-				3322C10624435DA000092C52 /* protobeats_plugin.pb.swift in Sources */,
-				3326BB91243A25EC00022545 /* FilterSection.swift in Sources */,
+				33F1C6BA25191C8300B664E6 /* MidiProcessing.swift in Sources */,
+				33F1C6B425191C8300B664E6 /* FilterSection.swift in Sources */,
+				33F1C6B525191C8300B664E6 /* PingPongDelay.swift in Sources */,
+				33F1C6BE25191C8300B664E6 /* BeatScratchMidiListener.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				97C146FB1CF9000F007C117D /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -453,6 +434,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -471,10 +453,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-lc++";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SUPPORTED_PLATFORMS = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -486,20 +469,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.6.5;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -531,6 +516,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -555,9 +541,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-lc++";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -586,6 +573,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -604,11 +592,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-lc++";
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -620,8 +610,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Runner/RunnerDebug.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -629,13 +618,14 @@
 					"$(PROJECT_DIR)/Flutter",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.6.5;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -651,20 +641,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 0.6.5;
 				PRODUCT_BUNDLE_IDENTIFIER = io.beatscratch.beatscratchFlutterRedux;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";

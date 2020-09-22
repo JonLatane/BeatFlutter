@@ -786,8 +786,26 @@ class _MelodiesViewState extends State<_MelodiesView> {
   Widget buildAddFromTemplateButton(Color backgroundColor, Color textColor, Melody newMelody,
       {bool forceShowBeatCount = false, IconData icon = Icons.add}) {
     bool melodyExists = newMelody.name.isNotEmpty && part.melodies.any((it) => it.name == newMelody.name);
-    if (melodyExists) {
+    if(icon == Icons.control_point_duplicate) {
+      newMelody.id = uuid.v4();
+    }
+    if (melodyExists && icon == Icons.add) {
       return null;
+    } else if (melodyExists && newMelody.name.isNotEmpty && icon == Icons.control_point_duplicate) {
+      final match = RegExp(
+        r"^(.*?)(\d*)\s*$",
+      )
+        .allMatches(newMelody.name)
+        .first;
+      String prefix = match.group(1);
+      prefix = prefix.trim();
+      int number = int.tryParse(match.group(2)) ?? 1;
+      int newNumber = number + 1;
+      newMelody.name = "$prefix $newNumber";
+      while (part.melodies.any((it) => it.name == newMelody.name)) {
+        newNumber += 1;
+        newMelody.name = "$prefix $newNumber";
+      }
     }
     return SliverAppBar(
       backgroundColor: backgroundColor,
@@ -798,24 +816,13 @@ class _MelodiesViewState extends State<_MelodiesView> {
           onPressed: () {
             _lastAddedMelody = newMelody;
             setState(() {
-              int index = newMelody.name.isEmpty ? 0 : part.melodies.length;
+              int index = part.melodies.length;
               part.melodies.insert(index, newMelody);
-              if(icon == Icons.control_point_duplicate) {
-                newMelody.id = uuid.v4();
-              }
               BeatScratchPlugin.createMelody(part, newMelody);
               final reference = currentSection.referenceTo(newMelody);
               toggleMelodyReference(reference);
-              // Go directly to recording mode if not a template.
-              if (newMelody.name.isEmpty) {
-                selectMelody(newMelody);
-                setReferenceVolume(reference, 1.0);
-                editingMelody = true;
-                setKeyboardPart(part);
-                requestScrollToTop(0);
-              } else {
-                requestScrollToTop(part.melodies.length - 1);
-              }
+              requestScrollToTop(part.melodies.length - 1);
+
             });
           },
           child: Stack(children: [

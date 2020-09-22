@@ -1,6 +1,5 @@
 import UIKit
 import Flutter
-import Firebase
 import AVFoundation
 import Foundation
 import AudioKit

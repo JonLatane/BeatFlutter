@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/score_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 //import 'package:file_picker/file_picker.dart';
@@ -12,6 +14,7 @@ import 'clearCaches.dart';
 import 'colors.dart';
 import 'generated/protos/music.pb.dart';
 import 'my_buttons.dart';
+import 'my_platform.dart';
 import 'my_popup_menu.dart';
 import 'score_picker.dart';
 import 'ui_models.dart';
@@ -20,6 +23,7 @@ import 'util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   final Score score;
+  final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
   final VoidCallback editMode;
@@ -37,6 +41,8 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback toggleShowBeatCounts;
   final VoidCallback saveCurrentScore;
   final String currentScoreName;
+  final VoidCallback pasteScore;
+  final VoidCallback routeToCurrentScore;
 
   const BeatScratchToolbar({Key key,
     this.interactionMode,
@@ -50,7 +56,7 @@ class BeatScratchToolbar extends StatefulWidget {
     this.renderingMode,
     this.showMidiInputSettings,
     this.focusPartsAndMelodies,
-    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score})
+    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score, this.pasteScore, this.scoreManager, this.routeToCurrentScore})
     : super(key: key);
 
   @override
@@ -60,6 +66,34 @@ class BeatScratchToolbar extends StatefulWidget {
 class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 //  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
 //  FilePicker asdf = FilePicker();
+//   final clipboardContentStream = StreamController<String>.broadcast();
+
+  // Timer clipboardTriggerTime;
+
+  @override
+  void initState() {
+    super.initState();
+    // clipboardTriggerTime = Timer.periodic(
+    //   // you can specify any duration you want, roughly every 20 read from the system
+    //   const Duration(seconds: 5),
+    //     (timer) {
+    //     Clipboard.getData(Clipboard.kTextPlain).then((clipboardContent) {
+    //       print('Clipboard content ${clipboardContent.text}');
+    //
+    //       // post to a Stream you're subscribed to
+    //       clipboardContentStream.add(clipboardContent.text);
+    //     });
+    //   },
+    // );
+  }
+  // Stream get clipboardText => clipboardContentStream.stream;
+
+  @override
+  void dispose() {
+    // clipboardContentStream.close();
+    // clipboardTriggerTime.cancel();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -133,64 +167,99 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   break;
                 case "copyScore":
                   Future.microtask(() {
+                    widget.score.name = widget.scoreManager.currentScoreName;
                     final urlString = widget.score.convertToUrl();
                     Clipboard.setData(ClipboardData(text: urlString));
+                    if (MyPlatform.isWeb) {
+                      widget.routeToCurrentScore();
+                    }
                   });
+                  break;
+                case "pasteScore":
+                  widget.pasteScore();
                   break;
               }
               //setState(() {});
             },
-            itemBuilder: (BuildContext context) =>
-            [
-              MyPopupMenuItem(
-                value: null,
-                child: Column(children: [
-                  Text('This is pre-release software.', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                  Container(height: 5),
-                  Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
-                    style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10)),
-                ]),
-                enabled: false,
-              ),
-              MyPopupMenuItem(
-                value: null,
-                child: Column(children: [
-                  Text(widget.currentScoreName, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
-                ]),
-                enabled: false,
-              ),
-              MyPopupMenuItem(
-                value: "create",
-                child: Text('Create Score'),
-                enabled: BeatScratchPlugin.supportsStorage,
-              ),
-              MyPopupMenuItem(
-                value: "open",
-                child: Text('Open Score...'),
-                enabled: BeatScratchPlugin.supportsStorage,
-              ),
-              MyPopupMenuItem(
-                value: "duplicate",
-                child: Text('Duplicate Score...'),
-                enabled: BeatScratchPlugin.supportsStorage,
-              ),
-              MyPopupMenuItem(
-                value: "save",
-                child: Text('Save Score'),
-                enabled: BeatScratchPlugin.supportsStorage,
-              ),
-              const MyPopupMenuItem(
-                value: "copyScore",
-                child: Text('Copy Score URL'),
-                enabled: true,
-              ),
-              if(widget.interactionMode == InteractionMode.edit) MyPopupMenuItem(
-                value: "focusPartsAndMelodies",
-                child: Row(children: [
-                  Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
-                  Expanded(child: Text('Focus Parts/Melodies'))
-                ]),
-              ),
+            itemBuilder: (BuildContext context) {
+                    return [
+                      MyPopupMenuItem(
+                        value: null,
+                        child: Column(children: [
+                          Text('This is pre-release software.',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                          Container(height: 5),
+                          Text('Sign-in and file storage features are coming. Have fun fiddling around for now.',
+                              style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10)),
+                        ]),
+                        enabled: false,
+                      ),
+                      MyPopupMenuItem(
+                        value: null,
+                        child: Column(children: [
+                          Text(widget.currentScoreName, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+                        ]),
+                        enabled: false,
+                      ),
+                      MyPopupMenuItem(
+                        value: "create",
+                        child: Row(children: [
+                          Expanded(child: Text('Create Score...')),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.add))
+                        ]),
+                        enabled: BeatScratchPlugin.supportsStorage,
+                      ),
+                      MyPopupMenuItem(
+                        value: "open",
+                        child: Row(children: [
+                          Expanded(child: Text('Open Score...')),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.folder_open))
+                        ]),
+                        enabled: BeatScratchPlugin.supportsStorage,
+                      ),
+                      MyPopupMenuItem(
+                        value: "duplicate",
+                        child: Row(children: [
+                          Expanded(child: Text('Duplicate Score...')),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              child: Icon(Icons.control_point_duplicate))
+                        ]),
+                        enabled: BeatScratchPlugin.supportsStorage,
+                      ),
+                      MyPopupMenuItem(
+                        value: "save",
+                        child: Row(children: [
+                          Expanded(child: Text('Save Score')),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.save))
+                        ]),
+                        enabled: BeatScratchPlugin.supportsStorage,
+                      ),
+                      MyPopupMenuItem(
+                        value: "copyScore",
+                        child: Row(children: [
+                          Expanded(child: Text(MyPlatform.isWeb ? 'Copy/Update Score URL' : 'Copy Score URL')),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.copy))
+                        ]),
+                        enabled: true,
+                      ),
+                      MyPopupMenuItem(
+                        value: "pasteScore",
+                        child: Row(children: [
+                          Expanded(child: Text('Paste Score URL')),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.paste))
+                        ]),
+                        enabled: BeatScratchPlugin.supportsStorage,
+                      ),
+                      if (widget.interactionMode == InteractionMode.edit)
+                        MyPopupMenuItem(
+                          value: "focusPartsAndMelodies",
+                          child: Row(children: [
+                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
+                            Expanded(child: Text('Focus Parts/Melodies'))
+                          ]),
+                        ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
@@ -198,55 +267,61 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 //                            Expanded(child: Text('Show Section Beat Counts'))
 //                          ]),
 //                        ),
-              if (kDebugMode) const MyPopupMenuItem(
-                value: "clearMutableCaches",
-                child: Text('Debug: Clear Rendering Caches'),
-              ),
-              const MyPopupMenuItem(
-                value: "midiSettings",
-                child: Text('MIDI Settings'),
-              ),
-              MyPopupMenuItem(
-                value: "notationUi",
-                child: Row(children: [
-                  Radio(
-                    value: RenderingMode.notation,
-                    onChanged: null,
-                    groupValue: widget.renderingMode,
-                  ),
-                  Expanded(child: Text('Notation UI')),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                    child: Image.asset(
-                      'assets/notehead_filled.png',
-                      width: 20,
-                      height: 20,
-                    ))
-                ]),
-              ),
-              MyPopupMenuItem(
-                value: "colorblockUi",
-                child: Row(children: [
-                  Radio(
-                    value: RenderingMode.colorblock,
-                    onChanged: null,
-                    groupValue: widget.renderingMode,
-                  ),
-                  Expanded(child: Text('Colorblock UI')),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                    child: Image.asset(
-                      'assets/colorboard_vertical.png',
-                      width: 20,
-                      height: 20,
-                    ))
-                ]),
-              ),
+                      if (kDebugMode)
+                        const MyPopupMenuItem(
+                          value: "clearMutableCaches",
+                          child: Text('Debug: Clear Rendering Caches'),
+                        ),
+                      MyPopupMenuItem(
+                        value: "midiSettings",
+                        child: Row(children: [
+                          Expanded(child: Text('MIDI Settings...')),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.settings))
+                        ]),
+                      ),
+                      MyPopupMenuItem(
+                        value: "notationUi",
+                        child: Row(children: [
+                          Radio(
+                            value: RenderingMode.notation,
+                            onChanged: null,
+                            groupValue: widget.renderingMode,
+                          ),
+                          Expanded(child: Text('Notation UI')),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              child: Image.asset(
+                                'assets/notehead_filled.png',
+                                width: 20,
+                                height: 20,
+                              ))
+                        ]),
+                      ),
+                      MyPopupMenuItem(
+                        value: "colorblockUi",
+                        child: Row(children: [
+                          Radio(
+                            value: RenderingMode.colorblock,
+                            onChanged: null,
+                            groupValue: widget.renderingMode,
+                          ),
+                          Expanded(child: Text('Colorblock UI')),
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                              child: Image.asset(
+                                'assets/colorboard_vertical.png',
+                                width: 20,
+                                height: 20,
+                              ))
+                        ]),
+                      ),
 //              const MyPopupMenuItem(
 //                value: "about",
 //                child: Text('About BeatScratch'),
 //              ),
-            ],
+                    ];
+                  },
             padding: EdgeInsets.only(bottom: 10.0),
             icon: Image.asset('assets/logo.png'))),
         Expanded(

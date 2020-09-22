@@ -139,28 +139,38 @@ class _SectionListState extends State<SectionList> {
   Section _previousSection;
 
   _animateToNewlySelectedSection() {
-    if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
-      int index = widget.score.sections.indexOf(widget.currentSection);
-      if (widget.scrollDirection == Axis.horizontal) {
-        double currentPosition = _scrollController.position.pixels;
-        double position = _Section.width * (index);
-        double widthOfExtraStuff = 120.0;
-        if(currentPosition > position) {
-          position = min(_scrollController.position.maxScrollExtent, position);
-          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-        } else if(currentPosition + MediaQuery.of(context).size.width - _Section.width - widthOfExtraStuff < position) {
-          position = position - MediaQuery.of(context).size.width + _Section.width + widthOfExtraStuff;
-          position = min(_scrollController.position.maxScrollExtent, position);
-          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-        }
+    try {
+      if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
+        int index = widget.score.sections.indexOf(widget.currentSection);
+        if (widget.scrollDirection == Axis.horizontal) {
+          double currentPosition = _scrollController.position.pixels;
+          double position = _Section.width * (index);
+          double widthOfExtraStuff = 120.0;
+          if (currentPosition > position) {
+            position = min(_scrollController.position.maxScrollExtent, position);
+            _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+          } else if (currentPosition + MediaQuery
+            .of(context)
+            .size
+            .width - _Section.width - widthOfExtraStuff < position) {
+            position = position - MediaQuery
+              .of(context)
+              .size
+              .width + _Section.width + widthOfExtraStuff;
+            position = min(_scrollController.position.maxScrollExtent, position);
+            _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+          }
 //        if(_scrollController.position.pixels < position) {
 //          _scrollController.position.
 //        }
-      } else {
-        double position = _Section.height * (index);
-        position = min(_scrollController.position.maxScrollExtent, position);
-        _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+        } else {
+          double position = _Section.height * (index);
+          position = min(_scrollController.position.maxScrollExtent, position);
+          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+        }
       }
+    } catch(any) {
+
     }
     _previousSection = widget.currentSection;
   }

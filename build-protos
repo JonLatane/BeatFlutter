@@ -4,6 +4,5 @@
 cd "$(dirname "$0")"
 
 protoc --dart_out=./lib/generated ./protos/*
-protoc --swift_out=./ios/Classes ./protos/*
-protoc --swift_out=./macos/Classes ./protos/*
+protoc --swift_out=./macos/Runner/Protos ./protos/*
 protoc --js_out=import_style=browser:./web/generated ./protos/*

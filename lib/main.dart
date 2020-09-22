@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:fluro/fluro.dart' as Fluro;
 import 'package:beatscratch_flutter_redux/clearCaches.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
@@ -20,6 +21,7 @@ import 'section_list.dart';
 import 'part_melodies_view.dart';
 import 'colorboard.dart';
 import 'package:flutter/services.dart';
+import 'url_conversions.dart';
 import 'colors.dart';
 import 'util.dart';
 import 'ui_models.dart';
@@ -29,7 +31,8 @@ import 'main_toolbars.dart';
 import 'music_theory.dart';
 import 'music_utils.dart';
 
-void main() => runApp(MyApp());
+final app = MyApp();
+void main() => runApp(app);
 
 const Color foo = Color.fromRGBO(0xF9, 0x37, 0x30, .1);
 
@@ -48,14 +51,38 @@ const Map<int, Color> swatch = {
 };
 
 ScoreManager _scoreManager = ScoreManager();
+String webScoreName = "Empty Web Score";
+var baseHandler = Fluro.Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+  return MyHomePage(title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch', initialScore: defaultScore());
+  // return UsersScreen(params["scoreData"][0]);
+});
+var scoreRouteHandler = Fluro.Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+  String scoreData = params["scoreData"][0];
+  Score score;
+  try {
+    score = scoreFromUrlHashValue(scoreData);
+    webScoreName = score.name;
+  } catch (any) {
+    score = defaultScore();
+  }
+
+  return MyHomePage(title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch', initialScore: score);
+  // return UsersScreen(params["scoreData"][0]);
+});
+
+final Fluro.Router router = Fluro.Router()
+  ..define("/", handler: baseHandler, transitionType: Fluro.TransitionType.material)
+  ..define("/score/:scoreData", handler: scoreRouteHandler, transitionType: Fluro.TransitionType.material);
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
 //    debugPaintSizeEnabled = true;
     return MaterialApp(
-      title: 'BeatFlutter',
-      onGenerateTitle: (context) => "BeatScratch: ${_scoreManager.currentScoreName}",
+      key: Key(MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch'),
+      title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
+      onGenerateTitle: (context) => false ? "BeatScratch: $webScoreName" : MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -69,25 +96,24 @@ class MyApp extends StatelessWidget {
         primarySwatch: MaterialColor(0xFF212121, swatch),
         platform: TargetPlatform.iOS,
         fontFamily: 'VulfSans'),
-      home: MyHomePage(title: 'BeatFlutter'),
+      onGenerateRoute: router.generator,
+      home: MyHomePage(title: 'BeatFlutter', initialScore: defaultScore()),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.initialScore }) : super(key: key);
 
   final String title;
+  final Score initialScore;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-Score initialScore = defaultScore();
-Section initialSection = initialScore.sections[0];
-
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  Score score = initialScore;
+  Score score;
   InteractionMode interactionMode = InteractionMode.view;
   SplitMode _splitMode;
 
@@ -163,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  Section _currentSection = initialScore.sections[0];
+  Section _currentSection;//
 
   Section get currentSection => _currentSection;
 
@@ -513,6 +539,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
   double get _statusBarHeight => _showStatusBar ? 0 : _isLandscapePhone ? 25 : 30;
   bool _savingScore = false;
+  double get _savingScoreHeight => !_savingScore ? 0 : _isLandscapePhone ? 25 : 30;
+  
+  bool get pasteFailed => _pasteFailed;
+  set pasteFailed(bool value) {
+    _pasteFailed = value;
+    if(value) {
+      Future.delayed(Duration(milliseconds: 1500), () {
+        setState(() {
+          _pasteFailed = false;
+        });
+      });
+    }
+  }
+  bool _pasteFailed = false;
+  double get _pasteFailedHeight => !_pasteFailed ? 0 : _isLandscapePhone ? 25 : 30;
+
 
   double get _tapInBarHeight =>
     interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
@@ -531,6 +573,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    score = widget.initialScore;
+    _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = (Score scoreToOpen) {
       setState(() {
         scoreToOpen.parts.expand((p) => p.melodies).forEach((melody) {
@@ -753,6 +797,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               if (!_combineSecondAndMainToolbar) _scorePicker(context),
               _midiSettings(context),
               _tapInBar(context),
+              _pasteFailedBar(context),
               _savingScoreBar(context),
               _audioSystemWorkingBar(context),
               _colorboard(context),
@@ -957,10 +1002,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ]));
   }
 
+  Widget _pasteFailedBar(BuildContext context) {
+    return AnimatedContainer(
+      duration: animationDuration,
+      height: _pasteFailedHeight,
+      color: Color(0xFF212121),
+      child: Row(children: [
+        SizedBox(width: 5),
+        Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
+        SizedBox(width: 5),
+        Text("Paste Failed!",
+          style: TextStyle(
+            color: Colors.white,
+          ))
+      ]));
+  }
+
   Widget _savingScoreBar(BuildContext context) {
     return AnimatedContainer(
       duration: animationDuration,
-      height: !_savingScore ? 0 : _isLandscapePhone ? 25 : 30,
+      height: _savingScoreHeight,
       color: Color(0xFF212121),
       child: Row(children: [
         SizedBox(width: 5),
@@ -972,6 +1033,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ))
       ]));
   }
+
 
   Widget _tapInBar(BuildContext context) {
     bool playing = BeatScratchPlugin.playing;
@@ -1128,12 +1190,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   BeatScratchToolbar createBeatScratchToolbar() =>
     BeatScratchToolbar(
       score: score,
-      currentScoreName: _scoreManager.currentScoreName,
+      scoreManager: _scoreManager,
+      currentScoreName: MyPlatform.isWeb ? webScoreName : _scoreManager.currentScoreName,
       sectionColor: sectionColor,
       viewMode: _viewMode,
       editMode: _editMode,
       toggleViewOptions: _toggleViewOptions,
       interactionMode: interactionMode,
+      routeToCurrentScore: () {
+        router.navigateTo(context, "/score/${score.toUrlHashValue()}");
+      },
       togglePlaying: () {
         setState(() {
           if (!BeatScratchPlugin.playing) {
@@ -1197,6 +1263,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             setState(() { _savingScore = false; });
           });
         });
+      },
+      pasteScore: () async {
+        ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
+        String scoreUrl = data.text;
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+        try {
+          Score score = scoreFromUrlHashValue(scoreUrl);
+          if (score == null) {
+            throw Exception("nope");
+          }
+          String scoreName = score.name ?? "Pasted Score";
+          String suggestedScoreName = scoreName;
+          if (suggestedScoreName.trim().isEmpty) {
+            // suggestedScoreName
+          }
+          _scoreManager.saveCurrentScore(this.score);
+          _scoreManager.openClipboardScore(score); // side-effect: updates this.score
+          scorePickerMode = ScorePickerMode.duplicate;
+          showScorePicker = true;
+        } catch(any) {
+          setState(() {
+            pasteFailed = true;
+          });
+        }
       },
     );
 
@@ -1462,7 +1553,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         Section section = currentSection.clone();
         section.id = uuid.v4();
         final match = RegExp(
-          r"^(.*?)(\d*)$",
+          r"^(.*?)(\d*)\s*$",
         )
           .allMatches(section.name)
           .first;
@@ -1536,10 +1627,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
         },
         close: () {
-          setState(() {
-            scorePickerMode = ScorePickerMode.none;
-            showScorePicker = false;
-          });
+          doClose() {
+            setState(() {
+              scorePickerMode = ScorePickerMode.none;
+              showScorePicker = false;
+            });
+          }
+
+          doCloseButWaitForSave() {
+            if (_savingScore) {
+              Future.delayed(Duration(milliseconds: 1500), () {
+                doCloseButWaitForSave();
+              });
+            } else {
+              doClose();
+            }
+          }
+
+          doCloseButWaitForSave();
         }));
   }
 

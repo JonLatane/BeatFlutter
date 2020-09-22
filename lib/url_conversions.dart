@@ -13,7 +13,7 @@ extension URLConversions on Score {
   String convertToUrl() {
     final dataString = toUrlHashValue();
     final prefix = MyPlatform.isDebug ? "http://localhost:8000/app-staging/" : "https://beatscratch.io/app/";
-    final urlString = "$prefix#score=$dataString";
+    final urlString = "$prefix#/score/$dataString";
     return urlString;
   }
 

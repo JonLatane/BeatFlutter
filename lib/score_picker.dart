@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+import 'package:beatscratch_flutter_redux/dummydata.dart';
 import 'package:beatscratch_flutter_redux/ui_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,10 @@ enum ScorePickerMode {
   open,
   duplicate,
   none,
+}
+
+extension ShowScoreNameEntry on ScorePickerMode {
+  bool get showScoreNameEntry => this == ScorePickerMode.duplicate || this == ScorePickerMode.create;
 }
 
 class ScorePicker extends StatefulWidget {
@@ -61,7 +66,9 @@ class _ScorePickerState extends State<ScorePicker> {
 
 
   ScoreManager get scoreManager => widget.scoreManager;
+  ScorePickerMode previousMode;
   String overwritingScoreName;
+  bool get wasShowingScoreNameEntry => previousMode?.showScoreNameEntry ?? false;
 
   @override
   initState() {
@@ -70,6 +77,7 @@ class _ScorePickerState extends State<ScorePicker> {
     nameFocus.addListener(() {
       widget.requestKeyboardFocused(nameFocus.hasFocus);
     });
+    previousMode = widget.mode;
   }
 
   @override
@@ -79,17 +87,23 @@ class _ScorePickerState extends State<ScorePicker> {
     super.dispose();
   }
 
-  bool _wasShowingScoreNameEntry = false;
   @override
   Widget build(BuildContext context) {
-    bool showScoreNameEntry = widget.mode == ScorePickerMode.duplicate || widget.mode == ScorePickerMode.create;
-    if (!showScoreNameEntry && _wasShowingScoreNameEntry) {
+    bool showScoreNameEntry = widget.mode.showScoreNameEntry;
+    if (!showScoreNameEntry && wasShowingScoreNameEntry) {
       Future.delayed(Duration(milliseconds: 1), () { widget.requestKeyboardFocused(false); });
     }
-    if (showScoreNameEntry && !_wasShowingScoreNameEntry) {
+    if (showScoreNameEntry && !wasShowingScoreNameEntry) {
       nameFocus.requestFocus();
     }
-    _wasShowingScoreNameEntry = showScoreNameEntry;
+    if (previousMode != widget.mode) {
+      String suggestedName = scoreManager.currentScoreName;
+      if (suggestedName == "Pasted Score") {
+        suggestedName = widget.openedScore.name;
+      }
+      nameController.value = nameController.value.copyWith(text: suggestedName);
+    }
+    previousMode = widget.mode;
     return Column(
       children: [
         AnimatedContainer(
@@ -112,6 +126,11 @@ class _ScorePickerState extends State<ScorePicker> {
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 18),
                         enabled: showScoreNameEntry,
                         decoration: InputDecoration(border: InputBorder.none, hintText: "Score Name"),
+                        onChanged: (value) {
+                          // widget.melody.name = value;
+                          //                          BeatScratchPlugin.updateMelody(widget.melody);
+                          BeatScratchPlugin.onSynthesizerStatusChange();
+                        },
                       ),
                   )),
                   AnimatedContainer(
@@ -150,7 +169,7 @@ class _ScorePickerState extends State<ScorePicker> {
                     padding: EdgeInsets.only(right: 5),
                     child: MyFlatButton(
                         color: chromaticSteps[0],
-                        onPressed: () {
+                        onPressed: widget.mode == ScorePickerMode.duplicate && nameController.value.text != "Pasted Score" ? () {
                           setState(() {
                             if (scoreManager.scoreFiles.any((f) => f.scoreName == nameController.value.text)) {
                               overwritingScoreName = nameController.value.text;
@@ -167,7 +186,7 @@ class _ScorePickerState extends State<ScorePicker> {
                               Future.delayed(Duration(seconds: 1), widget.close);
                             }
                           });
-                        },
+                        } : null,
                         padding: EdgeInsets.zero,
                         child: Text(
                           "Duplicate",
@@ -338,6 +357,12 @@ class __ScoreState extends State<_Score> {
     }
 
     Score previewScore = _previewScore;
+    if (previewScore == null) {
+      previewScore = defaultScore();
+    }
+    if (previewScore.sections.isEmpty) {
+      previewScore.sections.add(defaultSection());
+    }
     return AnimatedContainer(
         duration: animationDuration,
         width: widget.scrollDirection == Axis.horizontal ? 200 : null,
@@ -394,7 +419,7 @@ class __ScoreState extends State<_Score> {
                                 melodyViewSizeFactor: 1.0,
                                 melodyViewMode: MelodyViewMode.score,
                                 score: previewScore,
-                                currentSection: previewScore.sections.first,
+                                currentSection: previewScore?.sections?.first,
                                 colorboardNotesNotifier: ValueNotifier([]),
                                 keyboardNotesNotifier: ValueNotifier([]),
                                 melody: null,

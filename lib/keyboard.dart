@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';
@@ -403,7 +402,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         flex: context.isTabletOrLandscapey ? 3 : 2,
                         child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: (Platform.isAndroid || Platform.isIOS || kDebugMode)
+                            onPressed: (MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
                                 ? () {
                                     setState(() {
                                       switch (scrollingMode) {

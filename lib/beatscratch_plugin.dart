@@ -174,11 +174,25 @@ class BeatScratchPlugin {
     if(!includeSections) {
       score = score.clone().copyWith((it) { it.sections.clear(); });
     }
-    _channel.invokeMethod(remoteMethod, score.clone().writeToBuffer());
+//    print("invoking $remoteMethod");
+    if(kIsWeb) {
+//      print("invoking $remoteMethod as JavaScript with context $context");
+      context.callMethod(remoteMethod, [ score.toProto3Json() ]);
+    } else {
+//      print("invoking $remoteMethod through Platform Channel $_channel");
+      _channel.invokeMethod(remoteMethod, score.clone().writeToBuffer());
+    }
   }
 
   static void setPlaybackMode(Playback_Mode mode) {
-    _channel.invokeMethod('setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
+//    print("invoking setPlaybackMode");
+    if(kIsWeb) {
+//      print("invoking setPlaybackMode as JavaScript with context $context");
+      context.callMethod('setPlaybackMode', [ mode.name ]);
+    } else {
+//      print("invoking setPlaybackMode through Platform Channel $_channel");
+      _channel.invokeMethod('setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
+    }
   }
 
   static void createPart(Part part) {
@@ -208,7 +222,14 @@ class BeatScratchPlugin {
 
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
-    _channel.invokeMethod('setKeyboardPart', part?.id);
+//    print("invoking setKeyboardPart");
+    if(kIsWeb) {
+//      print("invoking setKeyboardPart as JavaScript with context $context");
+      context.callMethod('setKeyboardPart', [ part?.id ]);
+    } else {
+//      print("invoking setKeyboardPart through Platform Channel $_channel");
+      _channel.invokeMethod('setKeyboardPart', part?.id);
+    }
   }
 
   static void deletePart(Part part) async {
@@ -235,7 +256,14 @@ class BeatScratchPlugin {
   /// This applies to notes played either with a physical MIDI controller on
   /// the native side or from [sendMIDI] in the plugin.
   static void setRecordingMelody(Melody melody) async {
-    _channel.invokeMethod('setRecordingMelody', melody?.id);
+//    print("invoking setKeyboardPart");
+    if(kIsWeb) {
+//      print("invoking setRecordingMelody as JavaScript with context $context");
+      context.callMethod('setRecordingMelody', [ melody?.id ]);
+    } else {
+//      print("invoking setRecordingMelody through Platform Channel $_channel");
+      _channel.invokeMethod('setRecordingMelody', melody?.id);
+    }
   }
 
   /// Starts the playback thread
