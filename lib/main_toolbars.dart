@@ -42,7 +42,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback saveCurrentScore;
   final String currentScoreName;
   final VoidCallback pasteScore;
-  final VoidCallback routeToCurrentScore;
+  final Function(String) routeToCurrentScore;
 
   const BeatScratchToolbar({Key key,
     this.interactionMode,
@@ -90,6 +90,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 
   @override
   void dispose() {
+    super.dispose();
     // clipboardContentStream.close();
     // clipboardTriggerTime.cancel();
   }
@@ -166,12 +167,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   clearMutableCaches();
                   break;
                 case "copyScore":
-                  Future.microtask(() {
+                  Future.microtask(() async {
                     widget.score.name = widget.scoreManager.currentScoreName;
-                    final urlString = widget.score.convertToUrl();
+                    final urlString = await widget.score.convertToShortUrl();
+                    String pastebinCode = urlString.split('/').last;
                     Clipboard.setData(ClipboardData(text: urlString));
                     if (MyPlatform.isWeb) {
-                      widget.routeToCurrentScore();
+                      widget.routeToCurrentScore(pastebinCode);
                     }
                   });
                   break;
@@ -240,7 +242,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                         value: "copyScore",
                         child: Row(children: [
                           Expanded(child: Text(MyPlatform.isWeb ? 'Copy/Update Score URL' : 'Copy Score URL')),
-                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.copy))
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.content_copy))
                         ]),
                         enabled: true,
                       ),
@@ -248,7 +250,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                         value: "pasteScore",
                         child: Row(children: [
                           Expanded(child: Text('Paste Score URL')),
-                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.paste))
+                          Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.content_paste))
                         ]),
                         enabled: BeatScratchPlugin.supportsStorage,
                       ),

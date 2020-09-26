@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:beatscratch_flutter_redux/my_platform.dart';
@@ -9,6 +10,7 @@ import 'package:beatscratch_flutter_redux/dummydata.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import 'generated/protos/music.pb.dart';
 import 'dummydata.dart';
@@ -40,10 +42,7 @@ class ScoreManager {
 
   _initialize() async {
     _prefs = await SharedPreferences.getInstance();
-
-    if(MyPlatform.isWeb) {
-      // loadUrlScoreIntoUI();
-    } else {
+    if (!MyPlatform.isWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
       _scoresDirectory.createSync();
@@ -75,6 +74,33 @@ class ScoreManager {
       score = defaultScore();
     }
     doOpenScore(score);
+  }
+
+  loadPastebinScoreIntoUI(String pastebinCode, VoidCallback onFail) async {
+    if (pastebinCode == null) {
+      return;
+    }
+    try {
+      http.Response response = await http.get(
+        'https://api.paste.ee/v1/pastes/$pastebinCode',
+        headers: <String, String>{
+          "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
+        },
+      );
+      dynamic data = jsonDecode(response.body);
+      String longUrl = data['paste']['sections'].first['contents'];
+      longUrl = longUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+      longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+
+      Score score = scoreFromUrlHashValue(longUrl);
+      if (MyPlatform.isNative) {
+        openClipboardScore(score);
+      } else {
+        doOpenScore(score);
+      }
+    } catch (any) {
+      onFail();
+    }
   }
 
   openClipboardScore(Score score) async {

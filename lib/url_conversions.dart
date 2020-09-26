@@ -1,20 +1,45 @@
+import 'dart:convert';
+
 import 'package:archive/archive.dart';
 import 'package:base_x/base_x.dart';
 import 'package:beatscratch_flutter_redux/midi_theory.dart';
 import 'package:beatscratch_flutter_redux/my_platform.dart';
 import 'package:unification/unification.dart';
+import 'package:http/http.dart' as http;
 
 import 'generated/protos/music.pb.dart';
 import 'util.dart';
 
 var _base58 = BaseXCodec('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+final urlPrefix = MyPlatform.isDebug ? "http://localhost:8000/app-staging/" : "https://beatscratch.io/app/";
 
 extension URLConversions on Score {
   String convertToUrl() {
     final dataString = toUrlHashValue();
-    final prefix = MyPlatform.isDebug ? "http://localhost:8000/app-staging/" : "https://beatscratch.io/app/";
-    final urlString = "$prefix#/score/$dataString";
+    final urlString = "$urlPrefix#/score/$dataString";
     return urlString;
+  }
+
+  Future<String> convertToShortUrl() async {
+    try {
+      http.Response response = await http.post(
+        'https://api.paste.ee/v1/pastes',
+        headers: <String, String>{
+          "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'sections': [{
+            'contents': convertToUrl()
+          }],
+        }),
+      );
+      String pasteeeShortcode = jsonDecode(response.body)['id'];
+      final urlString = "$urlPrefix#/s/$pasteeeShortcode";
+      return urlString;
+    } catch (any) {
+      return null;
+    }
   }
 
   String toUrlHashValue() {
@@ -38,5 +63,9 @@ Score scoreFromUrlHashValue(String urlString) {
     }
   }
   return score;
+}
+
+Future<Score> scoreFromShortUrl() {
+
 }
 

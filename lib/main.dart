@@ -69,9 +69,16 @@ var scoreRouteHandler = Fluro.Handler(handlerFunc: (BuildContext context, Map<St
   return MyHomePage(title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch', initialScore: score);
   // return UsersScreen(params["scoreData"][0]);
 });
+var pastebinRouteHandler = Fluro.Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+  String pastebinCode = params["pasteBinData"][0];
+  return MyHomePage(title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch', initialScore: defaultScore(),
+    pastebinCode: pastebinCode,);
+  // return UsersScreen(params["scoreData"][0]);
+});
 
 final Fluro.Router router = Fluro.Router()
   ..define("/", handler: baseHandler, transitionType: Fluro.TransitionType.material)
+  ..define("/s/:pasteBinData", handler: pastebinRouteHandler, transitionType: Fluro.TransitionType.material)
   ..define("/score/:scoreData", handler: scoreRouteHandler, transitionType: Fluro.TransitionType.material);
 
 class MyApp extends StatelessWidget {
@@ -103,10 +110,11 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.initialScore }) : super(key: key);
+  MyHomePage({Key key, this.title, this.initialScore, this.pastebinCode}) : super(key: key);
 
   final String title;
   final Score initialScore;
+  final String pastebinCode;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -590,6 +598,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         colorboardPart = scoreToOpen.parts.firstWhere((Part p) => p.instrument.type != InstrumentType.drum, orElse: null);
       });
     };
+    if (widget.pastebinCode != null) {
+      _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, () {
+        pasteFailed = true;
+      });
+    }
     if (MyPlatform.isMobile) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
@@ -849,7 +862,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget _webBanner(BuildContext context) {
-    bool isWeb = kIsWeb; // For faking to test
+    bool isWeb = true; // For faking to test
     bool hideDownloadLinkButton = showDownloadLinks || !showWebWarning || !isWeb;
     return AnimatedContainer(
       duration: animationDuration,
@@ -872,10 +885,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(children: [
+              AnimatedContainer(
+                duration: animationDuration,
+                width: hideDownloadLinkButton ? 0 : 180,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 5),
+                  child: MyRaisedButton(
+                    onPressed: showDownloadLinks
+                      ? null
+                      : () {
+                      setState(() {
+                        showDownloadLinks = true;
+                      });
+                    },
+                    child: Text("Download App")))),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                padding: EdgeInsets.symmetric(horizontal: 5),
                 child: Text(
-                  "is pre-release software.\nBugs and missing features abound." +
+                  "BeatScratch is pre-release software.\nBugs and missing features abound." +
                     (isWeb ? "\nmacOS/iOS/Android apps have playback, recording, and better performance." : ""),
                   style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100))),
 //        Expanded(child:SizedBox()),
@@ -900,20 +927,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     _launchURL("https://beatscratch.io/usage.html");
                   },
                   child: Text("Docs"))),
-              AnimatedContainer(
-                duration: animationDuration,
-                width: hideDownloadLinkButton ? 0 : 180,
-                child: Padding(
-                  padding: EdgeInsets.only(right: 5),
-                  child: MyRaisedButton(
-                    onPressed: showDownloadLinks
-                      ? null
-                      : () {
-                      setState(() {
-                        showDownloadLinks = true;
-                      });
-                    },
-                    child: Text("Download App")))),
             ]))),
         Padding(
           padding: EdgeInsets.only(right: 5),
@@ -946,7 +959,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               },
               padding: EdgeInsets.all(0),
               child: Image.asset("assets/play_en_badge_web_generic.png")),
-            Transform.translate(offset: Offset(-15, 0), child:
+            Transform.translate(offset: Offset(-5, 0), child:
             MyFlatButton(
               onPressed: () {
                 _launchURL("https://testflight.apple.com/join/dXJr9JJs");
@@ -1197,8 +1210,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       editMode: _editMode,
       toggleViewOptions: _toggleViewOptions,
       interactionMode: interactionMode,
-      routeToCurrentScore: () {
-        router.navigateTo(context, "/score/${score.toUrlHashValue()}");
+      routeToCurrentScore: (String pastebinCode) {
+        router.navigateTo(context, "/s/$pastebinCode");
       },
       togglePlaying: () {
         setState(() {
@@ -1269,6 +1282,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         String scoreUrl = data.text;
         scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
         scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
         try {
           Score score = scoreFromUrlHashValue(scoreUrl);
           if (score == null) {
@@ -1277,15 +1291,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           String scoreName = score.name ?? "Pasted Score";
           String suggestedScoreName = scoreName;
           if (suggestedScoreName.trim().isEmpty) {
-            // suggestedScoreName
+            suggestedScoreName = "Pasted Score";
           }
           _scoreManager.saveCurrentScore(this.score);
           _scoreManager.openClipboardScore(score); // side-effect: updates this.score
           scorePickerMode = ScorePickerMode.duplicate;
           showScorePicker = true;
         } catch(any) {
-          setState(() {
-            pasteFailed = true;
+          _scoreManager.loadPastebinScoreIntoUI(scoreUrl, () {
+            setState(() {
+              pasteFailed = true;
+            });
           });
         }
       },

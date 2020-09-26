@@ -217,7 +217,11 @@ class BeatScratchPlugin {
   }
 
   static void setCurrentSection(Section section) async {
-    _channel.invokeMethod('setCurrentSection', section?.id);
+    if(kIsWeb) {
+      context.callMethod('setCurrentSection', [ section?.id ]);
+    } else {
+      _channel.invokeMethod('setCurrentSection', section?.id);
+    }
   }
 
   /// Assigns all external MIDI controllers to the given part.

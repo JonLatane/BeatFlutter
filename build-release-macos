@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# Paths assume pwd is directory of build script.
+cd "$(dirname "$0")"
+
+echo "" && \
+echo "#-----------------------------------------------------------------------" && \
+echo "# Building for macOS and archiving app" && \
+echo "#-----------------------------------------------------------------------" && \
+flutter build macos | sed 's/.*/\[macOS\] &/' && \
+cd build/macos/Build/Products/Release && \
+tar -cavf BeatFlutter.tar.bz2 BeatScratch.app && open . && cd - && \
+echo "macOS app built! Manually upload to Dropbox" && \
+open "https://www.dropbox.com/home"

@@ -497,6 +497,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
           controller: scrollController,
           slivers: <Widget>[
             SliverAppBar(
+              leading: Container(),
               backgroundColor: backgroundColor,
               actions: <Widget>[
                 AnimatedContainer(
@@ -543,6 +544,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                               ))))),
             ),
             SliverAppBar(
+              leading: Container(),
               backgroundColor: backgroundColor,
               floating: true,
               pinned: false,
@@ -713,6 +715,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               buildAddFromTemplateButton(backgroundColor, textColor, tsstTsstSwing()),
             // Blank space at bottom
             SliverAppBar(
+                leading: Container(),
                 backgroundColor: Colors.transparent,
                 floating: true,
                 pinned: false,
@@ -729,6 +732,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       ..instrumentType = part.instrument.type
       ..interpretationType = _interpretationType(part.instrument.type);
     return SliverAppBar(
+      leading: Container(),
       backgroundColor: backgroundColor,
       floating: false,
       pinned: false,
@@ -808,6 +812,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       }
     }
     return SliverAppBar(
+      leading: Container(),
       backgroundColor: backgroundColor,
       floating: true,
       pinned: false,
