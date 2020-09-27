@@ -169,7 +169,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                 case "copyScore":
                   Future.microtask(() async {
                     widget.score.name = widget.scoreManager.currentScoreName;
-                    final urlString = await widget.score.convertToShortUrl();
+                    final urlString = (await widget.score.convertToShortUrl()) ?? widget.score.convertToUrl();
                     String pastebinCode = urlString.split('/').last;
                     Clipboard.setData(ClipboardData(text: urlString));
                     if (MyPlatform.isWeb) {
