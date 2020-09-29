@@ -70,6 +70,26 @@ function checkSynthesizerStatus() {
     return isSynthesizerReady;
 }
 
+var beatScratchWorker = new Worker('BeatScratchWorker.js');
+beatScratchWorker.onmessage = function(event) {
+  switch (event.data.shift()) {
+    case 'sendMIDI':
+      sendMIDI(...event.data);
+  }
+}
+
+function play() {
+    beatScratchWorker.postMessage(['play']);
+}
+
+function pause() {
+
+}
+
+function stop() {
+
+}
+
 function setKeyboardPart(partId) {
 
 }
@@ -95,5 +115,24 @@ function updateSections(score) {
 }
 
 function setCurrentSection(section) {
+
+}
+
+function setBeat(beat) {
+
+}
+
+function createMelody(partId, melody) {
+
+}
+
+function updateMelody(melody) {
+
+}
+
+function deletePart(partId) {
+}
+
+function setRecordingMelody(melodyId) {
 
 }

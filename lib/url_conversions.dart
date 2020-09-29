@@ -29,6 +29,7 @@ extension URLConversions on Score {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
+          'expiration': 31536000,
           'sections': [{
             'contents': convertToUrl()
           }],

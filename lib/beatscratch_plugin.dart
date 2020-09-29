@@ -237,21 +237,37 @@ class BeatScratchPlugin {
   }
 
   static void deletePart(Part part) async {
-    _channel.invokeMethod('deletePart', part.id);
+    if(kIsWeb) {
+      context.callMethod('deletePart', [part.id]);
+    } else {
+      _channel.invokeMethod('deletePart', part.id);
+    }
   }
 
   static void createMelody(Part part, Melody melody) async {
-    await _channel.invokeMethod('newMelody', melody.clone().writeToBuffer());
-    _channel.invokeMethod('registerMelody',
-      (RegisterMelody()..melodyId=melody.id..partId=part.id).writeToBuffer());
+    if(kIsWeb) {
+      context.callMethod('createMelody', [part.id, melody.toProto3Json()]);
+    } else {
+      await _channel.invokeMethod('newMelody', melody.clone().writeToBuffer());
+      _channel.invokeMethod('registerMelody',
+        (RegisterMelody()..melodyId=melody.id..partId=part.id).writeToBuffer());
+    }
   }
 
   static void updateMelody(Melody melody) async {
-    _channel.invokeMethod('updateMelody', melody.clone().writeToBuffer());
+    if(kIsWeb) {
+      context.callMethod('updateMelody', [melody.toProto3Json()]);
+    } else {
+      _channel.invokeMethod('updateMelody', melody.clone().writeToBuffer());
+    }
   }
 
   static void deleteMelody(Melody melody) async {
-    _channel.invokeMethod('deleteMelody', melody.id);
+    if(kIsWeb) {
+      context.callMethod('deleteMelody', [melody.id]);
+    } else {
+      _channel.invokeMethod('deleteMelody', melody.id);
+    }
   }
 
   /// When set to null, disables recording. When set to a melody,
@@ -260,37 +276,50 @@ class BeatScratchPlugin {
   /// This applies to notes played either with a physical MIDI controller on
   /// the native side or from [sendMIDI] in the plugin.
   static void setRecordingMelody(Melody melody) async {
-//    print("invoking setKeyboardPart");
     if(kIsWeb) {
-//      print("invoking setRecordingMelody as JavaScript with context $context");
       context.callMethod('setRecordingMelody', [ melody?.id ]);
     } else {
-//      print("invoking setRecordingMelody through Platform Channel $_channel");
       _channel.invokeMethod('setRecordingMelody', melody?.id);
     }
   }
 
   /// Starts the playback thread
   static void play() async {
-    _channel.invokeMethod('play');
+    if(kIsWeb) {
+      context.callMethod('play', []);
+    } else {
+      _channel.invokeMethod('play');
+    }
     _playing = true;
     onSynthesizerStatusChange();
   }
 
   static void stop() async {
-    _channel.invokeMethod('stop');
+    if(kIsWeb) {
+      context.callMethod('stop', []);
+    } else {
+      _channel.invokeMethod('stop');
+    }
     _playing = false;
     onSynthesizerStatusChange();
   }
   static void pause() async {
-    _channel.invokeMethod('pause');
+    if(kIsWeb) {
+      context.callMethod('pause', []);
+    } else {
+      _channel.invokeMethod('pause');
+    }
     _playing = false;
     onSynthesizerStatusChange();
   }
 
   static void setBeat(int beat) async {
     currentBeat.value = beat;
-    _channel.invokeMethod('setBeat', beat);
+    if(kIsWeb) {
+      context.callMethod('setBeat', [beat]);
+    } else {
+      _channel.invokeMethod('setBeat', beat);
+    }
   }
 
   /// CountIn beat timings are used to establish a starting tempo. Once *two* [countIn] beats
@@ -301,11 +330,19 @@ class BeatScratchPlugin {
   /// tap on [tickBeat] to signify that the current beat is 0
   static void countIn(int countInBeat) async {
     print("Invoked countIn");
-    _channel.invokeMethod('countIn', countInBeat);
+    if(kIsWeb) {
+      context.callMethod('countIn', [countInBeat]);
+    } else {
+      _channel.invokeMethod('countIn', countInBeat);
+    }
   }
 
   static void tickBeat() async {
-    _channel.invokeMethod('tickBeat');
+    if(kIsWeb) {
+      context.callMethod('tickBeat', []);
+    } else {
+      _channel.invokeMethod('tickBeat');
+    }
   }
 
   static void playNote(int tone, int velocity, Part part) {
