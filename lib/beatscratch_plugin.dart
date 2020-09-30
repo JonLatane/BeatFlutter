@@ -20,42 +20,6 @@ class BeatScratchPlugin {
   static final bool supportsPlayback = !MyPlatform.isWeb || kDebugMode;
   static final bool supportsRecording = !MyPlatform.isWeb || kDebugMode;
 
-  static bool _metronomeEnabled = true;
-  static bool get metronomeEnabled => _metronomeEnabled;
-  static set metronomeEnabled(bool value) {
-    _metronomeEnabled = value;
-    _channel.invokeMethod('setMetronomeEnabled', value);
-  }
-  static bool _playing;
-  static bool get playing {
-    if(_playing == null) {
-      _playing = false;
-      _doSynthesizerStatusChangeLoop();
-    }
-    return _playing;
-  }
-
-  static final ValueNotifier<int> currentBeat = ValueNotifier(0);
-  
-  static bool _isSynthesizerAvailable;
-  static bool get isSynthesizerAvailable {
-    if(_isSynthesizerAvailable == null) {
-      _isSynthesizerAvailable = false;
-      _doSynthesizerStatusChangeLoop();
-    }
-    return _isSynthesizerAvailable;
-  }
-  static VoidCallback onCountInInitiated;
-  static VoidCallback onSynthesizerStatusChange;
-  static Function(String) onSectionSelected;
-  static Function(Melody) onRecordingMelodyUpdated;
-  static _doSynthesizerStatusChangeLoop() {
-    Future.delayed(Duration(seconds:5), () {
-      _checkSynthesizerStatus();
-      _doSynthesizerStatusChangeLoop();
-    });
-  }
-  static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
   static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
     ..setMethodCallHandler((call) {
       switch(call.method) {
@@ -104,6 +68,47 @@ class BeatScratchPlugin {
       }
       return Future.value(null);
     });
+
+  static bool _metronomeEnabled = true;
+  static bool get metronomeEnabled => _metronomeEnabled;
+  static set metronomeEnabled(bool value) {
+    _metronomeEnabled = value;
+    if(kIsWeb) {
+      context.callMethod('setMetronomeEnabled', [value]);
+    } else {
+      _channel.invokeMethod('setMetronomeEnabled', value);
+    }
+  }
+  static bool _playing;
+  static bool get playing {
+    if(_playing == null) {
+      _playing = false;
+      _doSynthesizerStatusChangeLoop();
+    }
+    return _playing;
+  }
+
+  static final ValueNotifier<int> currentBeat = ValueNotifier(0);
+  
+  static bool _isSynthesizerAvailable;
+  static bool get isSynthesizerAvailable {
+    if(_isSynthesizerAvailable == null) {
+      _isSynthesizerAvailable = false;
+      _doSynthesizerStatusChangeLoop();
+    }
+    return _isSynthesizerAvailable;
+  }
+  static VoidCallback onCountInInitiated;
+  static VoidCallback onSynthesizerStatusChange;
+  static Function(String) onSectionSelected;
+  static Function(Melody) onRecordingMelodyUpdated;
+  static _doSynthesizerStatusChangeLoop() {
+    Future.delayed(Duration(seconds:5), () {
+      _checkSynthesizerStatus();
+      _doSynthesizerStatusChangeLoop();
+    });
+  }
+  static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
 
   static Iterable<MidiController> get midiControllers => [
     MidiController()
@@ -185,12 +190,9 @@ class BeatScratchPlugin {
   }
 
   static void setPlaybackMode(Playback_Mode mode) {
-//    print("invoking setPlaybackMode");
     if(kIsWeb) {
-//      print("invoking setPlaybackMode as JavaScript with context $context");
       context.callMethod('setPlaybackMode', [ mode.name ]);
     } else {
-//      print("invoking setPlaybackMode through Platform Channel $_channel");
       _channel.invokeMethod('setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
     }
   }
@@ -226,12 +228,9 @@ class BeatScratchPlugin {
 
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
-//    print("invoking setKeyboardPart");
     if(kIsWeb) {
-//      print("invoking setKeyboardPart as JavaScript with context $context");
       context.callMethod('setKeyboardPart', [ part?.id ]);
     } else {
-//      print("invoking setKeyboardPart through Platform Channel $_channel");
       _channel.invokeMethod('setKeyboardPart', part?.id);
     }
   }

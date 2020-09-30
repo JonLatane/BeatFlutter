@@ -1,6 +1,6 @@
 
 self.onmessage = function (event) {
-    switch (event.data[0]) {
+    switch (event.data.shift()) {
         case 'play':
           postMessage(['sendMIDI', 0x90, 60, 127 ]);
           setTimeout(function() {

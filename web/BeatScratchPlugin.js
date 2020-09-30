@@ -70,6 +70,7 @@ function checkSynthesizerStatus() {
     return isSynthesizerReady;
 }
 
+var currentScore;
 var beatScratchWorker = new Worker('BeatScratchWorker.js');
 beatScratchWorker.onmessage = function(event) {
   switch (event.data.shift()) {
@@ -107,7 +108,7 @@ function setRecordingMelody(melodyId) {
 }
 
 function createScore(score) {
-
+  currentScore = score;
 }
 
 function updateSections(score) {

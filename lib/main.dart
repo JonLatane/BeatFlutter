@@ -602,6 +602,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, () {
         pasteFailed = true;
       });
+    } else if (MyPlatform.isWeb) {
+      BeatScratchPlugin.createScore(score);
     }
     if (MyPlatform.isMobile) {
       KeyboardVisibility.onChange.listen((bool visible) {
