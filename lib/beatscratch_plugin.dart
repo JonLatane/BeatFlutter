@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:beatscratch_flutter_redux/my_platform.dart';
 
 import 'fake_js.dart'
   if(dart.library.js) 'dart:js';
+import 'jsify.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
 import 'package:dart_midi/dart_midi.dart';
 // ignore: implementation_imports
@@ -182,7 +184,7 @@ class BeatScratchPlugin {
 //    print("invoking $remoteMethod");
     if(kIsWeb) {
 //      print("invoking $remoteMethod as JavaScript with context $context");
-      context.callMethod(remoteMethod, [ score.toProto3Json() ]);
+      context.callMethod(remoteMethod, [ score.jsify() ]);
     } else {
 //      print("invoking $remoteMethod through Platform Channel $_channel");
       _channel.invokeMethod(remoteMethod, score.clone().writeToBuffer());
@@ -245,7 +247,7 @@ class BeatScratchPlugin {
 
   static void createMelody(Part part, Melody melody) async {
     if(kIsWeb) {
-      context.callMethod('createMelody', [part.id, melody.toProto3Json()]);
+      context.callMethod('createMelody', [part.id, melody.jsify()]);
     } else {
       await _channel.invokeMethod('newMelody', melody.clone().writeToBuffer());
       _channel.invokeMethod('registerMelody',
@@ -255,7 +257,7 @@ class BeatScratchPlugin {
 
   static void updateMelody(Melody melody) async {
     if(kIsWeb) {
-      context.callMethod('updateMelody', [melody.toProto3Json()]);
+      context.callMethod('updateMelody', [melody.jsify()]);
     } else {
       _channel.invokeMethod('updateMelody', melody.clone().writeToBuffer());
     }
