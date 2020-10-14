@@ -613,6 +613,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
     }
 //    BeatScratchPlugin.createScore(_score);
+    BeatScratchPlugin.setupWebStuff();
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
         currentSection = score.sections.firstWhere((section) => section.id == sectionId);

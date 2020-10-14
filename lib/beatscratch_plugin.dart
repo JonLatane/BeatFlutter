@@ -18,8 +18,8 @@ import 'music_utils.dart';
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
+  static final bool supportsPlayback = true;
   static final bool supportsStorage = !MyPlatform.isWeb || kDebugMode;
-  static final bool supportsPlayback = !MyPlatform.isWeb || kDebugMode;
   static final bool supportsRecording = !MyPlatform.isWeb || kDebugMode;
 
   static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
@@ -39,15 +39,11 @@ class BeatScratchPlugin {
           return Future.value(null);
           break;
         case "notifyPlayingBeat":
-          _playing = true;
-          int beat = call.arguments;
-          currentBeat.value = beat;
-          onSynthesizerStatusChange?.call();
+          _notifyPlayingBeat(call.arguments);
           return Future.value(null);
           break;
         case "notifyPaused":
-          _playing = false;
-          onSynthesizerStatusChange?.call();
+          _notifyPaused();
           return Future.value(null);
           break;
         case "notifyCountInInitiated":
@@ -56,7 +52,7 @@ class BeatScratchPlugin {
           return Future.value(null);
           break;
         case "notifyCurrentSection":
-          onSectionSelected(call.arguments);
+          _notifyCurrentSection(call.arguments);
           break;
         case "sendRecordedMelody":
           final Uint8List rawData = call.arguments;
@@ -70,6 +66,29 @@ class BeatScratchPlugin {
       }
       return Future.value(null);
     });
+
+  static setupWebStuff() {
+    if (MyPlatform.isWeb) {
+      context["notifyPlayingBeat"] = _notifyPlayingBeat;
+      context["notifyPaused"] = _notifyPaused;
+      context["notifyCurrentSection"] = _notifyCurrentSection;
+    }
+  }
+
+  static _notifyCurrentSection(String sectionId) {
+    onSectionSelected(sectionId);
+  }
+
+  static _notifyPlayingBeat(int beat) {
+    _playing = true;
+    currentBeat.value = beat;
+    onSynthesizerStatusChange?.call();
+  }
+
+  static _notifyPaused() {
+    _playing = false;
+    onSynthesizerStatusChange?.call();
+  }
 
   static bool _metronomeEnabled = true;
   static bool get metronomeEnabled => _metronomeEnabled;

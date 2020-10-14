@@ -97,7 +97,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     AnimationController scaleAnimationController = animationController();
     _xScaleAnimationControllers.add(scaleAnimationController);
     Animation animation;
-    print("animating xScale to $value");
+    // print("animating xScale to $value");
     animation = Tween<double>(begin: _xScale, end: value)
       .animate(scaleAnimationController)
       ..addListener(() {

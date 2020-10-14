@@ -164,7 +164,7 @@ object ScorePlayer : Patterns, CoroutineScope {
   ) {
     val ticks = Base24ConversionMap[melody.subdivisionsPerBeat]!!
     val correspondingPosition = ticks.indexOfFirst { it == currentTick % ticksPerBeat }
-    if(correspondingPosition >= 0) {
+    if (correspondingPosition >= 0) {
       val currentBeat = floor(currentTick.toDouble() / ticksPerBeat)
       val melodyPosition = currentBeat * melody.subdivisionsPerBeat.toDouble() +
         correspondingPosition

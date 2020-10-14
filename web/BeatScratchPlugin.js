@@ -3,21 +3,16 @@ function supportsPlayback() {
 }
 
 function sendMIDI() {
+//  console.log("sendMIDI " + [...arguments] + " at time=" + (Date.now()/1000));
   if((arguments[0] & 0xF0) == 0x90) {
-    console.info("noteOn");
+//    console.info("noteOn");
     var note = arguments[1];
-    var channel = arguments[0] & 0xF
-    if(channel == 9) {
-      note -= 12;
-    }
+    var channel = arguments[0] & 0xF;
     MIDI.noteOn(channel, note, arguments[2], 0);
   } else if((arguments[0] & 0xF0) == 0x80) {
-    console.info("noteOff");
+//    console.info("noteOff");
     var note = arguments[1];
-    var channel = arguments[0] & 0xF
-    if(channel == 9) {
-      note -= 12;
-    }
+    var channel = arguments[0] & 0xF;
     MIDI.noteOff(channel, note, 0);
   } else {
     console.info("unmatched args:");
@@ -76,15 +71,25 @@ beatScratchWorker.onmessage = function(event) {
   switch (event.data.shift()) {
     case 'sendMIDI':
       sendMIDI(...event.data);
+      break;
+    case 'notifyPlayingBeat':
+      notifyPlayingBeat(event.data[0]);
+      break;
+    case 'notifyPaused':
+      notifyPaused();
+      break;
+    case 'notifyCurrentSection':
+      notifyCurrentSection(event.data[0]);
+      break;
   }
 }
 
 function play() {
-    beatScratchWorker.postMessage(['play']);
+  beatScratchWorker.postMessage(['play']);
 }
 
 function pause() {
-    beatScratchWorker.postMessage(['pause']);
+  beatScratchWorker.postMessage(['pause']);
 }
 
 function stop() {
