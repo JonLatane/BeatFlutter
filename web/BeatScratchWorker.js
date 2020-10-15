@@ -57,6 +57,9 @@ self.onmessage = function (event) {
       part.melodies = part.melodies.filter(m => m.id != melody.id);
       part.melodies.push(melody);
       break;
+    case 'createPart':
+      currentScore.parts.push(event.data[0]);
+      break;
     case 'deletePart':
       currentScore.parts = currentScore.parts.filter(part => part.id != event.data[0]);
       break;
@@ -213,7 +216,7 @@ function notifyPlayingBeat() {
 }
 
 function notifyCurrentSection() {
-  postMessage(['notifyPlayingBeat', currentSectionId]);
+  postMessage(['notifyCurrentSection', currentSectionId]);
 }
 
 function notifyPaused(beat) {
