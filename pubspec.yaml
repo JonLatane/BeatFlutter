@@ -11,7 +11,7 @@ description: BeatScratch for Flutter
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.6.25+39
+version: 0.7.0+40
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -26,8 +26,8 @@ dependencies:
   uuid: ^2.0.4
   recase: ^3.0.0
   vibration: ^1.2.4
-  flutter_reorderable_list: #^0.1.4
-    path: ../flutter_reorderable_list
+  flutter_reorderable_list: ^0.1.5
+#    path: ../flutter_reorderable_list
   url_launcher: ^5.4.2
   implicitly_animated_reorderable_list: 0.2.1
   flutter_keyboard_visibility: ^2.0.0

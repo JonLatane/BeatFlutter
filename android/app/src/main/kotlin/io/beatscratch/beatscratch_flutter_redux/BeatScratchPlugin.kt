@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.beatscratch.commands.ProtobeatsPlugin.*
 import org.beatscratch.models.Music.*
 import kotlin.coroutines.CoroutineContext
+import io.beatscratch.beatscratch_flutter_redux.PlaybackThread
 
 object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
   var handler: Handler? = null
@@ -40,6 +41,7 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
     get() = currentScore?.sectionsList?.firstOrNull { it.id == currentSectionId }
     set(value) {
       currentSectionId = value?.id
+      PlaybackThread.unmultipliedBpm = value?.tempo?.bpm ?: 123f
     }
   var tickPosition: Int = 0
   var keyboardPart: Part? = null
@@ -233,6 +235,11 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
         metronomeEnabled = enabled
         result.success(null)
       }
+      "setBpmMultiplier" -> {
+        val bpmMultiplier = call.arguments as Double
+        PlaybackThread.bpmMultiplier = bpmMultiplier.toFloat()
+        result.success(null)
+      }
       else                                    -> result.notImplemented()
     }
   }
@@ -319,6 +326,12 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
   fun notifyCurrentSection() {
     handler?.post {
       methodChannel?.invokeMethod("notifyCurrentSection", currentSection!!.id)
+    }
+  }
+
+  fun notifyBpmMultiplier() {
+    handler?.post {
+      methodChannel?.invokeMethod("notifyBpmMultiplier", PlaybackThread.bpmMultiplier)
     }
   }
 

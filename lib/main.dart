@@ -1184,6 +1184,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   final double _tempoIncrementFactor = 1.01;
   Widget _tempoConfigurationBar(BuildContext context) {
+    final minValue = min(0.1, BeatScratchPlugin.bpmMultiplier);
+    final maxValue = max(2.0, BeatScratchPlugin.bpmMultiplier);
     return AnimatedOpacity(
         duration: animationDuration,
         opacity: _showTempoConfiguration ? 1 : 0,
@@ -1198,19 +1200,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   child: MyRaisedButton(
                     padding: EdgeInsets.all(0),
                       child: Icon(Icons.keyboard_arrow_down_rounded),
-                      onPressed: BeatScratchPlugin.bpmMultiplier / _tempoIncrementFactor >= 0.1
+                      onPressed: BeatScratchPlugin.bpmMultiplier / _tempoIncrementFactor >= minValue
                           ? () {
                               var newValue = BeatScratchPlugin.bpmMultiplier;
                               newValue /= _tempoIncrementFactor;
-                              BeatScratchPlugin.bpmMultiplier = max(0.1, min(2.0, newValue));
+                              BeatScratchPlugin.bpmMultiplier = max(minValue, min(2.0, newValue));
                               BeatScratchPlugin.onSynthesizerStatusChange();
                             }
                           : null)),
               Expanded(
                   child: MySlider(
-                      max: 2.0,
-                      min: 0.1,
-                      value: max(0.1, min(2.0, BeatScratchPlugin.bpmMultiplier)),
+                      max: maxValue,
+                      min: minValue,
+                      value: max(minValue, min(maxValue, BeatScratchPlugin.bpmMultiplier)),
                       activeColor: Colors.white,
                       onChanged: (value) {
                         BeatScratchPlugin.bpmMultiplier = value;
@@ -1221,11 +1223,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: MyRaisedButton(
                   padding: EdgeInsets.all(0),
                   child: Icon(Icons.keyboard_arrow_up_rounded),
-                  onPressed: BeatScratchPlugin.bpmMultiplier * _tempoIncrementFactor <= 2
+                  onPressed: BeatScratchPlugin.bpmMultiplier * _tempoIncrementFactor <= maxValue
                     ? () {
                     var newValue = BeatScratchPlugin.bpmMultiplier;
                     newValue *= _tempoIncrementFactor;
-                    BeatScratchPlugin.bpmMultiplier = max(0.1, min(2.0, newValue));
+                    BeatScratchPlugin.bpmMultiplier = max(minValue, min(maxValue, newValue));
                     BeatScratchPlugin.onSynthesizerStatusChange();
                   }
                     : null)),

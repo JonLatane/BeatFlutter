@@ -177,7 +177,7 @@ class BeatScratchPlugin {
           }
           break
         case "countIn":
-          let countInBeat = call.arguments as! Int
+//          let countInBeat = call.arguments as! Int
           BeatScratchPlaybackThread.sharedInstance.sendBeat()
           result(nil)
           break
@@ -198,6 +198,11 @@ class BeatScratchPlugin {
         case "setMetronomeEnabled":
           let metronomeEnabled: Bool = call.arguments as! Bool
           BeatScratchScorePlayer.sharedInstance.metronomeEnabled = metronomeEnabled
+          result(nil)
+          break
+        case "setBpmMultiplier":
+          let bpmMultiplier: Double = call.arguments as! Double
+          BeatScratchPlaybackThread.sharedInstance.bpmMultiplier = bpmMultiplier
           result(nil)
           break
         default:
@@ -254,6 +259,10 @@ class BeatScratchPlugin {
   func notifyCurrentSection() {
     let section = BeatScratchScorePlayer.sharedInstance.currentSection
     channel?.invokeMethod("notifyCurrentSection", arguments: section.id)
+  }
+  
+  func notifyBpmMultiplier() {
+    channel?.invokeMethod("notifyBpmMultiplier", arguments: BeatScratchPlaybackThread.sharedInstance.bpmMultiplier)
   }
   
   func setupPart(part: Part) {

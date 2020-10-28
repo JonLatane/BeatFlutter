@@ -36,14 +36,15 @@ class PlaybackThreadInstance : Thread() {
   var stopped: Boolean get() = !playing
     set(value) { playing = !value }
   var terminated = false
-  var bpm: Float = 123f
+  var unmultipliedBpm: Float = 123f
+  var bpmMultiplier: Float = 1f
   
   override fun run() {
     while (!terminated) {
       try {
         if (!stopped) {
           val start = currentTimeMillis()
-          val tickTime: Long = (60000L / (bpm * subdivisionsPerBeat)).toLong()
+          val tickTime: Long = (60000L / (unmultipliedBpm * bpmMultiplier * subdivisionsPerBeat)).toLong()
 //          logV("Tick @${ScorePlayer.currentTick} (T:${currentTimeMillis()}")
           ScorePlayer.tick()
           while(currentTimeMillis() < start + tickTime) {
@@ -73,7 +74,9 @@ class PlaybackThreadInstance : Thread() {
     } else if (beatMinus2 != null && time - beatMinus2!! < 3000) {
 //      playMetronome(immediately = true)
       val periodMs = (time - beatMinus2!!).toFloat()
-      bpm = 60000/ periodMs
+      val multipliedBpm = 60000/ periodMs
+      bpmMultiplier = multipliedBpm / unmultipliedBpm
+      BeatScratchPlugin.notifyBpmMultiplier()
       beatMinus2 = null
       currentTick = -24
       playing = true

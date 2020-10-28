@@ -39,7 +39,8 @@ class BeatScratchPlaybackThread {
     get { return !playing }
   }
   var terminated: Bool = false
-  var bpm: Double = 123
+  var unmultipliedBpm: Double = 123
+  var bpmMultiplier: Double = 1
   private let semaphore = DispatchSemaphore(value: 0)
   
   func run() {
@@ -47,7 +48,7 @@ class BeatScratchPlaybackThread {
       do {
         if (!stopped) {
           let start: Double = CACurrentMediaTime() * 1000
-          let tickTime: Double = (60000 / (self.bpm * BeatScratchPlaybackThread.ticksPerBeat))
+          let tickTime: Double = (60000 / (self.unmultipliedBpm * bpmMultiplier * BeatScratchPlaybackThread.ticksPerBeat))
 //          print("BeatScratchPlaybackThread: Tick @\(BeatScratchScorePlayer.sharedInstance.currentTick) (T:\(start)")
           try BeatScratchScorePlayer.sharedInstance.tick()
           while(CACurrentMediaTime() * 1000 < start + tickTime) {
@@ -78,7 +79,9 @@ class BeatScratchPlaybackThread {
       BeatScratchPlugin.sharedInstance.notifyPaused()
     } else if beatMinus2 != nil && (time - beatMinus2!) < 3000 {
       let periodMs: Double = (time - beatMinus2!)
-      bpm = 60000 / periodMs
+      let multipliedBpm = 60000 / periodMs
+      bpmMultiplier = multipliedBpm / unmultipliedBpm
+      BeatScratchPlugin.sharedInstance.notifyBpmMultiplier()
       beatMinus2 = nil
       BeatScratchScorePlayer.sharedInstance.currentTick = -24
       playing = true
