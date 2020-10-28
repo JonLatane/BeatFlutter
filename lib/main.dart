@@ -224,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showScorePicker = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
+  bool _showTempoConfiguration = false;
   bool _showKeyboardConfiguration = false;
   bool _enableColorboard = false;
 
@@ -455,6 +456,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       editingMelody = false;
       if (!context.isTabletOrLandscapey) {
         showViewOptions = false;
+        _showTempoConfiguration = false;
       }
       melodyViewMode = MelodyViewMode.score;
       selectedMelody = null;
@@ -480,6 +482,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _toggleViewOptions() {
     setState(() {
       showViewOptions = !showViewOptions;
+      if(!showViewOptions) {
+        _showTempoConfiguration = false;
+      }
     });
   }
 
@@ -543,6 +548,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _colorboardHeight => showColorboard ? _isLandscapePhone ? 115 : 150 : 0;
 
   double get _keyboardHeight => showKeyboard ? _isLandscapePhone ? 115 : 150 : 0;
+  double get _tempoConfigurationHeight => !_combineSecondAndMainToolbar ? (_showTempoConfiguration ? 32 : 0) : 0;
 
   bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
   double get _statusBarHeight => _showStatusBar ? 0 : _isLandscapePhone ? 25 : 30;
@@ -585,9 +591,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = (Score scoreToOpen) {
       setState(() {
-        scoreToOpen.parts.expand((p) => p.melodies).forEach((melody) {
-          melody.separateNoteOnAndOffs();
-        });
+        scoreToOpen.migrate();
         BeatScratchPlugin.createScore(scoreToOpen);
         score = scoreToOpen;
         clearMutableCaches();
@@ -813,6 +817,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               if (!_combineSecondAndMainToolbar) _scorePicker(context),
               _midiSettings(context),
               _tapInBar(context),
+              if (!_combineSecondAndMainToolbar) _tempoConfigurationBar(context),
               _pasteFailedBar(context),
               _savingScoreBar(context),
               _audioSystemWorkingBar(context),
@@ -865,7 +870,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget _webBanner(BuildContext context) {
-    bool isWeb = true; // For faking to test
+    bool isWeb = MyPlatform.isWeb;
     bool hideDownloadLinkButton = showDownloadLinks || !showWebWarning || !isWeb;
     return AnimatedContainer(
       duration: animationDuration,
@@ -906,7 +911,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 padding: EdgeInsets.symmetric(horizontal: 5),
                 child: Text(
                   "BeatScratch is pre-release software.\nBugs and missing features abound." +
-                    (isWeb ? "\nmacOS/iOS/Android apps have playback, recording, and better performance." : ""),
+                    (isWeb ? "\nmacOS/iOS/Android apps have recording and better performance." : ""),
                   style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w100))),
 //        Expanded(child:SizedBox()),
               AnimatedContainer(
@@ -914,7 +919,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 width: max(0, MediaQuery
                   .of(context)
                   .size
-                  .width - (isWeb ? 865 : 620) - (hideDownloadLinkButton ? 0 : 180)),
+                  .width - (isWeb ? 792 : 620) - (hideDownloadLinkButton ? 0 : 180)),
                 child: SizedBox()),
               Padding(
                 padding: EdgeInsets.only(right: 5, left: 5),
@@ -1158,13 +1163,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: MyRaisedButton(
             padding: EdgeInsets.all(5),
             color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
-            child: Image.asset('assets/metronome.png'),
+            child: Transform.scale(scale: 0.8, child: Image.asset('assets/metronome.png')),
             onPressed: BeatScratchPlugin.supportsPlayback ? () {
               setState(() {
                 BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
               });
             } : null,
-          ))
+          )),
 //        Container(padding: EdgeInsets.only(left: 5), width: 69,
 //          child: MyRaisedButton(child: Text("Done", style: TextStyle(color: Colors.white),),
 //            color: chromaticSteps[0],
@@ -1173,7 +1178,69 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //                _tapInBeat = null;
 //              });
 //            } : null, padding: EdgeInsets.zero,)),
+        if (_combineSecondAndMainToolbar) _tempoConfigurationBar(context)
       ]));
+  }
+
+  final double _tempoIncrementFactor = 1.01;
+  Widget _tempoConfigurationBar(BuildContext context) {
+    return AnimatedOpacity(
+        duration: animationDuration,
+        opacity: _showTempoConfiguration ? 1 : 0,
+        child: AnimatedContainer(
+            duration: animationDuration,
+            height: !_combineSecondAndMainToolbar ? (_tempoConfigurationHeight) : null,
+            width: _combineSecondAndMainToolbar ? (_showTempoConfiguration ? 300 : 0) : null,
+            child: Row(children: [
+              if (!_combineSecondAndMainToolbar) SizedBox(width:5),
+              Container(
+                  width: 25,
+                  child: MyRaisedButton(
+                    padding: EdgeInsets.all(0),
+                      child: Icon(Icons.keyboard_arrow_down_rounded),
+                      onPressed: BeatScratchPlugin.bpmMultiplier / _tempoIncrementFactor >= 0.1
+                          ? () {
+                              var newValue = BeatScratchPlugin.bpmMultiplier;
+                              newValue /= _tempoIncrementFactor;
+                              BeatScratchPlugin.bpmMultiplier = max(0.1, min(2.0, newValue));
+                              BeatScratchPlugin.onSynthesizerStatusChange();
+                            }
+                          : null)),
+              Expanded(
+                  child: MySlider(
+                      max: 2.0,
+                      min: 0.1,
+                      value: max(0.1, min(2.0, BeatScratchPlugin.bpmMultiplier)),
+                      activeColor: Colors.white,
+                      onChanged: (value) {
+                        BeatScratchPlugin.bpmMultiplier = value;
+                        BeatScratchPlugin.onSynthesizerStatusChange();
+                      })),
+              Container(
+                width: 25,
+                child: MyRaisedButton(
+                  padding: EdgeInsets.all(0),
+                  child: Icon(Icons.keyboard_arrow_up_rounded),
+                  onPressed: BeatScratchPlugin.bpmMultiplier * _tempoIncrementFactor <= 2
+                    ? () {
+                    var newValue = BeatScratchPlugin.bpmMultiplier;
+                    newValue *= _tempoIncrementFactor;
+                    BeatScratchPlugin.bpmMultiplier = max(0.1, min(2.0, newValue));
+                    BeatScratchPlugin.onSynthesizerStatusChange();
+                  }
+                    : null)),
+              SizedBox(width:5),
+              Container(
+                width: 25,
+                child: MyRaisedButton(
+                  padding: EdgeInsets.all(0),
+                  child: Text("x1"),
+                  onPressed: () {
+                    BeatScratchPlugin.bpmMultiplier = 1;
+                    BeatScratchPlugin.onSynthesizerStatusChange();
+                  })),
+              SizedBox(width:5)
+            ])));
   }
 
   Widget _toolbars(BuildContext context) {
@@ -1339,6 +1406,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       showColorboardConfiguration: _showColorboardConfiguration,
       showKeyboardConfiguration: _showKeyboardConfiguration,
       sectionColor: sectionColor,
+      toggleTempoConfiguration: () { setState((){
+        _showTempoConfiguration = !_showTempoConfiguration;
+        if (_showTempoConfiguration) {
+          showViewOptions = true;
+        }
+      }); },
+      showTempoConfiguration: _showTempoConfiguration,
     );
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
@@ -1371,6 +1445,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _scorePickerHeight -
       _colorboardHeight -
       _keyboardHeight -
+      _tempoConfigurationHeight -
       horizontalSectionListHeight -
       _tapInBarHeight -
       _statusBarHeight -
@@ -1583,6 +1658,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         section.melodies.clear();
         section.melodies.addAll(currentSection.melodies.map((e) => e.clone()));
         _insertSection(section);
+        section.tempo = Tempo()..bpm = currentSection.tempo.bpm;
       },
     );
   }

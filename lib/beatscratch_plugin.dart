@@ -54,6 +54,12 @@ class BeatScratchPlugin {
         case "notifyCurrentSection":
           _notifyCurrentSection(call.arguments);
           break;
+        case "notifyBpmMultiplier":
+          _notifyBpmMultiplier(call.arguments);
+          break;
+        case "notifyUnmultipliedBpm":
+          _notifyUnmultipliedBpm(call.arguments);
+          break;
         case "sendRecordedMelody":
           final Uint8List rawData = call.arguments;
           final Melody response = Melody.fromBuffer(rawData);
@@ -72,6 +78,8 @@ class BeatScratchPlugin {
       context["notifyPlayingBeat"] = _notifyPlayingBeat;
       context["notifyPaused"] = _notifyPaused;
       context["notifyCurrentSection"] = _notifyCurrentSection;
+      context["notifyBpmMultiplier"] = _notifyBpmMultiplier;
+      context["notifyUnmultipliedBpm"] = _notifyUnmultipliedBpm;
     }
   }
 
@@ -90,6 +98,16 @@ class BeatScratchPlugin {
     onSynthesizerStatusChange?.call();
   }
 
+  static _notifyBpmMultiplier(double bpmMultiplier) {
+    _bpmMultiplier = bpmMultiplier;
+    onSynthesizerStatusChange?.call();
+  }
+
+  static _notifyUnmultipliedBpm(double unmultipliedBpm) {
+    BeatScratchPlugin.unmultipliedBpm = unmultipliedBpm;
+    onSynthesizerStatusChange?.call();
+  }
+
   static bool _metronomeEnabled = true;
   static bool get metronomeEnabled => _metronomeEnabled;
   static set metronomeEnabled(bool value) {
@@ -100,6 +118,21 @@ class BeatScratchPlugin {
       _channel.invokeMethod('setMetronomeEnabled', value);
     }
   }
+  static double _bpmMultiplier = 1.0;
+  static double get bpmMultiplier => _bpmMultiplier;
+  static set bpmMultiplier(double value) {
+    _bpmMultiplier = value;
+    try {
+      if (kIsWeb) {
+        context.callMethod('setBpmMultiplier', [value]);
+      } else {
+        _channel.invokeMethod('setBpmMultiplier', value);
+      }
+    } catch(any) {
+
+    }
+  }
+  static double unmultipliedBpm = 123;
   static bool _playing;
   static bool get playing {
     if(_playing == null) {
@@ -233,7 +266,7 @@ class BeatScratchPlugin {
     }
 
     if(kIsWeb) {
-      context.callMethod(methodName, [ part.writeToJson() ]);
+      context.callMethod(methodName, [ part.jsify() ]);
     } else {
       _channel.invokeMethod(methodName, part.clone().writeToBuffer());
     }

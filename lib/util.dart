@@ -123,7 +123,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
       Container(
           width: 25,
           child: MyRaisedButton(
-            child: Icon(Icons.arrow_downward),
+            child: Icon(Icons.keyboard_arrow_down_rounded),
             onPressed: widget.onDecrement,
             padding: EdgeInsets.all(0),
           )),
@@ -181,7 +181,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
       Container(
           width: 25,
           child: MyRaisedButton(
-            child: Icon(Icons.arrow_upward),
+            child: Icon(Icons.keyboard_arrow_up_rounded),
             onPressed: widget.onIncrement,
             padding: EdgeInsets.all(0),
           )),

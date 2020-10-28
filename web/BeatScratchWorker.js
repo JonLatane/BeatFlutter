@@ -9,6 +9,7 @@ var currentSectionId;
 var metronomeEnabled = true;
 var activeAttacks = [];
 var ticksPerBeat = 24;
+var lastCountInBeatTime = null;
 
 self.onmessage = function (event) {
   switch (event.data.shift()) {
@@ -66,6 +67,19 @@ self.onmessage = function (event) {
     case 'setMetronomeEnabled':
       metronomeEnabled = event.data[0];
       break;
+    case 'countIn':
+      var time = Date.now();
+      playMetronome();
+      if (lastCountInBeatTime == null) {
+        lastCountInBeatTime = time;
+      } else if (time - lastCountInBeatTime < 3000) {
+        var periodMs = time - lastCountInBeatTime;
+        bpm = 60000 / periodMs;
+        lastCountInBeatTime = null;
+        currentTick = -24;
+        playing = true;
+        tick();
+      }
     default:
       throw 'invalid call to worker';
   }
@@ -129,7 +143,7 @@ function tick() {
   setTimeout(() => {
     while (Date.now() < now + tickTime) {}
     if (playing) tick();
-  }, tickTime * 0.8);
+  }, 0);
 }
 
 function doTick(section) {

@@ -870,21 +870,31 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
       ),
       SizedBox(width:5),
       IncrementableValue(
-        onDecrement: null,
-        onIncrement: null,
+        onDecrement: (widget.currentSection.tempo.bpm >  21) ? () {
+          widget.currentSection.tempo.bpm--;
+          BeatScratchPlugin.updateSections(widget.score);
+          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+        } : null,
+        onIncrement: (widget.currentSection.tempo.bpm < 499) ? () {
+          widget.currentSection.tempo.bpm++;
+          BeatScratchPlugin.updateSections(widget.score);
+          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+        } : null,
         child: Container(
           width: 36,
           padding: EdgeInsets.only(top: 7, bottom: 5),
           child: Stack(children: [
             Align(
               alignment: Alignment.center,
-              child: Opacity(opacity: 0.4, child: Image.asset('assets/metronome.png')),
+              child: Opacity(opacity: 0.4, child: Transform.scale(scale: 0.8, child: Image.asset('assets/metronome.png'))),
             ),
             Align(
               alignment: Alignment.centerRight,
               child:
               Transform.translate(offset: Offset(0, -7), child:
-              Text('123', style: TextStyle(fontWeight: FontWeight.w700) )),
+              Text(widget.currentSection.tempo.bpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w700) )),
             )
           ])),
       ),

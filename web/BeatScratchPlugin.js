@@ -129,3 +129,7 @@ function setRecordingMelody(melodyId) {
 function setMetronomeEnabled(enabled) {
   beatScratchWorker.postMessage(['setMetronomeEnabled', enabled]);
 }
+
+function countIn(countInBeat) {
+  beatScratchWorker.postMessage(['countIn', countInBeat]);
+}

@@ -399,11 +399,13 @@ class SecondToolbar extends StatelessWidget {
   final VoidCallback toggleColorboard;
   final VoidCallback toggleKeyboardConfiguration;
   final VoidCallback toggleColorboardConfiguration;
+  final VoidCallback toggleTempoConfiguration;
   final bool editingMelody;
   final bool showKeyboard;
   final bool showKeyboardConfiguration;
   final bool showColorboard;
   final bool showColorboardConfiguration;
+  final bool showTempoConfiguration;
   final InteractionMode interactionMode;
   final bool showViewOptions;
   final Color sectionColor;
@@ -422,7 +424,7 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard, this.editingMelody,
+    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration
   }) : super(key: key);
 
   @override
@@ -444,19 +446,19 @@ class SecondToolbar extends StatelessWidget {
         width: editMode ? width / numberOfButtons : 0,
         duration: animationDuration,
         child: Padding(
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           child: MyRaisedButton(
             padding: EdgeInsets.zero,
             child: Stack(children: [
               AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
                 duration: animationDuration, child:
-                Icon(Icons.play_arrow,)),
+              Transform.scale(scale: 0.8, child:Icon(Icons.play_arrow, size: 32))),
               AnimatedOpacity(opacity: editMode && BeatScratchPlugin.playing ? 1 : 0,
                 duration: animationDuration, child:
-                Icon(Icons.pause,)),
+                Transform.scale(scale: 0.8, child:Icon(Icons.pause, size: 32))),
               AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && editingMelody ? 1 : 0,
                 duration: animationDuration, child:
-                Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                Transform.scale(scale: 0.8, child:Icon(Icons.fiber_manual_record, size: 32, color: chromaticSteps[7]))),
             ]),
             onPressed: BeatScratchPlugin.supportsPlayback
               ? () {
@@ -474,7 +476,7 @@ class SecondToolbar extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           child: MyRaisedButton(
             child:
-            AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Icon(Icons.skip_previous)),
+            AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Transform.scale(scale: 0.8, child:Icon(Icons.skip_previous, size: 32))),
             onPressed: BeatScratchPlugin.supportsPlayback
               ? () {
               BeatScratchPlugin.setBeat(0);
@@ -489,20 +491,33 @@ class SecondToolbar extends StatelessWidget {
             child: Stack(children: [
               Align(
                 alignment: Alignment.center,
-                child: Image.asset('assets/metronome.png'),
+                child: Transform.scale(scale: 0.8, child: Opacity(opacity: 0.5, child: Image.asset('assets/metronome.png'))),
               ),
               Align(
                 alignment: Alignment.centerRight,
-                child: Padding(padding: EdgeInsets.only(right: 3.5), child: Text('123')),
+                child: Padding(padding: EdgeInsets.only(right: 3.5), child:
+                  Text((BeatScratchPlugin.unmultipliedBpm * BeatScratchPlugin.bpmMultiplier).toStringAsFixed(0),
+                    style: TextStyle(fontSize: 16))),
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Padding(padding: EdgeInsets.only(left: 10.5),
+                  child: Text(BeatScratchPlugin.unmultipliedBpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w200, fontSize: 12, fontStyle: FontStyle.normal))),
+              ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(padding: EdgeInsets.only(left: 3.5),
+                  child: Text("x${BeatScratchPlugin.bpmMultiplier.toStringAsPrecision(3)}", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12,))),
               )
             ]),
-            onPressed: null //() => {},
+            onPressed: toggleTempoConfiguration,
+            color: (showTempoConfiguration) ? Colors.white : Colors.grey,
           ))),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: MyRaisedButton(
-            child: Image.asset('assets/piano.png', width: 28, height: 28),
+            child: Image.asset('assets/piano.png', width: 26, height: 32),
             onPressed: toggleKeyboard,
             onLongPress: toggleKeyboardConfiguration,
             color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,

@@ -207,11 +207,11 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     child: MyRaisedButton(
                         onPressed: widget.toggleSplitMode,
                         padding: EdgeInsets.all(7),
-                        child: widget.splitMode == SplitMode.half
+                        child: Transform.scale(scale: 0.8, child: widget.splitMode == SplitMode.half
                             ? Image.asset("assets/split_full.png")
                             : context.isPortrait
                                 ? Image.asset("assets/split_horizontal.png")
-                                : Image.asset("assets/split_vertical.png"))),
+                                : Image.asset("assets/split_vertical.png")))),
               ),
               Expanded(
                   child: Column(children: [

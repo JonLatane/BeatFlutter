@@ -172,7 +172,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     Duration beatAnimationDuration = animationDuration;
     if(_prevViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
         && _prevBeat > widget.currentSection.beatCount - 2) {
-      beatAnimationDuration = Duration.zero;
+      beatAnimationDuration = Duration(microseconds: 1);
     }
     _prevViewMode = widget.melodyViewMode;
     if(_prevBeat != currentBeat && currentBeat % widget.currentSection.meter.defaultBeatsPerMeasure == 0) {
