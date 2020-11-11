@@ -332,6 +332,7 @@ class __ScoreState extends State<_Score> {
   @override
   Widget build(BuildContext context) {
     String scoreName = widget.file?.scoreName ?? "";
+    bool isCurrentScore = scoreName == widget.currentScoreName;
     DateTime lastModified = widget.file?.lastModifiedSync() ?? DateTime(0);
     if (lastModified != lastFileLastModified) {
       _confirmingDelete = false;
@@ -348,7 +349,7 @@ class __ScoreState extends State<_Score> {
       _confirmingDelete = true;
     }
     Color foregroundColor, backgroundColor;
-    if (widget.currentScoreName != scoreName) {
+    if (!isCurrentScore) {
       foregroundColor = Colors.white;
       backgroundColor = Colors.grey;
     } else {
@@ -383,7 +384,7 @@ class __ScoreState extends State<_Score> {
                 padding: EdgeInsets.all(5),
                 child: Column(children: [
                   Row(children: [
-//          Icon(Icons.input, color: Colors.white), SizedBox(width:5),
+                    SizedBox(width: 5),
                     Expanded(
                         child: Text(scoreName,
                             style: TextStyle(color: foregroundColor, fontSize: 12, fontWeight: FontWeight.w100))),
@@ -413,6 +414,7 @@ class __ScoreState extends State<_Score> {
                                 child: MelodyView(
                                 initialScale: 0.1,
                                 previewMode: true,
+                                isCurrentScore: isCurrentScore,
                                 enableColorboard: false,
                                 superSetState: setState,
                                 focusPartsAndMelodies: false,

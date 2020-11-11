@@ -57,7 +57,11 @@ class ScoreManager {
     doOpenScore(score);
   }
 
-  saveCurrentScore(Score score) async {
+  saveCurrentScore(Score score) {
+    _saveCurrentScore(_currentScoreFile, score);
+  }
+
+  _saveCurrentScore(File scoreFile, Score score) async {
     _currentScoreFile.writeAsBytes(score.clone().writeToBuffer());
   }
 

@@ -181,6 +181,8 @@ class _MidiSynthesizer extends StatelessWidget {
             Container(height: 24, padding: EdgeInsets.only(top:3), child:MyRaisedButton(child: Text("Reset"), padding: EdgeInsets.zero,
               onPressed: () { BeatScratchPlugin.resetAudioSystem(); },
             )),
+          if(midiSynthesizer.id != "internal")
+            Text("ID: ${midiSynthesizer.id}", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
           Expanded(child:SizedBox()),
         ]))
       ])

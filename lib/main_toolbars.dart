@@ -43,6 +43,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final String currentScoreName;
   final VoidCallback pasteScore;
   final Function(String) routeToCurrentScore;
+  final bool vertical;
 
   const BeatScratchToolbar({Key key,
     this.interactionMode,
@@ -56,7 +57,7 @@ class BeatScratchToolbar extends StatefulWidget {
     this.renderingMode,
     this.showMidiInputSettings,
     this.focusPartsAndMelodies,
-    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score, this.pasteScore, this.scoreManager, this.routeToCurrentScore})
+    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score, this.pasteScore, this.scoreManager, this.routeToCurrentScore, this.vertical})
     : super(key: key);
 
   @override
@@ -95,12 +96,20 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
     // clipboardTriggerTime.cancel();
   }
 
+  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+    if (widget.vertical) {
+      return Column(children: children);
+    } else {
+      return Row(children: children);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
-      child: Row(children: [
+      height: widget.vertical ? null : 48,
+      width: widget.vertical ? 48 : null,
+      child: columnOrRow(context, children: [
         Expanded(
           child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
@@ -410,6 +419,7 @@ class SecondToolbar extends StatelessWidget {
   final bool showViewOptions;
   final Color sectionColor;
   final bool enableColorboard;
+  final bool vertical;
 
   const SecondToolbar({
     Key key,
@@ -424,41 +434,53 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration
+    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical
   }) : super(key: key);
+
+  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+    if (vertical) {
+      return Column(children: children);
+    } else {
+      return Row(children: children);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery
+    var totalSpace = vertical ? MediaQuery
+      .of(context)
+      .size
+      .height
+    : MediaQuery
       .of(context)
       .size
       .width;
-    if (context.isTabletOrLandscapey) {
-      width = width / 2;
+    if (context.isTabletOrLandscapey && !vertical) {
+      totalSpace = totalSpace / 2;
     }
     bool editMode = interactionMode == InteractionMode.edit;
     int numberOfButtons = editMode ? 4 : 2;
     if (enableColorboard) {
       numberOfButtons += 1;
     }
-    return Row(children: [
+    Widget createPlayIcon(IconData icon, {bool visible, Color color = Colors.black}) {
+      return AnimatedOpacity(opacity: visible ? 1 : 0,
+        duration: animationDuration, child:
+        Transform.scale(scale: 0.8, child:Icon(icon, color: color, size: 32)));
+    }
+    return columnOrRow(context, children: [
       AnimatedContainer(
-        width: editMode ? width / numberOfButtons : 0,
+        height: !vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
+        width: vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
         duration: animationDuration,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
+          padding: const EdgeInsets.all(2),
           child: MyRaisedButton(
             padding: EdgeInsets.zero,
             child: Stack(children: [
-              AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && !editingMelody ? 1 : 0,
-                duration: animationDuration, child:
-              Transform.scale(scale: 0.8, child:Icon(Icons.play_arrow, size: 32))),
-              AnimatedOpacity(opacity: editMode && BeatScratchPlugin.playing ? 1 : 0,
-                duration: animationDuration, child:
-                Transform.scale(scale: 0.8, child:Icon(Icons.pause, size: 32))),
-              AnimatedOpacity(opacity: editMode && !BeatScratchPlugin.playing && editingMelody ? 1 : 0,
-                duration: animationDuration, child:
-                Transform.scale(scale: 0.8, child:Icon(Icons.fiber_manual_record, size: 32, color: chromaticSteps[7]))),
+              createPlayIcon(Icons.play_arrow, visible: editMode && !BeatScratchPlugin.playing && !editingMelody),
+              createPlayIcon(Icons.pause, visible: editMode && BeatScratchPlugin.playing),
+              createPlayIcon(Icons.fiber_manual_record, visible: editMode && !BeatScratchPlugin.playing && editingMelody, color: chromaticSteps[7]),
             ]),
             onPressed: BeatScratchPlugin.supportsPlayback
               ? () {
@@ -470,24 +492,30 @@ class SecondToolbar extends StatelessWidget {
             }
               : null))),
       AnimatedContainer(
-        width: editMode ? width / numberOfButtons : 0,
+        height: !vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
+        width: vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
         duration: animationDuration,
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: MyRaisedButton(
-            child:
-            AnimatedOpacity(opacity: editMode ? 1 : 0, duration: animationDuration, child: Transform.scale(scale: 0.8, child:Icon(Icons.skip_previous, size: 32))),
-            onPressed: BeatScratchPlugin.supportsPlayback
-              ? () {
-              BeatScratchPlugin.setBeat(0);
+          child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: MyRaisedButton(
+                  padding: EdgeInsets.zero,
+                  child: AnimatedOpacity(
+                      opacity: editMode ? 1 : 0,
+                      duration: animationDuration,
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Transform.scale(scale: 0.8, child: Icon(Icons.skip_previous, size: 32)))),
+                  onPressed: BeatScratchPlugin.supportsPlayback
+                      ? () {
+                          BeatScratchPlugin.setBeat(0);
 //                          BeatScratchPlugin.stop();
-            }
-              : null))),
+                        }
+                      : null))),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: MyRaisedButton(
-            padding: EdgeInsets.only(top: 7, bottom: 5),
+            padding: EdgeInsets.zero,
             child: Stack(children: [
               Align(
                 alignment: Alignment.center,
@@ -497,17 +525,22 @@ class SecondToolbar extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: Padding(padding: EdgeInsets.only(right: 3.5), child:
                   Text((BeatScratchPlugin.unmultipliedBpm * BeatScratchPlugin.bpmMultiplier).toStringAsFixed(0),
+                    maxLines: 1, overflow: TextOverflow.fade,
                     style: TextStyle(fontSize: 16))),
               ),
               Align(
                 alignment: Alignment.topLeft,
                 child: Padding(padding: EdgeInsets.only(left: 10.5),
-                  child: Text(BeatScratchPlugin.unmultipliedBpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w200, fontSize: 12, fontStyle: FontStyle.normal))),
+                  child: Text(BeatScratchPlugin.unmultipliedBpm.toStringAsFixed(0),
+                    maxLines: 1, overflow: TextOverflow.fade,
+                    style: TextStyle(fontWeight: FontWeight.w200, fontSize: 12, fontStyle: FontStyle.normal))),
               ),
               Align(
                 alignment: Alignment.bottomLeft,
                 child: Padding(padding: EdgeInsets.only(left: 3.5),
-                  child: Text("x${BeatScratchPlugin.bpmMultiplier.toStringAsPrecision(3)}", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12,))),
+                  child: Text("x${BeatScratchPlugin.bpmMultiplier.toStringAsPrecision(3)}",
+                    maxLines: 1, overflow: TextOverflow.fade,
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12,))),
               )
             ]),
             onPressed: toggleTempoConfiguration,
@@ -517,13 +550,17 @@ class SecondToolbar extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(2),
           child: MyRaisedButton(
-            child: Image.asset('assets/piano.png', width: 26, height: 32),
+            child: Align(
+              alignment: Alignment.center,
+              child: Transform.scale(scale: vertical && MyPlatform.isAndroid ? 2.5 : 0.8, child: Image.asset('assets/piano.png')),
+            ),
             onPressed: toggleKeyboard,
             onLongPress: toggleKeyboardConfiguration,
             color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
           ))),
       AnimatedContainer(
-        width: (enableColorboard) ? width / numberOfButtons : 0,
+        height: !vertical ? null : (enableColorboard) ? totalSpace / numberOfButtons : 0,
+        width: vertical ? null : (enableColorboard) ? totalSpace / numberOfButtons : 0,
         duration: animationDuration,
         child: Padding(
           padding: const EdgeInsets.all(2),
@@ -531,7 +568,10 @@ class SecondToolbar extends StatelessWidget {
             child: AnimatedOpacity(
               duration: animationDuration,
               opacity: toggleColorboard != null ? 1 : 0.25,
-              child: Image.asset('assets/colorboard.png')),
+              child: Align(
+                alignment: Alignment.center,
+                child: Transform.scale(scale: vertical && MyPlatform.isAndroid ? 2.5 : 0.8, child: Image.asset('assets/colorboard.png')),
+              )),
             onPressed: toggleColorboard,
             onLongPress: toggleColorboardConfiguration,
             color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,

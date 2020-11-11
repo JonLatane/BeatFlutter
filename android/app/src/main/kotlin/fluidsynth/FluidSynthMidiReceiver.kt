@@ -3,29 +3,57 @@ package fluidsynth
 import android.content.Context
 import android.media.AudioManager
 import android.media.midi.MidiReceiver
+import io.beatscratch.beatscratch_flutter_redux.AndroidMidi
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okio.buffer
 import okio.sink
 import okio.source
 import java.io.File
+import java.net.URL
+import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
 
 
 class FluidSynthMidiReceiver(
-  val context: Context,
-  val sf2FileName: String = defaultSf2FileName
+  val context: Context
 ) : MidiReceiver() {
   val nativeLibJNI: FluidSynthJNI = FluidSynthJNI()
   val sf2file = File(context.soundfontDir, sf2FileName)
+  val sf3file = File(context.soundfontDir, sf3FileName)
 
   companion object {
-    val defaultSf2FileName = "FluidR3Mono_GM (included).sf3"
+    val sf2FileName = "FluidR3_GM.sf2"
+    val sf2FileUrl = "https://www.dropbox.com/s/qjo60tvp2vi98md/FluidR3_GM.sf2?dl=1"
+    val sf3FileName = "FluidR3Mono_GM (included).sf3"
     val baseSoundfontDir = "soundfonts"
     val Context.soundfontDir: String get() = "$filesDir${File.separator}$baseSoundfontDir"
     internal fun Byte.toUnsigned() = if (this < 0) 256 + this else this.toInt()
   }
 
   init {
-    copySF2IfNecessary()
-//    info("Starting FluidSynth")
+    if (!sf2file.exists() || sf2file.length() == 0L) {
+      copySF3IfNecessary()
+      setupSoundFont(sf3file)
+      // Auto-download the included SoundFont in SF2 format, to improve FluidSynth performance.
+//      thread(start = true) {
+//        try {
+//          URL(sf2FileUrl).openStream().source().use { source ->
+//            sf2file.sink().buffer().use { bufferedSink ->
+//              bufferedSink.writeAll(source)
+//            }
+//          }
+//          AndroidMidi.resetFluidSynth()
+//        } catch(t: Throwable) {}
+//      }
+    } else {
+      setupSoundFont(sf2file)
+    }
+  }
+
+  private fun setupSoundFont(file: File) {
     val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     val sampleRateStr = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
     val sampleRate = Integer.parseInt(sampleRateStr)
@@ -33,15 +61,18 @@ class FluidSynthMidiReceiver(
     val periodSize = Integer.parseInt(framesPerBurstStr)
 
     nativeLibJNI.init(sampleRate, periodSize)
-    nativeLibJNI.addSoundFont(sf2file.absolutePath)
+    val soundFontId = nativeLibJNI.addSoundFont(file.absolutePath)
+    for (channel in 0..15) {
+      nativeLibJNI.selectSoundFont(channel, soundFontId)
+    }
   }
 
-  private fun copySF2IfNecessary() {
-    if (sf2file.exists() && sf2file.length() > 0) return
+  private fun copySF3IfNecessary() {
+    if (sf3file.exists() && sf3file.length() > 0) return
     File(context.soundfontDir).mkdirs()
-    val file = context.assets.open("soundfont/$sf2FileName")
+    val file = context.assets.open("soundfont/$sf3FileName")
     file.source().use { source ->
-      sf2file.sink().buffer().use { bufferedSink ->
+      sf3file.sink().buffer().use { bufferedSink ->
         bufferedSink.writeAll(source)
       }
     }

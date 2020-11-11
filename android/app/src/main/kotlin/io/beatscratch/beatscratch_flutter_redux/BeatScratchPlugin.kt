@@ -32,9 +32,13 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
     }
   var currentScore: Score? = null
     set(value) {
+      val oldValue = field
       field = value
       MidiDevices.refreshInstruments()
       tickPosition = 0
+      if (value?.sectionsList?.none { it.id == currentSectionId } == true) {
+        currentSectionId = value.sectionsList?.firstOrNull()?.id ?: "foo"
+      }
     }
   private var currentSectionId: String? = null
   var currentSection: Section?
@@ -58,7 +62,9 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
       "createScore", "updateSections"         -> {
         try {
           val score: Score = Score.parseFrom(call.arguments as ByteArray)
-          currentSection = score.sectionsList.firstOrNull { it.id == currentSection?.id }
+          currentSection = score.sectionsList.firstOrNull {
+            it.id == currentSection?.id
+          }
             ?: score.sectionsList[0]
           if (call.method == "createScore") {
             currentScore = score
@@ -165,7 +171,7 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
         }
         result.success(null)
       }
-      "checkSynthesizerStatus"                -> {
+      "checkBeatScratchAudioStatus"                -> {
         result.success(AndroidMidi.isMidiReady)
       }
       "resetAudioSystem"                      -> {
@@ -332,6 +338,12 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
   fun notifyBpmMultiplier() {
     handler?.post {
       methodChannel?.invokeMethod("notifyBpmMultiplier", PlaybackThread.bpmMultiplier)
+    }
+  }
+
+  fun notifyUnmultipliedBpm() {
+    handler?.post {
+      methodChannel?.invokeMethod("notifyUnmultipliedBpm", PlaybackThread.unmultipliedBpm)
     }
   }
 

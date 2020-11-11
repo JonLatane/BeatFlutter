@@ -383,8 +383,8 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         break;
       case NoteSign.double_flat:
         signPath = _doubleFlatPath;
-        canvas.translate(-7, 4);
         canvas.scale(0.12 * minScale, 0.12 * minScale);
+        canvas.translate(-35, 40);
 //        canvas.translate(-94.947,-433.75 + 1);
         break;
       case NoteSign.double_sharp:

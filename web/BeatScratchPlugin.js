@@ -44,7 +44,7 @@ function updatePartConfiguration(part) {
 }
 
 var isSynthesizerReady = false;
-function checkSynthesizerStatus() {
+function checkBeatScratchAudioStatus() {
     return isSynthesizerReady;
 }
 
@@ -66,6 +66,9 @@ beatScratchWorker.onmessage = function(event) {
       break;
     case 'notifyBpmMultiplier':
       notifyBpmMultiplier(event.data[0]);
+      break;
+    case 'notifyUnmultipliedBpm':
+      notifyUnmultipliedBpm(event.data[0]);
       break;
   }
 }

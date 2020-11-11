@@ -26,6 +26,8 @@ class Colorboard extends StatefulWidget {
   final Part part;
   final ValueNotifier<Iterable<int>> pressedNotesNotifier;
   final double distanceFromBottom;
+  final double width;
+  final double leftMargin;
 
   Colorboard({
     Key key,
@@ -36,6 +38,8 @@ class Colorboard extends StatefulWidget {
     this.part,
     this.pressedNotesNotifier,
     this.distanceFromBottom,
+    this.width,
+    this.leftMargin,
   }) : super(key: key);
 
   @override
@@ -155,11 +159,11 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
+    double halfStepsOnScreen = widget.width / halfStepWidthInPx;
     double physicalWidth = keysOnScreen * halfStepWidthInPx;
     chordNotifier.value = widget.chord;
 
-    double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+    double minNewValue = widget.width / keysOnScreen;
     if(halfStepWidthInPx < minNewValue) {
       halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
     }
@@ -232,6 +236,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
             child: Listener(
                 onPointerDown: (event) {
                   double left = _visibleRect.left + event.position.dx;
+                  left -= widget.leftMargin;
 //              double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
                   int tone = (left / halfStepWidthInPx).floor() + lowestPitch;
                   tone = widget.chord.closestTone(tone);
@@ -249,6 +254,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                 },
                 onPointerMove: (event) {
                   double left = _visibleRect.left + event.position.dx;
+                  left -= widget.leftMargin;
                   int tone = (left / halfStepWidthInPx).floor() + lowestPitch;
                   tone = widget.chord.closestTone(tone);
                   double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
@@ -404,7 +410,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                                   onPressed: (halfStepWidthInPx > 10)
                                       ? () {
                                           setState(() {
-                                            double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+                                            double minNewValue = widget.width / keysOnScreen;
                                             double newValue = halfStepWidthInPx / 1.62;
                                             newValue = max(minNewValue, newValue);
                                             halfStepWidthInPx  = newValue;

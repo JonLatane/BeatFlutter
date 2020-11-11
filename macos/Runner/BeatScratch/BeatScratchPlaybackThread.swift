@@ -39,7 +39,12 @@ class BeatScratchPlaybackThread {
     get { return !playing }
   }
   var terminated: Bool = false
-  var unmultipliedBpm: Double = 123
+  var unmultipliedBpm: Double = 123 { //
+    didSet { // Only ever set by native-platform in the "shared model"
+      BeatScratchPlugin.sharedInstance.notifyUnmultipliedBpm()
+    }
+  }
+  // Settable by the UI, auto-notifying of changes could cause loops
   var bpmMultiplier: Double = 1
   private let semaphore = DispatchSemaphore(value: 0)
   

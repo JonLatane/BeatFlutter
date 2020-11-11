@@ -37,6 +37,7 @@ class BeatScratchScorePlayer {
       currentSectionId = newValue.id
       BeatScratchPlaybackThread.sharedInstance.unmultipliedBpm = Double(newValue.tempo.bpm)
       clearNonSectionActiveAttacks()
+      BeatScratchPlugin.sharedInstance.notifyUnmultipliedBpm()
     }
   }
   var currentTick: Int64 = 0

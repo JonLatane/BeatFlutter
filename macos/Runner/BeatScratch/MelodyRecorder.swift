@@ -31,7 +31,7 @@ class MelodyRecorder {
     }
     set {
       if newValue != nil {
-        if var part: Part = BeatScratchPlugin.sharedInstance.score.parts.first(where: { $0.melodies.contains { $0.id == recordingMelodyId} }) {
+        if var part: Part = BeatScratchPlugin.sharedInstance.score.parts.first(where: { $0.melodies.contains { $0.id == recordingMelodyId } }) {
           part.melodies.removeAll { $0.id == newValue!.id }
           part.melodies.append(newValue!)
           BeatScratchPlugin.sharedInstance.score.parts.removeAll { $0.id == part.id }
@@ -85,12 +85,14 @@ class MelodyRecorder {
       recordedData.forEach {
         let time: CFTimeInterval = $0.key
         let value: [UInt8] = $0.value
-        let beatSize = endTime - startTime
+        let subdivisionsPerBeat = melody.subdivisionsPerBeat
+        let length = melody.length
+        let beatSize = (endTime - startTime) * (Double(subdivisionsPerBeat + 1))/Double(subdivisionsPerBeat)
         let beatProgress = time - startTime
         let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
-        var subdivision = Int32((normalizedProgress * Double(melody.subdivisionsPerBeat)).rounded())
-        subdivision += Int32(beat) * Int32(melody.subdivisionsPerBeat)
-        subdivision = (subdivision + Int32(melody.length)) % Int32(melody.length)
+        var subdivision = Int32((normalizedProgress * Double(subdivisionsPerBeat)).rounded())
+        subdivision += Int32(beat) * Int32(subdivisionsPerBeat)
+        subdivision = (subdivision + Int32(length)) % Int32(length)
         
         melody.midiData.data.processUpdate(subdivision) {
           var change = $0 ?? MidiChange()

@@ -17,6 +17,11 @@ class BeatScratchPlugin {
   // Globally accessible
   static let sharedInstance = BeatScratchPlugin()
   var score: Score = Score() {
+    willSet {
+      BeatScratchScorePlayer.sharedInstance.currentSection = newValue.sections.first {
+        $0.id == BeatScratchScorePlayer.sharedInstance.currentSection.id
+      } ?? newValue.sections.first!
+    }
     didSet {
       setSynthesizerAvailable()
       score.parts.forEach {
@@ -51,9 +56,6 @@ class BeatScratchPlugin {
           break
         case "createScore", "updateSections":
           let score = try Score(serializedData: (call.arguments as! FlutterStandardTypedData).data)
-          BeatScratchScorePlayer.sharedInstance.currentSection = score.sections.first {
-            $0.id == BeatScratchScorePlayer.sharedInstance.currentSection.id
-            } ?? score.sections.first!
           if call.method == "createScore" {
             self.score = score
           } else if call.method == "updateSections" {
@@ -140,7 +142,7 @@ class BeatScratchPlugin {
             }
           }
           break
-        case "checkSynthesizerStatus":
+        case "checkBeatScratchAudioStatus":
           result(Conductor.sharedInstance.samplersInitialized)
           break
         case "resetAudioSystem":
@@ -263,6 +265,10 @@ class BeatScratchPlugin {
   
   func notifyBpmMultiplier() {
     channel?.invokeMethod("notifyBpmMultiplier", arguments: BeatScratchPlaybackThread.sharedInstance.bpmMultiplier)
+  }
+  
+  func notifyUnmultipliedBpm() {
+    channel?.invokeMethod("notifyUnmultipliedBpm", arguments: BeatScratchPlaybackThread.sharedInstance.unmultipliedBpm)
   }
   
   func setupPart(part: Part) {

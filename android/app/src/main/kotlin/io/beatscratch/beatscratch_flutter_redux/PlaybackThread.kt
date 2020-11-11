@@ -2,6 +2,7 @@ package io.beatscratch.beatscratch_flutter_redux
 
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyCountInInitiated
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPaused
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyUnmultipliedBpm
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.currentTick
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.playMetronome
 import org.beatscratch.models.Music
@@ -37,6 +38,10 @@ class PlaybackThreadInstance : Thread() {
     set(value) { playing = !value }
   var terminated = false
   var unmultipliedBpm: Float = 123f
+    set(value) {
+      field = value
+      notifyUnmultipliedBpm()
+    }
   var bpmMultiplier: Float = 1f
   
   override fun run() {

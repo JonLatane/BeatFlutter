@@ -3,17 +3,17 @@
 # Paths assume pwd is directory of build script.
 cd "$(dirname "$0")"
 
-echo "# Changing to channel stable for Android build..." && \
+echo "# Changing to channel stable for Android/iOS builds..." && \
 flutter channel stable && flutter upgrade && \
 echo "" && \
 ./build-release-android && \
-echo "# Changing to channel beta for iOS/web builds..." && \
-flutter channel beta && flutter upgrade && \
 echo "" && \
 ./build-release-ios && \
+echo "\n# Changing to channel beta for iOS/web build..." && \
+flutter channel beta && flutter upgrade && \
 echo "" && \
 ./build-release-web && \
-echo "# Changing to channel dev for macOS build..."
+echo "\n# Changing to channel dev for macOS build..."
 flutter channel dev && flutter upgrade && \
 ./build-release-macos && \
-echo "Build complete! Have fun uploading and awaiting Apple's blessings..."
+echo "\n# Build complete! Have fun uploading and awaiting Apple's blessings..."

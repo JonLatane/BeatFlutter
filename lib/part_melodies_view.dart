@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/dummydata.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:beatscratch_flutter_redux/my_platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -1039,7 +1040,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
         child: Stack(children: [
           MyFlatButton(
             onPressed: () {
-              if (!isSelectedMelody) {
+              if (!isSelectedMelody && !MyPlatform.isMacOS) {
                 widget.requestScrollToTop();
               }
               widget.selectMelody(widget.melody);
@@ -1146,7 +1147,9 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       if (!context.isTabletOrLandscapey) {
                         widget.hideMelodyView();
                       }
-                      widget.requestScrollToTop();
+                      if (!MyPlatform.isMacOS) {
+                        widget.requestScrollToTop();
+                      }
                     },
                     decoration: InputDecoration(
                         border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),

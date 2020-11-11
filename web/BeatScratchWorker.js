@@ -32,18 +32,17 @@ self.onmessage = function (event) {
       break;
     case 'createScore':
       currentScore = event.data[0];
-      currentSectionId = currentScore.sections[0].id;
+      setCurrentSection(currentScore.sections[0]);
       break;
     case 'updateSections':
       currentScore.sections = event.data[0].sections;
       if (!currentScore.sections.some(s => s.id == currentSectionId)) {
-        currentSectionId = currentScore.sections[0].id;
-        bpm = findCurrentSection().tempo.bpm;
+        setCurrentSection(currentScore.sections[0]);
       }
       break;
     case 'setCurrentSection':
       currentSectionId = event.data[0];
-      bpm = findCurrentSection().tempo.bpm;
+      setCurrentSection(findCurrentSection(), false);
       break;
     case 'setBeat':
       currentTick = event.data[0] * ticksPerBeat;
@@ -82,7 +81,7 @@ self.onmessage = function (event) {
         var periodMs = time - lastCountInBeatTime;
         var multipliedBpm = 60000 / periodMs;
         bpmMultiplier = multipliedBpm / unmultipliedBpm;
-        notifyBpmMultiplier;
+        notifyBpmMultiplier();
         lastCountInBeatTime = null;
         currentTick = -24;
         playing = true;
@@ -99,6 +98,15 @@ function sendMIDI(...bytes) {
 
 function findCurrentSection() {
   return currentScore.sections.filter(it => it.id == currentSectionId)[0];
+}
+
+function setCurrentSection(section, notify = true) {
+  currentSectionId = section.id;
+  if (notify) {
+    notifyCurrentSection();
+  }
+  unmultipliedBpm = findCurrentSection().tempo.bpm;
+  notifyUnmultipliedBpm();
 }
 
 function findPartAndMelody(melodyId) {
@@ -122,15 +130,11 @@ function tick() {
     if (playbackMode == 'score') {
       if (sectionIndex + 1 < currentScore.sections.length) {
         var newCurrentSection = currentScore.sections[sectionIndex + 1];
-        currentSectionId = newCurrentSection.id;
-        bpm = newCurrentSection.tempo.bpm;
-        notifyCurrentSection();
+        setCurrentSection(newCurrentSection);
       } else {
-        currentSectionId = currentScore.sections[0].id;
+        setCurrentSection(currentScore.sections[0]);
         notifyPlayingBeat();
-        playing = false;
-        notifyCurrentSection();
-        notifyPaused();
+        pause();
         return;
       }
     }
@@ -148,7 +152,7 @@ function tick() {
   currentTick++;
 
   var now = Date.now();
-  var tickTime = Math.round(60000 / (unmultipliedBpm * ticksPerBeat));
+  var tickTime = Math.round(60000 / (unmultipliedBpm * bpmMultiplier * ticksPerBeat));
 //  console.log('ticktime=' + tickTime);
   setTimeout(() => {
     while (Date.now() < now + tickTime) {}
@@ -247,6 +251,15 @@ function notifyBpmMultiplier() {
   postMessage(['notifyBpmMultiplier', bpmMultiplier]);
 }
 
-function notifyPaused(beat) {
+function notifyUnmultipliedBpm() {
+  postMessage(['notifyUnmultipliedBpm', unmultipliedBpm]);
+}
+
+function play() {
+  playing = true;
+}
+
+function pause(beat) {
+  playing = false;
   postMessage(['notifyPaused']);
 }

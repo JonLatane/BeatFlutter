@@ -30,6 +30,7 @@ class BeatScratchPlugin {
           final MidiNotes response = MidiNotes.fromBuffer(rawData);
           pressedMidiControllerNotes.value = response.midiNotes.map((e) => e - 60).toSet();
 //          print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
+//           onSynthesizerStatusChange?.call();
 
           return Future.value(null);
           break;
@@ -69,6 +70,10 @@ class BeatScratchPlugin {
           onRecordingMelodyUpdated(response);
           return Future.value(null);
           break;
+        case "notifyMidiSynthesizers":
+          _notifyMidiSynthesizers((call.arguments as MidiSynthesizers).synthesizers);
+          return Future.value(null);
+          break;
       }
       return Future.value(null);
     });
@@ -80,7 +85,13 @@ class BeatScratchPlugin {
       context["notifyCurrentSection"] = _notifyCurrentSection;
       context["notifyBpmMultiplier"] = _notifyBpmMultiplier;
       context["notifyUnmultipliedBpm"] = _notifyUnmultipliedBpm;
+      context["notifyMidiSynthesizers"] = _notifyMidiSynthesizers;
     }
+  }
+
+  static _notifyMidiSynthesizers(Iterable<MidiSynthesizer> synthesizers) {
+    _connectedSynthesizers = List.from(synthesizers);
+    onSynthesizerStatusChange?.call();
   }
 
   static _notifyCurrentSection(String sectionId) {
@@ -158,7 +169,7 @@ class BeatScratchPlugin {
   static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
-      _checkSynthesizerStatus();
+      _checkBeatScratchAudioStatus();
       _doSynthesizerStatusChangeLoop();
     });
   }
@@ -173,18 +184,19 @@ class BeatScratchPlugin {
     ..name = "Colorboard"
   ];
 
+  static List<MidiSynthesizer> _connectedSynthesizers = [];
   static Iterable<MidiSynthesizer> get midiSynthesizers => [
     MidiSynthesizer()
     ..id = "internal"
-    ..name = "BeatScratch Synthesizer"
-  ];
+    ..name = "BeatScratch Audio"
+  ] + _connectedSynthesizers;
 
-  static void _checkSynthesizerStatus() async {
+  static void _checkBeatScratchAudioStatus() async {
     bool resultStatus;
     if(kIsWeb) {
-      resultStatus = context.callMethod('checkSynthesizerStatus', []);
+      resultStatus = context.callMethod('checkBeatScratchAudioStatus', []);
     } else {
-      resultStatus = await _channel.invokeMethod('checkSynthesizerStatus');
+      resultStatus = await _channel.invokeMethod('checkBeatScratchAudioStatus');
     }
     if(resultStatus == null) {
       print("Failed to retrieve Synthesizer Status from JS/Platform Channel");
@@ -283,7 +295,7 @@ class BeatScratchPlugin {
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
     if(kIsWeb) {
-      context.callMethod('setKeyboardPart', [ part?.id ]);
+      context.callMethod('setKeyboardPar', [ part?.id ]);
     } else {
       _channel.invokeMethod('setKeyboardPart', part?.id);
     }

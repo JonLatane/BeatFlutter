@@ -40,6 +40,7 @@ class MelodyRenderer extends StatefulWidget {
   final double height;
   final double width;
   final bool previewMode;
+  final bool isCurrentScore;
 
   const MelodyRenderer(
       {Key key,
@@ -52,7 +53,7 @@ class MelodyRenderer extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.melodyViewMode,
-      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.width, this.height, this.previewMode})
+      this.staves, this.keyboardPart, this.colorboardPart, this.focusedPart, this.width, this.height, this.previewMode, this.isCurrentScore})
       : super(key: key);
 
   @override
@@ -160,9 +161,13 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     sectionColor.value = widget.sectionColor;
     animationController.forward(from: 0);
 
-    int currentBeat = BeatScratchPlugin.currentBeat.value;
+    int currentBeatOfSection = BeatScratchPlugin.currentBeat.value;
+    int currentBeat = currentBeatOfSection;
     if(widget.melodyViewMode == MelodyViewMode.score) {
       int sectionIndex = 0;
+      if (widget.score.sections.isEmpty) {
+        widget.score.sections.add(defaultSection());
+      }
       Section section = widget.score.sections[sectionIndex++];
       while(section.id != widget.currentSection.id) {
         currentBeat += section.beatCount;
@@ -170,12 +175,14 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
       }
     }
     Duration beatAnimationDuration = animationDuration;
-    if(_prevViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
-        && _prevBeat > widget.currentSection.beatCount - 2) {
-      beatAnimationDuration = Duration(microseconds: 1);
-    }
-    _prevViewMode = widget.melodyViewMode;
-    if(_prevBeat != currentBeat && currentBeat % widget.currentSection.meter.defaultBeatsPerMeasure == 0) {
+    // if(_prevViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
+    //     && _prevBeat > widget.currentSection.beatCount - 2) {
+    //   beatAnimationDuration = Duration(microseconds: 1);
+    // }
+    final isFirstBeatOfMeasure = _prevBeat != currentBeat &&
+      currentBeatOfSection % widget.currentSection.meter.defaultBeatsPerMeasure == 0;
+    final switchedToScoreView = _prevViewMode != widget.melodyViewMode && widget.melodyViewMode == MelodyViewMode.score;
+    if(widget.isCurrentScore && (isFirstBeatOfMeasure || switchedToScoreView)) {
       double animationPos = (currentBeat) * standardBeatWidth;
       animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width);
       if(_hasBuilt) {
@@ -186,6 +193,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
         }
       }
     }
+    _prevViewMode = widget.melodyViewMode;
     _prevBeat = currentBeat;
     _hasBuilt = true;
     return SingleChildScrollView(
@@ -225,6 +233,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                       colorboardPart: colorboardPart,
                       focusedPart: focusedPart,
                       sectionColor: sectionColor,
+                      isCurrentScore: widget.isCurrentScore,
                     ),
                   ),
 //          child: _MelodyPaint(
@@ -334,6 +343,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Part> focusedPart;
   final ValueNotifier<Part> keyboardPart;
   final ValueNotifier<Part> colorboardPart;
+  final bool isCurrentScore;
 
   bool get isViewingSection => melodyViewMode != MelodyViewMode.score;
 
@@ -357,7 +367,8 @@ class MusicSystemPainter extends CustomPainter {
     this.visibleRect,
     this.focusedMelodyId,
     this.colorblockOpacityNotifier,
-    this.notationOpacityNotifier})
+    this.notationOpacityNotifier,
+    this.isCurrentScore})
     : super(
     repaint: Listenable.merge([
       colorblockOpacityNotifier, notationOpacityNotifier, colorboardNotesNotifier,
@@ -583,7 +594,7 @@ class MusicSystemPainter extends CustomPainter {
       print("exception rendering measure lines: $e");
     }
 
-    if (renderingSection == section && renderingSectionBeat == BeatScratchPlugin.currentBeat.value) {
+    if (isCurrentScore && renderingSection == section && renderingSectionBeat == BeatScratchPlugin.currentBeat.value) {
       _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
     }
 

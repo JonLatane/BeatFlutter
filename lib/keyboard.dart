@@ -24,16 +24,19 @@ class Keyboard extends StatefulWidget {
   final Color sectionColor;
   final Part part;
   final ValueNotifier<Iterable<int>> pressedNotesNotifier;
+  final double width;
+  final double leftMargin;
 
-  const Keyboard(
-      {Key key,
-      this.height,
-      this.showConfiguration,
-      this.hideConfiguration,
-      this.sectionColor,
-      this.part,
-      this.pressedNotesNotifier})
-      : super(key: key);
+  const Keyboard({Key key,
+    this.height,
+    this.showConfiguration,
+    this.hideConfiguration,
+    this.sectionColor,
+    this.part,
+    this.pressedNotesNotifier,
+    this.width,
+    this.leftMargin})
+    : super(key: key);
 
   @override
   KeyboardState createState() => KeyboardState();
@@ -147,11 +150,11 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    _minHalfStepWidthBasedOnScreenSize = MediaQuery.of(context).size.width / keysOnScreen;
-    double halfStepsOnScreen = MediaQuery.of(context).size.width / halfStepWidthInPx;
+    _minHalfStepWidthBasedOnScreenSize = widget.width / keysOnScreen;
+    double halfStepsOnScreen = widget.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
 //    print("physicalWidth=$physicalWidth");
-    double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+    double minNewValue = widget.width / keysOnScreen;
     if(halfStepWidthInPx < minNewValue) {
       halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
     }
@@ -240,6 +243,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             child: Listener(
                 onPointerDown: (event) {
                   double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
+                  left -= widget.leftMargin;
                   double dy = MediaQuery.of(context).size.height - event.position.dy;
                   double maxDy = widget.height - touchScrollAreaHeight;
                   int tone;
@@ -259,6 +263,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 },
                 onPointerMove: (event) {
                   double left = _visibleRect.left + event.position.dx;
+                  left -= widget.leftMargin;
                   double dy = MediaQuery.of(context).size.height - event.position.dy;
                   double maxDy = widget.height - touchScrollAreaHeight;
                   int oldTone = _pointerIdsToTones[event.pointer];
@@ -453,7 +458,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                   onPressed: (halfStepWidthInPx > minHalfStepWidthInPx)
                                       ? () {
                                           setState(() {
-                                            double minNewValue = MediaQuery.of(context).size.width / keysOnScreen;
+                                            double minNewValue = widget.width / keysOnScreen;
                                             double newValue = halfStepWidthInPx / 1.62;
                                             newValue = max(minNewValue, newValue);
                                             halfStepWidthInPx  = newValue;

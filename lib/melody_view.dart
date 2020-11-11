@@ -43,6 +43,7 @@ class MelodyView extends StatefulWidget {
   final Function cloneCurrentSection;
   final double initialScale;
   final bool previewMode;
+  final bool isCurrentScore;
 
   MelodyView(
       {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor, this.cloneCurrentSection,
@@ -71,7 +72,8 @@ class MelodyView extends StatefulWidget {
       this.deleteMelody,
       this.deleteSection,
       this.renderingMode,
-  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard, this.initialScale, this.previewMode = false});
+  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard, this.initialScale, this.previewMode = false,
+        this.isCurrentScore = true});
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -405,7 +407,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 colorboardPart: widget.colorboardPart,
                 height: widget.height,
                 width: width,
-                previewMode: widget.previewMode
+                previewMode: widget.previewMode,
+                isCurrentScore: widget.isCurrentScore
               ),
               if(!widget.previewMode) Column(children:[
                 Expanded(child: SizedBox()),
