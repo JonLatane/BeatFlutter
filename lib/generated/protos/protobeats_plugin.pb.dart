@@ -17,6 +17,7 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiSynthesizer', createEmptyInstance: create)
     ..aOS(1, 'id')
     ..aOS(2, 'name')
+    ..aOB(3, 'enabled')
     ..hasRequiredFields = false
   ;
 
@@ -52,12 +53,22 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
   void clearName() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get enabled => $_getBF(2);
+  @$pb.TagNumber(3)
+  set enabled($core.bool v) { $_setBool(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasEnabled() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEnabled() => clearField(3);
 }
 
 class MidiController extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiController', createEmptyInstance: create)
     ..aOS(1, 'id')
     ..aOS(2, 'name')
+    ..aOB(3, 'enabled')
     ..hasRequiredFields = false
   ;
 
@@ -93,56 +104,195 @@ class MidiController extends $pb.GeneratedMessage {
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
   void clearName() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get enabled => $_getBF(2);
+  @$pb.TagNumber(3)
+  set enabled($core.bool v) { $_setBool(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasEnabled() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEnabled() => clearField(3);
 }
 
-class MidiSynthesizers extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiSynthesizers', createEmptyInstance: create)
+class MidiDevices extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiDevices', createEmptyInstance: create)
     ..pc<MidiSynthesizer>(1, 'synthesizers', $pb.PbFieldType.PM, subBuilder: MidiSynthesizer.create)
+    ..pc<MidiController>(2, 'controllers', $pb.PbFieldType.PM, subBuilder: MidiController.create)
     ..hasRequiredFields = false
   ;
 
-  MidiSynthesizers._() : super();
-  factory MidiSynthesizers() => create();
-  factory MidiSynthesizers.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MidiSynthesizers.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  MidiSynthesizers clone() => MidiSynthesizers()..mergeFromMessage(this);
-  MidiSynthesizers copyWith(void Function(MidiSynthesizers) updates) => super.copyWith((message) => updates(message as MidiSynthesizers));
+  MidiDevices._() : super();
+  factory MidiDevices() => create();
+  factory MidiDevices.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiDevices.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiDevices clone() => MidiDevices()..mergeFromMessage(this);
+  MidiDevices copyWith(void Function(MidiDevices) updates) => super.copyWith((message) => updates(message as MidiDevices));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static MidiSynthesizers create() => MidiSynthesizers._();
-  MidiSynthesizers createEmptyInstance() => create();
-  static $pb.PbList<MidiSynthesizers> createRepeated() => $pb.PbList<MidiSynthesizers>();
+  static MidiDevices create() => MidiDevices._();
+  MidiDevices createEmptyInstance() => create();
+  static $pb.PbList<MidiDevices> createRepeated() => $pb.PbList<MidiDevices>();
   @$core.pragma('dart2js:noInline')
-  static MidiSynthesizers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiSynthesizers>(create);
-  static MidiSynthesizers _defaultInstance;
+  static MidiDevices getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiDevices>(create);
+  static MidiDevices _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<MidiSynthesizer> get synthesizers => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.List<MidiController> get controllers => $_getList(1);
 }
 
-class MidiControllers extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiControllers', createEmptyInstance: create)
-    ..pc<MidiController>(1, 'controllers', $pb.PbFieldType.PM, subBuilder: MidiController.create)
+class SynthesizerApp extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('SynthesizerApp', createEmptyInstance: create)
+    ..aOS(1, 'name')
+    ..aOB(2, 'installed')
+    ..aOS(3, 'storeLink', protoName: 'storeLink')
+    ..aOS(4, 'launchLink', protoName: 'launchLink')
     ..hasRequiredFields = false
   ;
 
-  MidiControllers._() : super();
-  factory MidiControllers() => create();
-  factory MidiControllers.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory MidiControllers.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  MidiControllers clone() => MidiControllers()..mergeFromMessage(this);
-  MidiControllers copyWith(void Function(MidiControllers) updates) => super.copyWith((message) => updates(message as MidiControllers));
+  SynthesizerApp._() : super();
+  factory SynthesizerApp() => create();
+  factory SynthesizerApp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SynthesizerApp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  SynthesizerApp clone() => SynthesizerApp()..mergeFromMessage(this);
+  SynthesizerApp copyWith(void Function(SynthesizerApp) updates) => super.copyWith((message) => updates(message as SynthesizerApp));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static MidiControllers create() => MidiControllers._();
-  MidiControllers createEmptyInstance() => create();
-  static $pb.PbList<MidiControllers> createRepeated() => $pb.PbList<MidiControllers>();
+  static SynthesizerApp create() => SynthesizerApp._();
+  SynthesizerApp createEmptyInstance() => create();
+  static $pb.PbList<SynthesizerApp> createRepeated() => $pb.PbList<SynthesizerApp>();
   @$core.pragma('dart2js:noInline')
-  static MidiControllers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiControllers>(create);
-  static MidiControllers _defaultInstance;
+  static SynthesizerApp getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SynthesizerApp>(create);
+  static SynthesizerApp _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<MidiController> get controllers => $_getList(0);
+  $core.String get name => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set name($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearName() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get installed => $_getBF(1);
+  @$pb.TagNumber(2)
+  set installed($core.bool v) { $_setBool(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasInstalled() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearInstalled() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get storeLink => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set storeLink($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasStoreLink() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStoreLink() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get launchLink => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set launchLink($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasLaunchLink() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLaunchLink() => clearField(4);
+}
+
+class ControllerApp extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('ControllerApp', createEmptyInstance: create)
+    ..aOS(1, 'name')
+    ..aOB(2, 'installed')
+    ..aOS(3, 'storeLink', protoName: 'storeLink')
+    ..aOS(4, 'launchLink', protoName: 'launchLink')
+    ..hasRequiredFields = false
+  ;
+
+  ControllerApp._() : super();
+  factory ControllerApp() => create();
+  factory ControllerApp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ControllerApp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  ControllerApp clone() => ControllerApp()..mergeFromMessage(this);
+  ControllerApp copyWith(void Function(ControllerApp) updates) => super.copyWith((message) => updates(message as ControllerApp));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ControllerApp create() => ControllerApp._();
+  ControllerApp createEmptyInstance() => create();
+  static $pb.PbList<ControllerApp> createRepeated() => $pb.PbList<ControllerApp>();
+  @$core.pragma('dart2js:noInline')
+  static ControllerApp getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ControllerApp>(create);
+  static ControllerApp _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get name => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set name($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearName() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get installed => $_getBF(1);
+  @$pb.TagNumber(2)
+  set installed($core.bool v) { $_setBool(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasInstalled() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearInstalled() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get storeLink => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set storeLink($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasStoreLink() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStoreLink() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get launchLink => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set launchLink($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasLaunchLink() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLaunchLink() => clearField(4);
+}
+
+class MidiApps extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiApps', createEmptyInstance: create)
+    ..pc<SynthesizerApp>(1, 'synthesizers', $pb.PbFieldType.PM, subBuilder: SynthesizerApp.create)
+    ..pc<ControllerApp>(2, 'controllers', $pb.PbFieldType.PM, subBuilder: ControllerApp.create)
+    ..hasRequiredFields = false
+  ;
+
+  MidiApps._() : super();
+  factory MidiApps() => create();
+  factory MidiApps.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory MidiApps.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  MidiApps clone() => MidiApps()..mergeFromMessage(this);
+  MidiApps copyWith(void Function(MidiApps) updates) => super.copyWith((message) => updates(message as MidiApps));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static MidiApps create() => MidiApps._();
+  MidiApps createEmptyInstance() => create();
+  static $pb.PbList<MidiApps> createRepeated() => $pb.PbList<MidiApps>();
+  @$core.pragma('dart2js:noInline')
+  static MidiApps getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiApps>(create);
+  static MidiApps _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<SynthesizerApp> get synthesizers => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.List<ControllerApp> get controllers => $_getList(1);
 }
 
 class MidiNotes extends $pb.GeneratedMessage {

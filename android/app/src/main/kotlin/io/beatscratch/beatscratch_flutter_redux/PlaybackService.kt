@@ -39,6 +39,7 @@ class PlaybackService : Service() {
     PlaybackThread.start()
 //    AndroidMidi.ONBOARD_DRIVER.start()
     MidiDevices.refreshInstruments()
+    BeatScratchPlugin.notifyMidiDevices()
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

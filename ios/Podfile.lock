@@ -2,6 +2,8 @@ PODS:
   - aeyrium_sensor (1.0.0):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_appavailability (0.0.1):
+    - Flutter
   - flutter_keyboard_visibility (0.7.0):
     - Flutter
   - path_provider (0.0.1):
@@ -19,6 +21,7 @@ PODS:
 DEPENDENCIES:
   - aeyrium_sensor (from `.symlinks/plugins/aeyrium_sensor/ios`)
   - Flutter (from `Flutter`)
+  - flutter_appavailability (from `.symlinks/plugins/flutter_appavailability/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
@@ -36,6 +39,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/aeyrium_sensor/ios"
   Flutter:
     :path: Flutter
+  flutter_appavailability:
+    :path: ".symlinks/plugins/flutter_appavailability/ios"
   flutter_keyboard_visibility:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
   path_provider:
@@ -52,6 +57,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   aeyrium_sensor: cdaa0bdd7206824ea4fb910c627cad05275362e5
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutter_appavailability: ebf8f85abea44436d1262fcde8a4e64b2534b01a
   flutter_keyboard_visibility: 6195387fb6d8f46e5cd6dda4a4154e41f800f545
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
@@ -62,4 +68,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 77d6510022ba1a474825d27c26999b8333573929
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.10.0

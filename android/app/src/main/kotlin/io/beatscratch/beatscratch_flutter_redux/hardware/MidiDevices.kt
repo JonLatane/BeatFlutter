@@ -7,23 +7,24 @@ import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import io.beatscratch.beatscratch_flutter_redux.*
-import kotlinx.coroutines.yield
 import java.io.Closeable
 
 object MidiDevices {
 	data class BSMidiDevice(
 		val info: MidiDeviceInfo,
 		val device: MidiDevice,
-		val inputPort: MidiInputPort?,
-		val outputPort: MidiOutputPort?
+		val synthPort: MidiInputPort?,
+		val controllerPort: MidiOutputPort?
 	): Closeable {
 		override fun close() {
 			device.close()
-			inputPort?.close()
-			outputPort?.close()
+			synthPort?.close()
+			controllerPort?.close()
 		}
 	}
 	val devices = mutableListOf<BSMidiDevice>()
+	val controllers get() = devices.filter { it.controllerPort != null }
+	val synthesizers get() = devices.filter { it.synthPort != null }
 
 	@get:RequiresApi(Build.VERSION_CODES.M)
 	internal val manager: MidiManager by lazy {
@@ -64,6 +65,7 @@ object MidiDevices {
 				} catch(t: Throwable) {
 					logE("Failed to setup device", t)
 				}
+				BeatScratchPlugin.notifyMidiDevices()
 			}
 
 			@RequiresApi(Build.VERSION_CODES.M)
@@ -71,9 +73,12 @@ object MidiDevices {
 //					context.toast("Disconnected from ${info.name}.")
 				devices.find { it.info == info }?.close()
 				devices.removeAll { it.info == info }
+				BeatScratchPlugin.notifyMidiDevices()
 			}
 
-			override fun onDeviceStatusChanged(status: MidiDeviceStatus) {}
+			override fun onDeviceStatusChanged(status: MidiDeviceStatus) {
+				BeatScratchPlugin.notifyMidiDevices()
+			}
 		}, handler)
 	}
 

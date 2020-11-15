@@ -85,6 +85,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   bool isConfiguringPart = false;
   bool isEditingSection = false;
   Offset _previousOffset = Offset.zero;
+  bool _ignoreNextScale = false;
   Offset _offset = Offset.zero;
   Offset _startFocalPoint = Offset.zero;
   double _startHorizontalScale = 1.0;
@@ -103,7 +104,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     animation = Tween<double>(begin: _xScale, end: value)
       .animate(scaleAnimationController)
       ..addListener(() {
-        setState(() { _xScale = animation.value; });
+        setState(() {
+          print("Tween _xScale access");
+          _xScale = animation.value;
+        });
       });
     scaleAnimationController.forward();
   }
@@ -288,7 +292,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
           color: Colors.white,
           duration: animationDuration,
           height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? toolbarHeight(context) : 0,
-          child: MelodyEditingToolbar(
+          child:
+          MelodyEditingToolbar(
             editingMelody: widget.editingMelody,
             sectionColor: widget.sectionColor,
             score: widget.score,
@@ -367,6 +372,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                   _startVerticalScale = yScale;
                 }),
             onScaleUpdate: (ScaleUpdateDetails details) {
+              if (_ignoreNextScale) {
+                return;
+              }
               setState(() {
                 if (details.horizontalScale > 0) {
                   _xScale = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
@@ -387,6 +395,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               });
             },
             onScaleEnd: (ScaleEndDetails details) {
+              _ignoreNextScale = false;
               //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
             },
             child: Stack(children:[
@@ -412,36 +421,90 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               ),
               if(!widget.previewMode) Column(children:[
                 Expanded(child: SizedBox()),
-              Align(alignment: Alignment.topRight,child:Padding(padding:EdgeInsets.only(right:5),
-                child:Opacity(opacity: 0.5, child:Column(children: [
-                Container(
-                  width: 36,
-                  child: MyRaisedButton(
-                    padding: EdgeInsets.all(0),
-                    onPressed: (xScale < maxScale || yScale < maxScale)
+              Row(children: [
+                Expanded(child:SizedBox()),
+              Padding(padding:EdgeInsets.only(right:5),
+                child:
+                  IncrementableValue(child:
+                    Container(
+                      width: 48,
+                      height: 48,
+                      child:
+                      Align(
+                      alignment: Alignment.center,
+    child: Stack(children: [
+                                  AnimatedOpacity(opacity: 0.5, duration: animationDuration, child: Transform.translate(
+                                        offset: Offset(-5, 5),
+                                        child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out)))),
+                                AnimatedOpacity(
+                                    opacity: 0.5,
+                                    duration: animationDuration,
+                                    child: Transform.translate(
+                                        offset: Offset(5, -5),
+                                        child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in)))),AnimatedOpacity(
+                                        opacity: 0.8,
+                                        duration: animationDuration,
+                                        child: Transform.translate(offset:Offset(2,20),
+                                          child: Text("${(xScale * 100).toStringAsFixed(0)}%",
+                                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                                        )),
+
+                                ])),
+                    ),
+                  collapsing: true,
+                  incrementIcon: Icons.zoom_in,
+                  decrementIcon: Icons.zoom_out,
+                  onIncrement: (xScale < maxScale || yScale < maxScale)
                       ? () {
+                    _ignoreNextScale = true;
                       setState(() {
-                        xScale = min(maxScale, xScale * 1.3333);
-                        yScale = min(maxScale, yScale * 1.3333);
-//                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
+                        _xScale = min(maxScale, _xScale * 1.05);
+                        _yScale = min(maxScale, _yScale * 1.05);
+                       print("zoomIn done; xScale=$xScale, yScale=$yScale");
                       });
                     } : null,
-                    child: Icon(Icons.zoom_in))),
-                Container(
-                  width: 36,
-                  child: MyRaisedButton(
-                    padding: EdgeInsets.all(0),
-                    onPressed: (xScale > minScale || yScale > minScale)
-                      ? () {
+                  onDecrement: (xScale > minScale || yScale > minScale)
+                    ? () {
+                    _ignoreNextScale = true;
                       setState(() {
 //                        print("zoomOut start; xScale=$xScale, yScale=$yScale");
-                        xScale = max(minScale, xScale / 1.3333);
-                        yScale = max(minScale, yScale / 1.3333);
-//                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
+                        _xScale = max(minScale, _xScale / 1.05);
+                        _yScale = max(minScale, _yScale / 1.05);
+                       print("zoomOut done; xScale=$xScale, yScale=$yScale");
                       });
-                    } : null,
-                    child: Icon(Icons.zoom_out))),
-              ]))))
+                    } : null)
+//                 Column(children: [
+//                 Container(
+//                   width: 36,
+//                   child: MyRaisedButton(
+//                     padding: EdgeInsets.all(0),
+//                     onPressed: (xScale < maxScale || yScale < maxScale)
+//                       ? () {
+//                       setState(() {
+//                         xScale = min(maxScale, xScale * 1.3333);
+//                         yScale = min(maxScale, yScale * 1.3333);
+// //                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
+//                       });
+//                     } : null,
+//                     child: Icon(Icons.zoom_in))),
+//                 Container(
+//                   width: 36,
+//                   child: MyRaisedButton(
+//                     padding: EdgeInsets.all(0),
+//                     onPressed: (xScale > minScale || yScale > minScale)
+//                       ? () {
+//                       setState(() {_
+// //                        print("zoomOut start; xScale=$xScale, yScale=$yScale");
+//                         xScale = max(minScale, xScale / 1.3333);
+//                         yScale = max(minScale, yScale / 1.3333);
+// //                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
+//                       });
+//                     } : null,
+//                     child: Icon(Icons.zoom_out))),
+//               ])
+                ),
+                // Expanded(child:SizedBox())
+    ])
                 ])
             ])
             ));

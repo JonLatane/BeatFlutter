@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import AudioKit
 #if canImport(FlutterMacOS)
 import FlutterMacOS
 #elseif canImport(Flutter)
@@ -23,11 +24,11 @@ class BeatScratchPlugin {
       } ?? newValue.sections.first!
     }
     didSet {
-      setSynthesizerAvailable()
+      notifyBeatScratchAudioAvailable()
       score.parts.forEach {
         setupPart(part: $0)
       }
-      setSynthesizerAvailable()
+      notifyBeatScratchAudioAvailable()
     }
   }
   var channel: FlutterMethodChannel?
@@ -146,6 +147,7 @@ class BeatScratchPlugin {
           result(Conductor.sharedInstance.samplersInitialized)
           break
         case "resetAudioSystem":
+          Conductor.sharedInstance.initMidi()
           Conductor.sharedInstance.setupSamplersInBackground()
           result(nil)
           break
@@ -229,20 +231,20 @@ class BeatScratchPlugin {
     }
   }
   
-  func sendRecordedMelody() {
+  func notifyRecordedMelody() {
     do {
       if let recordingMelody = MelodyRecorder.sharedInstance.recordingMelody {
         if recordingMelody.midiData.data.count > 0 {
-          channel?.invokeMethod("sendRecordedMelody", arguments: try recordingMelody.serializedData())
+          channel?.invokeMethod("notifyRecordedMelody", arguments: try recordingMelody.serializedData())
         }
       }
     } catch {
-      print("Failed to sendRecordedMelody: \(error)")
+      print("Failed to notifyRecordedMelody: \(error)")
     }
   }
   
-  func setSynthesizerAvailable() {
-    channel?.invokeMethod("setSynthesizerAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
+  func notifyBeatScratchAudioAvailable() {
+    channel?.invokeMethod("notifyBeatScratchAudioAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
   }
   
   func notifyPlayingBeat() {
@@ -263,6 +265,11 @@ class BeatScratchPlugin {
     channel?.invokeMethod("notifyCurrentSection", arguments: section.id)
   }
   
+  func notifyStartedCurrentSection() {
+    let section = BeatScratchScorePlayer.sharedInstance.currentSection
+    channel?.invokeMethod("notifyStartedSection", arguments: section.id)
+  }
+  
   func notifyBpmMultiplier() {
     channel?.invokeMethod("notifyBpmMultiplier", arguments: BeatScratchPlaybackThread.sharedInstance.bpmMultiplier)
   }
@@ -278,5 +285,33 @@ class BeatScratchPlugin {
   
   func openScoreFromUrl(_ url: String) {
     channel?.invokeMethod("openScoreFromUrl", arguments: url)
+  }
+  
+  func notifyMidiDevices() {
+    var midiDevices = MidiDevices()
+    AKManager.midi.inputNames.filter { $0 != "MIDI Client" }.forEach {
+      var controller = MidiController()
+      controller.id = $0
+      controller.name = $0
+      midiDevices.controllers.append(controller)
+    }
+    
+    var fakeSynth = MidiSynthesizer()
+    fakeSynth.id = "internal"
+    fakeSynth.name = "BeatScratch \nAudio System"
+    fakeSynth.enabled = true
+    midiDevices.synthesizers.append(fakeSynth)
+    
+    fakeSynth = MidiSynthesizer()
+    fakeSynth.id = "placeholder"
+    fakeSynth.name = "No Synths for AudioKit"
+    fakeSynth.enabled = true
+    midiDevices.synthesizers.append(fakeSynth)
+    
+    do {
+      channel?.invokeMethod("notifyMidiDevices", arguments: try midiDevices.serializedData())
+    } catch {
+      print("Failed to notifyMidiDevices: \(error)")
+    }
   }
 }

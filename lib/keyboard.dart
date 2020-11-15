@@ -26,6 +26,7 @@ class Keyboard extends StatefulWidget {
   final ValueNotifier<Iterable<int>> pressedNotesNotifier;
   final double width;
   final double leftMargin;
+  final double distanceFromBottom;
 
   const Keyboard({Key key,
     this.height,
@@ -35,7 +36,7 @@ class Keyboard extends StatefulWidget {
     this.part,
     this.pressedNotesNotifier,
     this.width,
-    this.leftMargin})
+    this.leftMargin, this.distanceFromBottom})
     : super(key: key);
 
   @override
@@ -244,7 +245,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 onPointerDown: (event) {
                   double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
                   left -= widget.leftMargin;
-                  double dy = MediaQuery.of(context).size.height - event.position.dy;
+                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
                   double maxDy = widget.height - touchScrollAreaHeight;
                   int tone;
                   if (dy > maxDy / 2) {
@@ -264,7 +265,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 onPointerMove: (event) {
                   double left = _visibleRect.left + event.position.dx;
                   left -= widget.leftMargin;
-                  double dy = MediaQuery.of(context).size.height - event.position.dy;
+                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
                   double maxDy = widget.height - touchScrollAreaHeight;
                   int oldTone = _pointerIdsToTones[event.pointer];
                   int tone;

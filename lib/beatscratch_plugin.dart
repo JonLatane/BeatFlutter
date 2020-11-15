@@ -13,7 +13,7 @@ import 'package:dart_midi/src/byte_writer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'music_utils.dart';
-
+import 'midi_settings.dart';
 /// The native platform side of the app is expected to maintain one [Score].
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
@@ -34,8 +34,8 @@ class BeatScratchPlugin {
 
           return Future.value(null);
           break;
-        case "setSynthesizerAvailable":
-          _isSynthesizerAvailable = call.arguments;
+        case "notifyBeatScratchAudioAvailable":
+          _isBeatScratchAudioAvailable = call.arguments;
           onSynthesizerStatusChange?.call();
           return Future.value(null);
           break;
@@ -55,13 +55,16 @@ class BeatScratchPlugin {
         case "notifyCurrentSection":
           _notifyCurrentSection(call.arguments);
           break;
+        case "notifyStartedSection":
+          _notifyStartedSection(call.arguments);
+          break;
         case "notifyBpmMultiplier":
           _notifyBpmMultiplier(call.arguments);
           break;
         case "notifyUnmultipliedBpm":
           _notifyUnmultipliedBpm(call.arguments);
           break;
-        case "sendRecordedMelody":
+        case "notifyRecordedMelody":
           final Uint8List rawData = call.arguments;
           final Melody response = Melody.fromBuffer(rawData);
           if (response.separateNoteOnAndOffs()) {
@@ -70,8 +73,14 @@ class BeatScratchPlugin {
           onRecordingMelodyUpdated(response);
           return Future.value(null);
           break;
-        case "notifyMidiSynthesizers":
-          _notifyMidiSynthesizers((call.arguments as MidiSynthesizers).synthesizers);
+        case "notifyMidiDevices":
+          final Uint8List rawData = call.arguments;
+          final MidiDevices response = MidiDevices.fromBuffer(rawData);
+          _notifyMidiDevices(response);
+          return Future.value(null);
+          break;
+        case "notifyScoreUrlOpened":
+          _notifyScoreUrlOpened(call.arguments);
           return Future.value(null);
           break;
       }
@@ -83,18 +92,35 @@ class BeatScratchPlugin {
       context["notifyPlayingBeat"] = _notifyPlayingBeat;
       context["notifyPaused"] = _notifyPaused;
       context["notifyCurrentSection"] = _notifyCurrentSection;
+      context["notifyStartedSection"] = _notifyStartedSection;
       context["notifyBpmMultiplier"] = _notifyBpmMultiplier;
       context["notifyUnmultipliedBpm"] = _notifyUnmultipliedBpm;
-      context["notifyMidiSynthesizers"] = _notifyMidiSynthesizers;
+      context["notifyMidiDevices"] = _notifyMidiDevices;
     }
   }
 
-  static _notifyMidiSynthesizers(Iterable<MidiSynthesizer> synthesizers) {
-    _connectedSynthesizers = List.from(synthesizers);
+  static _notifyScoreUrlOpened(String url) {
+    if (onLoadScoreFromLink != null) {
+      onLoadScoreFromLink(url);
+    } else {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _notifyScoreUrlOpened(url);
+      });
+    }
+  }
+
+  static _notifyMidiDevices(MidiDevices devices) {
+    connectedControllers = List.from(devices.controllers);
+    _connectedSynthesizers = List.from(devices.synthesizers);
     onSynthesizerStatusChange?.call();
   }
 
   static _notifyCurrentSection(String sectionId) {
+    onSectionSelected(sectionId);
+  }
+
+  static _notifyStartedSection(String sectionId) {
+    currentBeat.value = 0;
     onSectionSelected(sectionId);
   }
 
@@ -155,41 +181,65 @@ class BeatScratchPlugin {
 
   static final ValueNotifier<int> currentBeat = ValueNotifier(0);
   
-  static bool _isSynthesizerAvailable;
+  static bool _isBeatScratchAudioAvailable;
   static bool get isSynthesizerAvailable {
-    if(_isSynthesizerAvailable == null) {
-      _isSynthesizerAvailable = false;
+    if(_isBeatScratchAudioAvailable == null) {
+      _isBeatScratchAudioAvailable = false;
       _doSynthesizerStatusChangeLoop();
     }
-    return _isSynthesizerAvailable;
+    return _isBeatScratchAudioAvailable;
   }
   static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
+  static Function(String) onLoadScoreFromLink;
   static Function(String) onSectionSelected;
   static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds:5), () {
       _checkBeatScratchAudioStatus();
+      getApps();
       _doSynthesizerStatusChangeLoop();
     });
   }
   static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
 
-  static Iterable<MidiController> get midiControllers => [
+
+  static List<MidiController> connectedControllers = [];
+  static List<MidiController> get midiControllers => [
     MidiController()
     ..id = "keyboard"
-    ..name = "Keyboard",
+    ..name = "Keyboard"
+    ..enabled = true
+  ] + connectedControllers + [
     MidiController()
     ..id = "colorboard"
     ..name = "Colorboard"
+    ..enabled = true
   ];
 
   static List<MidiSynthesizer> _connectedSynthesizers = [];
-  static Iterable<MidiSynthesizer> get midiSynthesizers => [
-    MidiSynthesizer()
-    ..id = "internal"
-    ..name = "BeatScratch Audio"
-  ] + _connectedSynthesizers;
+  static List<MidiSynthesizer> get midiSynthesizers {
+    final connected = _connectedSynthesizers;
+    if (supportsSynthesizerConfig) {
+      return connected;
+    }
+    return [
+      MidiSynthesizer()
+        ..id = "internal"
+        ..name = "BeatScratch\nAudio System"
+        ..enabled = true
+    ] + connected
+      .where((it) => MyPlatform.isAndroid || MyPlatform.isDebug)
+      .toList();
+  }
+
+  static bool get _supportsSynthesizerConfig =>
+      _connectedSynthesizers.isNotEmpty && _connectedSynthesizers[0].id == 'internal';
+
+  /// To add support for a platform in debug mode, have it return an "internal" synthesizer.
+  /// To add that support in release mode, hardcode the appropriate [MyPlatform] check here.
+  static bool get supportsSynthesizerConfig =>
+      MyPlatform.isAndroid || (MyPlatform.isAndroid && _supportsSynthesizerConfig);
 
   static void _checkBeatScratchAudioStatus() async {
     bool resultStatus;
@@ -202,26 +252,12 @@ class BeatScratchPlugin {
       print("Failed to retrieve Synthesizer Status from JS/Platform Channel");
       resultStatus = false;
     }
-    _isSynthesizerAvailable = resultStatus;
+    _isBeatScratchAudioAvailable = resultStatus;
     onSynthesizerStatusChange?.call();
   }
 
-  static Future<List<MidiController>> get deviceMidiControllers async {
-    if(kIsWeb) {
-      return Future.value([]);
-    } else {
-      try {
-        final Uint8List rawData = await _channel.invokeMethod('getMidiControllers');
-        final MidiControllers response = MidiControllers.fromBuffer(rawData);
-        return response.controllers.toList();
-      } catch(e) {
-        return Future.value([]);
-      }
-    }
-  }
-
   static void resetAudioSystem() async {
-    _isSynthesizerAvailable = false;
+    _isBeatScratchAudioAvailable = false;
     onSynthesizerStatusChange?.call();
     if(kIsWeb) {
     } else {
@@ -447,5 +483,18 @@ class BeatScratchPlugin {
     final Uint8List rawData = await _channel.invokeMethod('getRecordedMelody');
     final Melody melody = Melody.fromBuffer(rawData);
     return melody;
+  }
+
+  static updateSynthesizerConfig(MidiSynthesizer synthesizer) async {
+    if (supportsSynthesizerConfig) {
+//    print("invoking sendMIDI");
+      if(kIsWeb) {
+//      print("invoking sendMIDI as JavaScript with context $context");
+        context.callMethod('updateSynthesizerConfig', synthesizer.jsify());
+      } else {
+//      print("invoking sendMIDI through Platform Channel $_channel");
+        _channel.invokeMethod('updateSynthesizerConfig', synthesizer.clone().writeToBuffer());
+      }
+    }
   }
 }

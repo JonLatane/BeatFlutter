@@ -57,12 +57,12 @@ class BeatScratchScorePlayer {
       if playbackMode == Playback.Mode.score {
         if sectionIndex + 1 < score.sections.count {
           currentSection = score.sections[sectionIndex + 1]
-          BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+          BeatScratchPlugin.sharedInstance.notifyStartedCurrentSection()
         } else {
           currentSection = score.sections[0]
           BeatScratchPlugin.sharedInstance.notifyPlayingBeat()
           BeatScratchPlaybackThread.sharedInstance.playing = false
-          BeatScratchPlugin.sharedInstance.notifyCurrentSection()
+          BeatScratchPlugin.sharedInstance.notifyStartedCurrentSection()
           BeatScratchPlugin.sharedInstance.notifyPaused()
           return
         }

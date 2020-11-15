@@ -1,7 +1,7 @@
 package io.beatscratch.beatscratch_flutter_redux
 
 import com.google.protobuf.ByteString
-import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.sendRecordedMelody
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyRecordedMelody
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.updateMelody
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.currentTick
 import io.beatscratch.beatscratch_flutter_redux.ScorePlayer.ticksPerBeat
@@ -91,7 +91,7 @@ object MelodyRecorder {
         .setMidiData(updatedMidiData.build())
         .build()
       recordingMelody = updatedMelody
-      sendRecordedMelody()
+      notifyRecordedMelody()
     }
     recordedData.clear()
   }

@@ -4,6 +4,17 @@ import 'package:dart_midi/src/byte_writer.dart';
 import 'generated/protos/music.pb.dart';
 import 'util.dart';
 
+extension MidiEventFilters on Iterable<MidiEvent> {
+  bool hasNoteOnEvent(int midiNote) =>
+    any((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  bool hasNoteOffEvent(int midiNote) =>
+    any((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOnEvents(int midiNote) =>
+    where((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOffEvents(int midiNote) =>
+    where((it) => !(it is NoteOffEvent) || (it as NoteOffEvent).noteNumber != midiNote);
+}
+
 extension MidiChangeTheory on MidiChange {
   Iterable<MidiEvent> get midiEvents {
     final args = ArgumentList((data ?? []).toList());

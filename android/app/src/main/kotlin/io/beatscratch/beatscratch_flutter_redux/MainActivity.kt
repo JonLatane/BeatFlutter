@@ -2,12 +2,12 @@ package io.beatscratch.beatscratch_flutter_redux
 
 import android.R
 import android.app.Activity
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
-import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.annotation.NonNull
@@ -15,6 +15,8 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
+import java.net.URL
+import java.util.concurrent.Future
 
 
 class MainActivity : FlutterActivity() {
@@ -45,8 +47,17 @@ class MainActivity : FlutterActivity() {
     })
     val channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, "BeatScratchPlugin")
     BeatScratchPlugin.methodChannel = channel
-  }
+    intent.data?.let { uri ->
 
+      BeatScratchPlugin.notifyScoreUrlOpened(uri.toString())
+    }
+  }
+  override fun onNewIntent(intent: Intent) {
+//    getIntent().data = intent.getData()
+    intent.data?.let { uri ->
+      BeatScratchPlugin.notifyScoreUrlOpened(uri.toString())
+    }
+  }
   override fun onResume() {
     super.onResume()
     MainApplication.instance.startPlaybackService()

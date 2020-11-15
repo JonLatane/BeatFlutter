@@ -14,6 +14,7 @@ import 'package:vibration/vibration.dart';
 
 import 'my_buttons.dart';
 import 'my_platform.dart';
+import 'ui_models.dart';
 
 var uuid = Uuid();
 
@@ -85,6 +86,9 @@ class IncrementableValue extends StatefulWidget {
   final Widget child;
   final double incrementDistance;
   final double incrementTimingDifferenceMs;
+  final bool collapsing;
+  final IconData incrementIcon;
+  final IconData decrementIcon;
 
   const IncrementableValue({
     Key key,
@@ -94,7 +98,12 @@ class IncrementableValue extends StatefulWidget {
     this.textStyle,
     this.valueWidth = 45,
     this.onValuePressed,
-    this.child, this.incrementDistance = 10, this.incrementTimingDifferenceMs = 50,
+    this.child,
+    this.incrementDistance = 10,
+    this.incrementTimingDifferenceMs = 50,
+    this.collapsing = false,
+    this.incrementIcon = Icons.keyboard_arrow_up_rounded,
+    this.decrementIcon = Icons.keyboard_arrow_down_rounded,
   }) : super(key: key);
 
   @override
@@ -102,9 +111,12 @@ class IncrementableValue extends StatefulWidget {
 }
 
 class _IncrementableValueState extends State<IncrementableValue> {
+  int lastTouchTimeMs = 0;
   Offset incrementStartPos;
   int incrementStartTimeMs;
   bool hasVibration = false;
+  static const _msDelay = 3000;
+  static const _delay = Duration(milliseconds: _msDelay);
   vibrate() {
     if(hasVibration) {
       Vibration.vibrate(duration: 25);
@@ -119,21 +131,39 @@ class _IncrementableValueState extends State<IncrementableValue> {
   }
   @override
   Widget build(BuildContext context) {
+    bool showButtons = !widget.collapsing || DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
     return Row(children: [
-      Container(
-          width: 25,
+      AnimatedContainer(
+          width: showButtons ? 25 : 0,
+          duration: animationDuration,
           child: MyRaisedButton(
-            child: Icon(Icons.keyboard_arrow_down_rounded),
-            onPressed: widget.onDecrement,
+            child: AnimatedOpacity(duration: animationDuration, opacity: showButtons? 1 : 0, child: Icon(widget.decrementIcon),),
+            onPressed: () {
+              lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+              widget.onDecrement() ;
+            },
             padding: EdgeInsets.all(0),
           )),
       Listener(
         onPointerDown: (event) {
           incrementStartPos = event.position;
           incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
+          lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
           vibrate();
+          if (widget.collapsing) {
+            checkCanCollapse() {
+              if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs > _msDelay) {
+                setState(() {});
+              } else {
+                Future.delayed(const Duration(seconds: 1), checkCanCollapse);
+              }
+            }
+            setState(() {});
+            checkCanCollapse();
+          }
         },
         onPointerMove: (event) {
+          lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
           Offset difference = event.position - incrementStartPos;
           int eventTime = DateTime.now().millisecondsSinceEpoch;
           if(difference.distanceSquared < widget.incrementDistance || eventTime - incrementStartTimeMs < widget.incrementTimingDifferenceMs) {
@@ -154,6 +184,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
             vibrate();
             incrementStartPos = event.position;
             incrementStartTimeMs = eventTime;
+            print("increment");
             widget.onIncrement();
           } else if(isDown && widget.onDecrement != null) {
             vibrate();
@@ -163,9 +194,11 @@ class _IncrementableValueState extends State<IncrementableValue> {
           }
         },
         onPointerUp: (event) {
+          lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
           incrementStartPos = null;
         },
         onPointerCancel: (event) {
+          lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
           incrementStartPos = null;
         },
           child: widget.child ??
@@ -178,11 +211,15 @@ class _IncrementableValueState extends State<IncrementableValue> {
                         widget.value ?? "null",
                         style: widget.textStyle ?? TextStyle(color: Colors.white),
                       )))),
-      Container(
-          width: 25,
+      AnimatedContainer(
+        width: showButtons ? 25 : 0,
+        duration: animationDuration,
           child: MyRaisedButton(
-            child: Icon(Icons.keyboard_arrow_up_rounded),
-            onPressed: widget.onIncrement,
+            child: AnimatedOpacity(duration: animationDuration, opacity: showButtons? 1 : 0, child: Icon(widget.incrementIcon),),
+            onPressed: () {
+              lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+              widget.onIncrement() ;
+            },
             padding: EdgeInsets.all(0),
           )),
     ]);

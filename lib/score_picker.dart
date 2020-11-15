@@ -96,11 +96,15 @@ class _ScorePickerState extends State<ScorePicker> {
     if (showScoreNameEntry && !wasShowingScoreNameEntry) {
       nameFocus.requestFocus();
     }
-    if (previousMode != widget.mode) {
-      String suggestedName = scoreManager.currentScoreName;
-      if (suggestedName == "Pasted Score") {
-        suggestedName = widget.openedScore.name;
-      }
+    // if (previousMode != widget.mode) {
+    //   String suggestedName = scoreManager.currentScoreName;
+    //   if (suggestedName == "Pasted Score") {
+    //     suggestedName = widget.openedScore.name;
+    //   }
+    //   nameController.value = nameController.value.copyWith(text: suggestedName);
+    // }
+    final suggestedName = ScoreManager.lastSuggestedScoreName;
+    if (suggestedName != null) {
       nameController.value = nameController.value.copyWith(text: suggestedName);
     }
     previousMode = widget.mode;
@@ -169,23 +173,11 @@ class _ScorePickerState extends State<ScorePicker> {
                     padding: EdgeInsets.only(right: 5),
                     child: MyFlatButton(
                         color: chromaticSteps[0],
-                        onPressed: widget.mode == ScorePickerMode.duplicate && nameController.value.text != "Pasted Score" ? () {
-                          setState(() {
-                            if (scoreManager.scoreFiles.any((f) => f.scoreName == nameController.value.text)) {
-                              overwritingScoreName = nameController.value.text;
-                              int index =
-                                  scoreManager.scoreFiles.indexWhere((f) => f.scoreName == nameController.value.text);
-                              double position = _Score.width * (index);
-                              position = min(_scrollController.position.maxScrollExtent, position);
-                              _scrollController.animateTo(position,
-                                  duration: animationDuration, curve: Curves.easeInOut);
-                            } else {
-                              widget.openedScore.reKeyMelodies();
-                              scoreManager.createScore(nameController.value.text, score: widget.openedScore);
-                              overwritingScoreName = null;
-                              Future.delayed(Duration(seconds: 1), widget.close);
-                            }
-                          });
+                        onPressed: widget.mode == ScorePickerMode.duplicate
+                          && nameController.value.text.trim().isNotEmpty
+                          && nameController.value.text != ScoreManager.PASTED_SCORE
+                          && nameController.value.text != ScoreManager.WEB_SCORE ? () {
+                          _doDuplicate();
                         } : null,
                         padding: EdgeInsets.zero,
                         child: Text(
@@ -242,6 +234,24 @@ class _ScorePickerState extends State<ScorePicker> {
     );
   }
 
+  _doDuplicate() {
+    setState(() {
+      if (scoreManager.scoreFiles.any((f) => f.scoreName == nameController.value.text)) {
+        overwritingScoreName = nameController.value.text;
+        int index = scoreManager.scoreFiles.indexWhere((f) => f.scoreName == nameController.value.text);
+        double position = _Score.width * (index);
+        position = min(_scrollController.position.maxScrollExtent, position);
+        _scrollController.animateTo(position,
+          duration: animationDuration, curve: Curves.easeInOut);
+      } else {
+        widget.openedScore.reKeyMelodies();
+        scoreManager.createScore(nameController.value.text, score: widget.openedScore);
+        overwritingScoreName = null;
+        Future.delayed(Duration(seconds: 1), widget.close);
+      }
+    });
+  }
+
   Widget getList(BuildContext context) {
     var scoreFiles;
     if (widget.mode != ScorePickerMode.none) {
@@ -272,6 +282,10 @@ class _ScorePickerState extends State<ScorePicker> {
           deleteScore: () {
             setState(() {
               scoreFile.delete();
+              if (widget.mode == ScorePickerMode.duplicate
+                && overwritingScoreName == (scoreFile?.scoreName ?? "")) {
+                _doDuplicate();
+              }
             });
           },
           overwritingScoreName: overwritingScoreName,
@@ -364,6 +378,7 @@ class __ScoreState extends State<_Score> {
     if (previewScore.sections.isEmpty) {
       previewScore.sections.add(defaultSection());
     }
+    bool isLocked = scoreName == ScoreManager.PASTED_SCORE || scoreName == ScoreManager.WEB_SCORE;
     return AnimatedContainer(
         duration: animationDuration,
         width: widget.scrollDirection == Axis.horizontal ? 200 : null,
@@ -397,13 +412,13 @@ class __ScoreState extends State<_Score> {
                         width: 36,
                         height: 36,
                         child: MyFlatButton(
-                            onPressed: () {
+                            onPressed: isLocked ? null : () {
                               setState(() {
                                 _confirmingDelete = true;
                               });
                             },
                             padding: EdgeInsets.zero,
-                            child: Icon(Icons.delete, color: foregroundColor))),
+                            child: Icon(isLocked ? Icons.lock : Icons.delete, color: foregroundColor))),
 //          SizedBox(width:5),
                   ]),
                   Expanded(

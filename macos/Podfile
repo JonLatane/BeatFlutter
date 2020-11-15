@@ -82,5 +82,11 @@ target 'Runner' do
   }
 end
 
+# post_install do |installer|
+#   installer.pods_project.build_configurations.each do |config|
+#     config.build_settings["EXCLUDED_ARCHS[sdk=macOS*]"] = "arm64"
+#   end
+# end
+
 # Prevent Cocoapods from embedding a second Flutter framework and causing an error with the new Xcode build system.
 install! 'cocoapods', :disable_input_output_paths => true

@@ -5,7 +5,8 @@ import android.media.midi.MidiDeviceInfo
 import android.media.midi.MidiInputPort
 import android.os.Build
 import androidx.annotation.RequiresApi
-import io.beatscratch.beatscratch_flutter_redux.logE
+import io.beatscratch.beatscratch_flutter_redux.*
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices.name
 
 /**
  * Interface around Android's native MIDI synthesizer support.
@@ -19,9 +20,6 @@ object MidiSynthesizers {
 			}!!.portNumber
 			device.openInputPort(portNumber)?.let { inputPort ->
 				inputPort.send(byteArrayOf(123.toByte()), 0, 1) //All notes off
-				try {
-//					MainApplication.instance.toast("Synthesizer ${info.name} connected!")
-				} catch(t: Throwable) {}
 				inputPort
 			}
 		} else null
@@ -33,13 +31,17 @@ object MidiSynthesizers {
 	 * synthesizers or you can specify the one it should go to.
 	 */
 	internal fun send(data: ByteArray) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			MidiDevices.devices.mapNotNull { it.inputPort }.forEach { port ->
+		logI("Sending ${data.hexString} to synthesizers")
+		MidiDevices.synthesizers.forEach {
+			if (BeatScratchPlugin.enabledSynthesizersByName.contains(it.info.name)) {
+				logI("Sending to ${it.info.name}")
+				val port = it.synthPort!!
 				try {
 					port.send(data, 0, data.size)
+					logI("Sent MIDI data")
 				} catch (t: Throwable) {
-					port.close()
 					logE("Failed to send midi data", t)
+					port.close()
 				}
 			}
 		}

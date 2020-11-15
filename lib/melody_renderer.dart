@@ -187,7 +187,12 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
       animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width);
       if(_hasBuilt) {
         try {
-          timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+          animate() => timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+          if(switchedToScoreView) {
+            Future.delayed(animationDuration, animate);
+          } else {
+            animate();
+          }
         } catch(e) {
 
         }
@@ -389,6 +394,7 @@ class MusicSystemPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // return;
     final startTime = DateTime.now().millisecondsSinceEpoch;
     bool drawContinuousColorGuide = xScale <= 1;
 //    canvas.clipRect(Offset.zero & size);
@@ -416,8 +422,12 @@ class MusicSystemPainter extends CustomPainter {
 //    left += 2 * standardBeatWidth;
     int renderingBeat = startBeat - _extraBeatsSpaceForClefs.toInt(); // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
-//    while(false) {
+//     bool keepRenderingBeats = true;
     while (left < visibleRect().right + standardBeatWidth) {
+      // keepRenderingBeats &= DateTime.now().millisecondsSinceEpoch - startTime < 17;
+      // if (!keepRenderingBeats) {
+      //   break;
+      // }
       if(renderingBeat >= 0) {
         // Figure out what beat of what section we're drawing
         int renderingSectionBeat = renderingBeat;

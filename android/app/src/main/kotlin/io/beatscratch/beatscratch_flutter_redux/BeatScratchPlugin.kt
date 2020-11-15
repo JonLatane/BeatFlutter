@@ -14,16 +14,18 @@ import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
-import io.multifunctions.letCheckNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.beatscratch.commands.ProtobeatsPlugin.*
 import org.beatscratch.models.Music.*
 import kotlin.coroutines.CoroutineContext
-import io.beatscratch.beatscratch_flutter_redux.PlaybackThread
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices.name
+import kotlin.concurrent.thread
 
 object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
+  const val internalId = "internal"
+  private const val label = "BeatScratch\nAudio System"
   var handler: Handler? = null
   var methodChannel: MethodChannel? = null
     set(value) {
@@ -68,6 +70,7 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
             ?: score.sectionsList[0]
           if (call.method == "createScore") {
             currentScore = score
+            notifyMidiDevices()
           } else if (call.method == "updateSections") {
             currentScore = currentScore?.let {
               Score.newBuilder(it)
@@ -172,6 +175,7 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
         result.success(null)
       }
       "checkBeatScratchAudioStatus"                -> {
+        notifyMidiDevices()
         result.success(AndroidMidi.isMidiReady)
       }
       "resetAudioSystem"                      -> {
@@ -246,6 +250,19 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
         PlaybackThread.bpmMultiplier = bpmMultiplier.toFloat()
         result.success(null)
       }
+      "updateSynthesizerConfig" -> {
+        logI("OG: $enabledSynthesizersByName")
+        val config = MidiSynthesizer.parseFrom(call.arguments as ByteArray)
+        val name = if (config.name == label) internalId else config.name
+        enabledSynthesizersByName = if (config.enabled) {
+          enabledSynthesizersByName + name
+        } else {
+          sendAllNotesOff(true)
+          enabledSynthesizersByName - name
+        }
+        MidiDevices.refreshInstruments()
+        logI("updated: $enabledSynthesizersByName")
+      }
       else                                    -> result.notImplemented()
     }
   }
@@ -295,18 +312,17 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
     }
   }
 
-  fun sendRecordedMelody() {
-    print("kotlin: sendPressedMidiNotes")
+  fun notifyRecordedMelody() {
     recordingMelody?.let { recordingMelody ->
       handler?.post {
-        methodChannel?.invokeMethod("sendRecordedMelody", recordingMelody.toByteArray())
+        methodChannel?.invokeMethod("notifyRecordedMelody", recordingMelody.toByteArray())
       }
     }
   }
 
-  fun setSynthesizerAvailable() {
+  fun notifyBeatScratchAudioAvailable() {
     handler?.post {
-      methodChannel?.invokeMethod("setSynthesizerAvailable", AndroidMidi.isMidiReady)
+      methodChannel?.invokeMethod("notifyBeatScratchAudioAvailable", AndroidMidi.isMidiReady)
     }
   }
 
@@ -344,6 +360,63 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
   fun notifyUnmultipliedBpm() {
     handler?.post {
       methodChannel?.invokeMethod("notifyUnmultipliedBpm", PlaybackThread.unmultipliedBpm)
+    }
+  }
+
+  var enabledSynthesizersByName by stringSetPref("enabledSynthesizersByName", setOf(internalId))
+    private set
+  fun notifyMidiDevices() {
+    handler?.post {
+      val midiDevices = org.beatscratch.commands.ProtobeatsPlugin.MidiDevices.newBuilder()
+        .addAllControllers(MidiDevices.controllers.map {
+          MidiController.newBuilder()
+            .setId(it.info.id.toString())
+            .setName(it.info.name)
+            .setEnabled(true)
+            .build()
+        })
+        .addSynthesizers(MidiSynthesizer.newBuilder()
+          .setId(internalId)
+          .setName(label)
+          .setEnabled(enabledSynthesizersByName.contains(internalId))
+          .build())
+        .addAllSynthesizers(MidiDevices.synthesizers.map {
+          MidiSynthesizer.newBuilder()
+            .setId(it.info.id.toString())
+            .setName(it.info.name)
+            .setEnabled(enabledSynthesizersByName.contains(it.info.name))
+            .build()
+        }).build()
+      methodChannel?.invokeMethod("notifyMidiDevices", midiDevices.toByteArray())
+    }
+  }
+
+  fun notifyScoreUrlOpened(url: String) {
+    handler?.post {
+      try {
+        methodChannel!!.invokeMethod("notifyScoreUrlOpened", url, object : Result {
+          override fun success(result: Any?) {}
+
+          override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) {
+            thread {
+              Thread.sleep(500)
+              notifyScoreUrlOpened(url)
+            }
+          }
+
+          override fun notImplemented() {
+            thread {
+              Thread.sleep(500)
+              notifyScoreUrlOpened(url)
+            }
+          }
+        })
+      } catch(t: Throwable) {
+        thread {
+          Thread.sleep(500)
+          notifyScoreUrlOpened(url)
+        }
+      }
     }
   }
 

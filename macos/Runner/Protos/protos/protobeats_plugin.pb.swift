@@ -28,6 +28,8 @@ struct MidiSynthesizer {
 
   var name: String = String()
 
+  var enabled: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -42,29 +44,71 @@ struct MidiController {
 
   var name: String = String()
 
+  var enabled: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-struct MidiSynthesizers {
+struct MidiDevices {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var synthesizers: [MidiSynthesizer] = []
 
+  var controllers: [MidiController] = []
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-struct MidiControllers {
+struct SynthesizerApp {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var controllers: [MidiController] = []
+  var name: String = String()
+
+  var installed: Bool = false
+
+  var storeLink: String = String()
+
+  var launchLink: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct ControllerApp {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var name: String = String()
+
+  var installed: Bool = false
+
+  var storeLink: String = String()
+
+  var launchLink: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct MidiApps {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var synthesizers: [SynthesizerApp] = []
+
+  var controllers: [ControllerApp] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -156,6 +200,7 @@ extension MidiSynthesizer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .same(proto: "name"),
+    3: .same(proto: "enabled"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -163,6 +208,7 @@ extension MidiSynthesizer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.id)
       case 2: try decoder.decodeSingularStringField(value: &self.name)
+      case 3: try decoder.decodeSingularBoolField(value: &self.enabled)
       default: break
       }
     }
@@ -175,12 +221,16 @@ extension MidiSynthesizer: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
     }
+    if self.enabled != false {
+      try visitor.visitSingularBoolField(value: self.enabled, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: MidiSynthesizer, rhs: MidiSynthesizer) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.name != rhs.name {return false}
+    if lhs.enabled != rhs.enabled {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -191,6 +241,7 @@ extension MidiController: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .same(proto: "name"),
+    3: .same(proto: "enabled"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -198,6 +249,7 @@ extension MidiController: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.id)
       case 2: try decoder.decodeSingularStringField(value: &self.name)
+      case 3: try decoder.decodeSingularBoolField(value: &self.enabled)
       default: break
       }
     }
@@ -210,27 +262,33 @@ extension MidiController: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
     }
+    if self.enabled != false {
+      try visitor.visitSingularBoolField(value: self.enabled, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: MidiController, rhs: MidiController) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.name != rhs.name {return false}
+    if lhs.enabled != rhs.enabled {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension MidiSynthesizers: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "MidiSynthesizers"
+extension MidiDevices: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MidiDevices"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "synthesizers"),
+    2: .same(proto: "controllers"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeRepeatedMessageField(value: &self.synthesizers)
+      case 2: try decoder.decodeRepeatedMessageField(value: &self.controllers)
       default: break
       }
     }
@@ -240,39 +298,143 @@ extension MidiSynthesizers: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if !self.synthesizers.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.synthesizers, fieldNumber: 1)
     }
+    if !self.controllers.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.controllers, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: MidiSynthesizers, rhs: MidiSynthesizers) -> Bool {
+  static func ==(lhs: MidiDevices, rhs: MidiDevices) -> Bool {
     if lhs.synthesizers != rhs.synthesizers {return false}
+    if lhs.controllers != rhs.controllers {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension MidiControllers: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = "MidiControllers"
+extension SynthesizerApp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "SynthesizerApp"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "controllers"),
+    1: .same(proto: "name"),
+    2: .same(proto: "installed"),
+    3: .same(proto: "storeLink"),
+    4: .same(proto: "launchLink"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
-      case 1: try decoder.decodeRepeatedMessageField(value: &self.controllers)
+      case 1: try decoder.decodeSingularStringField(value: &self.name)
+      case 2: try decoder.decodeSingularBoolField(value: &self.installed)
+      case 3: try decoder.decodeSingularStringField(value: &self.storeLink)
+      case 4: try decoder.decodeSingularStringField(value: &self.launchLink)
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.controllers.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.controllers, fieldNumber: 1)
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.installed != false {
+      try visitor.visitSingularBoolField(value: self.installed, fieldNumber: 2)
+    }
+    if !self.storeLink.isEmpty {
+      try visitor.visitSingularStringField(value: self.storeLink, fieldNumber: 3)
+    }
+    if !self.launchLink.isEmpty {
+      try visitor.visitSingularStringField(value: self.launchLink, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: MidiControllers, rhs: MidiControllers) -> Bool {
+  static func ==(lhs: SynthesizerApp, rhs: SynthesizerApp) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.installed != rhs.installed {return false}
+    if lhs.storeLink != rhs.storeLink {return false}
+    if lhs.launchLink != rhs.launchLink {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension ControllerApp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "ControllerApp"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "installed"),
+    3: .same(proto: "storeLink"),
+    4: .same(proto: "launchLink"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.name)
+      case 2: try decoder.decodeSingularBoolField(value: &self.installed)
+      case 3: try decoder.decodeSingularStringField(value: &self.storeLink)
+      case 4: try decoder.decodeSingularStringField(value: &self.launchLink)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.installed != false {
+      try visitor.visitSingularBoolField(value: self.installed, fieldNumber: 2)
+    }
+    if !self.storeLink.isEmpty {
+      try visitor.visitSingularStringField(value: self.storeLink, fieldNumber: 3)
+    }
+    if !self.launchLink.isEmpty {
+      try visitor.visitSingularStringField(value: self.launchLink, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: ControllerApp, rhs: ControllerApp) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.installed != rhs.installed {return false}
+    if lhs.storeLink != rhs.storeLink {return false}
+    if lhs.launchLink != rhs.launchLink {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension MidiApps: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "MidiApps"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "synthesizers"),
+    2: .same(proto: "controllers"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeRepeatedMessageField(value: &self.synthesizers)
+      case 2: try decoder.decodeRepeatedMessageField(value: &self.controllers)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.synthesizers.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.synthesizers, fieldNumber: 1)
+    }
+    if !self.controllers.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.controllers, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: MidiApps, rhs: MidiApps) -> Bool {
+    if lhs.synthesizers != rhs.synthesizers {return false}
     if lhs.controllers != rhs.controllers {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

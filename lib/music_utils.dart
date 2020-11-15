@@ -61,6 +61,62 @@ extension Migrations on Score {
   }
 }
 
+extension DeleteNotes on Melody {
+  deleteMidiNote(int midiNote, int subdivision) {
+    // First delete the NoteOnEvent here
+    midiData.data[subdivision].midiEvents = midiData.data[subdivision].midiEvents.withoutNoteOnEvents(midiNote);
+
+    // Find the NoteOff that corresponds and delete it
+    int s = subdivision;
+    do {
+      var foundNoteOff = false;
+      var midiChange = midiData.data[s];
+      if (midiChange != null) {
+        final midiEvents = midiChange.midiEvents;
+        if (midiEvents.hasNoteOnEvent(midiNote) != null) {
+          midiChange.midiEvents = midiEvents.withoutNoteOffEvents(midiNote);
+          foundNoteOff = true;
+        }
+      }
+      if (foundNoteOff) {
+        break;
+      }
+      s = (s + 1) % length;
+    } while (s != subdivision);
+  }
+
+  deleteBeat(int beat) {
+    var startSubdivision = (beat * subdivisionsPerBeat) % length;
+    var subdivision = startSubdivision;
+    do {
+      var midiChange = midiData.data[subdivision];
+      if (midiChange != null) {
+        midiChange.noteOns.forEach((it) { deleteMidiNote(it.noteNumber, subdivision); });
+      }
+      subdivision = (subdivision + 1) % length;
+    } while (subdivision != (startSubdivision + subdivisionsPerBeat) % length);
+  }
+}
+
+extension DeleteEvent on MidiChange {
+  // List<int> dataWithout(bool Function(MidiEvent) eventFilter) {
+  //   ByteWriter writer = ByteWriter();
+  //   midiEvents.forEach((midiEvent) {
+  //     if (midiEvent is NoteOnEvent) {
+  //       midiEvent.writeEvent(writer);
+  //       noteOns.add(midiEvent.noteNumber);
+  //     } else if (midiEvent is NoteOffEvent) {
+  //       if (!noteOns.contains(midiEvent.noteNumber)) {
+  //         midiEvent.writeEvent(writer);
+  //       } else {
+  //         madeChanges = true;
+  //         midiEvent.writeEvent(nextWriter);
+  //       }
+  //     }
+  //   });
+  // }
+}
+
 extension SeparateNoteOnAndOff on Melody {
   bool separateNoteOnAndOffs() {
     bool madeChanges = false;

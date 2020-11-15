@@ -26,9 +26,6 @@ object MidiControllers {
 			it.type == MidiDeviceInfo.PortInfo.TYPE_OUTPUT
 		}!!.portNumber
 		device.openOutputPort(portNumber)?.let { outputPort ->
-			try {
-//				MainApplication.instance.toast("Controller ${info.name} connected!")
-			} catch(t: Throwable) {}
 			outputPort.connect(Receiver())
 			outputPort
 		}

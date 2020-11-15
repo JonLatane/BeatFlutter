@@ -87,7 +87,7 @@ class MelodyRecorder {
         let value: [UInt8] = $0.value
         let subdivisionsPerBeat = melody.subdivisionsPerBeat
         let length = melody.length
-        let beatSize = (endTime - startTime) * (Double(subdivisionsPerBeat + 1))/Double(subdivisionsPerBeat)
+        let beatSize = (endTime - startTime) //* (Double(subdivisionsPerBeat + 1))/Double(subdivisionsPerBeat)
         let beatProgress = time - startTime
         let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
         var subdivision = Int32((normalizedProgress * Double(subdivisionsPerBeat)).rounded())
@@ -102,7 +102,7 @@ class MelodyRecorder {
       }
       recordingMelody = melody
       let verify = recordingMelody
-      BeatScratchPlugin.sharedInstance.sendRecordedMelody()
+      BeatScratchPlugin.sharedInstance.notifyRecordedMelody()
     }
     recordedData.removeAll()
   }

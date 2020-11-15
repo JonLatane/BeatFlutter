@@ -18,7 +18,7 @@ class Conductor {
   // Globally accessible
   static let sharedInstance = Conductor()
   var samplersInitialized = false {
-    didSet { BeatScratchPlugin.sharedInstance.setSynthesizerAvailable() }
+    didSet { BeatScratchPlugin.sharedInstance.notifyBeatScratchAudioAvailable() }
   }
   var sampler1 = AKSampler(masterVolume:1.0)
   var sampler2 = maxNonDrumChannels > 1 ? AKSampler(masterVolume:1.0) : nil
@@ -93,6 +93,7 @@ class Conductor {
     midi.createVirtualPorts()
     midi.openInput()
     midi.openOutput()
+    try BeatScratchPlugin.sharedInstance.notifyMidiDevices()
   }
   
   private func setupSamplers() {

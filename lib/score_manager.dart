@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/my_platform.dart';
 
-import 'fake_js.dart'
-if(dart.library.js) 'dart:js';
+import 'fake_js.dart' if (dart.library.js) 'dart:js';
 
 import 'package:beatscratch_flutter_redux/dummydata.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +17,10 @@ import 'dummydata.dart';
 import 'url_conversions.dart';
 
 class ScoreManager {
+  static const String PASTED_SCORE = "Pasted Score";
+  static const String FROM_CLIPBOARD = " (from Clipboard)";
+  static const String WEB_SCORE = "Web Score";
+  static const String FROM_WEB = " (from Web)";
   Function(Score) doOpenScore;
   Directory _scoresDirectory;
   SharedPreferences _prefs;
@@ -50,7 +54,7 @@ class ScoreManager {
     }
   }
 
-  createScore(String name, { Score score }) {
+  createScore(String name, {Score score}) {
     score = score ?? defaultScore();
     currentScoreName = name;
     saveCurrentScore(score);
@@ -74,13 +78,66 @@ class ScoreManager {
     Score score;
     try {
       score = await loadCurrentScore();
-    } catch(e) {
+    } catch (e) {
       score = defaultScore();
     }
     doOpenScore(score);
   }
 
-  loadPastebinScoreIntoUI(String pastebinCode, VoidCallback onFail) async {
+  loadFromScoreUrl(String scoreUrl,
+      {String newScoreDefaultFilename = PASTED_SCORE,
+      String newScoreNameSuffix = FROM_CLIPBOARD,
+      Score currentScoreToSave,
+      VoidCallback onFail,
+      Function(String) onSuccess}) {
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
+    try {
+      Score score = scoreFromUrlHashValue(scoreUrl);
+      if (score == null) {
+        throw Exception("nope");
+      }
+      String scoreName = score.name ?? "";
+      String suggestedScoreName = scoreName;
+      if (suggestedScoreName.trim().isEmpty) {
+        suggestedScoreName = newScoreDefaultFilename;
+      } else {
+        suggestedScoreName += newScoreNameSuffix;
+      }
+      if(currentScoreToSave != null) {
+        saveCurrentScore(currentScoreToSave);
+      }
+      openScoreWithFilename(score, newScoreDefaultFilename); // side-effect: updates this.score
+      _lastSuggestedScoreName = suggestedScoreName;
+      onSuccess?.call(suggestedScoreName);
+    } catch (any) {
+      loadPastebinScoreIntoUI(scoreUrl,
+          newScoreDefaultFilename: newScoreDefaultFilename,
+          newScoreNameSuffix: newScoreNameSuffix,
+          currentScoreToSave: currentScoreToSave,
+          onFail: onFail,
+          onSuccess: onSuccess);
+    }
+  }
+
+  static String _lastSuggestedScoreName;
+  static String get lastSuggestedScoreName {
+    final value = _lastSuggestedScoreName;
+    _lastSuggestedScoreName = null;
+    return value;
+  }
+
+  static suggestScoreName(String name) {
+    _lastSuggestedScoreName = name;
+  }
+
+  loadPastebinScoreIntoUI(String pastebinCode,
+    {String newScoreDefaultFilename = PASTED_SCORE,
+      String newScoreNameSuffix = FROM_CLIPBOARD,
+      Score currentScoreToSave,
+      VoidCallback onFail,
+      Function(String) onSuccess}) async {
     if (pastebinCode == null) {
       return;
     }
@@ -97,23 +154,44 @@ class ScoreManager {
       longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
 
       Score score = scoreFromUrlHashValue(longUrl);
-      if (MyPlatform.isNative) {
-        openClipboardScore(score);
+      String scoreName = score.name ?? "";
+      String suggestedScoreName = scoreName;
+      if (suggestedScoreName.trim().isEmpty) {
+        suggestedScoreName = newScoreDefaultFilename;
+      } else {
+        suggestedScoreName += newScoreNameSuffix;
+      }
+      if (BeatScratchPlugin.supportsStorage) {
+        if(currentScoreToSave != null) {
+          saveCurrentScore(currentScoreToSave);
+        }
+        openScoreWithFilename(score, newScoreDefaultFilename);
       } else {
         doOpenScore(score);
       }
+      onSuccess?.call(suggestedScoreName);
+      _lastSuggestedScoreName = suggestedScoreName;
     } catch (any) {
-      onFail();
+      onFail?.call();
     }
   }
 
+  openWebScore(Score score) async {
+    openScoreWithFilename(score, WEB_SCORE);
+  }
+
   openClipboardScore(Score score) async {
-    currentScoreName = "Pasted Score";
+    openScoreWithFilename(score, PASTED_SCORE);
+  }
+
+  openScoreWithFilename(Score score, String filename) async {
+    currentScoreName = filename;
     doOpenScore(score);
     saveCurrentScore(score);
   }
 
   Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);
+
   Future<Score> loadScore(File file) async => Score.fromBuffer(file.readAsBytesSync());
 }
 

@@ -5,19 +5,37 @@ option java_package = "org.beatscratch.commands";
 message MidiSynthesizer {
   string id = 1;
   string name = 2;
+  bool enabled = 3;
 }
 
 message MidiController {
   string id = 1;
   string name = 2;
+  bool enabled = 3;
 }
 
-message MidiSynthesizers {
+message MidiDevices {
   repeated MidiSynthesizer synthesizers = 1;
+  repeated MidiController controllers = 2;
 }
 
-message MidiControllers {
-  repeated MidiController controllers = 1;
+message SynthesizerApp {
+  string name = 1;
+  bool installed = 2;
+  string storeLink = 3;
+  string launchLink = 4;
+}
+
+message ControllerApp {
+  string name = 1;
+  bool installed = 2;
+  string storeLink = 3;
+  string launchLink = 4;
+}
+
+message MidiApps {
+  repeated SynthesizerApp synthesizers = 1;
+  repeated ControllerApp controllers = 2;
 }
 
 message MidiNotes {

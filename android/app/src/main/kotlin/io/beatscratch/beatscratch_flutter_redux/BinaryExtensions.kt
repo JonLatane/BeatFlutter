@@ -28,6 +28,8 @@ fun ByteArray.hexString(offset: Int, count: Int): String {
 	return sb.toString()
 }
 
+val ByteArray.hexString get() = hexString(0, size)
+
 val Byte.hexString get() = String.format("%02X ", this)
 val Int.hexString get() = String.format("%02X ", this)
 

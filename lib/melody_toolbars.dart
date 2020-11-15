@@ -8,6 +8,7 @@ import 'music_theory.dart';
 import 'my_buttons.dart';
 import 'part_melodies_view.dart';
 import 'ui_models.dart';
+import 'music_utils.dart';
 import 'util.dart';
 
 class MelodyToolbar extends StatefulWidget {
@@ -259,47 +260,59 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
     }
     return Row(children: [
       SizedBox(width: 5),
-      Column(children: [
-        Transform.translate(offset: Offset(0, 5), child:
-        Icon(Icons.fiber_manual_record, color: recordingColor)),
-        Text('Recording',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
-      ]),
-      AnimatedContainer(
-        duration: animationDuration,
-        width: 44,
-        height: 36,
-        padding: EdgeInsets.only(left: 8),
-        child:  MyRaisedButton(
-          padding: EdgeInsets.zero,
-          onLongPress: widget.melody != null ? () {
-            print("clearing");
-            widget.melody.midiData.data.clear();
+      IncrementableValue(
+        collapsing: true,
+        onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
+          ? () {
+          if(widget.melody != null && widget.melody.beatCount > 1) {
+            widget.melody.length -= widget.melody.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
+        } : null,
+        onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
+          ? () {
+          if (widget.melody != null && widget.melody.beatCount <= 999) {
+            widget.melody.length += widget.melody.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
+        }
+          : null,
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
+//        valueWidth: 100,
+//        value: "$beats beat${beats == 1 ? "" : "s"}",
+      ),
+      SizedBox(width: 5),
+      IncrementableValue(
+        collapsing: true,
+        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
+          if((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
+            widget.melody?.subdivisionsPerBeat -= 1;
+            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
             clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
+            clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.updateMelody(widget.melody);
-            setState(() {
-              showDataCleared = true;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showDataCleared = false;
-              });
-            });
-          } : null,
-          onPressed: () {
-            setState(() {
-              showHoldToClear = true;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showHoldToClear = false;
-              });
-            });
-          },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
-            child: Icon(Icons.delete_sweep)))),
+          }
+        } : null,
+        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
+          if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
+            widget.melody?.subdivisionsPerBeat += 1;
+            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            clearMutableCachesForMelody(widget.melody.id);
+            BeatScratchPlugin.updateMelody(widget.melody);
+          }
+        } : null,
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+          child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
+      ),
+      SizedBox(width: 5),
+      Expanded(child: SizedBox(width: 5),),
       AnimatedContainer(
         duration: animationDuration,
         width: showHoldToClear ? 35 : 0,
@@ -316,63 +329,116 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           ]))),
       AnimatedContainer(
         duration: animationDuration,
-        width: showDataCleared ? 40 : 0,
+        width: showDataCleared ? 45 : 0,
         height: 36,
         padding: EdgeInsets.only(left: 5),
         child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showDataCleared ? 1 : 0,
           child: Stack(children:[
-            Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
-            Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            Transform.translate(offset: Offset(0, 7), child: Align(alignment: Alignment.center, child:
-            Text("cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+            // Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
+            // Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+            // Transform.translate(offset: Offset(0, 7), child:
+            Align(alignment: Alignment.center, child:
+            Text("Cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))
+            // ),
           ]))),
-      Expanded(child: SizedBox(width: 5),),
-      IncrementableValue(
-        onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
-          ? () {
-          if(widget.melody != null && widget.melody.beatCount > 1) {
-            widget.melody.length -= widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
-          ? () {
-          if (widget.melody != null && widget.melody.beatCount <= 999) {
-            widget.melody.length += widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        }
-          : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
-//        valueWidth: 100,
-//        value: "$beats beat${beats == 1 ? "" : "s"}",
-      ),
-      SizedBox(width: 5),
-      IncrementableValue(
-        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
-          if((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
-            widget.melody?.subdivisionsPerBeat -= 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+      AnimatedContainer(
+        duration: animationDuration,
+        width: 44,
+        height: 36,
+        padding: EdgeInsets.only(left: 8),
+        child:  MyRaisedButton(
+          padding: EdgeInsets.zero,
+          onLongPress: widget.melody != null ? () {
+            print("clearing");
+            widget.melody.midiData.data.clear();
             clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
             BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
-          if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
-            widget.melody?.subdivisionsPerBeat += 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+            setState(() {
+              showDataCleared = true;
+              showHoldToClear = false;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showDataCleared = false;
+              });
+            });
+          } : null,
+          onPressed: () {
+            setState(() {
+              showHoldToClear = true;
+              showDataCleared = false;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showHoldToClear = false;
+              });
+            });
+          },
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
+            child: Stack(
+              children: [
+                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep)),
+                Align(alignment: Alignment.bottomRight, child: Padding(
+                  padding: const EdgeInsets.only(right: 1, bottom: 0),
+                  child: Transform.translate(offset: Offset(0,2), child: Text("All", style: TextStyle(fontSize:10),),)
+                ))
+              ],
+            )))),
+      AnimatedContainer(
+        duration: animationDuration,
+        width: 44,
+        height: 36,
+        padding: EdgeInsets.only(left: 8),
+        child:  MyRaisedButton(
+          padding: EdgeInsets.zero,
+          onLongPress: widget.melody != null ? () {
+            print("clearing single beat");
+            widget.melody.deleteBeat(BeatScratchPlugin.currentBeat.value);
             clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
             BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-          child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
-      ),
-      SizedBox(width: 5),
+            setState(() {
+              showDataCleared = true;
+              showHoldToClear = false;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showDataCleared = false;
+              });
+            });
+          } : null,
+          onPressed: () {
+            setState(() {
+              showHoldToClear = true;
+              showDataCleared = false;
+            });
+            Future.delayed(Duration(seconds: 3), () {
+              setState(() {
+                showHoldToClear = false;
+              });
+            });
+          },
+          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
+            child: Stack(
+              children: [
+                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep)),
+                Align(alignment: Alignment.bottomRight, child: Padding(
+                  padding: const EdgeInsets.only(right: 1, bottom: 0),
+                  child: Transform.translate(offset: Offset(0,2), child: Text("Beat", style: TextStyle(fontSize:10),)),
+                ))
+              ],
+            )))),
+      SizedBox(width: 7),
+      Column(children: [
+        SizedBox(height: 3),
+        Transform.translate(offset: Offset(0, 5), child:
+        Icon(Icons.fiber_manual_record, color: recordingColor)),
+        Text('Recording',
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
+      ]),
+      SizedBox(width: 7),
     ]);
   }
 }
@@ -798,8 +864,65 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
     NoteName key = widget.currentSection.harmony.data[0].rootNote;
     int keyIndex = keys.indexOf(key);
     return Row(children: [
+      SizedBox(width: 5),
+      IncrementableValue(
+        collapsing: true,
+        onDecrement: (widget.currentSection.beatCount > 1)
+          ? () {
+          if(widget.currentSection.beatCount > 1) {
+            widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
+
+//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
+        } : null,
+        onIncrement: (widget.currentSection.beatCount <= 999)
+          ? () {
+          if(widget.currentSection.beatCount <= 999) {
+            widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
+            BeatScratchPlugin.onSynthesizerStatusChange();
+            BeatScratchPlugin.updateSections(widget.score);
+          }
+//          BeatScratchPlugin.updateMelody(widget.melody);
+        }
+          : null,
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: widget.currentSection.beatCount)),
+      ),
       SizedBox(width:5),
       IncrementableValue(
+        collapsing: true,
+        onDecrement: (widget.currentSection.tempo.bpm >  21) ? () {
+          widget.currentSection.tempo.bpm--;
+          BeatScratchPlugin.updateSections(widget.score);
+          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+        } : null,
+        onIncrement: (widget.currentSection.tempo.bpm < 499) ? () {
+          widget.currentSection.tempo.bpm++;
+          BeatScratchPlugin.updateSections(widget.score);
+          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
+          BeatScratchPlugin.onSynthesizerStatusChange();
+        } : null,
+        child: Container(
+          width: 36,
+          padding: EdgeInsets.only(top: 7, bottom: 5),
+          child: Stack(children: [
+            Align(
+              alignment: Alignment.center,
+              child: AnimatedOpacity(opacity: 0.4, duration: animationDuration, child: Transform.scale(scale: 0.8, child: Image.asset('assets/metronome.png'))),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child:
+              Transform.translate(offset: Offset(0, -7), child:
+              Text(widget.currentSection.tempo.bpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w700) )),
+            )
+          ])),
+      ),
+      Expanded(child: SizedBox(width: 5),),
+      IncrementableValue(
+        collapsing: true,
         onDecrement: (widget.currentSection.meter.defaultBeatsPerMeasure > 1)
           ? () {
           if(widget.currentSection.meter.defaultBeatsPerMeasure > 1) {
@@ -836,6 +959,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
       ),
       SizedBox(width:5),
       IncrementableValue(
+        collapsing: true,
         onDecrement: () {
           int newKeyIndex = keyIndex - 1;
           if (newKeyIndex < 0) {
@@ -868,61 +992,6 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar> with Tick
             child: Transform.translate(offset: Offset(-1.5, -2),
               child:Text(key.simpleString, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w200))))),
       ),
-      SizedBox(width:5),
-      IncrementableValue(
-        onDecrement: (widget.currentSection.tempo.bpm >  21) ? () {
-          widget.currentSection.tempo.bpm--;
-          BeatScratchPlugin.updateSections(widget.score);
-          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-        } : null,
-        onIncrement: (widget.currentSection.tempo.bpm < 499) ? () {
-          widget.currentSection.tempo.bpm++;
-          BeatScratchPlugin.updateSections(widget.score);
-          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-        } : null,
-        child: Container(
-          width: 36,
-          padding: EdgeInsets.only(top: 7, bottom: 5),
-          child: Stack(children: [
-            Align(
-              alignment: Alignment.center,
-              child: Opacity(opacity: 0.4, child: Transform.scale(scale: 0.8, child: Image.asset('assets/metronome.png'))),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child:
-              Transform.translate(offset: Offset(0, -7), child:
-              Text(widget.currentSection.tempo.bpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w700) )),
-            )
-          ])),
-      ),
-      Expanded(child: SizedBox(width: 5),),
-      IncrementableValue(
-        onDecrement: (widget.currentSection.beatCount > 1)
-          ? () {
-          if(widget.currentSection.beatCount > 1) {
-            widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-
-//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
-        } : null,
-        onIncrement: (widget.currentSection.beatCount <= 999)
-          ? () {
-          if(widget.currentSection.beatCount <= 999) {
-            widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-//          BeatScratchPlugin.updateMelody(widget.melody);
-        }
-          : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: widget.currentSection.beatCount)),
-      ),
-      SizedBox(width: 5),
 //      IncrementableValue(
 //        onDecrement: null,
 //        onIncrement: null,

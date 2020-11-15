@@ -3,6 +3,7 @@ package io.beatscratch.beatscratch_flutter_redux
 import android.content.pm.PackageManager
 import fluidsynth.FluidSynthMidiReceiver
 import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices
+import io.beatscratch.beatscratch_flutter_redux.hardware.MidiDevices.name
 import io.beatscratch.beatscratch_flutter_redux.hardware.MidiSynthesizers
 import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.*
@@ -30,12 +31,13 @@ object AndroidMidi: CoroutineScope {
 	private var FLUIDSYNTH: FluidSynthMidiReceiver? = null
 	fun resetFluidSynth() {
 		isMidiReady = false
-		BeatScratchPlugin.setSynthesizerAvailable()
+		BeatScratchPlugin.notifyBeatScratchAudioAvailable()
 		FLUIDSYNTH?.nativeLibJNI?.destroy()
 		FLUIDSYNTH = FluidSynthMidiReceiver(MainApplication.instance)
 		MidiDevices.refreshInstruments()
 		isMidiReady = true
-		BeatScratchPlugin.setSynthesizerAvailable()
+		BeatScratchPlugin.notifyBeatScratchAudioAvailable()
+		BeatScratchPlugin.notifyMidiDevices()
 	}
 	private var sendToInternalFluidSynthSetting by booleanPref("sendToInternalFluidSynth", true)
 	private var sendToExternalSynthSetting by booleanPref("sendToExternalSynth", false)
@@ -94,13 +96,15 @@ object AndroidMidi: CoroutineScope {
     if(record) {
       MelodyRecorder.notifyMidiRecorded(bytes)
     }
-		if(sendToInternalFluidSynth) {
+
+		if (BeatScratchPlugin.enabledSynthesizersByName.contains(BeatScratchPlugin.internalId)) {
 			FLUIDSYNTH?.send(bytes, 0, bytes.size, System.currentTimeMillis())
 		}
+
 		if (
 			MainApplication.instance.packageManager.hasSystemFeature(PackageManager.FEATURE_MIDI)
-				&& sendToExternalSynth
 		) {
+			logI("${PackageManager.FEATURE_MIDI} supported!")
 			MidiSynthesizers.send(bytes)
 		}
 	}
