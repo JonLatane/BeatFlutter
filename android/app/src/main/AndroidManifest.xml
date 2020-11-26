@@ -48,7 +48,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="beatscratch.io" android:scheme="http" android:path="/app" />
+                <data android:host="beatscratch.io" android:scheme="http" android:path="/app/" />
                 <data android:host="beatscratch.io" android:scheme="https" android:path="/app" />
+                <data android:host="beatscratch.io" android:scheme="https" android:path="/app/" />
             </intent-filter>
 
         </activity>

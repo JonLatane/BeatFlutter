@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		3344275A25675F3600FC2652 /* AudioKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3344275925675F3600FC2652 /* AudioKit.xcframework */; };
 		33F1C68C25191ADC00B664E6 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 33F1C68B25191ADC00B664E6 /* Sounds */; };
-		33F1C68E25191AFA00B664E6 /* AudioKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */; };
 		33F1C6AF25191C8300B664E6 /* Conductor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69A25191C8300B664E6 /* Conductor.swift */; };
 		33F1C6B125191C8300B664E6 /* Fatten.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69C25191C8300B664E6 /* Fatten.swift */; };
 		33F1C6B225191C8300B664E6 /* AutoPan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1C69D25191C8300B664E6 /* AutoPan.swift */; };
@@ -51,8 +51,9 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		3344271F2563220D00FC2652 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		3344275925675F3600FC2652 /* AudioKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = AudioKit.xcframework; path = "../../AudioKit Frameworks/AudioKit-4.11.2/AudioKit.xcframework"; sourceTree = "<group>"; };
 		33F1C68B25191ADC00B664E6 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
-		33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = AudioKit.xcframework; path = "../../AudioKit Frameworks/AudioKit-4.11.1/AudioKit.xcframework"; sourceTree = "<group>"; };
 		33F1C69A25191C8300B664E6 /* Conductor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Conductor.swift; sourceTree = "<group>"; };
 		33F1C69B25191C8300B664E6 /* BeatScratch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BeatScratch; sourceTree = "<group>"; };
 		33F1C69C25191C8300B664E6 /* Fatten.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fatten.swift; sourceTree = "<group>"; };
@@ -94,7 +95,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A8EA785E4EA7366B4C4F842A /* Pods_Runner.framework in Frameworks */,
-				33F1C68E25191AFA00B664E6 /* AudioKit.xcframework in Frameworks */,
+				3344275A25675F3600FC2652 /* AudioKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +185,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				3344271F2563220D00FC2652 /* Runner.entitlements */,
 				33F1C69925191C8300B664E6 /* AudioSystem */,
 				33F1C6A525191C8300B664E6 /* BeatScratch */,
 				33F1C6A125191C8300B664E6 /* Protos */,
@@ -213,7 +215,7 @@
 		BD49D6151F3746366C351079 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				33F1C68D25191AFA00B664E6 /* AudioKit.xcframework */,
+				3344275925675F3600FC2652 /* AudioKit.xcframework */,
 				BA8F65D0DE510B5CD40935D0 /* Pods_Runner.framework */,
 			);
 			name = Frameworks;
@@ -470,6 +472,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;
@@ -611,6 +614,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;
@@ -642,6 +646,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = Q94XRK95RT;
 				ENABLE_BITCODE = NO;

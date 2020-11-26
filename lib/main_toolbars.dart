@@ -44,36 +44,68 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback pasteScore;
   final Function(String) routeToCurrentScore;
   final bool vertical;
+  final bool verticalSections;
 
-  const BeatScratchToolbar({Key key,
-    this.interactionMode,
-    this.viewMode,
-    this.editMode,
-    this.toggleViewOptions,
-    this.sectionColor,
-    this.togglePlaying,
-    this.toggleSectionListDisplayMode,
-    this.setRenderingMode,
-    this.renderingMode,
-    this.showMidiInputSettings,
-    this.focusPartsAndMelodies,
-    this.toggleFocusPartsAndMelodies, this.showBeatCounts, this.toggleShowBeatCounts, this.showScorePicker, this.saveCurrentScore, this.currentScoreName, this.score, this.pasteScore, this.scoreManager, this.routeToCurrentScore, this.vertical})
-    : super(key: key);
+  const BeatScratchToolbar(
+      {Key key,
+      this.interactionMode,
+      this.viewMode,
+      this.editMode,
+      this.toggleViewOptions,
+      this.sectionColor,
+      this.togglePlaying,
+      this.toggleSectionListDisplayMode,
+      this.setRenderingMode,
+      this.renderingMode,
+      this.showMidiInputSettings,
+      this.focusPartsAndMelodies,
+      this.toggleFocusPartsAndMelodies,
+      this.showBeatCounts,
+      this.toggleShowBeatCounts,
+      this.showScorePicker,
+      this.saveCurrentScore,
+      this.currentScoreName,
+      this.score,
+      this.pasteScore,
+      this.scoreManager,
+      this.routeToCurrentScore,
+      this.vertical,
+      this.verticalSections})
+      : super(key: key);
 
   @override
   _BeatScratchToolbarState createState() => _BeatScratchToolbarState();
 }
 
-class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
+class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProviderStateMixin {
 //  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
 //  FilePicker asdf = FilePicker();
 //   final clipboardContentStream = StreamController<String>.broadcast();
 
   // Timer clipboardTriggerTime;
 
+
+   AnimationController _controller;
+   Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      // animationBehavior: AnimationBehavior.preserve,
+      duration: Duration(seconds: 2),
+      vsync: this,
+
+      value: 0.0,
+      lowerBound: 0.0,
+      upperBound: 1
+    )..repeat(reverse: true);
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.ease,
+    );
+    // _controller.forward();
+
     // clipboardTriggerTime = Timer.periodic(
     //   // you can specify any duration you want, roughly every 20 read from the system
     //   const Duration(seconds: 5),
@@ -91,6 +123,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
     // clipboardContentStream.close();
     // clipboardTriggerTime.cancel();
@@ -106,6 +139,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
 
   @override
   Widget build(BuildContext context) {
+    _controller.animateTo(widget.interactionMode == InteractionMode.view ? 0 : widget.verticalSections ? 0 : 0.18);
     return Container(
       height: widget.vertical ? null : 48,
       width: widget.vertical ? 48 : null,
@@ -122,6 +156,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
               switch (value) {
                 case "create":
                   widget.saveCurrentScore();
+                  ScoreManager.suggestScoreName("");
                   widget.showScorePicker(ScorePickerMode.create);
                   break;
                 case "open":
@@ -130,6 +165,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
                   break;
                 case "duplicate":
                   widget.saveCurrentScore();
+                  ScoreManager.suggestScoreName(widget.scoreManager.currentScoreName);
                   widget.showScorePicker(ScorePickerMode.duplicate);
                   break;
                 case "save":
@@ -347,12 +383,26 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> {
               widget.toggleSectionListDisplayMode();
             },
             padding: EdgeInsets.all(0.0),
-            child: Icon(
-              (widget.interactionMode == InteractionMode.view)
-                ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
-                : Icons.menu,
-              color: (widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors
-                .grey : widget.sectionColor))),
+            child: RotationTransition(turns: _animation,
+            child:Stack(
+              children: [
+                AnimatedOpacity(duration: animationDuration,
+                  opacity: widget.interactionMode == InteractionMode.edit ? 1 : 0,
+                  child:Icon(Icons.menu, color: widget.sectionColor)),
+              AnimatedOpacity(duration: animationDuration,
+                opacity: widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.playing ? 1 : 0,
+                child:Icon(Icons.play_arrow,
+                  color: (widget.interactionMode == InteractionMode.view && !BeatScratchPlugin.supportsPlayback) ? Colors
+                    .grey : widget.sectionColor)),
+              AnimatedOpacity(duration: animationDuration,
+                opacity: widget.interactionMode == InteractionMode.view && BeatScratchPlugin.playing ? 1 : 0,
+                child:Icon(Icons.pause,
+                  color: widget.sectionColor)),
+                // (widget.interactionMode == InteractionMode.view)
+                //   ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
+                //   : Icons.menu,
+              ],
+            )))),
         Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
@@ -552,7 +602,7 @@ class SecondToolbar extends StatelessWidget {
           child: MyRaisedButton(
             child: Align(
               alignment: Alignment.center,
-              child: Transform.scale(scale: vertical && MyPlatform.isAndroid ? 2.5 : 0.8, child: Image.asset('assets/piano.png')),
+              child: Transform.scale(scale: vertical ? MyPlatform.isMacOS ? 0.8 : 2.5 : 0.8, child: Image.asset('assets/piano.png')),
             ),
             onPressed: toggleKeyboard,
             onLongPress: toggleKeyboardConfiguration,
@@ -570,7 +620,7 @@ class SecondToolbar extends StatelessWidget {
               opacity: toggleColorboard != null ? 1 : 0.25,
               child: Align(
                 alignment: Alignment.center,
-                child: Transform.scale(scale: vertical && MyPlatform.isAndroid ? 2.5 : 0.8, child: Image.asset('assets/colorboard.png')),
+                child: Transform.scale(scale: vertical ? 2.5 : 0.8, child: Image.asset('assets/colorboard.png')),
               )),
             onPressed: toggleColorboard,
             onLongPress: toggleColorboardConfiguration,

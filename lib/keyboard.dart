@@ -217,29 +217,36 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
       ]),
 //      Touch-handling area with the GestureDetector
       Column(children: [
-        AnimatedContainer(
-          duration: animationDuration,
-          height: touchScrollAreaHeight,
+        IgnorePointer(
           child: AnimatedContainer(
-            width: showScrollHint ? touchScrollAreaHeight * 3.4 : 0,
             duration: animationDuration,
-            padding: EdgeInsets.symmetric(horizontal: 5),
-            color: widget.sectionColor,
+            height: touchScrollAreaHeight,
             child: AnimatedOpacity(
-              opacity: showScrollHint ? 1 : 0,
-              duration: animationDuration,
-              child: MyFlatButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {
-                  setState(() {
-                    showScrollHint = false;
-                  });
-                },
-                child: Row(children: [
-                  Icon(Icons.arrow_left),
-                  Expanded(child: Text("Scroll", style: TextStyle(fontSize: 16))),
-                  Icon(Icons.arrow_right),
-                ]))))),
+                opacity: showScrollHint ? 0.8 : 0,
+                duration: animationDuration,
+                  child: AnimatedContainer(
+                    height: 16,
+                    duration: animationDuration,
+                    padding: EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: Colors.white,
+                    ),
+                    width: 150,
+                    child: Column(children: [
+                      Expanded(child: SizedBox()),
+                      Row(children: [
+                        Icon(Icons.arrow_left),
+                        Expanded(child: SizedBox()),
+                        Expanded(child: Text("Scroll", maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11))),
+                        Expanded(child: SizedBox()),
+                        Icon(Icons.arrow_right),
+                      ]),
+                      Expanded(child: SizedBox()),
+                    ])),
+                )),
+        )
+      ,
         Expanded(
             child: Listener(
                 onPointerDown: (event) {

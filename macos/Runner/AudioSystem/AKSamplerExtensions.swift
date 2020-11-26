@@ -12,7 +12,11 @@ import AudioKit
 extension AKSampler {
   open func loadSfzWithEmbeddedSpacesInSampleNames(folderPath: String, sfzFileName: String) {
     stopAllVoices()
-    unloadAllSamples()
+    do {
+      try unloadAllSamples()
+    }  catch {
+      AKLog("Failed to unload samples")
+    }
     
     var lastPrefix: String = ""
     var lokey: Int32 = 0

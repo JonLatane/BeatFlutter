@@ -25,9 +25,9 @@ class BeatScratchPlugin {
     }
     didSet {
       notifyBeatScratchAudioAvailable()
-      score.parts.forEach {
-        setupPart(part: $0)
-      }
+//      score.parts.forEach {
+//        setupPart(part: $0)
+//      }
       notifyBeatScratchAudioAvailable()
     }
   }
@@ -59,6 +59,9 @@ class BeatScratchPlugin {
           let score = try Score(serializedData: (call.arguments as! FlutterStandardTypedData).data)
           if call.method == "createScore" {
             self.score = score
+            self.score.parts.forEach {
+              self.setupPart(part: $0)
+            }
           } else if call.method == "updateSections" {
             self.score.sections = score.sections
           }
@@ -142,9 +145,12 @@ class BeatScratchPlugin {
               BeatScratchMidiListener.sharedInstance.conductorChannel = channel
             }
           }
+          result(nil)
           break
         case "checkBeatScratchAudioStatus":
           result(Conductor.sharedInstance.samplersInitialized)
+          self.notifyMidiDevices()
+          result(nil)
           break
         case "resetAudioSystem":
           Conductor.sharedInstance.initMidi()

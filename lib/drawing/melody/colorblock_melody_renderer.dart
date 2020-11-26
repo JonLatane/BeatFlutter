@@ -6,6 +6,7 @@ import 'base_melody_renderer.dart';
 import '../../music_theory.dart';
 
 class ColorblockMelodyRenderer extends BaseMelodyRenderer {
+  double uiScale = 1;
   @override
   bool showSteps = true;
   @override
@@ -17,7 +18,9 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     bounds = overallBounds;
     canvas.save();
     canvas.translate(0, bounds.top);
-    _renderSteps(canvas);
+    if (uiScale > 0.7) {
+      _renderSteps(canvas);
+    }
     double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0 / 3;
     _drawColorblockMelody(
         canvas: canvas,
@@ -54,6 +57,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
       {Canvas canvas, double alpha}) {
     iterateSubdivisions(() {
       _drawColorblockNotes(canvas: canvas, elementPosition: elementPosition, alpha: alpha);
+      if (uiScale > 0.4)
       drawRhythm(canvas, alpha);
 
     });
@@ -80,6 +84,10 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
       double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
       tones.forEach((tone) {
         int realTone = tone; // + melody.offsetUnder(chord)
+        if (melody.instrumentType != InstrumentType.drum) {
+          alphaDrawerPaint.color =
+            chromaticSteps[realTone.mod12].withAlpha((alpha * 255).toInt());
+        }
         double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;
         double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
         canvas.drawRect(
@@ -106,5 +114,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
         );
       });
     }
+    alphaDrawerPaint.color =
+      Color(0xFF212121).withAlpha((alpha * 255).toInt());
   }
 }

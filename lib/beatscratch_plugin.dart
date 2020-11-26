@@ -110,7 +110,8 @@ class BeatScratchPlugin {
   }
 
   static _notifyMidiDevices(MidiDevices devices) {
-    connectedControllers = List.from(devices.controllers);
+    connectedControllers = List.from(devices.controllers
+      .where((it) => !MyPlatform.isIOS || it.name != "Session 1"));
     _connectedSynthesizers = List.from(devices.synthesizers);
     onSynthesizerStatusChange?.call();
   }

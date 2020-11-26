@@ -83,12 +83,14 @@ class BeatScratchPlaybackThread {
 //      BeatScratchScorePlayer.sharedInstance.currentTick = 0
       BeatScratchPlugin.sharedInstance.notifyPaused()
     } else if beatMinus2 != nil && (time - beatMinus2!) < 3000 {
+      // Start playback
       let periodMs: Double = (time - beatMinus2!)
       let multipliedBpm = 60000 / periodMs
       bpmMultiplier = multipliedBpm / unmultipliedBpm
       BeatScratchPlugin.sharedInstance.notifyBpmMultiplier()
       beatMinus2 = nil
-      BeatScratchScorePlayer.sharedInstance.currentTick = -24
+      BeatScratchScorePlayer.sharedInstance.currentTick = 24 * (BeatScratchScorePlayer.sharedInstance.currentTick / 24) - 24
+//      BeatScratchScorePlayer.sharedInstance.currentTick = -24
       playing = true
     } else {
       BeatScratchScorePlayer.sharedInstance.playMetronome()

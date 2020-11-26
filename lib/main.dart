@@ -10,6 +10,7 @@ import 'package:beatscratch_flutter_redux/score_manager.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'keyboard.dart';
@@ -173,9 +174,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get bottomKeyboardPadding => _showBottomKeyboardPadding && context.isPortraitPhone
       ? (showKeyboard ^ showColorboard)
-          ? 50
-          : 150
-      : 0;
+          ? 150
+          : 250
+      : context.isLandscapePhone ? (showKeyboard ^ showColorboard)
+    ? -30
+    : 40 : 65;
 
   set editingMelody(value) {
     _editingMelody = value;
@@ -473,14 +476,42 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  Part _prevSelectedPart;
+  Melody _prevSelectedMelody;
   _editMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
       if (interactionMode == InteractionMode.edit) {
-        _selectSection(currentSection);
+        if (selectedMelody != null) {
+          _prevSelectedMelody = selectedMelody;
+          _prevSelectedPart = null;
+          _hideMelodyView();
+        } else if (selectedPart != null) {
+          _prevSelectedMelody = null;
+          _prevSelectedPart = selectedPart;
+          _hideMelodyView();
+        } else if (melodyViewMode == MelodyViewMode.section) {
+          _prevSelectedMelody = null;
+          _prevSelectedPart = null;
+          _hideMelodyView();
+        } else {
+          if (_prevSelectedMelody != null) {
+            _selectOrDeselectMelody(_prevSelectedMelody);
+          } else if (_prevSelectedPart != null) {
+            _selectOrDeselectPart(_prevSelectedPart);
+          } else {
+            _selectSection(currentSection);
+          }
+        }
+        // if (_melodyViewSizeFactor == 0) {
+        //   _selectSection(currentSection);
+        // } else if (_melodyViewSizeFactor == 0.5) {
+        //   setState(() {splitMode = SplitMode.full;});
+        // } else {
+        //   setState(() {splitMode = SplitMode.half;});
+        // }
       } else {
         interactionMode = InteractionMode.edit;
-        splitMode = SplitMode.half; //(context.isTablet) ? SplitMode.half : SplitMode.full;
         melodyViewMode = MelodyViewMode.section;
         _showMelodyView();
 //        _hideMelodyView();
@@ -549,6 +580,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool get _portraitPhoneUI => !_landscapePhoneUI && !_scalableUI;
 
+  BuildContext nativeDeviceOrientationReaderContext;
+
+  NativeDeviceOrientation get _nativeOrientation  {
+    try {
+      return NativeDeviceOrientationReader.orientation(nativeDeviceOrientationReaderContext);
+    } catch(any) {
+      return NativeDeviceOrientation.portraitUp;
+    }
+  }
+
+  double get _leftNotchPadding => _nativeOrientation == NativeDeviceOrientation.landscapeRight
+    ? MediaQuery.of(context).padding.left * 5 / 8
+    : MediaQuery.of(context).padding.left * 5 / 7;
+  double get _rightNotchPadding => _nativeOrientation == NativeDeviceOrientation.landscapeLeft
+    ? MediaQuery.of(context).padding.right/4
+    : MediaQuery.of(context).padding.right * 5 / 8;
+  double get _bottomNotchPadding => _nativeOrientation == NativeDeviceOrientation.portraitUp
+    ? MediaQuery.of(context).padding.bottom * 3 / 4
+    : 0;
+  double get _topNotchPaddingReal => MediaQuery.of(context).padding.top;
+
   double get _secondToolbarHeight => (_scalableUI)
       ? 0
       : interactionMode == InteractionMode.edit || showViewOptions
@@ -560,7 +612,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _landscapePhoneSecondToolbarWidth =>
       _landscapePhoneUI && (interactionMode == InteractionMode.edit || showViewOptions) ? 48 : 0;
 
-  double get _midiSettingsHeight => showMidiConfiguration ? 150 : 0;
+  double get _midiSettingsHeight => showMidiConfiguration ? 153 : 0;
 
   double get _scorePickerHeight => showScorePicker ? 170 + bottomKeyboardPadding : 0;
 
@@ -621,12 +673,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ? 25
           : 30;
 
-  double get _tapInBarHeight => interactionMode == InteractionMode.edit || showViewOptions || _forceShowTapInBar
-      ? (_isLandscapePhone && (showKeyboard || showColorboard))
-          ? 38
+  double get _tapInBarHeight => _showTempoConfiguration || _forceShowTapInBar
+      ? (_isLandscapePhone)
+          ? 0
           : 44
       : 0;
+  double get _landscapeTapInBarWidth => _showTempoConfiguration || _forceShowTapInBar
+    ? (_isLandscapePhone)
+    ? 44
+    : 0
+    : 0;
   bool _forceShowTapInBar = false;
+  bool get showTapInBar => _showTempoConfiguration || _forceShowTapInBar;
 
   bool verticalSectionList = false;
 
@@ -829,7 +887,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (splitMode == null) {
-      splitMode = SplitMode.half; //(context.isTablet) ? SplitMode.half : SplitMode.full;
+      splitMode = (context.isTablet) ? SplitMode.half : SplitMode.full;
       verticalSectionList = context.isTablet;
     }
     _isPhone = context.isPhone;
@@ -857,6 +915,84 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //      {"left": (right - 10).toInt(), "top": top.toInt(), "right": right.toInt(), "bottom": bottom.toInt()},
 //    ]);
     Map<LogicalKeySet, Intent> shortcuts = {LogicalKeySet(LogicalKeyboardKey.escape): Intent.doNothing};
+    theUI(BuildContext context) => Stack(children: [
+      Row(
+        children: [
+          if (_landscapePhoneUI) Container(width: _leftNotchPadding),
+          if (_landscapePhoneUI) createBeatScratchToolbar(vertical: true),
+          Expanded(
+            // fit: FlexFit.loose,
+            child: Column(children: [
+              _webBanner(context),
+              _downloadBanner(context),
+              if (_scalableUI) _toolbarsInRow(context),
+              _scorePicker(context),
+              _horizontalSectionList(),
+              Expanded(
+                child: Row(children: [
+                  _verticalSectionList(),
+                  Expanded(child: _partsAndMelodiesAndMelodyView(context))
+                ])),
+              if (_portraitPhoneUI) _toolbarsInColumn(context),
+              // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
+              if (_portraitPhoneUI) _tempoConfigurationBar(context),
+              _midiSettings(context),
+              _pasteFailedBar(context),
+              _savingScoreBar(context),
+              _audioSystemWorkingBar(context),
+              _colorboard(context),
+              _keyboard(context),
+              if (!_landscapePhoneUI) _tapInBar(context),
+              Container(height: _bottomNotchPadding),
+
+            ]),
+          ),
+          AnimatedContainer(
+            duration: animationDuration,
+            width: _landscapePhoneSecondToolbarWidth,
+            child: createSecondToolbar(vertical: true)),
+          if (_landscapePhoneUI) _tapInBar(context, vertical: true),
+          Container(width: _rightNotchPadding),
+        ],
+      ),
+      Column(children: [
+        Expanded(child: SizedBox()),
+        // Listener overlay to block accidental input to keyboard/tempo bar
+        // if software keyboard is open in landscape/fullscreen (Android)
+        if (_softKeyboardVisible)
+          Container(
+            color: Colors.black54,
+            width: MediaQuery.of(context).size.width,
+            height: 100,
+            child: Listener(
+              onPointerDown: (event) {
+                print("got input");
+              },
+              onPointerMove: (event) {
+                print("got input");
+              },
+              onPointerUp: (event) {
+                print("got input");
+              },
+              onPointerCancel: (event) {
+                print("got input");
+              },
+            ))
+      ])
+      //]),
+    ]);
+    Widget theUIWithOrientation(BuildContext context) {
+      if (Platform.isAndroid || Platform.isIOS) {
+        return NativeDeviceOrientationReader(
+          builder: (context) {
+            nativeDeviceOrientationReaderContext = context;
+            return theUI(context);
+          },
+        );
+      } else {
+        return theUI(context);
+      }
+    }
     return WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
@@ -869,71 +1005,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     // the App.build method, and use it to set our appbar title.
                     //title: Row(Text(widget.title)])
                     )),
-            body: new GestureDetector(
+            body: GestureDetector(
               onTap: () {
                 FocusScope.of(context).requestFocus(new FocusNode());
               },
-              child: Stack(children: [
-                Row(
-                  children: [
-                    if (_landscapePhoneUI) createBeatScratchToolbar(vertical: true),
-                    Expanded(
-                      // fit: FlexFit.loose,
-                      child: Column(children: [
-                        _webBanner(context),
-                        _downloadBanner(context),
-                        if (_scalableUI) _toolbarsInRow(context),
-                        if (_scalableUI) _scorePicker(context),
-                        _horizontalSectionList(),
-                        Expanded(
-                            child: Row(children: [
-                          _verticalSectionList(),
-                          Expanded(child: _partsAndMelodiesAndMelodyView(context))
-                        ])),
-                        if (_portraitPhoneUI) _toolbarsInColumn(context),
-                        if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
-                        if (_portraitPhoneUI) _tempoConfigurationBar(context),
-                        _midiSettings(context),
-                        _pasteFailedBar(context),
-                        _savingScoreBar(context),
-                        _audioSystemWorkingBar(context),
-                        _colorboard(context),
-                        _keyboard(context),
-                        _tapInBar(context),
-                      ]),
-                    ),
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: _landscapePhoneSecondToolbarWidth,
-                        child: createSecondToolbar(vertical: true)),
-                  ],
-                ),
-                Column(children: [
-                  Expanded(child: SizedBox()),
-                  // Listener overlay to block accidental input to keyboard/tempo bar
-                  // if software keyboard is open in landscape/fullscreen (Android)
-                  if (_softKeyboardVisible)
-                    Container(
-                        color: Colors.black54,
-                        width: MediaQuery.of(context).size.width,
-                        height: 100,
-                        child: Listener(
-                          onPointerDown: (event) {
-                            print("got input");
-                          },
-                          onPointerMove: (event) {
-                            print("got input");
-                          },
-                          onPointerUp: (event) {
-                            print("got input");
-                          },
-                          onPointerCancel: (event) {
-                            print("got input");
-                          },
-                        ))
-                ])
-                //]),
-              ]),
+              child: theUIWithOrientation(context),
             )));
   }
 
@@ -1109,7 +1185,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         color: Color(0xFF212121),
         child: Row(children: [
           SizedBox(width: 5),
-          Icon(Icons.warning, size: 18, color: chromaticSteps[5]),
+          AnimatedOpacity(duration: animationDuration, opacity: _showStatusBar ? 0 : 1,
+            child: Icon(Icons.warning, size: 18, color: chromaticSteps[5])),
           SizedBox(width: 5),
           Text("BeatScratch Synthesizer is loading...",
               style: TextStyle(
@@ -1125,7 +1202,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         color: Color(0xFF212121),
         child: Row(children: [
           SizedBox(width: 5),
-          Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
+      AnimatedOpacity(duration: animationDuration, opacity: _pasteFailed ? 1 : 0, child: Icon(Icons.warning, size: 18, color: chromaticSteps[7])),
           SizedBox(width: 5),
           Text("Paste Failed!",
               style: TextStyle(
@@ -1141,7 +1218,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         color: Color(0xFF212121),
         child: Row(children: [
           SizedBox(width: 5),
-          Icon(Icons.info, size: 18, color: chromaticSteps[0]),
+      AnimatedOpacity(duration: animationDuration, opacity: _savingScore ? 1 : 0, child: Icon(Icons.info, size: 18, color: chromaticSteps[0])),
           SizedBox(width: 5),
           Text("Saving score...",
               style: TextStyle(
@@ -1150,150 +1227,175 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ]));
   }
 
-  Widget _tapInBar(BuildContext context) {
+  Widget _tapInBar(BuildContext context, {bool vertical = false}) {
     bool playing = BeatScratchPlugin.playing;
     int tapInBeat = _tapInBeat;
-    return AnimatedContainer(
+    bool isDisplayed = (!vertical && _tapInBarHeight != 0) || (vertical && _landscapeTapInBarWidth != 0);
+    final double dimension = !playing && tapInBeat == null ? 42 : 0;
+    final double dimension2 = !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0;
+    tapInBarIcon({bool withText = true, bool withIcon = true}) => Stack(children: [
+      AnimatedOpacity(
         duration: animationDuration,
-        height: _tapInBarHeight,
-        color: Color(0xFF424242),
+        opacity: isDisplayed && !BeatScratchPlugin.playing ? 1 : 0,
         child: Row(children: [
-          AnimatedContainer(
-              duration: Duration(milliseconds: 35),
-              padding: EdgeInsets.only(left: 5),
-              width: !playing && tapInBeat == null ? 42 : 0,
-              child: Listener(
-                  onPointerDown: (event) {
-                    BeatScratchPlugin.countIn(-2);
-                    setState(() {
-                      _tapInBeat = -2;
-                    });
-                    Future.delayed(Duration(seconds: 3), () {
-                      setState(() {
-                        _tapInBeat = null;
-                      });
-                    });
-                  },
-                  child: MyRaisedButton(
-                    child: Text(
-                        !playing && tapInBeat == null
-                            ? (currentSection.meter.defaultBeatsPerMeasure - 1).toString()
-                            : "",
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                    onPressed: tapInBeat == null && BeatScratchPlugin.supportsPlayback ? () {} : null,
-                    padding: EdgeInsets.zero,
-                  ))),
-          AnimatedContainer(
-              duration: Duration(milliseconds: 120),
-              padding: EdgeInsets.only(left: 5),
-              width: !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0,
-              child: Listener(
-                  onPointerDown: (event) {
-                    BeatScratchPlugin.countIn(-1);
-                    setState(() {
-                      _tapInBeat = null;
-                    });
+          if (withIcon) Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
+          if (withText) SizedBox(width: 5),
+          if (withText) Text(
+            BeatScratchPlugin.supportsPlayback
+              ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "on-screen, with the pitch wheel or the damper pedal " : ""}to ${editingMelody ? "record" : "play"}"
+              : "Playback not supported",
+
+            maxLines: 1, overflow: TextOverflow.fade,
+            style: TextStyle(
+              color: BeatScratchPlugin.supportsPlayback ? Colors.white : Colors.grey,
+              fontWeight: FontWeight.w100))
+        ])),
+      AnimatedOpacity(
+        duration: animationDuration,
+        opacity: isDisplayed && BeatScratchPlugin.playing ? 1 : 0,
+        child: Row(children: [
+          Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow,
+            color: editingMelody ? chromaticSteps[7] : chromaticSteps[0]),
+          if (withText) SizedBox(width: 5),
+          if (withText) Text(
+            editingMelody && BeatScratchPlugin.supportsRecording
+              ? "Recording"
+              : !editingMelody && BeatScratchPlugin.supportsPlayback
+              ? "Playing"
+              : "${editingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
+        ]))
+    ]);
+    final contents = [
+      AnimatedOpacity(
+        duration: animationDuration,
+        opacity: dimension != 0 && showTapInBar ? 1 : 0,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 35),
+          padding: vertical ? EdgeInsets.only(top: 3) : EdgeInsets.only(left: 5),
+          height: vertical ? dimension : null,
+          width: vertical ? null : dimension,
+          child: Listener(
+            onPointerDown: (event) {
+              BeatScratchPlugin.countIn(-2);
+              setState(() {
+                _tapInBeat = -2;
+              });
+              Future.delayed(Duration(seconds: 3), () {
+                setState(() {
+                  _tapInBeat = null;
+                });
+              });
+            },
+            child: MyRaisedButton(
+              child: Text(
+                !playing && tapInBeat == null
+                  ? (currentSection.meter.defaultBeatsPerMeasure - 1).toString()
+                  : "",
+                style: TextStyle(fontWeight: FontWeight.w700)),
+              onPressed: tapInBeat == null && BeatScratchPlugin.supportsPlayback ? () {} : null,
+              padding: EdgeInsets.zero,
+            ))),
+      ),
+      AnimatedOpacity(
+        duration: animationDuration,
+        opacity: dimension2 != 0 && showTapInBar ? 1 : 0,
+        child: AnimatedContainer(
+        duration: Duration(milliseconds: 35),
+        padding: vertical ? EdgeInsets.only(top: 5) : EdgeInsets.only(left: 5),
+        height: vertical ? dimension2 : null,
+        width: vertical ? null : dimension2,
+        child: Listener(
+          onPointerDown: (event) {
+            BeatScratchPlugin.countIn(-1);
+            setState(() {
+              _tapInBeat = null;
+            });
 //              Future.delayed(Duration(seconds: 3), () {
 //                setState(() {
 //                  _tapInBeat = null;
 //                });
 //              });
-                  },
-                  child: MyRaisedButton(
-                    child: Text(currentSection.meter.defaultBeatsPerMeasure.toString(),
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                    onPressed: _tapInBeat == -2 ? () {} : null,
-                    padding: EdgeInsets.zero,
-                  ))),
-          // AnimatedContainer(
-          //   duration: animationDuration,
-          //   padding: EdgeInsets.only(left: 5),
-          //   width: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 69 : 0,
-          //   child: MyRaisedButton(
-          //     child: AnimatedOpacity(
-          //       duration: animationDuration,
-          //       opacity: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 1 : 0,
-          //       child: Icon(Icons.pause)),
-          //     onPressed: BeatScratchPlugin.playing
-          //       ? () {
-          //       setState(() {
-          //         BeatScratchPlugin.pause();
-          //         _tapInBeat = null;
-          //       });
-          //     }
-          //       : null,
-          //     padding: EdgeInsets.zero,
-          //   )),
-          Expanded(
-              child: Padding(
-                  padding: EdgeInsets.only(left: 7),
-                  child: Stack(children: [
-                    AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: !BeatScratchPlugin.playing ? 1 : 0,
-                        child: Row(children: [
-                          Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
-                          SizedBox(width: 5),
-                          Text(
-                              BeatScratchPlugin.supportsPlayback
-                                  ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "on-screen, with the pitch wheel or the damper pedal " : ""}to ${editingMelody ? "record" : "play"}"
-                                  : "Playback not supported",
-                              style: TextStyle(
-                                  color: BeatScratchPlugin.supportsPlayback ? Colors.white : Colors.grey,
-                                  fontWeight: FontWeight.w100))
-                        ])),
-                    AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: BeatScratchPlugin.playing ? 1 : 0,
-                        child: Row(children: [
-                          Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow,
-                              color: editingMelody ? chromaticSteps[7] : chromaticSteps[0]),
-                          SizedBox(width: 5),
-                          Text(
-                              editingMelody && BeatScratchPlugin.supportsRecording
-                                  ? "Recording"
-                                  : !editingMelody && BeatScratchPlugin.supportsPlayback
-                                      ? "Playing"
-                                      : "${editingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w100))
-                        ]))
-                  ]))),
-          Container(
-              width: 42,
-              padding: EdgeInsets.only(right: 5),
-              child: MyRaisedButton(
-                padding: EdgeInsets.zero,
-                color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
-                child: Stack(
-                  children: [
-                    Transform.translate(
-                        offset: Offset(-3.5, 3.5),
-                        child: Transform.scale(scale: 0.7, child: Image.asset('assets/metronome.png'))),
-                    Transform.translate(
-                        offset: Offset(17, -4),
-                        child: Transform.scale(
-                            scale: 0.55,
-                            child: Icon(BeatScratchPlugin.metronomeEnabled ? Icons.volume_up : Icons.not_interested))),
-                  ],
-                ),
-                onPressed: BeatScratchPlugin.supportsPlayback
-                    ? () {
-                        setState(() {
-                          BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
-                        });
-                      }
-                    : null,
-              )),
-          if (!_portraitPhoneUI) _tempoConfigurationBar(context)
-        ]));
+          },
+          child: MyRaisedButton(
+            child: Text(currentSection.meter.defaultBeatsPerMeasure.toString(),
+              style: TextStyle(fontWeight: FontWeight.w700)),
+            onPressed: _tapInBeat == -2 ? () {} : null,
+            padding: EdgeInsets.zero,
+          ))),
+      ),
+      // AnimatedContainer(
+      //   duration: animationDuration,
+      //   padding: EdgeInsets.only(left: 5),
+      //   width: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 69 : 0,
+      //   child: MyRaisedButton(
+      //     child: AnimatedOpacity(
+      //       duration: animationDuration,
+      //       opacity: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 1 : 0,
+      //       child: Icon(Icons.pause)),
+      //     onPressed: BeatScratchPlugin.playing
+      //       ? () {
+      //       setState(() {
+      //         BeatScratchPlugin.pause();
+      //         _tapInBeat = null;
+      //       });
+      //     }
+      //       : null,
+      //     padding: EdgeInsets.zero,
+      //   )),
+      if (!vertical) Expanded(
+        child: Padding(
+          padding: EdgeInsets.only(left: 7),
+          child: tapInBarIcon())),
+      // if (vertical) Transform.translate(offset:Offset(12,10), child: Transform.scale(scale: 1.5, child: tapInBarIcon(withText: false))),
+      if (vertical) SizedBox(height: 15),
+      if (vertical) Expanded(child:SizedBox()),
+      if (vertical) Container(height: 200, child: _tempoConfigurationBar(context, vertical: true)),
+      Container(
+        height: 42,
+        width: 42,
+        padding: EdgeInsets.only(right: 5),
+        child: AnimatedOpacity(duration: animationDuration,
+          opacity: showTapInBar ? 1 : 0, child: MyRaisedButton(
+            padding: EdgeInsets.zero,
+            color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
+            child: Stack(
+              children: [
+                Transform.translate(
+                  offset: Offset(-3.5, 3.5),
+                  child: Transform.scale(scale: 0.7, child: Image.asset('assets/metronome.png'))),
+                Transform.translate(
+                  offset: Offset(17, -4),
+                  child: Transform.scale(
+                    scale: 0.55,
+                    child: Icon(BeatScratchPlugin.metronomeEnabled ? Icons.volume_up : Icons.not_interested))),
+              ],
+            ),
+            onPressed: BeatScratchPlugin.supportsPlayback
+              ? () {
+              setState(() {
+                BeatScratchPlugin.metronomeEnabled = !BeatScratchPlugin.metronomeEnabled;
+              });
+            }
+              : null,
+          ))),
+      if (vertical) SizedBox(height: 3),
+      if (!_portraitPhoneUI && !vertical) _tempoConfigurationBar(context)
+    ];
+    return AnimatedContainer(
+        duration: animationDuration,
+        width: vertical ? _landscapeTapInBarWidth : null,
+        height: vertical ? null : _tapInBarHeight,
+        color: Color(0xFF424242),
+        child: vertical ? Column(children:contents) : Row(children: contents));
   }
 
   final double _tempoIncrementFactor = 1.01;
 
-  Widget _tempoConfigurationBar(BuildContext context) {
+  Widget _tempoConfigurationBar(BuildContext context, {bool vertical = false}) {
     final minValue = min(0.1, BeatScratchPlugin.bpmMultiplier);
     final maxValue = max(2.0, BeatScratchPlugin.bpmMultiplier);
-    return AnimatedOpacity(
+    return RotatedBox(quarterTurns: vertical ? 3 : 0, child: AnimatedOpacity(
         duration: animationDuration,
         opacity: _showTempoConfiguration ? 1 : 0,
         child: AnimatedContainer(
@@ -1307,7 +1409,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   width: 25,
                   child: MyRaisedButton(
                       padding: EdgeInsets.all(0),
-                      child: Icon(Icons.keyboard_arrow_down_rounded),
+                      child: RotatedBox(quarterTurns: vertical ? 1 : 0, child: Icon(Icons.keyboard_arrow_down_rounded)),
                       onPressed: BeatScratchPlugin.bpmMultiplier / _tempoIncrementFactor >= minValue
                           ? () {
                               var newValue = BeatScratchPlugin.bpmMultiplier;
@@ -1330,7 +1432,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   width: 25,
                   child: MyRaisedButton(
                       padding: EdgeInsets.all(0),
-                      child: Icon(Icons.keyboard_arrow_up_rounded),
+                      child: RotatedBox(quarterTurns: vertical ? 1 : 0, child: Icon(Icons.keyboard_arrow_up_rounded)),
                       onPressed: BeatScratchPlugin.bpmMultiplier * _tempoIncrementFactor <= maxValue
                           ? () {
                               var newValue = BeatScratchPlugin.bpmMultiplier;
@@ -1344,13 +1446,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   width: 25,
                   child: MyRaisedButton(
                       padding: EdgeInsets.all(0),
-                      child: Text("x1"),
+                      child: RotatedBox(quarterTurns: vertical ? 1 : 0, child: Text("x1")),
                       onPressed: () {
                         BeatScratchPlugin.bpmMultiplier = 1;
                         BeatScratchPlugin.onSynthesizerStatusChange();
                       })),
               SizedBox(width: 5)
-            ])));
+            ]))));
   }
 
   Widget _toolbarsInRow(BuildContext context) {
@@ -1395,6 +1497,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           router.navigateTo(context, "/s/$pastebinCode");
         },
         vertical: vertical,
+        verticalSections: verticalSectionList,
         togglePlaying: () {
           setState(() {
             if (!BeatScratchPlugin.playing) {
@@ -1553,30 +1656,105 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _tapInBarHeight -
         _statusBarHeight -
         webWarningHeight -
+        _bottomNotchPadding -
         downloadLinksHeight +
-        8;
-    double width = data.size.width - verticalSectionListWidth;
+        8 - _topNotchPaddingReal;
+    double width = data.size.width - verticalSectionListWidth - _leftNotchPadding - _rightNotchPadding - _landscapeTapInBarWidth;
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
 //      height += 36;
 //    }
+    final landscapePartsWidth = (width - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
+      (1 - _melodyViewSizeFactor);
+    final portraitMelodyHeight = height * _melodyViewSizeFactor;
+
+    Widget partMelodiesView(context, width, height, {bool bottomShadow = false, bool rightShadow = false}) {
+      return Stack(
+        children: [
+          _partMelodiesView(context, width, height),
+          if (rightShadow) IgnorePointer(
+            child: Row(
+              children: [
+                Expanded(child:SizedBox()),
+                Column(
+                  children: [
+                    Expanded(
+                      child: AnimatedContainer(
+                        curve: Curves.easeInOut,
+                        duration: slowAnimationDuration,
+                        width: min(20, landscapePartsWidth),
+                        // color: Colors.black,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerRight,
+                            end:
+                            Alignment(0.0, 0.0), // 10% of the width, so there are ten blinds.
+                            colors: [
+                              const Color(0xff212121),
+                              const Color(0x00212121)
+                            ], // red to yellow
+                            tileMode: TileMode.clamp, // repeats the gradient over the canvas
+                          ),
+                        ),
+                        child: SizedBox()),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          ),
+
+          if (bottomShadow) IgnorePointer(
+            child: Column(
+              children: [
+                Expanded(child:SizedBox()),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AnimatedContainer(
+                        curve: Curves.easeInOut,
+                        duration: slowAnimationDuration,
+                        height: min(20, portraitMelodyHeight),
+                        // color: Colors.black,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end:
+                            Alignment(0.0, 0.0), // 10% of the width, so there are ten blinds.
+                            colors: [
+                              const Color(0xff212121),
+                              const Color(0x00212121)
+                            ], // red to yellow
+                            tileMode: TileMode.clamp, // repeats the gradient over the canvas
+                          ),
+                        ),
+                        child: SizedBox()),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          )
+        ],
+      );
+    }
     return Stack(children: [
       (context.isPortrait)
           ? Column(children: [
-              Expanded(child: _partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor))),
+              Expanded(
+                child: partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor), bottomShadow: true),),
               AnimatedContainer(
-                  curve: Curves.easeInOut,
+                  curve: Curves.linear,
                   duration: slowAnimationDuration,
                   padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                  height: height * _melodyViewSizeFactor,
+                  height: portraitMelodyHeight,
                   child: _melodyView(context, height * _melodyViewSizeFactor))
             ])
           : Row(children: [
               AnimatedContainer(
                   curve: Curves.easeInOut,
                   duration: slowAnimationDuration,
-                  width: (width - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
-                      (1 - _melodyViewSizeFactor),
-                  child: _partMelodiesView(context, width, height)),
+                  width: landscapePartsWidth,
+                  child: partMelodiesView(context, width, height, rightShadow: true),),
               Expanded(
                   child: AnimatedContainer(
                       duration: animationDuration,
@@ -1838,6 +2016,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 _showBottomKeyboardPadding = focused;
               });
             },
+            requestMode: (mode) {
+              setState(() {
+                scorePickerMode = mode;
+              });
+            },
             close: () {
               doClose() {
                 setState(() {
@@ -1870,14 +2053,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Keyboard(
           width: MediaQuery.of(context).size.width -
               _landscapePhoneBeatscratchToolbarWidth -
+            _leftNotchPadding -
+            _rightNotchPadding -
               _landscapePhoneSecondToolbarWidth,
-          leftMargin: _landscapePhoneBeatscratchToolbarWidth,
+          leftMargin: _landscapePhoneBeatscratchToolbarWidth + _leftNotchPadding,
           part: keyboardPart,
           height: _keyboardHeight,
           showConfiguration: _showKeyboardConfiguration,
           sectionColor: sectionColor,
           pressedNotesNotifier: keyboardNotesNotifier,
-          distanceFromBottom: _tapInBarHeight,
+          distanceFromBottom: _tapInBarHeight + _bottomNotchPadding,
         ));
   }
 
@@ -1891,8 +2076,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Colorboard(
           width: MediaQuery.of(context).size.width -
               _landscapePhoneBeatscratchToolbarWidth -
+            _leftNotchPadding -
+            _rightNotchPadding -
               _landscapePhoneSecondToolbarWidth,
-          leftMargin: _landscapePhoneBeatscratchToolbarWidth,
+          leftMargin: _landscapePhoneBeatscratchToolbarWidth + _leftNotchPadding,
           part: colorboardPart,
           height: _colorboardHeight,
           showConfiguration: _showColorboardConfiguration,

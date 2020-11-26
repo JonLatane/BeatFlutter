@@ -46,11 +46,14 @@ class MelodyToolbarState extends State<MelodyToolbar> {
 
   bool get melodySelected => widget.melody != null;
 
-  bool get melodyEnabled => melodySelected && melodyReference.playbackType != MelodyReference_PlaybackType.disabled;
+  bool get melodyEnabled => melodySelected && (melodyReference?.isEnabled ?? false);
 
   Melody confirmingDeleteFor;
 
   bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.melody;
+
+  bool _showVolume = false;
+  bool get showVolume => (melodyReference?.isEnabled == true) && (/*context.isTablet ||*/ _showVolume);
 
   TextEditingController nameController = TextEditingController();
   @override
@@ -65,11 +68,15 @@ class MelodyToolbarState extends State<MelodyToolbar> {
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
+    _showVolume &= melodyReference != null
+      && (melodyReference?.isEnabled == true)
+      && !isConfirmingDelete;
 
     if (confirmingDeleteFor != null && confirmingDeleteFor != widget.melody) {
       confirmingDeleteFor = null;
     }
     nameController.value = nameController.value.copyWith(text: widget.melody?.name ?? "");
+
     return Container(
 //        color: Colors.white,
         child: Row(children: [
@@ -95,32 +102,49 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                           hintText: (melodySelected) ? "Melody ${widget.melody.id.substring(0, 5)}" : ""),
                     )
                   : Text(""))),
-      AnimatedContainer(
-          duration: animationDuration,
-          width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
-          height: 36,
-          padding: EdgeInsets.only(right: 5),
-          child: MyRaisedButton(
-            color: (widget.editingMelody)
-              ? widget.sectionColor == chromaticSteps[7]
-              ? Colors.white : widget.sectionColor : null,
-            onPressed: (melodyEnabled)
+          AnimatedContainer(
+            duration: animationDuration,
+            width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
+            height: 36,
+            padding: EdgeInsets.only(right: showVolume ? 0: 5),
+            child: MyRaisedButton(
+              color: (widget.editingMelody)
+                ? widget.sectionColor == chromaticSteps[7]
+                ? Colors.white : widget.sectionColor : null,
+              onPressed: (melodyEnabled)
                 ? () {
-                    widget.toggleEditingMelody();
-                  }
+                widget.toggleEditingMelody();
+              }
                 : null,
-            padding: EdgeInsets.all(0),
-            child: AnimatedOpacity(duration: animationDuration, opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
-              child: Stack(children: [
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Icon(Icons.edit,))
-              ])
-            ),
-          )),
+              padding: EdgeInsets.all(0),
+              child: AnimatedOpacity(duration: animationDuration, opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
+                child: Stack(children: [
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Icon(Icons.edit,))
+                ])
+              ),
+            )),
+          AnimatedOpacity(
+            opacity: (showVolume) ? 1 : 0,
+            duration: animationDuration,
+            child: AnimatedContainer(
+              duration: animationDuration,
+              width: (showVolume) ? context.isTablet ? 160 : 120 : 0,
+              height: 36,
+              padding: EdgeInsets.zero,
+              child: MySlider(
+                value: melodyReference?.volume ?? 0,
+                activeColor: (melodyReference != null) ? widget.sectionColor : Colors.grey,
+                onChanged: (melodyReference?.isEnabled != true)
+                  ? null
+                  : (value) {
+                  widget.setReferenceVolume(melodyReference, value);
+                }),),
+          ),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 40,
@@ -132,6 +156,11 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                       widget.toggleMelodyReference(melodyReference);
                     }
                   : null,
+              onLongPress: (melodyReference?.isEnabled == true) ? () {
+                setState(() {
+                  _showVolume = !_showVolume;
+                });
+              } : null,
               padding: EdgeInsets.all(0),
               child: AnimatedOpacity(
                   duration: animationDuration,
@@ -202,9 +231,10 @@ class MelodyEditingToolbar extends StatefulWidget {
   final Color sectionColor;
   final Section currentSection;
   final bool editingMelody;
+  final ValueNotifier<int> highlightedBeat;
   Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
 
-  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection, this.editingMelody}) : super(key: key);
+  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection, this.editingMelody, this.highlightedBeat}) : super(key: key);
 
   @override
   _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
@@ -258,6 +288,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
     if(widget.melody != null) {
       beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
     }
+    bool hasHighlightedBeat = widget.highlightedBeat.value != null && BeatScratchPlugin.playing && widget.editingMelody;
     return Row(children: [
       SizedBox(width: 5),
       IncrementableValue(
@@ -347,6 +378,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
         height: 36,
         padding: EdgeInsets.only(left: 8),
         child:  MyRaisedButton(
+          color: Color(0x424242).withOpacity(1),
           padding: EdgeInsets.zero,
           onLongPress: widget.melody != null ? () {
             print("clearing");
@@ -378,10 +410,11 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
             child: Stack(
               children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep)),
+                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep, color: Colors.white)),
                 Align(alignment: Alignment.bottomRight, child: Padding(
                   padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("All", style: TextStyle(fontSize:10),),)
+                  child: Transform.translate(offset: Offset(0,2), child: Text("All",
+                    style: TextStyle(fontSize:10, color: Colors.white),),)
                 ))
               ],
             )))),
@@ -391,10 +424,11 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
         height: 36,
         padding: EdgeInsets.only(left: 8),
         child:  MyRaisedButton(
+          color: Color(0x424242).withOpacity(1),
           padding: EdgeInsets.zero,
           onLongPress: widget.melody != null ? () {
             print("clearing single beat");
-            widget.melody.deleteBeat(BeatScratchPlugin.currentBeat.value);
+            widget.melody.deleteBeat(widget.highlightedBeat.value ?? BeatScratchPlugin.currentBeat.value);
             clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
             BeatScratchPlugin.updateMelody(widget.melody);
@@ -422,10 +456,13 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
             child: Stack(
               children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep)),
+                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep,
+                  color: hasHighlightedBeat ? widget.sectionColor : Colors.white)),
                 Align(alignment: Alignment.bottomRight, child: Padding(
                   padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("Beat", style: TextStyle(fontSize:10),)),
+                  child: Transform.translate(offset: Offset(0,2), child: Text("Beat",
+                    style: TextStyle(fontSize:10,
+                      color: hasHighlightedBeat ? widget.sectionColor : Colors.white, fontWeight: FontWeight.w400),)),
                 ))
               ],
             )))),

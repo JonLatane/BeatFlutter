@@ -277,7 +277,7 @@ class _SectionState extends State<_Section> {
         height: _Section.height,
         color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
         child: MyFlatButton(
-          padding: EdgeInsets.only(left: 5, right: 5),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Stack(children: [
             Row(children: [
               BeatsBadge(

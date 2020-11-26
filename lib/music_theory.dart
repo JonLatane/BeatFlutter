@@ -345,6 +345,10 @@ extension SectionTheory on Section {
   }
 }
 
+extension Enabled on MelodyReference {
+  bool get isEnabled => this.playbackType.value != MelodyReference_PlaybackType.disabled.value;
+}
+
 extension PartTheory on Part {
 //  String get convenientName => (name.isEmpty) ? name : "Part ${id.substring(0, 5)}";
   bool get isDrum => instrument.type == InstrumentType.drum;

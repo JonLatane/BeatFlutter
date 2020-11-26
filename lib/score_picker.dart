@@ -37,6 +37,7 @@ class ScorePicker extends StatefulWidget {
   final Function(VoidCallback) setState;
   final VoidCallback close;
   final ScorePickerMode mode;
+  final Function(ScorePickerMode) requestMode;
   final Score openedScore;
   final ScoreManager scoreManager;
   final Function(bool) requestKeyboardFocused;
@@ -50,7 +51,7 @@ class ScorePicker extends StatefulWidget {
       this.mode,
       this.openedScore,
       this.scoreManager,
-      this.requestKeyboardFocused})
+      this.requestKeyboardFocused, this.requestMode})
       : super(key: key);
 
   @override
@@ -73,7 +74,7 @@ class _ScorePickerState extends State<ScorePicker> {
   @override
   initState() {
     super.initState();
-    nameController.value = nameController.value.copyWith(text: scoreManager.currentScoreName);
+    // nameController.value = nameController.value.copyWith(text: scoreManager.currentScoreName);
     nameFocus.addListener(() {
       widget.requestKeyboardFocused(nameFocus.hasFocus);
     });
@@ -108,10 +109,13 @@ class _ScorePickerState extends State<ScorePicker> {
       nameController.value = nameController.value.copyWith(text: suggestedName);
     }
     previousMode = widget.mode;
+    final nameIsValid = nameController.value.text.trim().isNotEmpty
+      && nameController.value.text.trim() != ScoreManager.PASTED_SCORE
+      && nameController.value.text.trim() != ScoreManager.WEB_SCORE;
     return Column(
       children: [
         AnimatedContainer(
-          height: showScoreNameEntry ? 36 : 0,
+          height: showScoreNameEntry ? 40 : 0,
           duration: animationDuration,
           child: AnimatedOpacity(
             duration: animationDuration,
@@ -124,18 +128,19 @@ class _ScorePickerState extends State<ScorePicker> {
                   Expanded(
                       child: Transform.translate(
                     offset: Offset(0, 4.5),
-                    child: TextField(
+                    child: Container(height:48, child: TextField(
                         focusNode: nameFocus,
                         controller: nameController,
+                        maxLines: 1,
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 18),
                         enabled: showScoreNameEntry,
-                        decoration: InputDecoration(border: InputBorder.none, hintText: "Score Name"),
+                        decoration: InputDecoration(border: InputBorder.none, hintText: "Score Name", isDense: true),
                         onChanged: (value) {
                           // widget.melody.name = value;
                           //                          BeatScratchPlugin.updateMelody(widget.melody);
                           BeatScratchPlugin.onSynthesizerStatusChange();
                         },
-                      ),
+                      )),
                   )),
                   AnimatedContainer(
                     duration: animationDuration,
@@ -143,24 +148,10 @@ class _ScorePickerState extends State<ScorePicker> {
                     padding: EdgeInsets.only(right: 5),
                     child: MyFlatButton(
                         color: chromaticSteps[0],
-                        onPressed: () {
-                          setState(() {
-                            if (scoreManager.scoreFiles.any((f) => f.scoreName == nameController.value.text)) {
-                              overwritingScoreName = nameController.value.text;
-                              int index =
-                                  scoreManager.scoreFiles.indexWhere((f) => f.scoreName == nameController.value.text);
-                              double position = _Score.width * (index);
-                              position = min(_scrollController.position.maxScrollExtent, position);
-                              _scrollController.animateTo(position,
-                                  duration: animationDuration, curve: Curves.easeInOut);
-                            } else {
-                              widget.openedScore.reKeyMelodies();
-                              scoreManager.createScore(nameController.value.text);
-                              overwritingScoreName = null;
-                              Future.delayed(Duration(seconds: 1), widget.close);
-                            }
-                          });
-                        },
+                        onPressed: widget.mode == ScorePickerMode.create
+                          && nameIsValid ? () {
+                          _doCreate();
+                        } : null,
                         padding: EdgeInsets.zero,
                         child: Text(
                           "Create",
@@ -174,9 +165,7 @@ class _ScorePickerState extends State<ScorePicker> {
                     child: MyFlatButton(
                         color: chromaticSteps[0],
                         onPressed: widget.mode == ScorePickerMode.duplicate
-                          && nameController.value.text.trim().isNotEmpty
-                          && nameController.value.text != ScoreManager.PASTED_SCORE
-                          && nameController.value.text != ScoreManager.WEB_SCORE ? () {
+                          && nameIsValid ? () {
                           _doDuplicate();
                         } : null,
                         padding: EdgeInsets.zero,
@@ -190,7 +179,7 @@ class _ScorePickerState extends State<ScorePicker> {
                     child: MyFlatButton(
                         color: chromaticSteps[7],
                         onPressed: () {
-                          nameController.value = nameController.value.copyWith(text: scoreManager.currentScoreName);
+                          nameController.value = nameController.value.copyWith(text: "");
                           overwritingScoreName = null;
                           widget.close();
                         },
@@ -206,25 +195,29 @@ class _ScorePickerState extends State<ScorePicker> {
           child: (widget.scrollDirection == Axis.horizontal)
               ? Row(children: [
                   Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
-                  AnimatedContainer(
-                      duration: animationDuration,
-                      width: widget.mode == ScorePickerMode.open ? 44 : 0,
+                  AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: widget.mode == ScorePickerMode.open ? 1 : 0,
+                    child: AnimatedContainer(
+                        duration: animationDuration,
+                        width: widget.mode == ScorePickerMode.open ? 44 : 0,
 //    height: 32,
-                      padding: EdgeInsets.zero,
-                      child: Column(children: [
-                        Expanded(
-                            child: MyRaisedButton(
-                          color: ChordColor.tonic.color,
-                          child: Column(children: [
-                            Expanded(child: SizedBox()),
-                            Icon(Icons.check, color: Colors.white),
-                            Text("DONE", style: TextStyle(color: Colors.white, fontSize: 10)),
-                            Expanded(child: SizedBox()),
-                          ]),
-                          padding: EdgeInsets.all(2),
-                          onPressed: widget.close,
-                        ))
-                      ]))
+                        padding: EdgeInsets.zero,
+                        child: Column(children: [
+                          Expanded(
+                              child: MyRaisedButton(
+                            color: ChordColor.tonic.color,
+                            child: Column(children: [
+                              Expanded(child: SizedBox()),
+                              Icon(Icons.check, color: Colors.white),
+                              Text("DONE", style: TextStyle(color: Colors.white, fontSize: 10)),
+                              Expanded(child: SizedBox()),
+                            ]),
+                            padding: EdgeInsets.all(2),
+                            onPressed: widget.close,
+                          ))
+                        ])),
+                  )
                 ])
               : Column(children: [
                   Expanded(child: getList(context)),
@@ -232,6 +225,26 @@ class _ScorePickerState extends State<ScorePicker> {
         ),
       ],
     );
+  }
+
+  _doCreate() {
+    setState(() {
+      if (scoreManager.scoreFiles.any((f) => f.scoreName == nameController.value.text)) {
+        overwritingScoreName = nameController.value.text;
+        int index =
+        scoreManager.scoreFiles.indexWhere((f) => f.scoreName == nameController.value.text);
+        double position = _Score.width * (index);
+        position = min(_scrollController.position.maxScrollExtent, position);
+        _scrollController.animateTo(position,
+          duration: animationDuration, curve: Curves.easeInOut);
+      } else {
+        widget.requestMode(ScorePickerMode.open);
+        widget.openedScore.reKeyMelodies();
+        scoreManager.createScore(nameController.value.text);
+        overwritingScoreName = null;
+        Future.delayed(Duration(seconds: 2), widget.close);
+      }
+    });
   }
 
   _doDuplicate() {
@@ -244,10 +257,11 @@ class _ScorePickerState extends State<ScorePicker> {
         _scrollController.animateTo(position,
           duration: animationDuration, curve: Curves.easeInOut);
       } else {
+        widget.requestMode(ScorePickerMode.open);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text, score: widget.openedScore);
         overwritingScoreName = null;
-        Future.delayed(Duration(seconds: 1), widget.close);
+        Future.delayed(Duration(seconds: 2), widget.close);
       }
     });
   }
@@ -278,6 +292,15 @@ class _ScorePickerState extends State<ScorePicker> {
           sectionColor: widget.sectionColor,
           file: scoreFile,
           openable: widget.mode == ScorePickerMode.open,
+          ifNotOpenable: () {
+            String scoreName = scoreFile?.scoreName;
+            if (scoreName != null) {
+              nameController.clear();
+              setState(() {
+                nameController.value = nameController.value.copyWith(text: scoreName);
+              });
+            }
+          },
           scoreManager: scoreManager,
           deleteScore: () {
             setState(() {
@@ -309,13 +332,14 @@ class _ScorePickerState extends State<ScorePicker> {
 
 class _Score extends StatefulWidget {
   static const double width = 150.0;
-  static const double height = 200.0;
+  static const double height = 300.0;
   final Axis scrollDirection;
   final Color sectionColor;
   final File file;
   final VoidCallback deleteScore;
   final ScoreManager scoreManager;
   final bool openable;
+  final VoidCallback ifNotOpenable;
   final String overwritingScoreName;
   final VoidCallback cancelOverwrite;
   final String currentScoreName;
@@ -330,7 +354,7 @@ class _Score extends StatefulWidget {
       this.openable,
       this.overwritingScoreName,
       this.cancelOverwrite,
-      this.currentScoreName})
+      this.currentScoreName, this.ifNotOpenable})
       : super(key: key);
 
   @override
@@ -388,14 +412,13 @@ class __ScoreState extends State<_Score> {
         child: Stack(
           children: [
             MyFlatButton(
-                onPressed: widget.openable
-                    ? () {
+                onPressed: widget.openable ? () {
                         FileSystemEntity file = widget.file;
                         if (file != null) {
                           widget.scoreManager.openScore(widget.file);
                         }
                       }
-                    : null,
+                    : widget.ifNotOpenable,
                 padding: EdgeInsets.all(5),
                 child: Column(children: [
                   Row(children: [
@@ -403,11 +426,6 @@ class __ScoreState extends State<_Score> {
                     Expanded(
                         child: Text(scoreName,
                             style: TextStyle(color: foregroundColor, fontSize: 12, fontWeight: FontWeight.w100))),
-//          if(midiController.id == "keyboard")
-//            Image.asset("assets/piano.png", width: 16, height: 16),
-//          if(midiController.id == "colorboard")
-//            Image.asset("assets/colorboard.png", width: 16, height: 16)
-
                     Container(
                         width: 36,
                         height: 36,

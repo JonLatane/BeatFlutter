@@ -6,6 +6,8 @@ PODS:
     - Flutter
   - flutter_keyboard_visibility (0.7.0):
     - Flutter
+  - native_device_orientation (0.0.1):
+    - Flutter
   - path_provider (0.0.1):
     - Flutter
   - sensors (0.0.1):
@@ -15,7 +17,7 @@ PODS:
   - SwiftProtobuf (1.12.0)
   - url_launcher (0.0.1):
     - Flutter
-  - vibration (1.2.4):
+  - vibration (1.7.2):
     - Flutter
 
 DEPENDENCIES:
@@ -23,6 +25,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_appavailability (from `.symlinks/plugins/flutter_appavailability/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
+  - native_device_orientation (from `.symlinks/plugins/native_device_orientation/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
@@ -43,6 +46,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_appavailability/ios"
   flutter_keyboard_visibility:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
+  native_device_orientation:
+    :path: ".symlinks/plugins/native_device_orientation/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
   sensors:
@@ -59,12 +64,13 @@ SPEC CHECKSUMS:
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_appavailability: ebf8f85abea44436d1262fcde8a4e64b2534b01a
   flutter_keyboard_visibility: 6195387fb6d8f46e5cd6dda4a4154e41f800f545
+  native_device_orientation: 3b4cfc9565a7b879cc4fde282b3e27745e852d0d
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   SwiftProtobuf: 4ef85479c18ca85b5482b343df9c319c62bda699
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
-  vibration: f0c5bb486671fb81e973bfb451d89f8efd07c9c9
+  vibration: 528f5ef88e90d4a8fd1ef04afbf0ed3ac7c9801d
 
 PODFILE CHECKSUM: 77d6510022ba1a474825d27c26999b8333573929
 
