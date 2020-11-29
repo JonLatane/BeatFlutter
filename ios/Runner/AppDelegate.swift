@@ -51,7 +51,7 @@ import AudioKit
       let components = URLComponents(url: url, resolvingAgainstBaseURL: true)*/ else {
         return false
     }
-    BeatScratchPlugin.sharedInstance.openScoreFromUrl(url.absoluteString)
+    BeatScratchPlugin.sharedInstance.notifyScoreUrlOpened(url.absoluteString)
     
 //    // 2
 //    if let computer = ItemHandler.sharedInstance.items

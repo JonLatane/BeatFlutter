@@ -14,6 +14,7 @@ import 'util.dart';
 import 'music_notation_theory.dart';
 import 'music_theory.dart';
 import 'dart:io' show Platform;
+import 'incrementable_value.dart';
 
 class Colorboard extends StatefulWidget {
   final Chord chord = (Chord()

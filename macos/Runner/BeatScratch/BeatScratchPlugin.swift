@@ -289,10 +289,6 @@ class BeatScratchPlugin {
     Conductor.sharedInstance.setVolume(channel: part.instrument.midiChannel, volume: Double(part.instrument.volume))
   }
   
-  func openScoreFromUrl(_ url: String) {
-    channel?.invokeMethod("openScoreFromUrl", arguments: url)
-  }
-  
   func notifyMidiDevices() {
     var midiDevices = MidiDevices()
     AKManager.midi.inputNames.filter { $0 != "MIDI Client" }.forEach {
@@ -320,4 +316,48 @@ class BeatScratchPlugin {
       print("Failed to notifyMidiDevices: \(error)")
     }
   }
+  
+  
+  
+  func notifyScoreUrlOpened(_ url: String) {
+    func retry() {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // Change `1.0` to the desired number of seconds.
+        self.notifyScoreUrlOpened(url)
+      }
+    }
+    do {
+      try channel!.invokeMethod("notifyScoreUrlOpened", arguments: url, result: {
+        if $0 is FlutterError {
+          retry()
+        }
+      })
+    } catch {
+      retry()
+    }
+  }
+//      try {
+//      methodChannel!!.invokeMethod("notifyScoreUrlOpened", url, object : Result {
+//      override fun success(result: Any?) {}
+//
+//      override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) {
+//      thread {
+//      Thread.sleep(500)
+//      notifyScoreUrlOpened(url)
+//      }
+//      }
+//
+//      override fun notImplemented() {
+//      thread {
+//      Thread.sleep(500)
+//      notifyScoreUrlOpened(url)
+//      }
+//      }
+//      })
+//      } catch(t: Throwable) {
+//      thread {
+//      Thread.sleep(500)
+//      notifyScoreUrlOpened(url)
+//      }
+//      }
+//    }
 }

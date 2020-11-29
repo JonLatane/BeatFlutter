@@ -12,12 +12,14 @@ import 'music_notation_theory.dart';
 import 'my_buttons.dart';
 import 'ui_models.dart';
 import 'util.dart';
+import 'incrementable_value.dart';
 
 class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
   final MelodyViewMode melodyViewMode;
   final SplitMode splitMode;
   final RenderingMode renderingMode;
+  final Function(RenderingMode) requestRenderingMode;
   final bool focusPartsAndMelodies;
   final Score score;
   final Section currentSection;
@@ -74,7 +76,7 @@ class MelodyView extends StatefulWidget {
       this.deleteSection,
       this.renderingMode,
   this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard, this.initialScale, this.previewMode = false,
-        this.isCurrentScore = true});
+        this.isCurrentScore = true, Key key, this.requestRenderingMode}): super(key:key);
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -95,6 +97,30 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   double _xScale;
   double get xScale => _xScale;
   bool _hasSwipedClosed = false;
+
+  Map<MelodyViewMode, List<SwipeTutorial>> _swipeTutorialsSeen = {
+    MelodyViewMode.melody: List(),
+    MelodyViewMode.part: List(),
+    MelodyViewMode.section: List(),
+    // MelodyViewMode.score: List(),
+    // MelodyViewMode.none: List(),
+  };
+  SwipeTutorial _currentSwipeTutorial;
+  SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
+  set currentSwipeTutorial(SwipeTutorial value) {
+    if (value == null || _swipeTutorialsSeen[widget.melodyViewMode].contains(value)) {
+      _currentSwipeTutorial = null;
+      return;
+    }
+    _currentSwipeTutorial = value;
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        _swipeTutorialsSeen[widget.melodyViewMode].add(value);
+        _currentSwipeTutorial = null;
+      });
+    });
+  }
+
   List<AnimationController> _xScaleAnimationControllers = [];
   set xScale(double value) {
     _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
@@ -159,7 +185,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   set ignoreDragEvents(value) {
     _ignoreDragEvents = value;
     if (value) {
-      Future.delayed(Duration(milliseconds: 200), () {
+      Future.delayed(Duration(milliseconds: 400), () {
         ignoreDragEvents = false;
       });
     }
@@ -207,6 +233,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     if (!widget.editingMelody || !BeatScratchPlugin.playing) {
       highlightedBeat.value = null;
     }
+    currentSwipeTutorial = _swipeTutorialsSeen.keys.contains(widget.melodyViewMode) && widget.melodyViewSizeFactor > 0 ?
+      widget.splitMode == SplitMode.half ? SwipeTutorial.closeExpand : SwipeTutorial.collapse : null;
     final sensitivity = 10;
     return Column(
       children: [
@@ -341,10 +369,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                               offset: Offset(0, 2),
                               child: Align(alignment: Alignment.center, child:
                               AnimatedOpacity(
-                                opacity: widget.melodyViewMode == MelodyViewMode.score || widget.melodyViewMode == MelodyViewMode.none || _hasSwipedClosed ? 0 : 0.8,
+                                opacity: currentSwipeTutorial == null ? 0 : 0.8,
                                 duration: animationDuration,
                                 child: AnimatedContainer(
-                                  height: widget.melodyViewMode == MelodyViewMode.score || widget.melodyViewMode == MelodyViewMode.none || _hasSwipedClosed
+                                  height: currentSwipeTutorial == null || _hasSwipedClosed
                                     ? 0 : 36,
                                   duration: animationDuration,
                                   padding: EdgeInsets.symmetric(horizontal: 10),
@@ -355,12 +383,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                         width: 150,
                                         child: Column(children: [
                                           Expanded(child:SizedBox()),
-                                          Text(
-                                            widget.splitMode == SplitMode.full
-                                                ? "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to collapse/close ${widget.melodyViewMode.toString().substring(15).capitalize()}"
-                                                : "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to close,\n" +
-                                                    "${context.isPortrait ? "⬆️️" : "⬅️"}️ to expand " +
-                                                    "${widget.melodyViewMode.toString().substring(15).capitalize()}",
+                                          Text(currentSwipeTutorial.tutorialText(widget.splitMode, widget.melodyViewMode, context),
                                             style: TextStyle(fontSize: 11),
                                             textAlign: TextAlign.center,
                                           ),
@@ -425,6 +448,30 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 
   ValueNotifier<Offset> requestedScrollOffsetForScale;
 
+  String _lastIgnoreId;
+  bool _ignoreNextTap = false;
+  set ignoreNextTap(bool value) {
+    if (value) {
+      final ignoreId = uuid.v1();
+      _lastIgnoreId = ignoreId;
+      _ignoreNextTap = true;
+      Future.delayed(Duration(milliseconds: 100), () {
+        if (_lastIgnoreId == ignoreId) {
+          _ignoreNextTap = false;
+        }
+      });
+    } else {
+      _ignoreNextTap = value;
+    }
+
+  }
+  bool get ignoreNextTap {
+    if (_ignoreNextTap) {
+      _ignoreNextTap = false;
+      return true;
+    }
+    return false;
+  }
   
   Widget _mainMelody(BuildContext context) {
     List<MusicStaff> staves;
@@ -463,6 +510,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
         child: GestureDetector(
             onTapUp: (details) {
               print("onTapUp: ${details.localPosition}");
+              if (ignoreNextTap) {
+                return;
+              }
               int beat = ((details.localPosition.dx + melodyRendererVisibleRect.left
                 - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
               print("beat=$beat");
@@ -547,97 +597,113 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 highlightedBeat: highlightedBeat,
                 requestedScrollOffsetForScale: requestedScrollOffsetForScale,
               ),
-              if(!widget.previewMode) Column(children:[
+              if(!widget.previewMode) Row(children:[
                 Expanded(child: SizedBox()),
-              Row(children: [
+              Column(children: [
                 Expanded(child:SizedBox()),
+              Container(color: Colors.black12,
+                height: 48, width:48, child:
+                FlatButton(onPressed:() {
+                  widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
+                  ? RenderingMode.notation : RenderingMode.colorblock);
+                            },
+                            child: Stack(children: [
+                              AnimatedOpacity(
+                                duration: animationDuration,
+                                opacity: widget.renderingMode == RenderingMode.colorblock ? 1 : 0,
+                                child: Image.asset(
+                                  'assets/notehead_filled.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                              ),
+                              AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
+                                  child: Image.asset(
+                                    'assets/colorboard_vertical.png',
+                                    width: 20,
+                                    height: 20,
+                                  ))
+                            ]))),
+                    SizedBox(height: 2),
               Container(color: Colors.black12,
                 padding:EdgeInsets.zero,
                 child:
                   IncrementableValue(child:
                     Container(
-                      color: Colors.black12,
+                      // color: Colors.black12,
                       width: 48,
                       height: 48,
-                      child:
-                      Align(
-                      alignment: Alignment.center,
-    child: Stack(children: [
-                                  AnimatedOpacity(opacity: 0.5, duration: animationDuration, child: Transform.translate(
-                                        offset: Offset(-5, 5),
-                                        child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out)))),
-                                AnimatedOpacity(
-                                    opacity: 0.5,
-                                    duration: animationDuration,
-                                    child: Transform.translate(
-                                        offset: Offset(5, -5),
-                                        child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in)))),AnimatedOpacity(
+                              child: Align(
+                                  alignment: Alignment.center,
+                                  child: Stack(children: [
+                                    AnimatedOpacity(
+                                        opacity: 0.5,
+                                        duration: animationDuration,
+                                        child: Transform.translate(
+                                            offset: Offset(-5, 5),
+                                            child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out)))),
+                                    AnimatedOpacity(
+                                        opacity: 0.5,
+                                        duration: animationDuration,
+                                        child: Transform.translate(
+                                            offset: Offset(5, -5),
+                                            child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in)))),
+                                    AnimatedOpacity(
                                         opacity: 0.8,
                                         duration: animationDuration,
-                                        child: Transform.translate(offset:Offset(2,20),
+                                        child: Transform.translate(
+                                          offset: Offset(2, 20),
                                           child: Text("${(xScale * 100).toStringAsFixed(0)}%",
                                               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                                         )),
-
-                                ])),
-                    ),
-                  collapsing: true,
-                  incrementIcon: Icons.zoom_in,
-                  decrementIcon: Icons.zoom_out,
-                  onIncrement: (xScale < maxScale || yScale < maxScale)
-                      ? () {
-                    _ignoreNextScale = true;
-                      setState(() {
-                        _xScale = min(maxScale, _xScale * 1.05);
-                        _yScale = min(maxScale, _yScale * 1.05);
-                       print("zoomIn done; xScale=$xScale, yScale=$yScale");
-                      });
-                    } : null,
-                  onDecrement: (xScale > minScale || yScale > minScale)
-                    ? () {
-                    _ignoreNextScale = true;
-                      setState(() {
-//                        print("zoomOut start; xScale=$xScale, yScale=$yScale");
-                        _xScale = max(minScale, _xScale / 1.05);
-                        _yScale = max(minScale, _yScale / 1.05);
-                       print("zoomOut done; xScale=$xScale, yScale=$yScale");
-                      });
-                    } : null)
-//                 Column(children: [
-//                 Container(
-//                   width: 36,
-//                   child: MyRaisedButton(
-//                     padding: EdgeInsets.all(0),
-//                     onPressed: (xScale < maxScale || yScale < maxScale)
-//                       ? () {
-//                       setState(() {
-//                         xScale = min(maxScale, xScale * 1.3333);
-//                         yScale = min(maxScale, yScale * 1.3333);
-// //                        print("zoomIn done; xScale=$xScale, yScale=$yScale");
-//                       });
-//                     } : null,
-//                     child: Icon(Icons.zoom_in))),
-//                 Container(
-//                   width: 36,
-//                   child: MyRaisedButton(
-//                     padding: EdgeInsets.all(0),
-//                     onPressed: (xScale > minScale || yScale > minScale)
-//                       ? () {
-//                       setState(() {_
-// //                        print("zoomOut start; xScale=$xScale, yScale=$yScale");
-//                         xScale = max(minScale, xScale / 1.3333);
-//                         yScale = max(minScale, yScale / 1.3333);
-// //                        print("zoomOut done; xScale=$xScale, yScale=$yScale");
-//                       });
-//                     } : null,
-//                     child: Icon(Icons.zoom_out))),
-//               ])
-                ),
-                // Expanded(child:SizedBox())
-    ])
+                                  ])),
+                            ),
+                            collapsing: true,
+                            onPointerUpCallback: () {
+                              ignoreNextTap = true;
+                            },
+                            incrementIcon: Icons.zoom_in,
+                            decrementIcon: Icons.zoom_out,
+                            onIncrement: (xScale < maxScale || yScale < maxScale)
+                                ? () {
+                                    _ignoreNextScale = true;
+                                    setState(() {
+                                      _xScale = min(maxScale, _xScale * 1.05);
+                                      _yScale = min(maxScale, _yScale * 1.05);
+                                      print("zoomIn done; xScale=$xScale, yScale=$yScale");
+                                    });
+                                  }
+                                : null,
+                            onDecrement: (xScale > minScale || yScale > minScale)
+                                ? () {
+                                    _ignoreNextScale = true;
+                                    setState(() {
+                                      _xScale = max(minScale, _xScale / 1.05);
+                                      _yScale = max(minScale, _yScale / 1.05);
+                                      print("zoomOut done; xScale=$xScale, yScale=$yScale");
+                                    });
+                                  }
+                                : null)),
+                SizedBox(height: 2),
+                  ]),
+                SizedBox(width: 2),
                 ])
-            ])
-            ));
+            ])));
   }
 }
 
+enum SwipeTutorial {
+  collapse, closeExpand
+}
+
+extension TutorialText on SwipeTutorial {
+  String tutorialText(SplitMode splitMode, MelodyViewMode melodyViewMode, BuildContext context) {
+    return splitMode == SplitMode.full
+      ? "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to collapse/close ${melodyViewMode.toString().substring(15).capitalize()}"
+      : "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to close,\n" +
+      "${context.isPortrait ? "⬆️️" : "⬅️"}️ to expand " +
+      "${melodyViewMode.toString().substring(15).capitalize()}";
+  }
+}

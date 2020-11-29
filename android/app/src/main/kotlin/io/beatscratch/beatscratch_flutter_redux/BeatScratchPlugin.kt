@@ -351,6 +351,12 @@ object BeatScratchPlugin : MethodChannel.MethodCallHandler, CoroutineScope {
     }
   }
 
+  fun notifyStartedSection() {
+    handler?.post {
+      methodChannel?.invokeMethod("notifyStartedSection", currentSection!!.id)
+    }
+  }
+
   fun notifyBpmMultiplier() {
     handler?.post {
       methodChannel?.invokeMethod("notifyBpmMultiplier", PlaybackThread.bpmMultiplier)

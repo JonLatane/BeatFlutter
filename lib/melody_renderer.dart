@@ -618,8 +618,8 @@ class MusicSystemPainter extends CustomPainter {
     }
 
     try {
-      if (notationOpacityNotifier.value > 0 && renderingBeat != 0) {
-        _renderNotationMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
+      if (renderingBeat != 0) {
+        _renderMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
       }
     } catch (e) {
       print("exception rendering measure lines: $e");
@@ -763,12 +763,13 @@ class MusicSystemPainter extends CustomPainter {
     }
   }
 
-  void _renderNotationMeasureLines(
+  void _renderMeasureLines(
     Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
     MelodyMeasureLinesRenderer()
       ..section = renderingSection
       ..beatPosition = renderingSectionBeat
       ..notationAlpha = notationOpacityNotifier.value
+      ..colorblockAlpha = colorblockOpacityNotifier.value
       ..overallBounds = melodyBounds
       ..draw(canvas, 1);
   }

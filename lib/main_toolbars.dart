@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/score_manager.dart';
@@ -19,10 +20,12 @@ import 'my_popup_menu.dart';
 import 'score_picker.dart';
 import 'ui_models.dart';
 import 'url_conversions.dart';
+import 'music_theory.dart';
 import 'util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   final Score score;
+  final Section currentSection;
   final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
@@ -45,6 +48,11 @@ class BeatScratchToolbar extends StatefulWidget {
   final Function(String) routeToCurrentScore;
   final bool vertical;
   final bool verticalSections;
+  final Melody openMelody;
+  final Melody prevMelody;
+  final Part openPart;
+  final Part prevPart;
+  final bool isMelodyViewOpen;
 
   const BeatScratchToolbar(
       {Key key,
@@ -70,7 +78,7 @@ class BeatScratchToolbar extends StatefulWidget {
       this.scoreManager,
       this.routeToCurrentScore,
       this.vertical,
-      this.verticalSections})
+      this.verticalSections, this.openMelody, this.prevMelody, this.openPart, this.prevPart, this.isMelodyViewOpen, this.currentSection})
       : super(key: key);
 
   @override
@@ -85,25 +93,66 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
   // Timer clipboardTriggerTime;
 
 
-   AnimationController _controller;
-   Animation<double> _animation;
+   AnimationController sectionOrPlayController;
+   Animation<double> sectionOrPlayRotation;
+   AnimationController editController;
+   Animation<double> editRotation;
+   Animation<double> editTranslation;
+   Animation<double> editScale;
+   AnimationController editRotationOnlyController;
+   Animation<double> editRotationOnlyRotation;
 
-  @override
+   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
+   bool get hasPart => !hasMelody && widget.openPart != null || widget.prevPart != null;
+   bool get hasDrumPart => hasPart &&
+     (widget.openPart?.isDrum ?? widget.prevPart?.isDrum ?? false);
+
+   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    sectionOrPlayController = AnimationController(
       // animationBehavior: AnimationBehavior.preserve,
-      duration: Duration(seconds: 2),
+      duration: animationDuration,
       vsync: this,
-
-      value: 0.0,
-      lowerBound: 0.0,
-      upperBound: 1
     )..repeat(reverse: true);
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.ease,
+    sectionOrPlayRotation = Tween<double>(
+      begin: 0,
+      end: 0.5 * pi,
+    ).animate(sectionOrPlayController);
+
+    editController = AnimationController(
+      duration: animationDuration,
+      vsync: this,
     );
+
+    editRotation = Tween<double>(
+      begin: 0,
+      end: 2 * pi,
+    ).animate(editController);
+
+    editTranslation = Tween<double>(
+      begin: 0,
+      end: 10,
+    ).animate(editController);
+
+    editScale = Tween<double>(
+      begin: 1,
+      end: 0.8,
+    ).animate(editController);
+
+
+
+    editRotationOnlyController = AnimationController(
+      duration: animationDuration,
+      vsync: this,
+    );
+
+    editRotationOnlyRotation = Tween<double>(
+      begin: 0,
+      end: 2 * pi,
+    ).animate(editRotationOnlyController);
+
+    // editController.repeat();
     // _controller.forward();
 
     // clipboardTriggerTime = Timer.periodic(
@@ -123,7 +172,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
 
   @override
   void dispose() {
-    _controller.dispose();
+    sectionOrPlayController.dispose();
+    editRotationOnlyController.dispose();
+    editController.dispose();
     super.dispose();
     // clipboardContentStream.close();
     // clipboardTriggerTime.cancel();
@@ -139,7 +190,21 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    _controller.animateTo(widget.interactionMode == InteractionMode.view ? 0 : widget.verticalSections ? 0 : 0.18);
+    if(widget.interactionMode == InteractionMode.view || widget.verticalSections) {
+      sectionOrPlayController.reverse();
+    } else {
+      sectionOrPlayController.forward();
+    }
+    if(widget.interactionMode == InteractionMode.view) {
+      editController.reverse();
+    } else {
+      editController.forward();
+    }
+    if(widget.interactionMode == InteractionMode.edit && !widget.isMelodyViewOpen) {
+      editRotationOnlyController.reverse();
+    } else {
+      editRotationOnlyController.forward();
+    }
     return Container(
       height: widget.vertical ? null : 48,
       width: widget.vertical ? 48 : null,
@@ -383,8 +448,12 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
               widget.toggleSectionListDisplayMode();
             },
             padding: EdgeInsets.all(0.0),
-            child: RotationTransition(turns: _animation,
-            child:Stack(
+            child: AnimatedBuilder(
+            animation: sectionOrPlayController,
+            builder: (_, child) => Transform(
+    transform: Matrix4.rotationZ(sectionOrPlayRotation.value),
+    alignment: Alignment.center,
+    child: Stack(
               children: [
                 AnimatedOpacity(duration: animationDuration,
                   opacity: widget.interactionMode == InteractionMode.edit ? 1 : 0,
@@ -402,7 +471,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                 //   ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
                 //   : Icons.menu,
               ],
-            )))),
+            ))))),
         Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
@@ -415,13 +484,97 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
         Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
-            color: (widget.interactionMode == InteractionMode.edit) ? widget.sectionColor : Colors.transparent,
+            color: (widget.interactionMode == InteractionMode.edit) ?
+            hasMelody ? melodyColor : hasPart ? (hasDrumPart ? Colors.brown : Colors.grey) : widget.sectionColor
+              : Colors.transparent,
             child: MyFlatButton(
-              onPressed: widget.editMode,
-              padding: EdgeInsets.all(0.0),
-              child: Icon(Icons.edit,
-                color: (widget.interactionMode == InteractionMode.edit) ? Colors.white : widget.sectionColor))))
-      ]));
+                      onPressed: widget.editMode,
+                      padding: EdgeInsets.all(0.0),
+                      child:Stack(
+                        children: [Align(
+      alignment: Alignment.center,
+      child: AnimatedBuilder(
+                                animation: editController,
+                                builder: (_, child) => Transform(
+                                      transform: Matrix4.translationValues(
+                                          0, -(widget.vertical ? 2 : 1) * editTranslation.value, 0),
+                                      alignment: Alignment.center,
+                                      child: AnimatedBuilder(
+                                        animation: editRotationOnlyController,
+                                        builder: (_, child) => Transform(
+                                          transform: Matrix4.rotationZ(editRotationOnlyRotation.value),
+                                          alignment: Alignment.center,
+                                          child: Transform(
+                                          transform: Matrix4.rotationZ(editRotation.value),
+                                          alignment: Alignment.center,
+                                          child: ScaleTransition(
+                                            scale: editScale,
+                                            alignment: Alignment.center,
+                                            child: Stack(
+                                              children: [
+                                                AnimatedOpacity(
+                                                  duration: animationDuration,
+                                                  opacity: widget.interactionMode == InteractionMode.view || !widget.isMelodyViewOpen ? 1 : 0,
+                                                  child: Icon(Icons.edit,
+                                                    color: (widget.interactionMode == InteractionMode.edit)
+                                                      ? hasMelody ? Colors.black: Colors.white
+                                                      : widget.sectionColor),
+                                                ),
+                                                AnimatedOpacity(
+                                                  duration: animationDuration,
+                                                  opacity: widget.interactionMode == InteractionMode.edit && widget.isMelodyViewOpen ? 1:0,
+                                                  child: Icon(Icons.close,
+                                                    color: (widget.interactionMode == InteractionMode.edit)
+                                                      ? hasMelody ? Colors.black: Colors.white
+                                                      : widget.sectionColor),
+                                                ),
+                                              ],
+                                            ),
+                                          )),
+                                    ))))),
+                          Transform.translate(
+                            offset: Offset(0, 10),
+                            child: AnimatedOpacity(
+                              duration: animationDuration,
+                              opacity: widget.interactionMode == InteractionMode.edit ? 1 : 0,
+                              child: Row(
+                                children: [
+                                  Expanded(child:SizedBox()),
+                                  Column(
+                                    children: [
+                                      Expanded(child:SizedBox()),
+                                      Container(
+                                        width: widget.vertical ? 48: 80,
+                                        child: Text(
+                                          widget.openMelody != null ? widget.openMelody.name?.isNotEmpty ?? false ? widget.openMelody.name : "Melody ${widget.openMelody.id.substring(0, 5)}"
+                                            : widget.openPart != null ? widget.openPart.midiName
+                                            : widget.isMelodyViewOpen || (widget.prevPart == null && widget.prevMelody == null)
+                                              ? widget.currentSection.name?.isNotEmpty ?? false ? widget.currentSection.name : "Section ${widget.currentSection.id.substring(0, 5)}"
+                                            : widget.prevMelody != null ? widget.prevMelody.name?.isNotEmpty ?? false ? widget.prevMelody.name : "Melody ${widget.prevMelody.id.substring(0, 5)}"
+                                            : widget.prevPart != null ? widget.prevPart.midiName
+                                            : "Oops",
+                                          textAlign: TextAlign.center,
+                                          maxLines: widget.vertical ? 2 : 1,
+                                          overflow: TextOverflow.ellipsis,
+
+    style: TextStyle(fontSize: 10, color: hasMelody ? Colors.black: Colors.white,
+                                              fontWeight: widget.openMelody != null || widget.prevMelody != null ? FontWeight.w500
+                                                : widget.openPart != null || widget.prevPart != null ? FontWeight.w800
+                                                : FontWeight.w200
+                                          )
+                                        ),
+                                      ),
+                                      Expanded(child:SizedBox()),
+                                    ],
+                                  ),
+                                  Expanded(child:SizedBox()),
+                                ],
+                              )
+                            ),
+                          )
+                        ],
+                      ))))
+        ]));
   }
 
   showAbout(BuildContext context) {

@@ -57,8 +57,8 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
       {Canvas canvas, double alpha}) {
     iterateSubdivisions(() {
       _drawColorblockNotes(canvas: canvas, elementPosition: elementPosition, alpha: alpha);
-      if (uiScale > 0.4)
-      drawRhythm(canvas, alpha);
+      if (uiScale > 0.19)
+      drawRhythm(canvas, alpha * 0.5);
 
     });
 //    if (drawRhythm) {
@@ -69,9 +69,6 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   }
 
   _drawColorblockNotes({Canvas canvas, int elementPosition, double alpha}) {
-//    MelodicAttack element = melody.melodicData.data[elementPosition % melody.length];
-//    MelodicAttack nextElement = melody.melodicData.data[elementPosition % melody.length];
-//    bool isChange = element != null;
     alphaDrawerPaint.color =
        Color(0xFF212121).withAlpha((alpha * 255).toInt());
 
@@ -96,23 +93,26 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     }
 
 
-    tones = melody.noteOffsAt(elementPosition % melody.length).toList();
+    if (uiScale > 0.85) {
+      tones = melody.noteOffsAt(elementPosition % melody.length).toList();
 
-    if (tones.isNotEmpty) {
-      double leftMargin = (isNoteStart) ? drawPadding.toDouble() : 0.0;
-      double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
-      tones.forEach((tone) {
-        int realTone = tone; // + melody.offsetUnder(chord)
-        double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;
-        double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
-        canvas.drawRect(
-          Rect.fromLTRB(bounds.left + leftMargin + xScale, top - xScale, bounds.right - rightMargin - xScale, bottom + xScale),
-          Paint()
-          ..strokeWidth = 1.2 * xScale
-          ..style = PaintingStyle.stroke
-          ..color = Colors.black.withOpacity(alphaDrawerPaint.color.opacity)
-        );
-      });
+      if (tones.isNotEmpty) {
+        double leftMargin = (isNoteStart) ? drawPadding.toDouble() : 0.0;
+        double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
+        tones.forEach((tone) {
+          int realTone = tone; // + melody.offsetUnder(chord)
+          double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;
+          double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
+          canvas.drawRect(
+            Rect.fromLTRB(
+              bounds.left + leftMargin + xScale, top - xScale, bounds.right - rightMargin - xScale, bottom + xScale),
+            Paint()
+              ..strokeWidth = 1.2 * xScale
+              ..style = PaintingStyle.stroke
+              ..color = Colors.black.withOpacity(alphaDrawerPaint.color.opacity)
+          );
+        });
+      }
     }
     alphaDrawerPaint.color =
       Color(0xFF212121).withAlpha((alpha * 255).toInt());

@@ -17,6 +17,7 @@ import 'my_buttons.dart';
 import 'my_platform.dart';
 import 'ui_models.dart';
 import 'util.dart';
+import 'incrementable_value.dart';
 
 class PartConfiguration extends StatefulWidget {
   final Part part;

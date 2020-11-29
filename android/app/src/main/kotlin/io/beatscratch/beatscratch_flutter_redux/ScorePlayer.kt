@@ -5,6 +5,7 @@ import io.beatscratch.beatscratch_flutter_redux.AndroidMidi.stopNote
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentScore
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.currentSection
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyCurrentSection
+import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyStartedSection
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPaused
 import io.beatscratch.beatscratch_flutter_redux.BeatScratchPlugin.notifyPlayingBeat
 import io.beatscratch.beatscratch_flutter_redux.MelodyRecorder.recordBeat
@@ -72,15 +73,14 @@ object ScorePlayer : Patterns, CoroutineScope {
         if (playbackMode == Playback.Mode.score) {
           if (sectionIndex + 1 < score.sectionsCount) {
             currentSection = score.sectionsList[sectionIndex + 1]
-            notifyCurrentSection()
+            notifyStartedSection()
             launch {
               PlaybackService.instance?.showNotification()
             }
           } else {
             currentSection = score.sectionsList[0]
-            notifyPlayingBeat()
+            notifyStartedSection()
             PlaybackThread.playing = false
-            notifyCurrentSection()
             launch {
               PlaybackService.instance?.showNotification()
             }

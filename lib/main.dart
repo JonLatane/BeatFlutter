@@ -312,6 +312,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _hideMelodyView() {
     setState(() {
       _melodyViewSizeFactor = 0;
+      _prevSelectedMelody = selectedMelody;
+      if (_prevSelectedMelody == null) {
+        _prevSelectedPart = selectedPart;
+      }
       selectedMelody = null;
       editingMelody = false;
       selectedPart = null;
@@ -385,6 +389,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
+        _prevSelectedMelody = melody;
+        _prevSelectedPart = null;
         if (editingMelody) {
           BeatScratchPlugin.setRecordingMelody(melody);
         }
@@ -403,6 +409,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       print("yay");
       if (selectedPart != part) {
         selectedPart = part;
+        _prevSelectedPart = part;
+        _prevSelectedMelody = null;
         editingMelody = false;
         melodyViewMode = MelodyViewMode.part;
         _showMelodyView();
@@ -512,7 +520,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         // }
       } else {
         interactionMode = InteractionMode.edit;
-        melodyViewMode = MelodyViewMode.section;
+        if (_prevSelectedMelody != null) {
+          _selectOrDeselectMelody(_prevSelectedMelody);
+        } else if (_prevSelectedPart != null) {
+          _selectOrDeselectPart(_prevSelectedPart);
+        } else {
+          melodyViewMode = MelodyViewMode.section;
+        }
         _showMelodyView();
 //        _hideMelodyView();
       }
@@ -560,6 +574,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         editingMelody = false;
         if (melodyViewMode != MelodyViewMode.section) {
           melodyViewMode = MelodyViewMode.section;
+          _prevSelectedMelody = null;
+          _prevSelectedPart = null;
           _showMelodyView();
         } else {
           if (!melodyViewVisible) {
@@ -918,8 +934,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     theUI(BuildContext context) => Stack(children: [
       Row(
         children: [
-          if (_landscapePhoneUI) Container(width: _leftNotchPadding),
-          if (_landscapePhoneUI) createBeatScratchToolbar(vertical: true),
+          if (_landscapePhoneUI) AnimatedContainer(duration: animationDuration, width: _leftNotchPadding),
           Expanded(
             // fit: FlexFit.loose,
             child: Column(children: [
@@ -947,11 +962,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
             ]),
           ),
+          if (_landscapePhoneUI) _tapInBar(context, vertical: true),
           AnimatedContainer(
             duration: animationDuration,
             width: _landscapePhoneSecondToolbarWidth,
             child: createSecondToolbar(vertical: true)),
-          if (_landscapePhoneUI) _tapInBar(context, vertical: true),
+          if (_landscapePhoneUI) createBeatScratchToolbar(vertical: true),
           Container(width: _rightNotchPadding),
         ],
       ),
@@ -1349,12 +1365,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           child: tapInBarIcon())),
       // if (vertical) Transform.translate(offset:Offset(12,10), child: Transform.scale(scale: 1.5, child: tapInBarIcon(withText: false))),
       if (vertical) SizedBox(height: 15),
-      if (vertical) Expanded(child:SizedBox()),
-      if (vertical) Container(height: 200, child: _tempoConfigurationBar(context, vertical: true)),
+      // if (vertical) Expanded(child:SizedBox()),
+      if (vertical) Expanded(child: _tempoConfigurationBar(context, vertical: true)),
       Container(
         height: 42,
         width: 42,
-        padding: EdgeInsets.only(right: 5),
+        padding: EdgeInsets.only(right: vertical ? 0 : 5),
         child: AnimatedOpacity(duration: animationDuration,
           opacity: showTapInBar ? 1 : 0, child: MyRaisedButton(
             padding: EdgeInsets.zero,
@@ -1383,6 +1399,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (!_portraitPhoneUI && !vertical) _tempoConfigurationBar(context)
     ];
     return AnimatedContainer(
+        padding: EdgeInsets.only(left: vertical ? 3 : 0),
         duration: animationDuration,
         width: vertical ? _landscapeTapInBarWidth : null,
         height: vertical ? null : _tapInBarHeight,
@@ -1486,6 +1503,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   BeatScratchToolbar createBeatScratchToolbar({bool vertical = false}) => BeatScratchToolbar(
         score: score,
+        currentSection: currentSection,
         scoreManager: _scoreManager,
         currentScoreName: MyPlatform.isWeb ? webScoreName : _scoreManager.currentScoreName,
         sectionColor: sectionColor,
@@ -1579,6 +1597,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             });
           });
         },
+    openMelody: selectedMelody,
+    openPart: selectedPart,
+    prevMelody: _prevSelectedMelody,
+    prevPart: _prevSelectedPart,
+    isMelodyViewOpen: _melodyViewSizeFactor != 0,
       );
 
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
@@ -1766,6 +1789,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _partMelodiesView(BuildContext context, double availableWidth, double availableHeight) {
     return PartMelodiesView(
+      key: ValueKey("main-part-melodies-view"),
       melodyViewMode: melodyViewMode,
       superSetState: setState,
       currentSection: currentSection,
@@ -1798,6 +1822,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   MelodyView _melodyView(BuildContext context, double height) {
     return MelodyView(
+      key: ValueKey("main-melody-view"),
       enableColorboard: enableColorboard,
       superSetState: setState,
       focusPartsAndMelodies: focusPartsAndMelodies,
@@ -1938,6 +1963,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _insertSection(section);
         section.tempo = Tempo()..bpm = currentSection.tempo.bpm;
       },
+
+      requestRenderingMode: (mode) {
+        setState(() { renderingMode = mode; });
+      },
     );
   }
 
@@ -2056,7 +2085,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _leftNotchPadding -
             _rightNotchPadding -
               _landscapePhoneSecondToolbarWidth,
-          leftMargin: _landscapePhoneBeatscratchToolbarWidth + _leftNotchPadding,
+          leftMargin: /*_landscapePhoneBeatscratchToolbarWidth + */_leftNotchPadding,
           part: keyboardPart,
           height: _keyboardHeight,
           showConfiguration: _showKeyboardConfiguration,

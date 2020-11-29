@@ -70,7 +70,7 @@ class PartMelodiesView extends StatefulWidget {
       this.selectedPart,
       this.enableColorboard,
       this.showBeatCounts,
-      this.height});
+      this.height, Key key}): super(key : key);
 
   @override
   _PartMelodiesViewState createState() {
@@ -80,7 +80,7 @@ class PartMelodiesView extends StatefulWidget {
 
 class _PartMelodiesViewState extends State<PartMelodiesView> {
   final ScrollController controller = ScrollController();
-  static const double minColumnWidth = 95;
+  static const double minColumnWidth = 100;
   static const double maxColumnWidth = 250;
   static const double columnWidthIncrement = 12;
   double columnWidth = 200;
@@ -228,7 +228,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                     });
                   },
                   showBeatCounts: widget.showBeatCounts,
-                  showEnabledToggle: showEnabledToggle,
+                  showMediumDetails: showMediumDetails,
                   height: widget.height,
                 ),
               )
@@ -236,7 +236,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   }
 
   // How "zoom" is achieved
-  bool get showEnabledToggle => columnWidth > minColumnWidth + 3 * columnWidthIncrement;
+  bool get showMediumDetails => columnWidth > minColumnWidth + 3 * columnWidthIncrement;
 
   @override
   Widget build(BuildContext context) {
@@ -348,7 +348,7 @@ class _MelodiesView extends StatefulWidget {
   final bool enableColorboard;
   final bool showBeatCounts;
   final double height;
-  final bool showEnabledToggle;
+  final bool showMediumDetails;
 
   List<Melody> get _items {
     return part.melodies;
@@ -377,7 +377,7 @@ class _MelodiesView extends StatefulWidget {
     this.selectedPart,
     this.enableColorboard,
     this.showBeatCounts,
-    this.height, this.showEnabledToggle,
+    this.height, this.showMediumDetails,
   });
 
   @override
@@ -475,11 +475,17 @@ class _MelodiesViewState extends State<_MelodiesView> {
       }
     });
     int inactiveMelodyRefsBeforeIndex = melodyIndex - activeMelodyRefsBeforeIndex;
-    int enabledToggleHeight = 32;
-    double activeMelodyRefHeight = 137.0 - (widget.showEnabledToggle ? 0 : enabledToggleHeight);
-    double inactiveMelodyRefHeight = 97.0 - (widget.showEnabledToggle ? 0 : enabledToggleHeight);
+
+    final double baseHeight = 73.23;
+    final double enabledToggleHeight = 34.77;
+    final double volumeSliderHeight = 41.0;
+    double activeMelodyRefHeight = baseHeight, inactiveMelodyRefHeight = baseHeight;
+    if (widget.showMediumDetails) {
+      activeMelodyRefHeight += enabledToggleHeight + volumeSliderHeight;
+      inactiveMelodyRefHeight += enabledToggleHeight;
+    }
     
-    scrollController.animateTo(190.0 +
+    scrollController.animateTo((widget.showMediumDetails ? 173.0 : 40) +
       (activeMelodyRefHeight * activeMelodyRefsBeforeIndex) +
       (inactiveMelodyRefHeight * inactiveMelodyRefsBeforeIndex),
         duration: Duration(milliseconds: 1000), curve: Curves.ease);
@@ -534,7 +540,12 @@ class _MelodiesViewState extends State<_MelodiesView> {
 //          key: Key("MelodyScroller"),
           controller: scrollController,
           slivers: <Widget>[
-            SliverAppBar(
+            MediaQuery.removePadding(
+              context: context,
+              removeRight: true,
+              child:SliverAppBar(
+              titleSpacing: 0,
+              excludeHeaderSemantics: true,
               leading: Container(),
               backgroundColor: backgroundColor,
               actions: <Widget>[
@@ -584,15 +595,15 @@ class _MelodiesViewState extends State<_MelodiesView> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ))))),
-            ),
+            )),
 
             SliverAppBar(
                 leading: Container(),
                 backgroundColor: backgroundColor,
                 floating: true,
                 pinned: false,
-                toolbarHeight: widget.showEnabledToggle ? 50.0 : 0,
-                expandedHeight: widget.showEnabledToggle ? 50.0 : 0,
+                toolbarHeight: widget.showMediumDetails ? 50.0 : 0,
+                expandedHeight: widget.showMediumDetails ? 50.0 : 0,
                 flexibleSpace: MySlider(
                     value: max(0.0, min(1.0, part.instrument.volume)),
                     activeColor: textColor,
@@ -600,7 +611,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       setPartVolume(part, value);
                     }),
               ),
-            buildAddAndRecordButton(
+            if (widget.showMediumDetails) buildAddAndRecordButton(
                 backgroundColor,
                 textColor),
 //            newMelodyBeatCountPicker(backgroundColor, textColor),
@@ -733,7 +744,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         editingMelody: editingMelody,
                         hideMelodyView: hideMelodyView,
                         showBeatsBadge: widget.showBeatCounts,
-                        showEnabledToggle: widget.showEnabledToggle,
+                        showMediumDetails: widget.showMediumDetails,
                         requestScrollToTop: () {
                           requestScrollToTop(index);
                         },
@@ -1030,7 +1041,7 @@ class _MelodyReference extends StatefulWidget {
   final bool editingMelody;
   final bool showBeatsBadge;
   final VoidCallback requestScrollToTop;
-  final bool showEnabledToggle;
+  final bool showMediumDetails;
 
   _MelodyReference({
     this.melody,
@@ -1048,7 +1059,7 @@ class _MelodyReference extends StatefulWidget {
     this.toggleEditingMelody,
     this.hideMelodyView,
     this.showBeatsBadge,
-    this.requestScrollToTop, this.showEnabledToggle,
+    this.requestScrollToTop, this.showMediumDetails,
   });
 
   @override
@@ -1061,6 +1072,8 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
   bool get isSelectedMelody => widget.melody.id == widget.selectedMelody?.id;
   AnimationController animationController;
   TextEditingController nameController = TextEditingController();
+  bool get allowEditName => widget.showMediumDetails;
+  bool get showVolume => widget.showMediumDetails && reference.playbackType != MelodyReference_PlaybackType.disabled;
 
   @override
   initState() {
@@ -1084,11 +1097,53 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
-    var color = isSelectedMelody ? Colors.white : Color(0xFFDDDDDD);
+    Gradient gradient;
+    const Color bgColor = melodyColor;
+    const baseGradient = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment(1.0, 0.0),
+      colors: [bgColor, bgColor],
+      tileMode: TileMode.repeated, // repeats the gradient over the canvas
+    );
+    const baseSelectedGradient = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment(1.0, 0.0),
+      colors: [Colors.white, Colors.white], // red to yellow
+      tileMode: TileMode.repeated, // repeats the gradient over the canvas
+    );
+    if (widget.showMediumDetails) {
+      gradient = isSelectedMelody ? baseSelectedGradient : baseGradient;
+    } else {
+      if (reference.isEnabled) {
+        Color volumeColor = isSelectedMelody ? Colors.white : widget.sectionColor;
+        Color notVolumeColor = isSelectedMelody && reference.volume == 0.0 ? Colors.white : bgColor;
+        gradient = LinearGradient(
+          begin: Alignment.centerLeft,
+          end:
+          Alignment(1.0, 0.0),
+          colors: [
+            reference.volume > 0.0 ? volumeColor : notVolumeColor,
+            reference.volume > 0.1 ? volumeColor : notVolumeColor,
+            reference.volume > 0.2 ? volumeColor : notVolumeColor,
+            reference.volume > 0.3 ? volumeColor : notVolumeColor,
+            reference.volume > 0.4 ? volumeColor : notVolumeColor,
+            reference.volume > 0.5 ? volumeColor : notVolumeColor,
+            reference.volume > 0.6 ? volumeColor : notVolumeColor,
+          reference.volume > 0.7 ?   volumeColor : notVolumeColor,
+          reference.volume > 0.8 ?   volumeColor : notVolumeColor,
+          reference.volume > 0.9 ?   volumeColor : notVolumeColor,
+          reference.volume == 1.0 ?  volumeColor : notVolumeColor,
+          ], // red to yellow
+          tileMode: TileMode.repeated, // repeats the gradient over the canvas
+        );
+      } else {
+        gradient = isSelectedMelody ? baseSelectedGradient : baseGradient;
+      }
+    }
 
     if (state == ReorderableItemState.dragProxy || state == ReorderableItemState.dragProxyFinished) {
       // slightly transparent background white dragging (just like on iOS)
-      decoration = BoxDecoration(color: color);
+      decoration = BoxDecoration(gradient: gradient);
     } else {
       bool placeholder = state == ReorderableItemState.placeholder;
       decoration = BoxDecoration(
@@ -1099,15 +1154,17 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
               bottom: widget.isLast && placeholder
                   ? BorderSide.none //
                   : Divider.createBorderSide(context)),
-          color: color);
+        gradient: gradient);
     }
     nameController.value = nameController.value.copyWith(text: widget.melody.name);
  
-    Widget content = Container(
+    Widget content = AnimatedContainer(
+      duration: animationDuration,
         decoration: decoration,
         padding: EdgeInsets.zero,
         child: Stack(children: [
           MyFlatButton(
+            padding: EdgeInsets.only(bottom:18),
             onPressed: () {
               if (!isSelectedMelody && !MyPlatform.isMacOS) {
                 widget.requestScrollToTop();
@@ -1124,51 +1181,53 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //                widget.requestScrollToTop();
 //              }
             },
-            padding: EdgeInsets.only(bottom: 18),
-            child: Column(children: [
-              SizedBox(height: 51.1),
+            child: AnimatedContainer(
+              duration: animationDuration,
+              // color: widget.showMediumDetails ? Colors.transparent : widget.sectionColor,
+              child: Column(children: [
+                SizedBox(height: 51.1),
 //              Text("Melody ${melody.id.substring(0, 5)}"),
-              AnimatedOpacity(
-                  duration: animationDuration,
-                  opacity: reference.playbackType != MelodyReference_PlaybackType.disabled ? 1 : 0,
-                  child: AnimatedContainer(
+                AnimatedOpacity(
                     duration: animationDuration,
-                    height: reference.playbackType != MelodyReference_PlaybackType.disabled ? 40 : 0,
-                    child: MySlider(
-                        value: reference.volume,
-                        activeColor: widget.sectionColor,
-                        onChanged: (reference.playbackType == MelodyReference_PlaybackType.disabled)
-                            ? null
-                            : (value) {
-                                widget.setReferenceVolume(reference, value);
-                              }),
-                  )),
-              Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(children: [
-                    Expanded(child: SizedBox()),
-                    AnimatedOpacity(
+                    opacity: showVolume ? 1 : 0,
+                    child: AnimatedContainer(
                       duration: animationDuration,
-                      opacity: widget.showEnabledToggle ? 1 : 0,
-                      child: AnimatedContainer(
+                      height: showVolume ? 40 : 0,
+                      child: MySlider(
+                          value: reference.volume,
+                          activeColor: widget.sectionColor,
+                          onChanged: (showVolume)
+                              ? (value) {
+                                  widget.setReferenceVolume(reference, value);
+                                }
+                              : null),
+                    )),
+                Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(children: [
+                      Expanded(child: SizedBox()),
+                      AnimatedOpacity(
                         duration: animationDuration,
-                        width: 40,
-                        height: widget.showEnabledToggle ? 36 : 0,
-                        child: MyRaisedButton(
-                            padding: EdgeInsets.all(0),
-                            onPressed: () {
-                              widget.toggleMelodyReference(reference);
-                            },
-                            color: (reference.playbackType == MelodyReference_PlaybackType.disabled)
-                                ? Color(0xFFDDDDDD)
-                                : widget.sectionColor,
-                            child: Align(
-                                alignment: Alignment.center,
-                                child: Icon((reference.playbackType == MelodyReference_PlaybackType.disabled)
-                                    ? Icons.not_interested
-                                    : Icons.volume_up))),
+                        opacity: widget.showMediumDetails ? 1 : 0,
+                        child: AnimatedContainer(
+                          duration: animationDuration,
+                          width: 40,
+                          height: widget.showMediumDetails ? 36 : 0,
+                          child: MyRaisedButton(
+                              padding: EdgeInsets.all(0),
+                              onPressed: () {
+                                widget.toggleMelodyReference(reference);
+                              },
+                              color: (reference.playbackType == MelodyReference_PlaybackType.disabled)
+                                  ? Color(0xFFDDDDDD)
+                                  : widget.sectionColor,
+                              child: Align(
+                                  alignment: Alignment.center,
+                                  child: Icon((reference.playbackType == MelodyReference_PlaybackType.disabled)
+                                      ? Icons.not_interested
+                                      : Icons.volume_up))),
+                        ),
                       ),
-                    ),
 //                      Container(
 //                          width: 40,
 //                          height: 36,
@@ -1196,9 +1255,10 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
 //                                'assets/edit.png',
 //                                fit: BoxFit.fill,
 //                              ))),
-                    Expanded(child: SizedBox()),
-                  ]))
-            ]),
+                      Expanded(child: SizedBox()),
+                    ]))
+              ]),
+            ),
           ),
           Container(
             padding: EdgeInsets.only(top: 5),
@@ -1209,25 +1269,29 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                       beats: widget.melody.length ~/ widget.melody.subdivisionsPerBeat, show: widget.showBeatsBadge),
                   SizedBox(width: 3),
                   Expanded(
-                      child: TextField(
+                      child: IgnorePointer(
+                        ignoring: ! widget.showMediumDetails,
+                        child: TextField(
+                          enabled: widget.showMediumDetails,
                     controller: nameController,
                     textCapitalization: TextCapitalization.words,
                     onChanged: (value) {
-                      widget.melody.name = value;
-                      //                          BeatScratchPlugin.updateMelody(widget.melody);
-                      BeatScratchPlugin.onSynthesizerStatusChange();
+                        widget.melody.name = value;
+                        //                          BeatScratchPlugin.updateMelody(widget.melody);
+                        BeatScratchPlugin.onSynthesizerStatusChange();
                     },
                     onTap: () {
-                      if (!context.isTabletOrLandscapey) {
-                        widget.hideMelodyView();
-                      }
-                      if (!MyPlatform.isMacOS) {
-                        widget.requestScrollToTop();
-                      }
+                        if (!context.isTabletOrLandscapey) {
+                          widget.hideMelodyView();
+                        }
+                        if (!MyPlatform.isMacOS) {
+                          widget.requestScrollToTop();
+                        }
                     },
                     decoration: InputDecoration(
-                        border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
-                  )),
+                          border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
+                  ),
+                      )),
                   ReorderableListener(
                       child: Container(
                           width: 24,

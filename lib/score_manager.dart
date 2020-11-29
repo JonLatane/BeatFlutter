@@ -16,11 +16,15 @@ import 'generated/protos/music.pb.dart';
 import 'dummydata.dart';
 import 'url_conversions.dart';
 
+
+/// ScoreManager gonna be funky if [BeatScratchPlugin.supportsStorage]
+/// isn't true (i.e. for the web). You still have JSON serialization
+/// stuff available... you could write this, enterprising code school dev!
 class ScoreManager {
   static const String PASTED_SCORE = "Pasted Score";
   static const String FROM_CLIPBOARD = " (from Clipboard)";
   static const String WEB_SCORE = "Web Score";
-  static const String FROM_WEB = " (from Web)";
+  static const String FROM_WEB = " (from Link)";
   Function(Score) doOpenScore;
   Directory _scoresDirectory;
   SharedPreferences _prefs;

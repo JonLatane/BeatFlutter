@@ -23,6 +23,8 @@ var chromaticSteps = [
   Color(0xFF2EBBB5),
 ];
 
+const melodyColor = Color(0xFFDDDDDD);
+
 enum ChordColor { dominant, major, minor, augmented, diminished, tonic, none }
 
 extension ActualColors on ChordColor {

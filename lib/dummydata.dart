@@ -15,7 +15,6 @@ Chord cChromatic = Chord()
 Chord cMinor = Chord()
   ..rootNote = (NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural)
   ..chroma = 274;
-MelodicAttack _note(int tone) => MelodicAttack()..tones.add(tone)..velocity = 1;
 
 Melody baseMelody() => Melody()
   ..id = uuid.v4()

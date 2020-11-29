@@ -10,6 +10,7 @@ import 'part_melodies_view.dart';
 import 'ui_models.dart';
 import 'music_utils.dart';
 import 'util.dart';
+import 'incrementable_value.dart';
 
 class MelodyToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
