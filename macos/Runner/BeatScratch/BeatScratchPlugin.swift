@@ -18,17 +18,20 @@ class BeatScratchPlugin {
   // Globally accessible
   static let sharedInstance = BeatScratchPlugin()
   var score: Score = Score() {
-    willSet {
-      BeatScratchScorePlayer.sharedInstance.currentSection = newValue.sections.first {
-        $0.id == BeatScratchScorePlayer.sharedInstance.currentSection.id
-      } ?? newValue.sections.first!
-    }
     didSet {
-      notifyBeatScratchAudioAvailable()
+      if score.sections.isEmpty {
+        var section = Section()
+        section.id = "test"
+        score.sections.append(section)
+      }
+      BeatScratchScorePlayer.sharedInstance.currentSection = score.sections.first {
+        $0.id == BeatScratchScorePlayer.sharedInstance.currentSection.id
+      } ?? score.sections.first!
+//      notifyBeatScratchAudioAvailable()
 //      score.parts.forEach {
 //        setupPart(part: $0)
 //      }
-      notifyBeatScratchAudioAvailable()
+//      notifyBeatScratchAudioAvailable()
     }
   }
   var channel: FlutterMethodChannel?
@@ -60,7 +63,9 @@ class BeatScratchPlugin {
           if call.method == "createScore" {
             self.score = score
             self.score.parts.forEach {
+              self.notifyBeatScratchAudioAvailable()
               self.setupPart(part: $0)
+              self.notifyBeatScratchAudioAvailable()
             }
           } else if call.method == "updateSections" {
             self.score.sections = score.sections

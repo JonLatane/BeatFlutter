@@ -4,6 +4,7 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import 'beatscratch_plugin.dart';
+import 'dummydata.dart';
 import 'music_theory.dart';
 import 'my_buttons.dart';
 import 'part_melodies_view.dart';
@@ -248,6 +249,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   bool showHoldToClear = false;
   bool showDataCleared = false;
   bool animationStarted = false;
+  int get firstBeatOfSection => widget.score.firstBeatOfSection(widget.currentSection);
 
   @override
   void initState() {
@@ -429,7 +431,13 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
           padding: EdgeInsets.zero,
           onLongPress: widget.melody != null ? () {
             print("clearing single beat");
-            widget.melody.deleteBeat(widget.highlightedBeat.value ?? BeatScratchPlugin.currentBeat.value);
+            int beatToDelete = widget.highlightedBeat.value;
+            if (beatToDelete == null) {
+              beatToDelete = BeatScratchPlugin.currentBeat.value;
+            } else {
+              beatToDelete -= firstBeatOfSection;
+            }
+            widget.melody.deleteBeat(beatToDelete);
             clearMutableCachesForMelody(widget.melody.id);
             BeatScratchPlugin.onSynthesizerStatusChange();
             BeatScratchPlugin.updateMelody(widget.melody);

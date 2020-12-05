@@ -46,6 +46,7 @@ class PartMelodiesView extends StatefulWidget {
   final double height;
   final Function(VoidCallback) superSetState;
   final bool showBeatCounts;
+  final bool focusPartsAndMelodies;
 
   PartMelodiesView(
       {this.melodyViewMode,
@@ -70,7 +71,7 @@ class PartMelodiesView extends StatefulWidget {
       this.selectedPart,
       this.enableColorboard,
       this.showBeatCounts,
-      this.height, Key key}): super(key : key);
+      this.height, Key key, this.focusPartsAndMelodies}): super(key : key);
 
   @override
   _PartMelodiesViewState createState() {
@@ -230,6 +231,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                   showBeatCounts: widget.showBeatCounts,
                   showMediumDetails: showMediumDetails,
                   height: widget.height,
+                  focusPartsAndMelodies: widget.focusPartsAndMelodies,
                 ),
               )
             ]),);
@@ -260,10 +262,10 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 //      key: Key(widget.score.parts.map((e) => e.id).toString()),
         scrollDirection: Axis.horizontal,
         // The current items in the list.
-        items: widget.score.parts + [null],
+        items: widget.score.parts + [ Part()..id = "add-button" ],
         // Called by the DiffUtil to decide whether two object represent the same item.
         // For example, if your items have unique ids, this method should check their id equality.
-        areItemsTheSame: (a, b) => (a ?? Part()).id == (b ?? Part()).id,
+        areItemsTheSame: (a, b) => a.id == b.id,
         onReorderFinished: (item, oldIndex, newIndex, newItems) {
           // Remember to update the underlying data when the list has been
           // reordered.
@@ -291,7 +293,7 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
         itemBuilder: (context, animation, Part item, index) {
           // Specifiy a transition to be used by the ImplicitlyAnimatedList.
           // In this case a custom transition.
-          return item != null
+          return item.id != "add-button"
             ? Reorderable(
             // Each item must have an unique key.
             key: Key("part-reorderable-${item.id}"),
@@ -349,6 +351,7 @@ class _MelodiesView extends StatefulWidget {
   final bool showBeatCounts;
   final double height;
   final bool showMediumDetails;
+  final bool focusPartsAndMelodies;
 
   List<Melody> get _items {
     return part.melodies;
@@ -377,7 +380,7 @@ class _MelodiesView extends StatefulWidget {
     this.selectedPart,
     this.enableColorboard,
     this.showBeatCounts,
-    this.height, this.showMediumDetails,
+    this.height, this.showMediumDetails, this.focusPartsAndMelodies,
   });
 
   @override
@@ -525,7 +528,8 @@ class _MelodiesViewState extends State<_MelodiesView> {
       backgroundColor = isSelectedPart ? Colors.white : Colors.grey;
       textColor = isSelectedPart ? Colors.grey : Colors.white;
     }
-    if (lastSelectedMelodyId != null && selectedMelody != null && lastSelectedMelodyId != selectedMelody.id) {
+    if (lastSelectedMelodyId != null && selectedMelody != null 
+      && lastSelectedMelodyId != selectedMelody.id && widget.focusPartsAndMelodies) {
       int indexOfMelody = part.melodies.indexWhere((m) => m.id == selectedMelody?.id);
       if (indexOfMelody >= 0) {
         requestScrollToTop(indexOfMelody);
@@ -614,116 +618,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
             if (widget.showMediumDetails) buildAddAndRecordButton(
                 backgroundColor,
                 textColor),
-//            newMelodyBeatCountPicker(backgroundColor, textColor),
-//            buildAddMelodyButton(backgroundColor, textColor,
-//              defaultMelody(sectionBeats: currentSection.beatCount)
-//                ..length = defaultMelodySubdivisionsPerBeat
-//                ..instrumentType = part.instrument.type
-//                ..interpretationType = _interpretationType(part.instrument.type),
-//              forceShowBeatCount: true
-//            ),
-//            buildAddMelodyButton(backgroundColor, textColor,
-//              defaultMelody(sectionBeats: currentSection.beatCount)
-//                ..length = 2 * defaultMelodySubdivisionsPerBeat
-//                ..instrumentType = part.instrument.type
-//                ..interpretationType = _interpretationType(part.instrument.type),
-//              forceShowBeatCount: true
-//            ),
-//            buildAddMelodyButton(backgroundColor, textColor,
-//              defaultMelody(sectionBeats: currentSection.beatCount)
-//                ..length = defaultMelodySubdivisionsPerBeat * currentSection.meter.defaultBeatsPerMeasure
-//                ..instrumentType = part.instrument.type
-//                ..interpretationType = _interpretationType(part.instrument.type),
-//              forceShowBeatCount: true
-//            ),
-//            buildAddMelodyButton(backgroundColor, textColor,
-//              defaultMelody(sectionBeats: currentSection.beatCount)
-//                ..length = 2 * defaultMelodySubdivisionsPerBeat * currentSection.meter.defaultBeatsPerMeasure
-//                ..instrumentType = part.instrument.type
-//                ..interpretationType = _interpretationType(part.instrument.type),
-//              forceShowBeatCount: true
-//            ),
             SliverPadding(
                 padding: EdgeInsets.only(bottom: 0),
                 sliver:
-//                ImplicitlyAnimatedReorderableList<Melody>(
-//                  scrollDirection: Axis.vertical,
-//                  // The current items in the list.
-//                  items: widget.part.melodies,
-//                  // Called by the DiffUtil to decide whether two object represent the same item.
-//                  // For example, if your items have unique ids, this method should check their id equality.
-//                  areItemsTheSame: (Melody a, b) => a.id == b.id,
-//                  onReorderFinished: (item, oldIndex, newIndex, newItems) {
-//                    // Remember to update the underlying data when the list has been
-//                    // reordered.
-//                    setState(() {
-//                      if (oldIndex < widget.part.melodies.length) {
-//                        if (newIndex >= widget.part.melodies.length) {
-//                          newIndex = widget.part.melodies.length - 1;
-//                        }
-//                        Melody toMove = widget.part.melodies.removeAt(oldIndex);
-//                        widget.part.melodies.insert(newIndex, toMove);
-//                      }
-//                    });
-//                  },
-//                  // Called, as needed, to build list item widgets.
-//                  // List items are only built when they're scrolled into view.
-//                  itemBuilder: (context, animation, Melody item, index) {
-//                    // Specifiy a transition to be used by the ImplicitlyAnimatedList.
-//                    // In this case a custom transition.
-//                    return item != null
-//                        ? Reorderable(
-//                            // Each item must have an unique key.
-//                            key: Key(item.id),
-//                            builder: (context, dragAnimation, inDrag) {
-//                              final t = dragAnimation.value;
-//                              final tile = _MelodyReference(
-//                                melody: _items[index],
-//                                sectionColor: sectionColor,
-//                                currentSection: currentSection,
-//                                selectedMelody: selectedMelody,
-//                                selectMelody: selectMelody,
-//                                toggleEditingMelody: toggleEditingMelody,
-//                                toggleMelodyReference: toggleMelodyReference,
-//                                setReferenceVolume: setReferenceVolume,
-//                                // first and last attributes affect border drawn during dragging
-//                                isFirst: index == 0,
-//                                isLast: index == _items.length - 1,
-//                                colorboardPart: colorboardPart,
-//                                keyboardPart: keyboardPart,
-//                                editingMelody: editingMelody,
-//                                hideMelodyView: hideMelodyView,
-//                              );
-//
-//                              return SizeFadeTransition(
-//                                  sizeFraction: 0.7,
-//                                  curve: Curves.easeInOut,
-//                                  animation: animation,
-//                                  child: tile,
-//                                  axis: (t > 0 || inDrag) ? Axis.vertical : Axis.horizontal);
-//                            })
-//                        : Reorderable(
-//                            // Each item must have an unique key.
-//                            key: Key("add"),
-//                            builder: (context, dragAnimation, inDrag) => _MelodyReference(
-//                                  melody: _items[index],
-//                                  sectionColor: sectionColor,
-//                                  currentSection: currentSection,
-//                                  selectedMelody: selectedMelody,
-//                                  selectMelody: selectMelody,
-//                                  toggleEditingMelody: toggleEditingMelody,
-//                                  toggleMelodyReference: toggleMelodyReference,
-//                                  setReferenceVolume: setReferenceVolume,
-//                                  // first and last attributes affect border drawn during dragging
-//                                  isFirst: index == 0,
-//                                  isLast: index == _items.length - 1,
-//                                  colorboardPart: colorboardPart,
-//                                  keyboardPart: keyboardPart,
-//                                  editingMelody: editingMelody,
-//                                  hideMelodyView: hideMelodyView,
-//                                ));
-//                  },
-//                )),
                     SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
@@ -746,7 +643,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         showBeatsBadge: widget.showBeatCounts,
                         showMediumDetails: widget.showMediumDetails,
                         requestScrollToTop: () {
-                          requestScrollToTop(index);
+                          if (widget.focusPartsAndMelodies) {
+                            requestScrollToTop(index);
+                          }
                         },
                       );
                     },
@@ -1280,6 +1179,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                         //                          BeatScratchPlugin.updateMelody(widget.melody);
                         BeatScratchPlugin.onSynthesizerStatusChange();
                     },
+                          style: TextStyle(color: reference?.isEnabled == true ? Colors.black : Colors.grey),
                     onTap: () {
                         if (!context.isTabletOrLandscapey) {
                           widget.hideMelodyView();
@@ -1297,7 +1197,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                           width: 24,
                           height: 24,
 //                          padding: EdgeInsets.only(right:0),
-                          child: Icon(Icons.reorder)))
+                          child: Icon(Icons.reorder, color: reference?.isEnabled == true ? Colors.black : Colors.grey)))
                 ])),
           ),
         ]));

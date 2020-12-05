@@ -18,7 +18,10 @@ import 'midi_settings.dart';
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
 /// by any part of the UI.
 class BeatScratchPlugin {
-  static final bool supportsPlayback = true;
+  static final bool _supportsPlayback = true;
+  static int _playbackPreRenderBeats = MyPlatform.isWeb ? 2 : 0;
+  static bool _playbackForceDisabled = false;
+  static bool get supportsPlayback => _supportsPlayback && !_playbackForceDisabled;
   static final bool supportsStorage = !MyPlatform.isWeb || kDebugMode;
   static final bool supportsRecording = !MyPlatform.isWeb || kDebugMode;
 
@@ -35,8 +38,7 @@ class BeatScratchPlugin {
           return Future.value(null);
           break;
         case "notifyBeatScratchAudioAvailable":
-          _isBeatScratchAudioAvailable = call.arguments;
-          onSynthesizerStatusChange?.call();
+          _notifyBeatScratchAudioAvailable(call.arguments);
           return Future.value(null);
           break;
         case "notifyPlayingBeat":
@@ -96,6 +98,7 @@ class BeatScratchPlugin {
       context["notifyBpmMultiplier"] = _notifyBpmMultiplier;
       context["notifyUnmultipliedBpm"] = _notifyUnmultipliedBpm;
       context["notifyMidiDevices"] = _notifyMidiDevices;
+      context["notifyBeatScratchAudioAvailable"] = _notifyBeatScratchAudioAvailable;
     }
   }
 
@@ -143,6 +146,11 @@ class BeatScratchPlugin {
 
   static _notifyUnmultipliedBpm(double unmultipliedBpm) {
     BeatScratchPlugin.unmultipliedBpm = unmultipliedBpm;
+    onSynthesizerStatusChange?.call();
+  }
+
+  static _notifyBeatScratchAudioAvailable(bool available) {
+    _isBeatScratchAudioAvailable = available;
     onSynthesizerStatusChange?.call();
   }
 
@@ -267,6 +275,8 @@ class BeatScratchPlugin {
   }
 
   static void createScore(Score score) async {
+    _isBeatScratchAudioAvailable = false;
+    onSynthesizerStatusChange?.call();
     _pushScore(score, 'createScore', includeParts: true, includeSections: true);
   }
 
@@ -332,7 +342,7 @@ class BeatScratchPlugin {
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
     if(kIsWeb) {
-      context.callMethod('setKeyboardPar', [ part?.id ]);
+      context.callMethod('setKeyboardPart', [ part?.id ]);
     } else {
       _channel.invokeMethod('setKeyboardPart', part?.id);
     }
@@ -406,8 +416,15 @@ class BeatScratchPlugin {
     onSynthesizerStatusChange();
   }
   static void pause() async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('pause', []);
+      _playbackForceDisabled = true;
+      onSynthesizerStatusChange();
+      Future.delayed(
+          Duration(milliseconds: (60000 / (_playbackPreRenderBeats * bpmMultiplier * unmultipliedBpm)).floor()), () {
+        _playbackForceDisabled = false;
+        onSynthesizerStatusChange();
+      });
     } else {
       _channel.invokeMethod('pause');
     }

@@ -10,6 +10,11 @@ clearMutableCaches() {
   });
 }
 
+clearMutableCachesForSection(String sectionId) {
+  NotationMelodyRenderer.notationRenderingCache.removeWhere((key, value) =>
+  key.arguments[2] == sectionId);
+}
+
 clearMutableCachesForMelody(String melodyId, {String sectionId, int beat, int sectionLengthBeats, double melodyLengthBeats}) {
   MelodyTheory.averageToneCache.removeWhere((key, value) => key == melodyId);
   MelodyTheory.tonesAtCache.removeWhere((key, value) => key.arguments[0] == melodyId);

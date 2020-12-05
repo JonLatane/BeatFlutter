@@ -87,24 +87,20 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double maxScale = 1.0;
   bool isConfiguringPart = false;
   bool isEditingSection = false;
+  bool _isTwoFingerScaling = false;
   Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
   Offset _offset = Offset.zero;
   Offset _startFocalPoint = Offset.zero;
   double _startHorizontalScale = 1.0;
   double _startVerticalScale = 1.0;
-  AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
+  Duration incrementAnimationDuration = Duration(milliseconds: 500);
+  AnimationController animationController() =>
+    AnimationController(vsync: this, duration: incrementAnimationDuration);
   double _xScale;
-  double get xScale => _xScale;
   bool _hasSwipedClosed = false;
 
-  Map<MelodyViewMode, List<SwipeTutorial>> _swipeTutorialsSeen = {
-    MelodyViewMode.melody: List(),
-    MelodyViewMode.part: List(),
-    MelodyViewMode.section: List(),
-    // MelodyViewMode.score: List(),
-    // MelodyViewMode.none: List(),
-  };
+  Map<MelodyViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
   SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
   set currentSwipeTutorial(SwipeTutorial value) {
@@ -121,46 +117,90 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     });
   }
 
-  List<AnimationController> _xScaleAnimationControllers = [];
-  set xScale(double value) {
-    _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
-    _xScaleAnimationControllers.clear();
-    AnimationController scaleAnimationController = animationController();
-    _xScaleAnimationControllers.add(scaleAnimationController);
-    Animation animation;
-    // print("animating xScale to $value");
-    animation = Tween<double>(begin: _xScale, end: value)
-      .animate(scaleAnimationController)
-      ..addListener(() {
-        setState(() {
-          print("Tween _xScale access");
-          _xScale = animation.value;
-        });
+  List<AnimationController> _xScaleAnimationControllers;
+  List<AnimationController> _yScaleAnimationControllers;
+  _setScale({
+    double value, 
+    double Function() currentValue,
+    Function(double) applyAnimatedValue, 
+    List<AnimationController> controllers,
+    DateTime lastSet,
+    Function(DateTime) applyLastSet,
+  }) {
+    doIt() {
+      applyLastSet(DateTime.now());
+      controllers.forEach((controller) {
+        controller.stop(canceled: false);
+        controller.dispose();
       });
-    scaleAnimationController.forward();
+      controllers.clear();
+      AnimationController scaleAnimationController = animationController();
+      controllers.add(scaleAnimationController);
+      Animation animation;
+      // print("animating xScale to $value");
+      // print("Tween params: begin: $currentValue, end: $value");
+      animation = Tween<double>(begin: currentValue(), end: value)
+        .animate(scaleAnimationController)
+        ..addListener(() {
+          // print("Tween scale: ${animation.value}");
+          setState(() {
+            applyAnimatedValue(animation.value);
+          });
+        });
+      scaleAnimationController.forward();
+    }
+    if (lastSet.isBefore(DateTime.now().subtract(incrementAnimationDuration))) {
+      doIt();
+    } else {
+      Future.delayed(incrementAnimationDuration * .5, doIt);
+    }
+  }
+
+  double _targetedXScale, _targetedYScale;
+  DateTime _xScaleLastSet, _yScaleLastSet;
+  double get targetYScale => _targetedYScale ?? _xScale;
+  double get targetXScale => _targetedXScale ?? _yScale;
+  double get xScale => targetXScale;
+  set xScale(double value) {
+    _targetedXScale = value;
+    _setScale(
+      value: value, 
+      currentValue: () => _xScale,
+      applyAnimatedValue: (value) => _xScale = value, 
+      controllers: _xScaleAnimationControllers,
+      lastSet : _xScaleLastSet,
+      applyLastSet: (v) => _xScaleLastSet = v,
+    );
   }
   double _yScale;
-  double get yScale => _yScale;
-  List<AnimationController> _yScaleAnimationControllers = [];
+  double get yScale => targetYScale;
   set yScale(double value) {
-    _yScaleAnimationControllers.forEach((controller) { controller.dispose(); });
-    _yScaleAnimationControllers.clear();
-    AnimationController scaleAnimationController = animationController();
-    _yScaleAnimationControllers.add(scaleAnimationController);
-    Animation animation;
-    animation = Tween<double>(begin: _yScale, end: value)
-      .animate(scaleAnimationController)
-      ..addListener(() {
-        setState(() { _yScale = animation.value; });
-      });
-    scaleAnimationController.forward();
+    _targetedYScale = value;
+    _setScale(
+      value: value,
+      currentValue: () => _yScale,
+      applyAnimatedValue: (value) => _yScale = value,
+      controllers: _yScaleAnimationControllers,
+      lastSet : _yScaleLastSet,
+      applyLastSet: (v) => _yScaleLastSet = v,
+    );
   }
 
   @override
   void initState() {
     super.initState();
     highlightedBeat = new ValueNotifier(null);
+    focusedBeat = new ValueNotifier(null);
     requestedScrollOffsetForScale = ValueNotifier(null);
+    _swipeTutorialsSeen = {
+      MelodyViewMode.melody: List(),
+      MelodyViewMode.part: List(),
+      MelodyViewMode.section: List(),
+    };
+    _xScaleAnimationControllers = [];
+    _yScaleAnimationControllers = [];
+    _xScaleLastSet = DateTime(0);
+    _yScaleLastSet = DateTime(0);
   }
 
   double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
@@ -443,8 +483,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 
   static const double maxScaleDiscrepancy = 1.5;
   static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
-  
+
   ValueNotifier<int> highlightedBeat;
+  ValueNotifier<int> focusedBeat;
 
   ValueNotifier<Offset> requestedScrollOffsetForScale;
 
@@ -505,6 +546,20 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     if (context.isPortrait && widget.splitMode == SplitMode.half) {
       width = width / 2;
     }
+    getBeat(Offset position) {
+
+      int beat = ((position.dx + melodyRendererVisibleRect.left
+        - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
+      print("beat=$beat");
+      int maxBeat;
+      // if (widget.melodyViewMode == MelodyViewMode.score) {
+      maxBeat = widget.score.beatCount - 1;
+      // } else {
+      //   maxBeat = widget.currentSection.beatCount - 1;
+      // }
+      beat = max(0, min(beat, maxBeat));
+      return beat;
+    }
     return Container(
         color: widget.previewMode ? Colors.white.withOpacity(0.5) : Colors.white,
         child: GestureDetector(
@@ -513,16 +568,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               if (ignoreNextTap) {
                 return;
               }
-              int beat = ((details.localPosition.dx + melodyRendererVisibleRect.left
-                - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
-              print("beat=$beat");
-              int maxBeat;
-              if (widget.melodyViewMode == MelodyViewMode.score) {
-                maxBeat = widget.score.beatCount - 1;
-              } else {
-                maxBeat = widget.currentSection.beatCount - 1;
-              }
-              beat = max(0, min(beat, maxBeat));
+              int beat = getBeat(details.localPosition);
               if (BeatScratchPlugin.playing && widget.editingMelody && highlightedBeat.value != beat) {
                 setState(() {
                   highlightedBeat.value = beat;
@@ -536,8 +582,13 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               }
             },
             onScaleStart: (details) => setState(() {
+                  _isTwoFingerScaling = true;
                   _previousOffset = _offset;
-                  _startFocalPoint = details.focalPoint;
+                  int beat = getBeat(details.focalPoint);
+                  setState(() {
+                    focusedBeat.value = beat;
+                  });
+                  // _startFocalPoint = details.focalPoint;
                   _startHorizontalScale = xScale;
                   _startVerticalScale = yScale;
                 }),
@@ -550,6 +601,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 if (details.horizontalScale > 0) {
                   oldXScale = _xScale;
                   _xScale = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
+                  _targetedXScale = _xScale;
 //                  if(_xScale > maxScaleDiscrepancy * _yScale) {
 //                    _yScale = _xScale * minScaleDiscrepancy;
 //                  }
@@ -560,18 +612,20 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 if (details.verticalScale > 0) {
                   oldYScale = _yScale;
                   _yScale = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
+                  _targetedXScale = _yScale;
                 }
                 // TODO: Use _startFocalPoint to scroll the MelodyRenderer ScrollViews
                 final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
                 final Offset newOffset = details.focalPoint - normalizedOffset * xScale;
 
-                requestedScrollOffsetForScale.value = newOffset * 1.1;
+                // requestedScrollOffsetForScale.value = newOffset * 1.1;
                 _offset = newOffset;
 
               });
             },
             onScaleEnd: (ScaleEndDetails details) {
               _ignoreNextScale = false;
+              _isTwoFingerScaling = false;
               //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
             },
             child: Stack(children:[
@@ -595,7 +649,11 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 previewMode: widget.previewMode,
                 isCurrentScore: widget.isCurrentScore,
                 highlightedBeat: highlightedBeat,
+                focusedBeat: focusedBeat,
                 requestedScrollOffsetForScale: requestedScrollOffsetForScale,
+                targetXScale: targetXScale,
+                targetYScale: targetYScale,
+                isTwoFingerScaling: _isTwoFingerScaling,
               ),
               if(!widget.previewMode) Row(children:[
                 Expanded(child: SizedBox()),
@@ -603,7 +661,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 Expanded(child:SizedBox()),
               Container(color: Colors.black12,
                 height: 48, width:48, child:
-                FlatButton(onPressed:() {
+                MyFlatButton(onPressed:() {
                   widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
                   ? RenderingMode.notation : RenderingMode.colorblock);
                             },
@@ -670,9 +728,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                 ? () {
                                     _ignoreNextScale = true;
                                     setState(() {
-                                      _xScale = min(maxScale, _xScale * 1.05);
-                                      _yScale = min(maxScale, _yScale * 1.05);
-                                      print("zoomIn done; xScale=$xScale, yScale=$yScale");
+                                      xScale = min(maxScale, (xScale) * 1.05);
+                                      yScale = min(maxScale, (yScale) * 1.05);
+                                      print("zoomIn done; xScale=$targetXScale, yScale=$targetYScale");
                                     });
                                   }
                                 : null,
@@ -680,8 +738,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                 ? () {
                                     _ignoreNextScale = true;
                                     setState(() {
-                                      _xScale = max(minScale, _xScale / 1.05);
-                                      _yScale = max(minScale, _yScale / 1.05);
+                                      xScale = max(minScale, xScale / 1.05);
+                                      yScale = max(minScale, yScale / 1.05);
                                       print("zoomOut done; xScale=$xScale, yScale=$yScale");
                                     });
                                   }

@@ -73,7 +73,9 @@ class _SectionListState extends State<SectionList> {
                   onPressed: widget.score.sections.length < 100
                       ? () {
                           print("inserting section");
-                          widget.insertSection(defaultSection()..tempo = (Tempo()..bpm = widget.currentSection.tempo.bpm));
+                          widget.insertSection(defaultSection()
+                            ..tempo = (Tempo()..bpm = widget.currentSection.tempo.bpm)
+                          );
                         }
                       : null,
                 ))

@@ -203,7 +203,7 @@ class _MidiController extends StatelessWidget {
       hasArrowInFromRight = BeatScratchPlugin.midiControllers.indexWhere((element) => element.id == midiController.id)
         < BeatScratchPlugin.midiControllers.length - 2;
     }
-    print("${midiController.name} hasConnectedExternalController=$hasArrowInFromRight}");
+    // print("${midiController.name} hasConnectedExternalController=$hasArrowInFromRight}");
     Widget wrapWithButton(widget) => isMobileerApp ? MyFlatButton(
       padding: EdgeInsets.zero,
       onPressed: () {

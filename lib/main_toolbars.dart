@@ -53,6 +53,8 @@ class BeatScratchToolbar extends StatefulWidget {
   final Part openPart;
   final Part prevPart;
   final bool isMelodyViewOpen;
+  final bool leftHalfOnly;
+  final bool rightHalfOnly;
 
   const BeatScratchToolbar(
       {Key key,
@@ -78,7 +80,15 @@ class BeatScratchToolbar extends StatefulWidget {
       this.scoreManager,
       this.routeToCurrentScore,
       this.vertical,
-      this.verticalSections, this.openMelody, this.prevMelody, this.openPart, this.prevPart, this.isMelodyViewOpen, this.currentSection})
+      this.verticalSections,
+      this.openMelody,
+      this.prevMelody,
+      this.openPart,
+      this.prevPart,
+      this.isMelodyViewOpen,
+      this.currentSection,
+      this.leftHalfOnly,
+      this.rightHalfOnly})
       : super(key: key);
 
   @override
@@ -209,7 +219,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
       height: widget.vertical ? null : 48,
       width: widget.vertical ? 48 : null,
       child: columnOrRow(context, children: [
-        Expanded(
+        if(!widget.rightHalfOnly) Expanded(
           child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
             tooltip: null,
@@ -351,7 +361,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                       MyPopupMenuItem(
                         value: "copyScore",
                         child: Row(children: [
-                          Expanded(child: Text(MyPlatform.isWeb ? 'Copy/Update Score URL' : 'Copy Score URL')),
+                          Expanded(child: Text(MyPlatform.isWeb ? 'Copy/Update Score Link' : 'Copy Score Link')),
                           Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.content_copy))
                         ]),
                         enabled: true,
@@ -359,19 +369,11 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                       MyPopupMenuItem(
                         value: "pasteScore",
                         child: Row(children: [
-                          Expanded(child: Text('Paste Score URL')),
+                          Expanded(child: Text('Paste Score Link')),
                           Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.content_paste))
                         ]),
                         enabled: BeatScratchPlugin.supportsStorage,
                       ),
-                      if (widget.interactionMode == InteractionMode.edit)
-                        MyPopupMenuItem(
-                          value: "focusPartsAndMelodies",
-                          child: Row(children: [
-                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
-                            Expanded(child: Text('Focus Parts/Melodies'))
-                          ]),
-                        ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
@@ -392,42 +394,50 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                               padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.settings))
                         ]),
                       ),
-                      MyPopupMenuItem(
-                        value: "notationUi",
-                        child: Row(children: [
-                          Radio(
-                            value: RenderingMode.notation,
-                            onChanged: null,
-                            groupValue: widget.renderingMode,
-                          ),
-                          Expanded(child: Text('Notation UI')),
-                          Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                              child: Image.asset(
-                                'assets/notehead_filled.png',
-                                width: 20,
-                                height: 20,
-                              ))
-                        ]),
-                      ),
-                      MyPopupMenuItem(
-                        value: "colorblockUi",
-                        child: Row(children: [
-                          Radio(
-                            value: RenderingMode.colorblock,
-                            onChanged: null,
-                            groupValue: widget.renderingMode,
-                          ),
-                          Expanded(child: Text('Colorblock UI')),
-                          Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                              child: Image.asset(
-                                'assets/colorboard_vertical.png',
-                                width: 20,
-                                height: 20,
-                              ))
-                        ]),
-                      ),
+                      if (widget.interactionMode == InteractionMode.edit)
+                        MyPopupMenuItem(
+                          value: "focusPartsAndMelodies",
+                          child: Row(children: [
+                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
+                            Expanded(child: Text('Focus Parts/Melodies'))
+                          ]),
+                        ),
+                      // MyPopupMenuItem(
+                      //   value: "notationUi",
+                      //   child: Row(children: [
+                      //     Radio(
+                      //       value: RenderingMode.notation,
+                      //       onChanged: null,
+                      //       groupValue: widget.renderingMode,
+                      //     ),
+                      //     Expanded(child: Text('Notation UI')),
+                      //     Padding(
+                      //         padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                      //         child: Image.asset(
+                      //           'assets/notehead_filled.png',
+                      //           width: 20,
+                      //           height: 20,
+                      //         ))
+                      //   ]),
+                      // ),
+                      // MyPopupMenuItem(
+                      //   value: "colorblockUi",
+                      //   child: Row(children: [
+                      //     Radio(
+                      //       value: RenderingMode.colorblock,
+                      //       onChanged: null,
+                      //       groupValue: widget.renderingMode,
+                      //     ),
+                      //     Expanded(child: Text('Colorblock UI')),
+                      //     Padding(
+                      //         padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                      //         child: Image.asset(
+                      //           'assets/colorboard_vertical.png',
+                      //           width: 20,
+                      //           height: 20,
+                      //         ))
+                      //   ]),
+                      // ),
 //              const MyPopupMenuItem(
 //                value: "about",
 //                child: Text('About BeatScratch'),
@@ -436,7 +446,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                   },
             padding: EdgeInsets.only(bottom: 10.0),
             icon: Image.asset('assets/logo.png'))),
-        Expanded(
+        if(!widget.rightHalfOnly) Expanded(
           child: MyFlatButton(
             onPressed: (widget.interactionMode == InteractionMode.view)
               ? (BeatScratchPlugin.supportsPlayback
@@ -472,7 +482,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                 //   : Icons.menu,
               ],
             ))))),
-        Expanded(
+        if(!widget.leftHalfOnly) Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
             color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
@@ -481,7 +491,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
               padding: EdgeInsets.all(0.0),
               child: Icon(Icons.remove_red_eye,
                 color: (widget.interactionMode == InteractionMode.view) ? Colors.white : widget.sectionColor)))),
-        Expanded(
+        if(!widget.leftHalfOnly) Expanded(
           child: AnimatedContainer(
             duration: animationDuration,
             color: (widget.interactionMode == InteractionMode.edit) ?
@@ -623,6 +633,7 @@ class SecondToolbar extends StatelessWidget {
   final Color sectionColor;
   final bool enableColorboard;
   final bool vertical;
+  final bool visible;
 
   const SecondToolbar({
     Key key,
@@ -637,7 +648,7 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical
+    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical, this.visible
   }) : super(key: key);
 
   Widget columnOrRow(BuildContext context, {List<Widget> children}) {
@@ -662,7 +673,7 @@ class SecondToolbar extends StatelessWidget {
       totalSpace = totalSpace / 2;
     }
     bool editMode = interactionMode == InteractionMode.edit;
-    int numberOfButtons = editMode ? 4 : 2;
+    int numberOfButtons = editMode ? 4 : 3;
     if (enableColorboard) {
       numberOfButtons += 1;
     }
@@ -695,15 +706,15 @@ class SecondToolbar extends StatelessWidget {
             }
               : null))),
       AnimatedContainer(
-        height: !vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
-        width: vertical ? null : editMode ? totalSpace / numberOfButtons : 0,
+        height: !vertical ? null : totalSpace / numberOfButtons,
+        width: vertical ? null : totalSpace / numberOfButtons,
         duration: animationDuration,
           child: Padding(
               padding: const EdgeInsets.all(2),
               child: MyRaisedButton(
                   padding: EdgeInsets.zero,
                   child: AnimatedOpacity(
-                      opacity: editMode ? 1 : 0,
+                      opacity: visible ? 1 : 0,
                       duration: animationDuration,
                       child: Align(
                           alignment: Alignment.center,
@@ -749,18 +760,6 @@ class SecondToolbar extends StatelessWidget {
             onPressed: toggleTempoConfiguration,
             color: (showTempoConfiguration) ? Colors.white : Colors.grey,
           ))),
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: MyRaisedButton(
-            child: Align(
-              alignment: Alignment.center,
-              child: Transform.scale(scale: vertical ? MyPlatform.isMacOS ? 0.8 : 2.5 : 0.8, child: Image.asset('assets/piano.png')),
-            ),
-            onPressed: toggleKeyboard,
-            onLongPress: toggleKeyboardConfiguration,
-            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
-          ))),
       AnimatedContainer(
         height: !vertical ? null : (enableColorboard) ? totalSpace / numberOfButtons : 0,
         width: vertical ? null : (enableColorboard) ? totalSpace / numberOfButtons : 0,
@@ -773,12 +772,24 @@ class SecondToolbar extends StatelessWidget {
               opacity: toggleColorboard != null ? 1 : 0.25,
               child: Align(
                 alignment: Alignment.center,
-                child: Transform.scale(scale: vertical ? 2.5 : 0.8, child: Image.asset('assets/colorboard.png')),
+                child: Transform.scale(scale: vertical ? MyPlatform.isMacOS || MyPlatform.isWeb ? 0.8 : 2.5 : 0.8, child: Image.asset('assets/colorboard.png')),
               )),
             onPressed: toggleColorboard,
             onLongPress: toggleColorboardConfiguration,
             color: (showColorboardConfiguration) ? sectionColor : (showColorboard) ? Colors.white : Colors.grey,
-          )))
+          ))),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: MyRaisedButton(
+            child: Align(
+              alignment: Alignment.center,
+              child: Transform.scale(scale: vertical ? MyPlatform.isMacOS || MyPlatform.isWeb ? 0.8 : 2.5 : 0.8, child: Image.asset('assets/piano.png')),
+            ),
+            onPressed: toggleKeyboard,
+            onLongPress: toggleKeyboardConfiguration,
+            color: (showKeyboardConfiguration) ? sectionColor : (showKeyboard) ? Colors.white : Colors.grey,
+          ))),
     ]);
   }
 }

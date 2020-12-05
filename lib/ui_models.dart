@@ -11,5 +11,5 @@ enum ScrollingMode { sideScroll, pitch, roll }
 
 enum RenderingMode { notation, colorblock }
 
-Duration animationDuration = const Duration(milliseconds: kIsWeb || true ? 500 : 300);
-Duration slowAnimationDuration = const Duration(milliseconds: kIsWeb || true ? 800 : 500);
+const Duration animationDuration = Duration(milliseconds: kIsWeb || true ? 500 : 300);
+const Duration slowAnimationDuration = Duration(milliseconds: kIsWeb || true ? 800 : 500);

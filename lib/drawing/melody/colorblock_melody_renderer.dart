@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
@@ -75,15 +77,25 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
     bool isNoteStart = false;
     bool isNoteEnd = false;
+    double highResUiScale = 0.85;
+    double noteOffWidth = bounds.width / 4;
 
     if (tones.isNotEmpty) {
       double leftMargin = (isNoteStart) ? drawPadding.toDouble() : 0.0;
+      if (uiScale > highResUiScale) {
+        leftMargin += noteOffWidth * uiScale;
+      } else {
+        leftMargin += min(noteOffWidth * uiScale, 3);
+      }
       double rightMargin = (isNoteEnd) ? drawPadding.toDouble() : 0.0;
       tones.forEach((tone) {
         int realTone = tone; // + melody.offsetUnder(chord)
         if (melody.instrumentType != InstrumentType.drum) {
           alphaDrawerPaint.color =
-            chromaticSteps[realTone.mod12].withAlpha((alpha * 255).toInt());
+            chromaticSteps[realTone.mod12].withAlpha((alpha * 0.9 * 255).toInt());
+        } else {
+          alphaDrawerPaint.color =
+            Color(0xFF212121).withAlpha((alpha * 0.5 * 255).toInt());
         }
         double top = bounds.height - bounds.height * (realTone - lowestPitch) / 88;
         double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
@@ -93,7 +105,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
     }
 
 
-    if (uiScale > 0.85) {
+    if (uiScale > highResUiScale) {
       tones = melody.noteOffsAt(elementPosition % melody.length).toList();
 
       if (tones.isNotEmpty) {
@@ -105,7 +117,7 @@ class ColorblockMelodyRenderer extends BaseMelodyRenderer {
           double bottom = bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
           canvas.drawRect(
             Rect.fromLTRB(
-              bounds.left + leftMargin + xScale, top - xScale, bounds.right - rightMargin - xScale, bottom + xScale),
+              bounds.left + leftMargin + xScale, top - xScale, bounds.left + noteOffWidth * uiScale, bottom + xScale),
             Paint()
               ..strokeWidth = 1.2 * xScale
               ..style = PaintingStyle.stroke

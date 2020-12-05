@@ -34,16 +34,18 @@ class _SizeFadeTransitionState extends State<SizeFadeTransition> {
   @override
   void initState() {
     super.initState();
-    didUpdateWidget(widget);
+    _setupTransition();
   }
 
   @override
-  void didUpdateWidget(SizeFadeTransition oldWidget) {
+  didUpdateWidget(SizeFadeTransition oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _setupTransition();
+  }
 
-    final curve = CurvedAnimation(parent: widget.animation, curve: widget.curve);
-    size = CurvedAnimation(curve: Interval(0.0, widget.sizeFraction), parent: curve);
-    opacity = CurvedAnimation(curve: Interval(widget.sizeFraction, 1.0), parent: curve);
+  @override
+  dispose() {
+    super.dispose();
   }
 
   @override
@@ -57,5 +59,11 @@ class _SizeFadeTransitionState extends State<SizeFadeTransition> {
         child: widget.child,
       ),
     );
+  }
+
+  _setupTransition() {
+    final curve = CurvedAnimation(parent: widget.animation, curve: widget.curve);
+    size = CurvedAnimation(curve: Interval(0.0, widget.sizeFraction), parent: curve);
+    opacity = CurvedAnimation(curve: Interval(widget.sizeFraction, 1.0), parent: curve);
   }
 }

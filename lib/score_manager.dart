@@ -23,7 +23,7 @@ import 'url_conversions.dart';
 class ScoreManager {
   static const String PASTED_SCORE = "Pasted Score";
   static const String FROM_CLIPBOARD = " (from Clipboard)";
-  static const String WEB_SCORE = "Web Score";
+  static const String WEB_SCORE = "Linked Score";
   static const String FROM_WEB = " (from Link)";
   Function(Score) doOpenScore;
   Directory _scoresDirectory;
@@ -98,8 +98,11 @@ class ScoreManager {
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
     try {
+      if (scoreUrl.length < 10) {
+        throw Exception("nope");
+      }
       Score score = scoreFromUrlHashValue(scoreUrl);
-      if (score == null) {
+      if (score == null || score.sections.isEmpty) {
         throw Exception("nope");
       }
       String scoreName = score.name ?? "";

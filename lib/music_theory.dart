@@ -367,4 +367,18 @@ extension ScoreTheory on Score {
       orElse: () => null
     )
     );
+
+  int firstBeatOfSection(Section currentSection) {
+    if (sections.isEmpty) {
+      return 0;
+    }
+    int result = 0;
+    int sectionIndex = 0;
+    Section section = sections[sectionIndex++];
+    while(section.id != currentSection.id) {
+      result += section.beatCount;
+      section = sections[sectionIndex++];
+    }
+    return result;
+  }
 }
