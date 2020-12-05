@@ -103,6 +103,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   Map<MelodyViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
   SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
+  ChangeNotifier scrollToCurrentBeat;
+  ChangeNotifier centerCurrentSection;
   set currentSwipeTutorial(SwipeTutorial value) {
     if (value == null || _swipeTutorialsSeen[widget.melodyViewMode].contains(value)) {
       _currentSwipeTutorial = null;
@@ -120,7 +122,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   List<AnimationController> _xScaleAnimationControllers;
   List<AnimationController> _yScaleAnimationControllers;
   _setScale({
-    double value, 
+    double Function() value,
     double Function() currentValue,
     Function(double) applyAnimatedValue, 
     List<AnimationController> controllers,
@@ -139,7 +141,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       Animation animation;
       // print("animating xScale to $value");
       // print("Tween params: begin: $currentValue, end: $value");
-      animation = Tween<double>(begin: currentValue(), end: value)
+      animation = Tween<double>(begin: currentValue(), end: value())
         .animate(scaleAnimationController)
         ..addListener(() {
           // print("Tween scale: ${animation.value}");
@@ -148,11 +150,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
           });
         });
       scaleAnimationController.forward();
+      Future.delayed(incrementAnimationDuration, doIt);
     }
     if (lastSet.isBefore(DateTime.now().subtract(incrementAnimationDuration))) {
       doIt();
-    } else {
-      Future.delayed(incrementAnimationDuration * .5, doIt);
     }
   }
 
@@ -164,7 +165,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   set xScale(double value) {
     _targetedXScale = value;
     _setScale(
-      value: value, 
+      value: () => targetXScale,
       currentValue: () => _xScale,
       applyAnimatedValue: (value) => _xScale = value, 
       controllers: _xScaleAnimationControllers,
@@ -177,7 +178,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   set yScale(double value) {
     _targetedYScale = value;
     _setScale(
-      value: value,
+      value: () => targetYScale,
       currentValue: () => _yScale,
       applyAnimatedValue: (value) => _yScale = value,
       controllers: _yScaleAnimationControllers,
@@ -201,6 +202,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     _yScaleAnimationControllers = [];
     _xScaleLastSet = DateTime(0);
     _yScaleLastSet = DateTime(0);
+    scrollToCurrentBeat = ChangeNotifier();
+    centerCurrentSection = ChangeNotifier();
   }
 
   double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
@@ -212,6 +215,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     _xScaleAnimationControllers.clear();
     _yScaleAnimationControllers.clear();
     highlightedBeat.dispose();
+    scrollToCurrentBeat.dispose();
+    centerCurrentSection.dispose();
     super.dispose();
   }
   makeFullSize() {
@@ -654,35 +659,56 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 targetXScale: targetXScale,
                 targetYScale: targetYScale,
                 isTwoFingerScaling: _isTwoFingerScaling,
+                scrollToCurrentBeat: scrollToCurrentBeat,
+                centerCurrentSection: centerCurrentSection,
               ),
               if(!widget.previewMode) Row(children:[
                 Expanded(child: SizedBox()),
+                Column(children: [
+                  Expanded(child:SizedBox()),
+                  Container(color: Colors.black12,
+                    height: 48, width:48, child:
+                    MyFlatButton(onPressed:() {
+                      widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
+                        ? RenderingMode.notation : RenderingMode.colorblock);
+                    },
+                      child: Stack(children: [
+                        AnimatedOpacity(
+                          duration: animationDuration,
+                          opacity: widget.renderingMode == RenderingMode.colorblock ? 1 : 0,
+                          child: Image.asset(
+                            'assets/notehead_filled.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
+                        AnimatedOpacity(
+                          duration: animationDuration,
+                          opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
+                          child: Image.asset(
+                            'assets/colorboard_vertical.png',
+                            width: 20,
+                            height: 20,
+                          ))
+                      ]))),
+                  SizedBox(height: 2),
+                ]),
+              SizedBox(width: 2),
               Column(children: [
                 Expanded(child:SizedBox()),
               Container(color: Colors.black12,
                 height: 48, width:48, child:
-                MyFlatButton(onPressed:() {
-                  widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
-                  ? RenderingMode.notation : RenderingMode.colorblock);
+                MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  onPressed:() {
+                  scrollToCurrentBeat.notifyListeners();
                             },
                             child: Stack(children: [
                               AnimatedOpacity(
                                 duration: animationDuration,
-                                opacity: widget.renderingMode == RenderingMode.colorblock ? 1 : 0,
-                                child: Image.asset(
-                                  'assets/notehead_filled.png',
-                                  width: 20,
-                                  height: 20,
-                                ),
+                                opacity: 1,
+                                child: Icon(Icons.my_location, color: widget.sectionColor),
                               ),
-                              AnimatedOpacity(
-                                  duration: animationDuration,
-                                  opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
-                                  child: Image.asset(
-                                    'assets/colorboard_vertical.png',
-                                    width: 20,
-                                    height: 20,
-                                  ))
                             ]))),
                     SizedBox(height: 2),
               Container(color: Colors.black12,

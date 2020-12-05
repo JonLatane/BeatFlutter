@@ -554,7 +554,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                                     children: [
                                       Expanded(child:SizedBox()),
                                       Container(
-                                        width: widget.vertical ? 48: 80,
+                                        width: widget.vertical ? 44 : 80,
                                         child: Text(
                                           widget.openMelody != null ? widget.openMelody.name?.isNotEmpty ?? false ? widget.openMelody.name : "Melody ${widget.openMelody.id.substring(0, 5)}"
                                             : widget.openPart != null ? widget.openPart.midiName

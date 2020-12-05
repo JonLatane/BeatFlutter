@@ -48,6 +48,8 @@ class MelodyRenderer extends StatefulWidget {
   final ValueNotifier<int> focusedBeat;
   final ValueNotifier<Offset> requestedScrollOffsetForScale;
   final bool isTwoFingerScaling;
+  final ChangeNotifier scrollToCurrentBeat;
+  final ChangeNotifier centerCurrentSection;
 
   const MelodyRenderer(
       {Key key,
@@ -73,7 +75,7 @@ class MelodyRenderer extends StatefulWidget {
       this.requestedScrollOffsetForScale,
       this.focusedBeat,
       this.targetXScale,
-      this.targetYScale, this.isTwoFingerScaling})
+      this.targetYScale, this.isTwoFingerScaling, this.scrollToCurrentBeat, this.centerCurrentSection})
       : super(key: key);
 
   @override
@@ -160,6 +162,9 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     colorboardPart = ValueNotifier(widget.colorboardPart);
     focusedPart = ValueNotifier(widget.focusedPart);
     sectionColor = ValueNotifier(widget.sectionColor);
+    widget.scrollToCurrentBeat.addListener(scrollToCurrentBeat);
+    widget.centerCurrentSection.addListener(_constrainToSectionBounds);
+    // scrollToCurrentBeat
     timeScrollController.addListener(_isScrollingListener);
   }
 
@@ -192,6 +197,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     focusedPart.dispose();
     sectionColor.dispose();
     timeScrollController.removeListener(_isScrollingListener);
+    widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
+    widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
     super.dispose();
   }
 
@@ -235,7 +242,14 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
       _prevSectionId != null && _prevSectionId != widget.currentSection.id) {
         _constrainToSectionBounds();
       } else if (_prevXScale != null && _prevXScale != widget.xScale) {
-        scrollToBeat(widget.focusedBeat.value ?? currentBeat);
+        _constrainToSectionBounds();
+        double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
+        double visibleWidth = myVisibleRect.width;
+        double clefWidth = _extraBeatsSpaceForClefs * targetBeatWidth;
+        if (sectionWidth + clefWidth > visibleWidth) {
+          scrollToBeat(widget.focusedBeat.value ?? currentBeat);
+        }
+        // scrollToBeat(widget.focusedBeat.value ?? currentBeat);
       } else if (_prevSectionOrder != null && _prevSectionOrder != sectionOrder) {
         Future.delayed(animationDuration, _constrainToSectionBounds);
       }
@@ -323,6 +337,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     }
   }
 
+  void scrollToCurrentBeat() => scrollToBeat(currentBeat);
+
   void scrollToBeat(int currentBeat, {Duration beatAnimationDuration = animationDuration, Duration delay}) {
     double animationPos = (currentBeat) * targetBeatWidth;
     animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width);
@@ -344,7 +360,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     animationPos = max(0, animationPos);
     if (_hasBuilt) {
       try {
-        animate() => timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: Curves.ease);
+        animate() => timeScrollController.animateTo(
+          animationPos, duration: beatAnimationDuration, curve: widget.isTwoFingerScaling ? Curves.linear : Curves.ease);
         if (delay != null) {
           Future.delayed(delay, animate);
         } else {
@@ -358,23 +375,23 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     // if (widget.melodyViewMode != MelodyViewMode.score) {
     //TODO restrict the user to their current section more properly
     double position = timeScrollController.position.pixels;
-    double sectionWidth = widget.currentSection.beatCount * standardBeatWidth;
+    double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
     double visibleWidth = myVisibleRect.width;
-    double clefWidth = _extraBeatsSpaceForClefs * standardBeatWidth;
+    double clefWidth = _extraBeatsSpaceForClefs * targetBeatWidth;
     if (sectionWidth + clefWidth <= visibleWidth) {
-      int marginBeats = ((visibleWidth - sectionWidth - clefWidth) / standardBeatWidth).floor();
+      int marginBeats = ((visibleWidth - sectionWidth - clefWidth) / targetBeatWidth).floor();
 
       scrollToBeat(firstBeatOfSection - (marginBeats ~/ 2));
     } else {
-      double sectionStart = (firstBeatOfSection + _extraBeatsSpaceForClefs) * standardBeatWidth;
+      double sectionStart = (firstBeatOfSection + _extraBeatsSpaceForClefs) * targetBeatWidth;
       if (position < sectionStart) {
         scrollToBeat(firstBeatOfSection);
       } else if (position + visibleWidth > sectionStart + sectionWidth) {
         scrollToBeat(firstBeatOfSection +
             2 +
-            (sectionWidth ~/ standardBeatWidth) -
+            (sectionWidth ~/ targetBeatWidth) -
             (myVisibleRect.width ~/
-                standardBeatWidth) /* + ((sectionWidth - 2*visibleRect.width)~/ standardBeatWidth)*/);
+                targetBeatWidth) /* + ((sectionWidth - 2*visibleRect.width)~/ targetBeatWidth)*/);
       }
     }
     // }
