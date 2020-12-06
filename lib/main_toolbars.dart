@@ -622,6 +622,7 @@ class SecondToolbar extends StatelessWidget {
   final VoidCallback toggleKeyboardConfiguration;
   final VoidCallback toggleColorboardConfiguration;
   final VoidCallback toggleTempoConfiguration;
+  final VoidCallback toggleTempoPosition;
   final bool editingMelody;
   final bool showKeyboard;
   final bool showKeyboardConfiguration;
@@ -648,7 +649,7 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical, this.visible
+    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical, this.visible, this.toggleTempoPosition
   }) : super(key: key);
 
   Widget columnOrRow(BuildContext context, {List<Widget> children}) {
@@ -758,6 +759,7 @@ class SecondToolbar extends StatelessWidget {
               )
             ]),
             onPressed: toggleTempoConfiguration,
+            onLongPress: showTempoConfiguration ? toggleTempoPosition : null,
             color: (showTempoConfiguration) ? Colors.white : Colors.grey,
           ))),
       AnimatedContainer(

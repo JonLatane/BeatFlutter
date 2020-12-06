@@ -238,7 +238,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showScorePicker = false;
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
-  bool _showTempoConfiguration = false;
+  bool _showTapInBar = false;
+  bool _bottomTapInBar = false;
   bool _showKeyboardConfiguration = false;
   bool _enableColorboard = false;
 
@@ -478,7 +479,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       editingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
-        _showTempoConfiguration = false;
+        _showTapInBar = false;
       }
       melodyViewMode = MelodyViewMode.score;
       selectedMelody = null;
@@ -540,7 +541,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       showViewOptions = !showViewOptions;
       if (!showViewOptions) {
-        _showTempoConfiguration = false;
+        _showTapInBar = false;
       }
     });
   }
@@ -594,6 +595,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   bool get _landscapePhoneUI => context.isLandscape && context.isPhone;
+  bool _wasLandscapePhoneUI = false;
 
   bool get _scalableUI => context.isTabletOrLandscapey && !_landscapePhoneUI;
 
@@ -656,7 +658,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 150
       : 0;
 
-  double get _tempoConfigurationHeight => !_scalableUI ? (_showTempoConfiguration ? 32 : 0) : 0;
+  double get _tempoConfigurationHeight => !_scalableUI ? (_showTapInBar ? 34 : 0) : 0;
 
   bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
 
@@ -694,20 +696,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ? 25
           : 30;
 
-  double get _tapInBarHeight => _showTempoConfiguration || _forceShowTapInBar
+  double get _tapInBarHeight => showTapInBar && !_bottomTapInBar
       ? (_isLandscapePhone)
           ? 0
           : 44
       : 0;
 
-  double get _landscapeTapInBarWidth => _showTempoConfiguration || _forceShowTapInBar
+  double get _bottomTapInBarHeight => showTapInBar && _bottomTapInBar ? 44 : 0;
+
+  double get _landscapeTapInBarWidth => showTapInBar && !_bottomTapInBar
       ? (_isLandscapePhone)
           ? 44
           : 0
       : 0;
   bool _forceShowTapInBar = false;
 
-  bool get showTapInBar => _showTempoConfiguration || _forceShowTapInBar;
+  bool get showTapInBar => _showTapInBar || _forceShowTapInBar;
 
   bool verticalSectionList = false;
 
@@ -926,6 +930,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
     ));
+    if (!_landscapePhoneUI) {
+      _bottomTapInBar = true;
+    } else if (!_wasLandscapePhoneUI) {
+      _bottomTapInBar = false;
+    }
+    _wasLandscapePhoneUI = _landscapePhoneUI;
 //    var top = MediaQuery.of(context).size.height - _colorboardHeight - _keyboardHeight;
 //    var bottom = MediaQuery.of(context).size.height;
 //    var right = MediaQuery.of(context).size.width;
@@ -960,16 +970,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _savingScoreBar(context),
                   _audioSystemWorkingBar(context),
                   _colorboard(context),
-                  _keyboard(context),
                   if (!_landscapePhoneUI) _tapInBar(context),
+                  _keyboard(context),
+                  _tapInBar(context, bottom: true),
                   Container(height: _bottomNotchPadding),
                 ]),
               ),
-              if (_landscapePhoneUI) _tapInBar(context, vertical: true),
               AnimatedContainer(
                   duration: animationDuration,
                   width: _landscapePhoneSecondToolbarWidth,
                   child: createSecondToolbar(vertical: true)),
+              if (_landscapePhoneUI) _tapInBar(context, vertical: true),
               if (_landscapePhoneUI) createBeatScratchToolbar(vertical: true),
               Container(width: _rightNotchPadding),
             ],
@@ -1255,12 +1266,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ]));
   }
 
-  Widget _tapInBar(BuildContext context, {bool vertical = false}) {
+  Widget _tapInBar(BuildContext context, {
+    bool vertical = false,
+    bool bottom = false,
+  }) {
     bool playing = BeatScratchPlugin.playing;
     int tapInBeat = _tapInBeat;
-    bool isDisplayed = (!vertical && _tapInBarHeight != 0) || (vertical && _landscapeTapInBarWidth != 0);
-    final double dimension = !playing && tapInBeat == null ? 42 : 0;
-    final double dimension2 = !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0;
+    bool isDisplayed =
+      (!vertical && !bottom && _tapInBarHeight != 0)
+        || (vertical && _landscapeTapInBarWidth != 0)
+        || (bottom && _bottomTapInBarHeight != 0);
+    final double tapInFirstSize = !playing && tapInBeat == null ? 42 : 0;
+    final double tapInSecondSize = !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0;
     tapInBarIcon({bool withText = true, bool withIcon = true}) => Stack(children: [
           AnimatedOpacity(
               duration: animationDuration,
@@ -1299,12 +1316,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final contents = [
       AnimatedOpacity(
         duration: animationDuration,
-        opacity: dimension != 0 && showTapInBar ? 1 : 0,
+        opacity: tapInFirstSize != 0 && showTapInBar && isDisplayed ? 1 : 0,
         child: AnimatedContainer(
             duration: Duration(milliseconds: 35),
             padding: vertical ? EdgeInsets.only(top: 3) : EdgeInsets.only(left: 5),
-            height: vertical ? dimension : null,
-            width: vertical ? null : dimension,
+            height: vertical ? tapInFirstSize : null,
+            width: vertical ? null : tapInFirstSize,
             child: Listener(
                 onPointerDown: (event) {
                   BeatScratchPlugin.countIn(-2);
@@ -1327,12 +1344,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
       AnimatedOpacity(
         duration: animationDuration,
-        opacity: dimension2 != 0 && showTapInBar ? 1 : 0,
+        opacity: tapInSecondSize != 0 && showTapInBar ? 1 : 0,
         child: AnimatedContainer(
             duration: Duration(milliseconds: 35),
             padding: vertical ? EdgeInsets.only(top: 5) : EdgeInsets.only(left: 5),
-            height: vertical ? dimension2 : null,
-            width: vertical ? null : dimension2,
+            height: vertical ? tapInSecondSize : null,
+            width: vertical ? null : tapInSecondSize,
             child: Listener(
                 onPointerDown: (event) {
                   BeatScratchPlugin.countIn(-1);
@@ -1352,30 +1369,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                 ))),
       ),
-      // AnimatedContainer(
-      //   duration: animationDuration,
-      //   padding: EdgeInsets.only(left: 5),
-      //   width: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 69 : 0,
-      //   child: MyRaisedButton(
-      //     child: AnimatedOpacity(
-      //       duration: animationDuration,
-      //       opacity: BeatScratchPlugin.playing && !(context.isPortraitPhone) ? 1 : 0,
-      //       child: Icon(Icons.pause)),
-      //     onPressed: BeatScratchPlugin.playing
-      //       ? () {
-      //       setState(() {
-      //         BeatScratchPlugin.pause();
-      //         _tapInBeat = null;
-      //       });
-      //     }
-      //       : null,
-      //     padding: EdgeInsets.zero,
-      //   )),
       if (!vertical) Expanded(child: Padding(padding: EdgeInsets.only(left: 7), child: tapInBarIcon())),
-      // if (vertical) Transform.translate(offset:Offset(12,10), child: Transform.scale(scale: 1.5, child: tapInBarIcon(withText: false))),
       if (vertical) SizedBox(height: 15),
-      // if (vertical) Expanded(child:SizedBox()),
-      if (vertical) Expanded(child: _tempoConfigurationBar(context, vertical: true)),
+      if (vertical) Expanded(child: AnimatedOpacity(duration: animationDuration, opacity: isDisplayed ? 1 : 0, child: _tempoConfigurationBar(context, vertical: true))),
       if (vertical) SizedBox(height: 3),
       if (!_portraitPhoneUI && !vertical) _tempoConfigurationBar(context),
       Container(
@@ -1411,10 +1407,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (vertical) SizedBox(height: 3),
     ];
     return AnimatedContainer(
-        padding: EdgeInsets.only(left: vertical ? 3 : 0),
+        padding: vertical ? EdgeInsets.only(right: 2) : EdgeInsets.only(bottom: 1),
         duration: animationDuration,
         width: vertical ? _landscapeTapInBarWidth : null,
-        height: vertical ? null : _tapInBarHeight,
+        height: vertical ? null : bottom ? _bottomTapInBarHeight : _tapInBarHeight,
         color: Color(0xFF424242),
         child: vertical ? Column(children: contents) : Row(children: contents));
   }
@@ -1428,12 +1424,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         quarterTurns: vertical ? 3 : 0,
         child: AnimatedOpacity(
             duration: animationDuration,
-            opacity: _showTempoConfiguration ? 1 : 0,
+            opacity: _showTapInBar ? 1 : 0,
             child: AnimatedContainer(
                 duration: animationDuration,
                 height: _portraitPhoneUI ? (_tempoConfigurationHeight) : null,
-                width: !_portraitPhoneUI ? (_showTempoConfiguration ? 300 : 0) : null,
-                padding: _scalableUI || _landscapePhoneUI ? EdgeInsets.zero : EdgeInsets.only(bottom: 1, top: 1),
+                width: !_portraitPhoneUI ? (_showTapInBar ? 300 : 0) : null,
+                padding: _scalableUI || _landscapePhoneUI ?
+                  EdgeInsets.zero : EdgeInsets.only(bottom: 2, top: 0),
                 child: Row(children: [
                   if (!_scalableUI) SizedBox(width: 5),
                   Container(
@@ -1660,16 +1657,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       sectionColor: sectionColor,
       toggleTempoConfiguration: () {
         setState(() {
-          _showTempoConfiguration = !_showTempoConfiguration;
-          if (_showTempoConfiguration) {
+          _showTapInBar = !_showTapInBar;
+          if (_showTapInBar) {
             showViewOptions = true;
           }
         });
       },
-      showTempoConfiguration: _showTempoConfiguration,
+      showTempoConfiguration: _showTapInBar,
       visible: (_secondToolbarHeight != null && _secondToolbarHeight != 0) ||
           (_landscapePhoneSecondToolbarWidth != null && _landscapePhoneSecondToolbarWidth != 0) ||
-          _scalableUI);
+          _scalableUI,
+      toggleTempoPosition: _landscapePhoneUI ? () {
+        setState(() {
+          _bottomTapInBar = !_bottomTapInBar;
+        });
+      } : null
+  );
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
@@ -1992,6 +1995,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           renderingMode = mode;
         });
       },
+      showViewOptions: showViewOptions,
     );
   }
 

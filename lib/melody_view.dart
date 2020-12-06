@@ -47,10 +47,14 @@ class MelodyView extends StatefulWidget {
   final double initialScale;
   final bool previewMode;
   final bool isCurrentScore;
+  final bool showViewOptions;
 
   MelodyView(
-      {this.selectBeat,this.focusPartsAndMelodies, this.melodyViewSizeFactor, this.cloneCurrentSection,
-        this.superSetState,
+      {this.selectBeat,
+      this.focusPartsAndMelodies,
+      this.melodyViewSizeFactor,
+      this.cloneCurrentSection,
+      this.superSetState,
       this.melodyViewMode,
       this.score,
       this.currentSection,
@@ -75,8 +79,16 @@ class MelodyView extends StatefulWidget {
       this.deleteMelody,
       this.deleteSection,
       this.renderingMode,
-  this.colorboardNotesNotifier, this.keyboardNotesNotifier, this.height, this.enableColorboard, this.initialScale, this.previewMode = false,
-        this.isCurrentScore = true, Key key, this.requestRenderingMode}): super(key:key);
+      this.colorboardNotesNotifier,
+      this.keyboardNotesNotifier,
+      this.height,
+      this.enableColorboard,
+      this.initialScale,
+      this.previewMode = false,
+      this.isCurrentScore = true,
+      Key key,
+      this.requestRenderingMode, this.showViewOptions = false})
+      : super(key: key);
 
   @override
   _MelodyViewState createState() => _MelodyViewState();
@@ -85,8 +97,9 @@ class MelodyView extends StatefulWidget {
 class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScale = 0.1;
   static const double maxScale = 1.0;
-  bool isConfiguringPart = false;
-  bool isEditingSection = false;
+  bool autoScroll;
+  bool isConfiguringPart;
+  bool isEditingSection;
   bool _isTwoFingerScaling = false;
   Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
@@ -94,17 +107,22 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   Offset _startFocalPoint = Offset.zero;
   double _startHorizontalScale = 1.0;
   double _startVerticalScale = 1.0;
-  Duration incrementAnimationDuration = Duration(milliseconds: 500);
-  AnimationController animationController() =>
-    AnimationController(vsync: this, duration: incrementAnimationDuration);
+  Duration twoFingerDuration = Duration(milliseconds: 800);
+  Duration incrementAnimationDuration = Duration(milliseconds: 800);
+
+  Duration get animationLoopDuration => _isTwoFingerScaling ? twoFingerDuration : incrementAnimationDuration;
+
+  AnimationController animationController() => AnimationController(vsync: this, duration: animationLoopDuration);
   double _xScale;
   bool _hasSwipedClosed = false;
 
   Map<MelodyViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
+
   SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
   ChangeNotifier scrollToCurrentBeat;
   ChangeNotifier centerCurrentSection;
+
   set currentSwipeTutorial(SwipeTutorial value) {
     if (value == null || _swipeTutorialsSeen[widget.melodyViewMode].contains(value)) {
       _currentSwipeTutorial = null;
@@ -121,70 +139,88 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 
   List<AnimationController> _xScaleAnimationControllers;
   List<AnimationController> _yScaleAnimationControllers;
-  _setScale({
-    double Function() value,
-    double Function() currentValue,
-    Function(double) applyAnimatedValue, 
-    List<AnimationController> controllers,
-    DateTime lastSet,
-    Function(DateTime) applyLastSet,
-  }) {
+
+  Function() createValueAnimationLoop(
+      {Function() Function() loopback,
+      double Function() value,
+      double Function() currentValue,
+      Function(double) applyAnimatedValue,
+      List<AnimationController> controllers}) {
     doIt() {
-      applyLastSet(DateTime.now());
-      controllers.forEach((controller) {
-        controller.stop(canceled: false);
-        controller.dispose();
-      });
-      controllers.clear();
-      AnimationController scaleAnimationController = animationController();
-      controllers.add(scaleAnimationController);
-      Animation animation;
-      // print("animating xScale to $value");
-      // print("Tween params: begin: $currentValue, end: $value");
-      animation = Tween<double>(begin: currentValue(), end: value())
-        .animate(scaleAnimationController)
-        ..addListener(() {
-          // print("Tween scale: ${animation.value}");
-          setState(() {
-            applyAnimatedValue(animation.value);
-          });
+      if (value() == currentValue()) {
+        print("skipping scale animation: no change (${currentValue()} to ${value()}");
+      } else if (_isTwoFingerScaling) {
+        print("skipping scale animation: isTwoFingerScaling");
+      } else {
+        print("starting scale animation");
+        controllers.forEach((controller) {
+          controller.stop(canceled: false);
+          controller.dispose();
         });
-      scaleAnimationController.forward();
-      Future.delayed(incrementAnimationDuration, doIt);
+        controllers.clear();
+        AnimationController scaleAnimationController = animationController();
+        controllers.add(scaleAnimationController);
+        Animation animation;
+        // print("animating xScale to $value");
+        // print("Tween params: begin: $currentValue, end: $value");
+        animation = Tween<double>(begin: currentValue(), end: value()).animate(scaleAnimationController)
+          ..addListener(() {
+            // print("Tween scale: ${animation.value}");
+            setState(() {
+              applyAnimatedValue(animation.value);
+            });
+          });
+        scaleAnimationController.forward();
+      }
+      Future.delayed(animationLoopDuration + Duration(milliseconds: 5), loopback());
     }
-    if (lastSet.isBefore(DateTime.now().subtract(incrementAnimationDuration))) {
-      doIt();
-    }
+
+    return doIt;
   }
 
+  /// Always immediately updated
   double _targetedXScale, _targetedYScale;
-  DateTime _xScaleLastSet, _yScaleLastSet;
+
+  Function() xScaleAnimationLoop, yScaleAnimationLoop;
+
   double get targetYScale => _targetedYScale ?? _xScale;
+
   double get targetXScale => _targetedXScale ?? _yScale;
+
   double get xScale => targetXScale;
+
   set xScale(double value) {
     _targetedXScale = value;
-    _setScale(
-      value: () => targetXScale,
-      currentValue: () => _xScale,
-      applyAnimatedValue: (value) => _xScale = value, 
-      controllers: _xScaleAnimationControllers,
-      lastSet : _xScaleLastSet,
-      applyLastSet: (v) => _xScaleLastSet = v,
-    );
+    // _setScale(
+    //   value: () => targetXScale,
+    //   currentValue: () => _xScale,
+    //   applyAnimatedValue: (value) => _xScale = value,
+    //   controllers: _xScaleAnimationControllers,
+    //   lastLaunch: () => _xScaleLaunched,
+    //   notifyLaunch: (v) => _xScaleLaunched = v,
+    //   // lastScheduledLaunch: () => _lastScheduledXLaunch,
+    //   // notifyScheduledLaunch: (v) => _lastScheduledXLaunch = v,
+    //   incrementDuration: _isTwoFingerScaling ? twoFingerDuration : incrementAnimationDuration,
+    // );
   }
+
   double _yScale;
+
   double get yScale => targetYScale;
+
   set yScale(double value) {
     _targetedYScale = value;
-    _setScale(
-      value: () => targetYScale,
-      currentValue: () => _yScale,
-      applyAnimatedValue: (value) => _yScale = value,
-      controllers: _yScaleAnimationControllers,
-      lastSet : _yScaleLastSet,
-      applyLastSet: (v) => _yScaleLastSet = v,
-    );
+    // _setScale(
+    //   value: () => targetYScale,
+    //   currentValue: () => _yScale,
+    //   applyAnimatedValue: (value) => _yScale = value,
+    //   controllers: _yScaleAnimationControllers,
+    //   lastLaunch: () => _yScaleLaunched,
+    //   notifyLaunch: (v) => _yScaleLaunched = v,
+    //   // lastScheduledLaunch: () => _lastScheduledYLaunch,
+    //   // notifyScheduledLaunch: (v) => _lastScheduledYLaunch = v,
+    //   incrementDuration: _isTwoFingerScaling ? twoFingerDuration : incrementAnimationDuration,
+    // );
   }
 
   @override
@@ -200,33 +236,63 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     };
     _xScaleAnimationControllers = [];
     _yScaleAnimationControllers = [];
-    _xScaleLastSet = DateTime(0);
-    _yScaleLastSet = DateTime(0);
     scrollToCurrentBeat = ChangeNotifier();
     centerCurrentSection = ChangeNotifier();
+
+    isConfiguringPart = false;
+    isEditingSection = false;
+    autoScroll = true;
+
+    xScaleAnimationLoop = createValueAnimationLoop(
+      loopback: () => xScaleAnimationLoop,
+      value: () => targetXScale,
+      currentValue: () => _xScale,
+      applyAnimatedValue: (value) => _xScale = value,
+      controllers: _xScaleAnimationControllers,
+    );
+    yScaleAnimationLoop = createValueAnimationLoop(
+      loopback: () => yScaleAnimationLoop,
+      value: () => targetYScale,
+      currentValue: () => _yScale,
+      applyAnimatedValue: (value) => _yScale = value,
+      controllers: _yScaleAnimationControllers,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      xScaleAnimationLoop();
+      yScaleAnimationLoop();
+    });
   }
 
   double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
 
   @override
   void dispose() {
-    _xScaleAnimationControllers.forEach((controller) { controller.dispose(); });
-    _yScaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _xScaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
+    _yScaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
     _xScaleAnimationControllers.clear();
     _yScaleAnimationControllers.clear();
     highlightedBeat.dispose();
     scrollToCurrentBeat.dispose();
     centerCurrentSection.dispose();
+    xScaleAnimationLoop = null;
+    yScaleAnimationLoop = null;
     super.dispose();
   }
+
   makeFullSize() {
-    if(widget.splitMode == SplitMode.half) {
+    if (widget.splitMode == SplitMode.half) {
       widget.toggleSplitMode();
     }
   }
 
   bool _ignoreDragEvents = false;
+
   bool get ignoreDragEvents => _ignoreDragEvents;
+
   set ignoreDragEvents(value) {
     _ignoreDragEvents = value;
     if (value) {
@@ -235,15 +301,17 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       });
     }
   }
+
   MelodyViewMode _previousMelodyViewMode;
   SplitMode _previousSplitMode;
+
   @override
   Widget build(context) {
-    if(_xScale == null) {
-      if(widget.initialScale != null) {
+    if (_xScale == null) {
+      if (widget.initialScale != null) {
         _xScale = widget.initialScale;
         _yScale = widget.initialScale;
-      } else if(context.isTablet) {
+      } else if (context.isTablet) {
         _xScale = 0.33;
         _yScale = 0.33;
       } else {
@@ -251,13 +319,15 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
         _yScale = 0.22;
       }
     }
-    if(context.isPortrait) {
-      var verticalSizeHalved = (_previousSplitMode == SplitMode.full && widget.splitMode == SplitMode.half)
-        || (_previousMelodyViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
-          && widget.splitMode == SplitMode.half);
-      var verticalSizeDoubled = (_previousSplitMode == SplitMode.half && widget.splitMode == SplitMode.full)
-        || (_previousMelodyViewMode != MelodyViewMode.score && widget.melodyViewMode == MelodyViewMode.score
-          && widget.splitMode == SplitMode.half);
+    if (context.isPortrait) {
+      var verticalSizeHalved = (_previousSplitMode == SplitMode.full && widget.splitMode == SplitMode.half) ||
+          (_previousMelodyViewMode == MelodyViewMode.score &&
+              widget.melodyViewMode != MelodyViewMode.score &&
+              widget.splitMode == SplitMode.half);
+      var verticalSizeDoubled = (_previousSplitMode == SplitMode.half && widget.splitMode == SplitMode.full) ||
+          (_previousMelodyViewMode != MelodyViewMode.score &&
+              widget.melodyViewMode == MelodyViewMode.score &&
+              widget.splitMode == SplitMode.half);
       if (verticalSizeDoubled) {
         xScale *= 1.6666;
         yScale *= 1.6666;
@@ -278,13 +348,15 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     if (!widget.editingMelody || !BeatScratchPlugin.playing) {
       highlightedBeat.value = null;
     }
-    currentSwipeTutorial = _swipeTutorialsSeen.keys.contains(widget.melodyViewMode) && widget.melodyViewSizeFactor > 0 ?
-      widget.splitMode == SplitMode.half ? SwipeTutorial.closeExpand : SwipeTutorial.collapse : null;
+    currentSwipeTutorial = _swipeTutorialsSeen.keys.contains(widget.melodyViewMode) && widget.melodyViewSizeFactor > 0
+        ? widget.splitMode == SplitMode.half
+            ? SwipeTutorial.closeExpand
+            : SwipeTutorial.collapse
+        : null;
     final sensitivity = 10;
     return Column(
       children: [
-        Column(
-    children: [
+        Column(children: [
           AnimatedContainer(
             duration: animationDuration,
             color: (widget.melodyViewMode == MelodyViewMode.section)
@@ -320,7 +392,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                     child: GestureDetector(
                         onVerticalDragUpdate: (details) {
                           if (ignoreDragEvents) return;
-                          if (details.delta.dy > sensitivity) { // Down swipe
+                          if (details.delta.dy > sensitivity) {
+                            // Down swipe
                             if (widget.splitMode == SplitMode.half) {
                               _hasSwipedClosed = true;
                               widget.closeMelodyView();
@@ -328,7 +401,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                               widget.toggleSplitMode();
                             }
                             ignoreDragEvents = true;
-                          } else if (details.delta.dy < -sensitivity) { // Up swipe
+                          } else if (details.delta.dy < -sensitivity) {
+                            // Up swipe
                             if (widget.splitMode == SplitMode.half) {
                               widget.toggleSplitMode();
                             }
@@ -337,7 +411,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                         },
                         onHorizontalDragUpdate: (details) {
                           if (ignoreDragEvents) return;
-                          if (details.delta.dx > sensitivity) { // Right swipe
+                          if (details.delta.dx > sensitivity) {
+                            // Right swipe
                             if (widget.splitMode == SplitMode.half) {
                               _hasSwipedClosed = true;
                               widget.closeMelodyView();
@@ -345,7 +420,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                               widget.toggleSplitMode();
                             }
                             ignoreDragEvents = true;
-                          } else if (details.delta.dx < -sensitivity) { // Left swipe
+                          } else if (details.delta.dx < -sensitivity) {
+                            // Left swipe
                             if (widget.splitMode == SplitMode.half) {
                               widget.toggleSplitMode();
                             }
@@ -357,7 +433,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                             Column(children: [
                               AnimatedContainer(
                                   duration: animationDuration,
-                                  height: (widget.melodyViewMode == MelodyViewMode.section) ? toolbarHeight(context) : 0,
+                                  height:
+                                      (widget.melodyViewMode == MelodyViewMode.section) ? toolbarHeight(context) : 0,
                                   child: SectionToolbar(
                                     currentSection: widget.currentSection,
                                     sectionColor: widget.sectionColor,
@@ -412,29 +489,31 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                             ]),
                             Transform.translate(
                               offset: Offset(0, 2),
-                              child: Align(alignment: Alignment.center, child:
-                              AnimatedOpacity(
-                                opacity: currentSwipeTutorial == null ? 0 : 0.8,
-                                duration: animationDuration,
-                                child: AnimatedContainer(
-                                  height: currentSwipeTutorial == null || _hasSwipedClosed
-                                    ? 0 : 36,
-                                  duration: animationDuration,
-                                  padding: EdgeInsets.symmetric(horizontal: 10),
-                                  decoration: BoxDecoration(
+                              child: Align(
+                                  alignment: Alignment.center,
+                                  child: AnimatedOpacity(
+                                    opacity: currentSwipeTutorial == null ? 0 : 0.8,
+                                    duration: animationDuration,
+                                    child: AnimatedContainer(
+                                        height: currentSwipeTutorial == null || _hasSwipedClosed ? 0 : 36,
+                                        duration: animationDuration,
+                                        padding: EdgeInsets.symmetric(horizontal: 10),
+                                        decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(5),
                                           color: Colors.white,
                                         ),
                                         width: 150,
                                         child: Column(children: [
-                                          Expanded(child:SizedBox()),
-                                          Text(currentSwipeTutorial.tutorialText(widget.splitMode, widget.melodyViewMode, context),
+                                          Expanded(child: SizedBox()),
+                                          Text(
+                                            currentSwipeTutorial.tutorialText(
+                                                widget.splitMode, widget.melodyViewMode, context),
                                             style: TextStyle(fontSize: 11),
                                             textAlign: TextAlign.center,
                                           ),
-                                          Expanded(child:SizedBox()),
-                                ])),
-                              )),
+                                          Expanded(child: SizedBox()),
+                                        ])),
+                                  )),
                             )
                           ],
                         ))),
@@ -454,40 +533,49 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
             ),
           ),
           AnimatedContainer(
-            duration: animationDuration,
-            color: widget.part != null && widget.part.instrument.type == InstrumentType.drum ? Colors.brown : Colors.grey,
-            height: (widget.melodyViewMode == MelodyViewMode.part && isConfiguringPart) ? min(280, max(110,widget.height)) : 0,
-            child: PartConfiguration(part: widget.part, superSetState: widget.superSetState, availableHeight: widget.height,)),
+              duration: animationDuration,
+              color: widget.part != null && widget.part.instrument.type == InstrumentType.drum
+                  ? Colors.brown
+                  : Colors.grey,
+              height: (widget.melodyViewMode == MelodyViewMode.part && isConfiguringPart)
+                  ? min(280, max(110, widget.height))
+                  : 0,
+              child: PartConfiguration(
+                part: widget.part,
+                superSetState: widget.superSetState,
+                availableHeight: widget.height,
+              )),
           AnimatedContainer(
-            color: Colors.white,
-            duration: animationDuration,
-            height: (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? toolbarHeight(context) : 0,
-            child:
-            MelodyEditingToolbar(
-              editingMelody: widget.editingMelody,
-              sectionColor: widget.sectionColor,
-              score: widget.score,
-              melodyId: widget.melody?.id,
-              currentSection: widget.currentSection,
-              highlightedBeat: highlightedBeat,
-            )),
+              color: Colors.white,
+              duration: animationDuration,
+              height:
+                  (widget.melodyViewMode == MelodyViewMode.melody && widget.editingMelody) ? toolbarHeight(context) : 0,
+              child: MelodyEditingToolbar(
+                editingMelody: widget.editingMelody,
+                sectionColor: widget.sectionColor,
+                score: widget.score,
+                melodyId: widget.melody?.id,
+                currentSection: widget.currentSection,
+                highlightedBeat: highlightedBeat,
+              )),
           AnimatedContainer(
-            color: widget.sectionColor,
-            duration: animationDuration,
-            height: (widget.melodyViewMode == MelodyViewMode.section && isEditingSection) ? toolbarHeight(context) : 0,
-            child: SectionEditingToolbar(
-              sectionColor: widget.sectionColor,
-              score: widget.score,
-              currentSection: widget.currentSection,
-            )),
-          ]),
+              color: widget.sectionColor,
+              duration: animationDuration,
+              height:
+                  (widget.melodyViewMode == MelodyViewMode.section && isEditingSection) ? toolbarHeight(context) : 0,
+              child: SectionEditingToolbar(
+                sectionColor: widget.sectionColor,
+                score: widget.score,
+                currentSection: widget.currentSection,
+              )),
+        ]),
         Expanded(child: _mainMelody(context))
       ],
     );
   }
 
   static const double maxScaleDiscrepancy = 1.5;
-  static const double minScaleDiscrepancy = 1/maxScaleDiscrepancy;
+  static const double minScaleDiscrepancy = 1 / maxScaleDiscrepancy;
 
   ValueNotifier<int> highlightedBeat;
   ValueNotifier<int> focusedBeat;
@@ -496,6 +584,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 
   String _lastIgnoreId;
   bool _ignoreNextTap = false;
+
   set ignoreNextTap(bool value) {
     if (value) {
       final ignoreId = uuid.v1();
@@ -509,8 +598,8 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     } else {
       _ignoreNextTap = value;
     }
-
   }
+
   bool get ignoreNextTap {
     if (_ignoreNextTap) {
       _ignoreNextTap = false;
@@ -518,16 +607,16 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     }
     return false;
   }
-  
+
   Widget _mainMelody(BuildContext context) {
     List<MusicStaff> staves;
     Part mainPart = widget.part;
     if (widget.melody != null) {
-      mainPart = widget.score.parts.firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id),
-        orElse: () => null);
+      mainPart = widget.score.parts
+          .firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id), orElse: () => null);
     }
     bool focusPartsAndMelodies = widget.focusPartsAndMelodies &&
-      (widget.melodyViewMode == MelodyViewMode.part || widget.melodyViewMode == MelodyViewMode.melody);
+        (widget.melodyViewMode == MelodyViewMode.part || widget.melodyViewMode == MelodyViewMode.melody);
     if (focusPartsAndMelodies) {
       staves = [];
 
@@ -536,8 +625,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       } else if (mainPart != null && mainPart.isDrum) {
         staves.add(DrumStaff());
       }
-      staves.addAll(widget.score.parts.where((part) => part.id != mainPart?.id)
-        .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false));
+      staves.addAll(widget.score.parts
+          .where((part) => part.id != mainPart?.id)
+          .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part))
+          .toList(growable: false));
 //      if (widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
 //        staves.add(AccompanimentStaff());
 //      }
@@ -552,9 +643,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       width = width / 2;
     }
     getBeat(Offset position) {
-
-      int beat = ((position.dx + melodyRendererVisibleRect.left
-        - 2 * unscaledStandardBeatWidth * xScale) / (unscaledStandardBeatWidth * xScale)).floor();
+      int beat = ((position.dx + melodyRendererVisibleRect.left - 2 * unscaledStandardBeatWidth * xScale) /
+              (unscaledStandardBeatWidth * xScale))
+          .floor();
       print("beat=$beat");
       int maxBeat;
       // if (widget.melodyViewMode == MelodyViewMode.score) {
@@ -565,6 +656,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       beat = max(0, min(beat, maxBeat));
       return beat;
     }
+
     return Container(
         color: widget.previewMode ? Colors.white.withOpacity(0.5) : Colors.white,
         child: GestureDetector(
@@ -587,6 +679,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               }
             },
             onScaleStart: (details) => setState(() {
+                  if (_ignoreNextScale) {
+                    return;
+                  }
                   _isTwoFingerScaling = true;
                   _previousOffset = _offset;
                   int beat = getBeat(details.focalPoint);
@@ -605,8 +700,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 double oldXScale, oldYScale;
                 if (details.horizontalScale > 0) {
                   oldXScale = _xScale;
-                  _xScale = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
-                  _targetedXScale = _xScale;
+                  final target = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
+                  _targetedXScale = target;
+                  _xScale = target;
 //                  if(_xScale > maxScaleDiscrepancy * _yScale) {
 //                    _yScale = _xScale * minScaleDiscrepancy;
 //                  }
@@ -616,8 +712,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 }
                 if (details.verticalScale > 0) {
                   oldYScale = _yScale;
-                  _yScale = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
-                  _targetedXScale = _yScale;
+                  final target = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
+                  _targetedYScale = target;
+                  _yScale = target;
                 }
                 // TODO: Use _startFocalPoint to scroll the MelodyRenderer ScrollViews
                 final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
@@ -625,7 +722,6 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
 
                 // requestedScrollOffsetForScale.value = newOffset * 1.1;
                 _offset = newOffset;
-
               });
             },
             onScaleEnd: (ScaleEndDetails details) {
@@ -633,7 +729,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               _isTwoFingerScaling = false;
               //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
             },
-            child: Stack(children:[
+            child: Stack(children: [
               MelodyRenderer(
                 melodyViewMode: widget.melodyViewMode,
                 score: widget.score,
@@ -661,47 +757,108 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 isTwoFingerScaling: _isTwoFingerScaling,
                 scrollToCurrentBeat: scrollToCurrentBeat,
                 centerCurrentSection: centerCurrentSection,
+                autoScroll: autoScroll,
               ),
-              if(!widget.previewMode) Row(children:[
-                Expanded(child: SizedBox()),
-                Column(children: [
-                  Expanded(child:SizedBox()),
-                  Container(color: Colors.black12,
-                    height: 48, width:48, child:
-                    MyFlatButton(onPressed:() {
-                      widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
-                        ? RenderingMode.notation : RenderingMode.colorblock);
-                    },
-                      child: Stack(children: [
-                        AnimatedOpacity(
-                          duration: animationDuration,
-                          opacity: widget.renderingMode == RenderingMode.colorblock ? 1 : 0,
-                          child: Image.asset(
-                            'assets/notehead_filled.png',
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          duration: animationDuration,
-                          opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
-                          child: Image.asset(
-                            'assets/colorboard_vertical.png',
-                            width: 20,
-                            height: 20,
-                          ))
-                      ]))),
-                  SizedBox(height: 2),
-                ]),
-              SizedBox(width: 2),
-              Column(children: [
-                Expanded(child:SizedBox()),
-              Container(color: Colors.black12,
-                height: 48, width:48, child:
-                MyFlatButton(
-                  padding: EdgeInsets.zero,
-                  onPressed:() {
-                  scrollToCurrentBeat.notifyListeners();
+              if (!widget.previewMode)
+                Row(children: [
+                  Expanded(child: SizedBox()),
+                  Column(children: [
+                    Expanded(child: SizedBox()),
+                    AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: widget.showViewOptions ? 1 : 0,
+                      child: IgnorePointer(
+                        ignoring: !widget.showViewOptions,
+                        child: Container(
+                            color: Colors.black12,
+                            height: 48,
+                            width: 48,
+                            child: MyFlatButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  setState(() {
+                                    autoScroll = !autoScroll;
+                                  });
+                                },
+                                child: Stack(children: [
+                                  Transform.translate(
+                                      offset: Offset(0, -6),
+                                      child: Text("Auto",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.fade,
+                                          style: TextStyle(
+                                              fontSize: 10, color: autoScroll ? widget.sectionColor : Colors.grey))),
+                                  Transform.translate(
+                                    offset: Offset(0, 6),
+                                    child: AnimatedOpacity(
+                                      duration: animationDuration,
+                                      opacity: !autoScroll ? 1 : 0,
+                                      child: Icon(Icons.location_disabled, color: Colors.grey),
+                                    ),
+                                  ),
+                                  Transform.translate(
+                                    offset: Offset(0, 6),
+                                    child: AnimatedOpacity(
+                                      duration: animationDuration,
+                                      opacity: autoScroll ? 1 : 0,
+                                      child: Icon(Icons.my_location, color: widget.sectionColor),
+                                    ),
+                                  ),
+                                ]))),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                  ]),
+                  SizedBox(width: 2),
+                  Column(children: [
+                    Expanded(child: SizedBox()),
+    AnimatedOpacity(
+    duration: animationDuration,
+    opacity: widget.showViewOptions ? 1 : 0,
+    child: IgnorePointer(
+    ignoring: !widget.showViewOptions,
+    child: Container(
+                        color: Colors.black12,
+                        height: 48,
+                        width: 48,
+                        child: MyFlatButton(
+                            onPressed: () {
+                              widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
+                                  ? RenderingMode.notation
+                                  : RenderingMode.colorblock);
+                            },
+                            child: Stack(children: [
+                              AnimatedOpacity(
+                                duration: animationDuration,
+                                opacity: widget.renderingMode == RenderingMode.colorblock ? 1 : 0,
+                                child: Image.asset(
+                                  'assets/notehead_filled.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                              ),
+                              AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
+                                  child: Image.asset(
+                                    'assets/colorboard_vertical.png',
+                                    width: 20,
+                                    height: 20,
+                                  ))
+                            ]))))),
+                    SizedBox(height: 2),
+                  ]),
+                  SizedBox(width: 2),
+                  Column(children: [
+                    Expanded(child: SizedBox()),
+                    Container(
+                        color: Colors.black12,
+                        height: 48,
+                        width: 48,
+                        child: MyFlatButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              scrollToCurrentBeat.notifyListeners();
                             },
                             child: Stack(children: [
                               AnimatedOpacity(
@@ -711,14 +868,14 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                               ),
                             ]))),
                     SizedBox(height: 2),
-              Container(color: Colors.black12,
-                padding:EdgeInsets.zero,
-                child:
-                  IncrementableValue(child:
                     Container(
-                      // color: Colors.black12,
-                      width: 48,
-                      height: 48,
+                        color: Colors.black12,
+                        padding: EdgeInsets.zero,
+                        child: IncrementableValue(
+                            child: Container(
+                              // color: Colors.black12,
+                              width: 48,
+                              height: 48,
                               child: Align(
                                   alignment: Alignment.center,
                                   child: Stack(children: [
@@ -770,24 +927,22 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                     });
                                   }
                                 : null)),
-                SizedBox(height: 2),
+                    SizedBox(height: 2),
                   ]),
-                SizedBox(width: 2),
+                  SizedBox(width: 2),
                 ])
             ])));
   }
 }
 
-enum SwipeTutorial {
-  collapse, closeExpand
-}
+enum SwipeTutorial { collapse, closeExpand }
 
 extension TutorialText on SwipeTutorial {
   String tutorialText(SplitMode splitMode, MelodyViewMode melodyViewMode, BuildContext context) {
     return splitMode == SplitMode.full
-      ? "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to collapse/close ${melodyViewMode.toString().substring(15).capitalize()}"
-      : "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to close,\n" +
-      "${context.isPortrait ? "⬆️️" : "⬅️"}️ to expand " +
-      "${melodyViewMode.toString().substring(15).capitalize()}";
+        ? "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to collapse/close ${melodyViewMode.toString().substring(15).capitalize()}"
+        : "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to close,\n" +
+            "${context.isPortrait ? "⬆️️" : "⬅️"}️ to expand " +
+            "${melodyViewMode.toString().substring(15).capitalize()}";
   }
 }
