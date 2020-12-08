@@ -46,7 +46,7 @@ class PartMelodiesView extends StatefulWidget {
   final double height;
   final Function(VoidCallback) superSetState;
   final bool showBeatCounts;
-  final bool focusPartsAndMelodies;
+  final bool showViewOptions;
 
   PartMelodiesView(
       {this.melodyViewMode,
@@ -71,7 +71,7 @@ class PartMelodiesView extends StatefulWidget {
       this.selectedPart,
       this.enableColorboard,
       this.showBeatCounts,
-      this.height, Key key, this.focusPartsAndMelodies}): super(key : key);
+      this.height, Key key, this.showViewOptions}): super(key : key);
 
   @override
   _PartMelodiesViewState createState() {
@@ -84,10 +84,22 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
   static const double minColumnWidth = 100;
   static const double maxColumnWidth = 250;
   static const double columnWidthIncrement = 12;
-  double columnWidth = 200;
+  double columnWidth;
   double get columnWidthPercent => 
     0.99 * (columnWidth - minColumnWidth) / (maxColumnWidth - minColumnWidth)
     +.01;
+
+  // How "zoom" is achieved
+  bool get showMediumDetails => columnWidth > minColumnWidth + 3 * columnWidthIncrement;
+  bool autoScroll;
+
+
+  @override
+  initState() {
+    super.initState();
+    autoScroll = true;
+    columnWidth = 200;
+  }
 
   Widget _buildAddButton() {
     double width = widget.score.parts.isNotEmpty
@@ -231,33 +243,15 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
                   showBeatCounts: widget.showBeatCounts,
                   showMediumDetails: showMediumDetails,
                   height: widget.height,
-                  focusPartsAndMelodies: widget.focusPartsAndMelodies,
+                  autoScroll: autoScroll,
                 ),
               )
             ]),);
   }
 
-  // How "zoom" is achieved
-  bool get showMediumDetails => columnWidth > minColumnWidth + 3 * columnWidthIncrement;
-
   @override
   Widget build(BuildContext context) {
     return ScalableView(
-      onScaleDown: (columnWidth > minColumnWidth)
-        ? () {
-        setState(() {
-          columnWidth -= columnWidthIncrement;
-          columnWidth = max(columnWidth, minColumnWidth);
-        });
-      } : null,
-      onScaleUp: (columnWidth < maxColumnWidth)
-        ? () {
-        setState(() {
-          columnWidth += columnWidthIncrement;
-          columnWidth = min(columnWidth, maxColumnWidth);
-        });
-      } : null,
-      zoomLevelDescription: "${(columnWidthPercent * 100).toStringAsFixed(0)}%",
       child: ImplicitlyAnimatedReorderableList<Part>(
 //      key: Key(widget.score.parts.map((e) => e.id).toString()),
         scrollDirection: Axis.horizontal,
@@ -322,6 +316,24 @@ class _PartMelodiesViewState extends State<PartMelodiesView> {
 //        );
 //      },
       ),
+      onScaleDown: (columnWidth > minColumnWidth)
+        ? () {
+        setState(() {
+          columnWidth -= columnWidthIncrement;
+          columnWidth = max(columnWidth, minColumnWidth);
+        });
+      } : null,
+      onScaleUp: (columnWidth < maxColumnWidth)
+        ? () {
+        setState(() {
+          columnWidth += columnWidthIncrement;
+          columnWidth = min(columnWidth, maxColumnWidth);
+        });
+      } : null,
+      zoomLevelDescription: "${(columnWidthPercent * 100).toStringAsFixed(0)}%",
+      autoScroll: autoScroll,
+      toggleAutoScroll: () { setState(() { autoScroll = !autoScroll; });},
+      showViewOptions: widget.showViewOptions
     );
   }
 }
@@ -351,7 +363,7 @@ class _MelodiesView extends StatefulWidget {
   final bool showBeatCounts;
   final double height;
   final bool showMediumDetails;
-  final bool focusPartsAndMelodies;
+  final bool autoScroll;
 
   List<Melody> get _items {
     return part.melodies;
@@ -380,7 +392,7 @@ class _MelodiesView extends StatefulWidget {
     this.selectedPart,
     this.enableColorboard,
     this.showBeatCounts,
-    this.height, this.showMediumDetails, this.focusPartsAndMelodies,
+    this.height, this.showMediumDetails, this.autoScroll,
   });
 
   @override
@@ -488,7 +500,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       inactiveMelodyRefHeight += enabledToggleHeight;
     }
     
-    scrollController.animateTo((widget.showMediumDetails ? 173.0 : 40) +
+    scrollController.animateTo((widget.showMediumDetails ? 163.0 : 80) +
       (activeMelodyRefHeight * activeMelodyRefsBeforeIndex) +
       (inactiveMelodyRefHeight * inactiveMelodyRefsBeforeIndex),
         duration: Duration(milliseconds: 1000), curve: Curves.ease);
@@ -517,7 +529,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
     if (part.instrument.type == InstrumentType.drum) {
       partName = "Drums";
     } else {
-      partName = midiInstruments[part.instrument.midiInstrument];
+      partName = part.midiName;
     }
     bool isSelectedPart = widget.selectedPart == part;
     Color backgroundColor, textColor;
@@ -529,7 +541,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       textColor = isSelectedPart ? Colors.grey : Colors.white;
     }
     if (lastSelectedMelodyId != null && selectedMelody != null 
-      && lastSelectedMelodyId != selectedMelody.id && widget.focusPartsAndMelodies) {
+      && lastSelectedMelodyId != selectedMelody.id && widget.autoScroll) {
       int indexOfMelody = part.melodies.indexWhere((m) => m.id == selectedMelody?.id);
       if (indexOfMelody >= 0) {
         requestScrollToTop(indexOfMelody);
@@ -615,7 +627,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       setPartVolume(part, value);
                     }),
               ),
-            if (widget.showMediumDetails) buildAddAndRecordButton(
+            buildAddAndRecordButton(
                 backgroundColor,
                 textColor),
             SliverPadding(
@@ -643,7 +655,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                         showBeatsBadge: widget.showBeatCounts,
                         showMediumDetails: widget.showMediumDetails,
                         requestScrollToTop: () {
-                          if (widget.focusPartsAndMelodies) {
+                          if (widget.autoScroll) {
                             requestScrollToTop(index);
                           }
                         },
@@ -692,34 +704,16 @@ class _MelodiesViewState extends State<_MelodiesView> {
       floating: false,
       pinned: false,
       forceElevated: false,
-      expandedHeight: 80.0,
+
+      toolbarHeight: widget.showMediumDetails ? 70.0 : 40,
+      expandedHeight: widget.showMediumDetails ? 70.0 : 40,
       flexibleSpace: MyFlatButton(
         padding: EdgeInsets.zero,
-        onPressed: () {
-          _lastAddedMelody = newMelody;
-          setState(() {
-            int index = 0;
-            part.melodies.insert(index, newMelody);
-            BeatScratchPlugin.createMelody(part, newMelody);
-            final reference = currentSection.referenceTo(newMelody);
-            toggleMelodyReference(reference);
-            // Go directly to recording mode if not a template.
-//            if (newMelody.name.isEmpty) {
-              selectMelody(newMelody);
-              setReferenceVolume(reference, 1.0);
-              editingMelody = true;
-              setKeyboardPart(part);
-              requestScrollToTop(0);
-//            } else {
-//              requestScrollToTop(part.melodies.length - 1);
-//            }
-          });
-        },
         child:
         Column(
           children: [
             Container(
-              height: 50,
+              height: 40,
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Stack(children: [
                 Align(alignment: Alignment.center, child: Row(children: [
@@ -736,9 +730,29 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 Icon(Icons.fiber_manual_record, color: chromaticSteps[7].withAlpha(127)),))
               ]),
             ),
-            Container(height: 30, child: newMelodyBeatCountPickerRow(backgroundColor, textColor))
+            if (widget.showMediumDetails) Container(height: 30, child: newMelodyBeatCountPickerRow(backgroundColor, textColor))
           ],
-        )),
+        ),
+        onPressed: () {
+          _lastAddedMelody = newMelody;
+          setState(() {
+            int index = 0;
+            part.melodies.insert(index, newMelody);
+            BeatScratchPlugin.createMelody(part, newMelody);
+            final reference = currentSection.referenceTo(newMelody);
+            toggleMelodyReference(reference);
+            // Go directly to recording mode if not a template.
+//            if (newMelody.name.isEmpty) {
+            selectMelody(newMelody);
+            setReferenceVolume(reference, 1.0);
+            editingMelody = true;
+            setKeyboardPart(part);
+            requestScrollToTop(0);
+//            } else {
+//              requestScrollToTop(part.melodies.length - 1);
+//            }
+          });
+        },),
     );
   }
 

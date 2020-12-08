@@ -291,8 +291,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
-  bool focusPartsAndMelodies = true;
-  bool showBeatCounts = false;
+  bool showBeatCounts;
 
   updateScore(Function(Score) updates) {
     setState(() {
@@ -724,6 +723,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    showBeatCounts = false;
     score = widget.initialScore;
     _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = (Score scoreToOpen) {
@@ -1373,14 +1373,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (vertical) SizedBox(height: 15),
       if (vertical) Expanded(child: AnimatedOpacity(duration: animationDuration, opacity: isDisplayed ? 1 : 0, child: _tempoConfigurationBar(context, vertical: true))),
       if (vertical) SizedBox(height: 3),
-      if (!_portraitPhoneUI && !vertical) _tempoConfigurationBar(context),
+      if (!_portraitPhoneUI && !vertical) AnimatedOpacity(duration: animationDuration, opacity: isDisplayed ? 1 : 0, child: _tempoConfigurationBar(context)),
       Container(
           height: 42,
           width: 42,
           padding: EdgeInsets.only(right: vertical ? 0 : 5),
           child: AnimatedOpacity(
               duration: animationDuration,
-              opacity: showTapInBar ? 1 : 0,
+              opacity: showTapInBar && isDisplayed ? 1 : 0,
               child: MyRaisedButton(
                 padding: EdgeInsets.zero,
                 color: BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey,
@@ -1571,12 +1571,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           });
         },
-        focusPartsAndMelodies: focusPartsAndMelodies,
-        toggleFocusPartsAndMelodies: () {
-          setState(() {
-            focusPartsAndMelodies = !focusPartsAndMelodies;
-          });
-        },
         showBeatCounts: showBeatCounts,
         toggleShowBeatCounts: () {
           setState(() {
@@ -1712,7 +1706,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _bottomNotchPadding -
         downloadLinksHeight +
         8 -
-        _topNotchPaddingReal;
+        _topNotchPaddingReal
+        - _bottomTapInBarHeight;
     double width =
         data.size.width - verticalSectionListWidth - _leftNotchPadding - _rightNotchPadding - _landscapeTapInBarWidth;
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
@@ -1843,7 +1838,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       height: availableHeight,
       enableColorboard: enableColorboard,
       showBeatCounts: showBeatCounts,
-      focusPartsAndMelodies: focusPartsAndMelodies,
+      showViewOptions: showViewOptions,
     );
   }
 
@@ -1852,7 +1847,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       key: ValueKey("main-melody-view"),
       enableColorboard: enableColorboard,
       superSetState: setState,
-      focusPartsAndMelodies: focusPartsAndMelodies,
       melodyViewSizeFactor: _melodyViewSizeFactor,
       melodyViewMode: melodyViewMode,
       score: score,
@@ -2120,7 +2114,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           showConfiguration: _showKeyboardConfiguration,
           sectionColor: sectionColor,
           pressedNotesNotifier: keyboardNotesNotifier,
-          distanceFromBottom: _tapInBarHeight + _bottomNotchPadding,
+          distanceFromBottom: _bottomTapInBarHeight + _bottomNotchPadding,
         ));
   }
 
@@ -2143,7 +2137,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           showConfiguration: _showColorboardConfiguration,
           sectionColor: sectionColor,
           pressedNotesNotifier: colorboardNotesNotifier,
-          distanceFromBottom: _keyboardHeight + _tapInBarHeight,
+          distanceFromBottom: _keyboardHeight + _bottomTapInBarHeight + _bottomNotchPadding,
         ));
   }
 }

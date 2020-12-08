@@ -241,7 +241,8 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
     // }
     String sectionOrder = widget.score.sections.map((e) => e.id).join();
     if (widget.isTwoFingerScaling) {
-      scrollToBeat(widget.focusedBeat.value, beatAnimationDuration: Duration(milliseconds: 50), curve: Curves.linear);
+      int beatMargin = ((visibleWidth - targetClefWidth - targetBeatWidth) / 2) ~/ targetBeatWidth;
+      scrollToBeat(widget.focusedBeat.value - beatMargin, beatAnimationDuration: Duration(milliseconds: 50), curve: Curves.linear);
     } else if (widget.autoScroll) {
       if (_prevViewMode == MelodyViewMode.score &&
         widget.melodyViewMode != MelodyViewMode.score &&
@@ -327,6 +328,7 @@ class _MelodyRendererState extends State<MelodyRenderer> with TickerProviderStat
                       sectionColor: sectionColor,
                       isCurrentScore: widget.isCurrentScore,
                       highlightedBeat: widget.highlightedBeat,
+                      focusedBeat: widget.focusedBeat,
                       firstBeatOfSection: firstBeatOfSection,
                     ),
                   ),
@@ -531,6 +533,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Part> keyboardPart;
   final ValueNotifier<Part> colorboardPart;
   final ValueNotifier<int> highlightedBeat;
+  final ValueNotifier<int> focusedBeat;
   final bool isCurrentScore;
   final int firstBeatOfSection;
 
@@ -545,8 +548,8 @@ class MusicSystemPainter extends CustomPainter {
 
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
-  MusicSystemPainter(
-      {this.firstBeatOfSection,
+  MusicSystemPainter({this.focusedBeat,
+      this.firstBeatOfSection,
       this.highlightedBeat,
       this.melodyViewMode,
       this.colorGuideOpacityNotifier,
@@ -812,14 +815,23 @@ class MusicSystemPainter extends CustomPainter {
     if (isCurrentScore && renderingSection == section && renderingSectionBeat == BeatScratchPlugin.currentBeat.value) {
       _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
     } else if (isCurrentScore &&
-            renderingSection == section &&
-            renderingSectionBeat + firstBeatOfSection == highlightedBeat.value /* && BeatScratchPlugin.playing*/
-        ) {
+      renderingSection == section &&
+      renderingSectionBeat + firstBeatOfSection == highlightedBeat.value /* && BeatScratchPlugin.playing*/
+    ) {
       canvas.drawRect(
-          melodyBounds,
-          Paint()
-            ..style = PaintingStyle.fill
-            ..color = sectionColor.value.withAlpha(55));
+        melodyBounds,
+        Paint()
+          ..style = PaintingStyle.fill
+          ..color = sectionColor.value.withAlpha(55));
+    } else if (isCurrentScore &&
+      // renderingSection == section &&
+      renderingBeat == focusedBeat.value /* && BeatScratchPlugin.playing*/
+    ) {
+      canvas.drawRect(
+        melodyBounds,
+        Paint()
+          ..style = PaintingStyle.fill
+          ..color = Colors.black12);
     }
   }
 

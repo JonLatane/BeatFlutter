@@ -38,8 +38,6 @@ class BeatScratchToolbar extends StatefulWidget {
   final RenderingMode renderingMode;
   final Function(RenderingMode) setRenderingMode;
   final VoidCallback showMidiInputSettings;
-  final bool focusPartsAndMelodies;
-  final VoidCallback toggleFocusPartsAndMelodies;
   final bool showBeatCounts;
   final VoidCallback toggleShowBeatCounts;
   final VoidCallback saveCurrentScore;
@@ -68,8 +66,6 @@ class BeatScratchToolbar extends StatefulWidget {
       this.setRenderingMode,
       this.renderingMode,
       this.showMidiInputSettings,
-      this.focusPartsAndMelodies,
-      this.toggleFocusPartsAndMelodies,
       this.showBeatCounts,
       this.toggleShowBeatCounts,
       this.showScorePicker,
@@ -277,9 +273,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                 case "about":
                   showAbout(context);
                   break;
-                case "focusPartsAndMelodies":
-                  widget.toggleFocusPartsAndMelodies();
-                  break;
                 case "showBeatCounts":
                   widget.toggleShowBeatCounts();
                   break;
@@ -394,14 +387,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                               padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.settings))
                         ]),
                       ),
-                      if (widget.interactionMode == InteractionMode.edit)
-                        MyPopupMenuItem(
-                          value: "focusPartsAndMelodies",
-                          child: Row(children: [
-                            Checkbox(value: widget.focusPartsAndMelodies, onChanged: null),
-                            Expanded(child: Text('Focus Parts/Melodies'))
-                          ]),
-                        ),
                       // MyPopupMenuItem(
                       //   value: "notationUi",
                       //   child: Row(children: [
@@ -488,6 +473,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
             color: (widget.interactionMode == InteractionMode.view) ? widget.sectionColor : Colors.transparent,
             child: MyFlatButton(
               onPressed: (widget.interactionMode == InteractionMode.view) ? widget.toggleViewOptions : widget.viewMode,
+              onLongPress: widget.toggleViewOptions,
               padding: EdgeInsets.all(0.0),
               child: Icon(Icons.remove_red_eye,
                 color: (widget.interactionMode == InteractionMode.view) ? Colors.white : widget.sectionColor)))),

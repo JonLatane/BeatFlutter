@@ -450,7 +450,6 @@ class __ScoreState extends State<_Score> {
                                 isCurrentScore: isCurrentScore,
                                 enableColorboard: false,
                                 superSetState: setState,
-                                focusPartsAndMelodies: false,
                                 melodyViewSizeFactor: 1.0,
                                 melodyViewMode: MelodyViewMode.score,
                                 score: previewScore,

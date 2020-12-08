@@ -20,7 +20,6 @@ class MelodyView extends StatefulWidget {
   final SplitMode splitMode;
   final RenderingMode renderingMode;
   final Function(RenderingMode) requestRenderingMode;
-  final bool focusPartsAndMelodies;
   final Score score;
   final Section currentSection;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier, keyboardNotesNotifier;
@@ -51,7 +50,6 @@ class MelodyView extends StatefulWidget {
 
   MelodyView(
       {this.selectBeat,
-      this.focusPartsAndMelodies,
       this.melodyViewSizeFactor,
       this.cloneCurrentSection,
       this.superSetState,
@@ -98,6 +96,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
   static const double minScale = 0.1;
   static const double maxScale = 1.0;
   bool autoScroll;
+  bool autoFocus;
   bool isConfiguringPart;
   bool isEditingSection;
   bool _isTwoFingerScaling = false;
@@ -172,7 +171,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
           });
         scaleAnimationController.forward();
       }
-      Future.delayed(animationLoopDuration + Duration(milliseconds: 5), loopback());
+      Future.delayed(animationLoopDuration + Duration(milliseconds: 10), loopback());
     }
 
     return doIt;
@@ -242,6 +241,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
     isConfiguringPart = false;
     isEditingSection = false;
     autoScroll = true;
+    autoFocus = true;
 
     xScaleAnimationLoop = createValueAnimationLoop(
       loopback: () => xScaleAnimationLoop,
@@ -615,7 +615,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       mainPart = widget.score.parts
           .firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id), orElse: () => null);
     }
-    bool focusPartsAndMelodies = widget.focusPartsAndMelodies &&
+    bool focusPartsAndMelodies = autoFocus &&
         (widget.melodyViewMode == MelodyViewMode.part || widget.melodyViewMode == MelodyViewMode.melody);
     if (focusPartsAndMelodies) {
       staves = [];
@@ -657,6 +657,13 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
       return beat;
     }
 
+    bool focusedPartIsNotFirst = widget.part != null && widget.score.parts.indexWhere((it) => it.id == widget.part.id) != 0;
+    bool focusedMelodyIsNotFirst = widget.melody != null &&
+      widget.score.parts.indexWhere((p) => p.melodies.any((m) => m.id == widget.melody.id)) != 0;
+    bool showAutoFocusButton =
+      (widget.melodyViewMode == MelodyViewMode.part || widget.melodyViewMode == MelodyViewMode.melody) &&
+      (focusedPartIsNotFirst || focusedMelodyIsNotFirst);
+
     return Container(
         color: widget.previewMode ? Colors.white.withOpacity(0.5) : Colors.white,
         child: GestureDetector(
@@ -697,6 +704,10 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                 return;
               }
               setState(() {
+                if(focusedBeat.value == null) {
+                  int beat = getBeat(details.focalPoint);
+                  focusedBeat.value = beat;
+                }
                 double oldXScale, oldYScale;
                 if (details.horizontalScale > 0) {
                   oldXScale = _xScale;
@@ -727,6 +738,9 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
             onScaleEnd: (ScaleEndDetails details) {
               _ignoreNextScale = false;
               _isTwoFingerScaling = false;
+              setState(() {
+                focusedBeat.value = null;
+              });
               //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
             },
             child: Stack(children: [
@@ -762,6 +776,54 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
               if (!widget.previewMode)
                 Row(children: [
                   Expanded(child: SizedBox()),
+                  Column(children: [
+                    Expanded(child: SizedBox()),
+                    AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: widget.showViewOptions && showAutoFocusButton ? 1 : 0,
+                      child: IgnorePointer(
+                        ignoring: !widget.showViewOptions && showAutoFocusButton,
+                        child: Container(
+                          color: Colors.black12,
+                          height: 48,
+                          width: 48,
+                          child: MyFlatButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(() {
+                                autoFocus = !autoFocus;
+                              });
+                            },
+                            child: Stack(children: [
+                              Transform.translate(
+                                offset: Offset(0, -6),
+                                child: Text("Auto",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(
+                                    fontSize: 10, color: autoFocus ? widget.sectionColor : Colors.grey))),
+                              Transform.translate(
+                                offset: Offset(0, 6),
+                                child: AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: !autoFocus ? 1 : 0,
+                                  child: Icon(Icons.center_focus_strong, color: Colors.grey),
+                                ),
+                              ),
+                              Transform.translate(
+                                offset: Offset(0, 6),
+                                child: AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: autoFocus ? 1 : 0,
+                                  child: Icon(Icons.center_focus_strong, color: widget.sectionColor),
+                                ),
+                              ),
+                            ]))),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                  ]),
+                  SizedBox(width: 2),
                   Column(children: [
                     Expanded(child: SizedBox()),
                     AnimatedOpacity(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'incrementable_value.dart';
+import 'my_buttons.dart';
 import 'ui_models.dart';
 
 class ScalableView extends StatelessWidget {
@@ -12,8 +13,14 @@ class ScalableView extends StatelessWidget {
   final VoidCallback onScaleUp;
   final Widget child;
   final String zoomLevelDescription; // e.g. 79%, 1x, 2x. Your choice.
+  final bool autoScroll;
+  final VoidCallback toggleAutoScroll;
+  final VoidCallback scrollToCurrent;
+  final bool visible;
+  final Color primaryColor;
+  final bool showViewOptions;
 
-  const ScalableView({Key key, this.onScaleDown, this.onScaleUp, this.child, this.zoomLevelDescription}) : super(key: key);
+  const ScalableView({Key key, this.onScaleDown, this.onScaleUp, this.child, this.zoomLevelDescription, this.autoScroll, this.toggleAutoScroll, this.scrollToCurrent, this.visible = true, this.primaryColor = Colors.white, this.showViewOptions = true}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +30,53 @@ class ScalableView extends StatelessWidget {
         child,
         Row(children:[
           Expanded(child: SizedBox()),
+          if (autoScroll != null && toggleAutoScroll != null)Column(children: [
+            Expanded(child: SizedBox()),
+            AnimatedOpacity(
+              duration: animationDuration,
+              opacity: visible && showViewOptions ? 1 : 0,
+              child: IgnorePointer(
+                ignoring: !visible,
+                child: Container(
+                  color: Colors.black12,
+                  height: 48,
+                  width: 48,
+                  child: MyFlatButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: toggleAutoScroll,
+                    child: Stack(children: [
+                      Transform.translate(
+                        offset: Offset(0, -6),
+                        child: Text("Auto",
+                          maxLines: 1,
+                          overflow: TextOverflow.fade,
+                          style: TextStyle(
+                            fontSize: 10, color: autoScroll ? primaryColor : Colors.grey))),
+                      Transform.translate(
+                        offset: Offset(0, 6),
+                        child: AnimatedOpacity(
+                          duration: animationDuration,
+                          opacity: !autoScroll ? 1 : 0,
+                          child: Icon(Icons.location_disabled, color: Colors.grey),
+                        ),
+                      ),
+                      Transform.translate(
+                        offset: Offset(0, 6),
+                        child: AnimatedOpacity(
+                          duration: animationDuration,
+                          opacity: autoScroll ? 1 : 0,
+                          child: Icon(Icons.my_location, color: primaryColor),
+                        ),
+                      ),
+                    ]))),
+              ),
+            ),
+            SizedBox(height: 2),
+          ]),
+          SizedBox(width: 2),
           Column(children: [
             Expanded(child:SizedBox()),
-            Container(color: Colors.black12, padding:EdgeInsets.all(3),
+            Container(color: Colors.black12, padding:EdgeInsets.all(0),
               child:
               IncrementableValue(child:
               Container(
