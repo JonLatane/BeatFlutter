@@ -5,7 +5,7 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import 'base_melody_renderer.dart';
-import '../../music_theory.dart';
+import '../../util/music_theory.dart';
 
 class ColorblockMelodyRenderer extends BaseMelodyRenderer {
   double uiScale = 1;

@@ -1,9 +1,9 @@
 import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/music_notation_theory.dart';
+import 'package:beatscratch_flutter_redux/util/music_notation_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:unification/unification.dart';
-import '../../util.dart';
+import '../../util/util.dart';
 
 enum Clef { treble, bass, tenor_treble, drum_treble, drum_bass }
 

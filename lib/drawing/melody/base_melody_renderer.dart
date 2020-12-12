@@ -6,8 +6,8 @@ import 'package:unification/unification.dart';
 
 import '../color_guide.dart';
 import '../canvas_tone_drawer.dart';
-import '../../music_theory.dart';
-import '../../music_notation_theory.dart';
+import '../../util/music_theory.dart';
+import '../../util/music_notation_theory.dart';
 
 class BaseMelodyRenderer extends ColorGuide {
   @override final bool renderVertically = true;

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:base_x/base_x.dart';
-import 'package:beatscratch_flutter_redux/midi_theory.dart';
-import 'package:beatscratch_flutter_redux/my_platform.dart';
+import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
+import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:unification/unification.dart';
 import 'package:http/http.dart' as http;
 
-import 'generated/protos/music.pb.dart';
+import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
 var _base58 = BaseXCodec('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');

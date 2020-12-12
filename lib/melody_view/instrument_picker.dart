@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/midi_theory.dart';
+import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -11,13 +11,13 @@ import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorder
 import 'package:recase/recase.dart';
 import 'package:unification/unification.dart';
 
-import 'animations/animations.dart';
-import 'music_theory.dart';
-import 'my_buttons.dart';
-import 'my_platform.dart';
-import 'ui_models.dart';
-import 'util.dart';
-import 'incrementable_value.dart';
+import '../animations/animations.dart';
+import '../util/music_theory.dart';
+import '../widget/my_buttons.dart';
+import '../widget/my_platform.dart';
+import '../ui_models.dart';
+import '../util/util.dart';
+import '../widget/incrementable_value.dart';
 
 class PartConfiguration extends StatefulWidget {
   final Part part;

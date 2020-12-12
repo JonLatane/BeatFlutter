@@ -1,6 +1,6 @@
 import 'package:unification/unification.dart';
 
-import 'generated/protos/music.pb.dart';
+import '../generated/protos/music.pb.dart';
 import 'music_theory.dart';
 import 'util.dart';
 

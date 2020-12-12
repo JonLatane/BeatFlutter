@@ -14,7 +14,7 @@ import 'package:vibration/vibration.dart';
 
 import 'my_buttons.dart';
 import 'my_platform.dart';
-import 'ui_models.dart';
+import '../ui_models.dart';
 
 
 

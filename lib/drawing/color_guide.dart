@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
-import '../music_theory.dart';
+import '../util/music_theory.dart';
 import 'canvas_tone_drawer.dart';
 
 extension WithAlpha on Color {

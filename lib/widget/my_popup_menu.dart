@@ -989,7 +989,7 @@ class MyPopupMenuButton<T> extends StatefulWidget {
     this.enabled = true,
     this.shape,
     this.color,
-    this.captureInheritedThemes = true,
+    this.captureInheritedThemes = true, this.updatedMenu,
   }) : assert(itemBuilder != null),
       assert(offset != null),
       assert(enabled != null),
@@ -1080,6 +1080,9 @@ class MyPopupMenuButton<T> extends StatefulWidget {
   /// are defined above the [BuildContext] where the menu is shown.
   final bool captureInheritedThemes;
 
+
+  final ChangeNotifier updatedMenu;
+
   @override
   PopupMenuButtonState<T> createState() => PopupMenuButtonState<T>();
 }
@@ -1089,6 +1092,14 @@ class MyPopupMenuButton<T> extends StatefulWidget {
 /// See [showButtonMenu] for a way to programmatically open the popup menu
 /// of your button state.
 class PopupMenuButtonState<T> extends State<MyPopupMenuButton<T>> {
+  @override initState() {
+    super.initState();
+    widget?.updatedMenu?.addListener(showButtonMenu);
+  }
+  @override dispose() {
+    super.dispose();
+    widget?.updatedMenu?.removeListener(showButtonMenu);
+  }
   /// A method to show a popup menu with the items supplied to
   /// [PopupMenuButton.itemBuilder] at the position of your [PopupMenuButton].
   ///

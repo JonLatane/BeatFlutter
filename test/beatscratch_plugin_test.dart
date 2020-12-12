@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/dummydata.dart';
+import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

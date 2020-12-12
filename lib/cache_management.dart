@@ -1,8 +1,8 @@
 import 'package:beatscratch_flutter_redux/drawing/melody/melody.dart';
 
-import 'music_theory.dart';
-import 'midi_theory.dart';
-import 'keyboard.dart';
+import 'util/music_theory.dart';
+import 'util/midi_theory.dart';
+import 'widget/keyboard.dart';
 
 clearMutableCaches() {
   _mutableCaches.forEach((element) {

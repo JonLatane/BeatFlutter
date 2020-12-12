@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/dummydata.dart';
+import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/my_platform.dart';
-import 'package:beatscratch_flutter_redux/scalable_view.dart';
+import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
+import 'package:beatscratch_flutter_redux/widget/scalable_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,14 +13,15 @@ import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:unification/unification.dart';
 
-import 'animations/animations.dart';
-import 'beatscratch_plugin.dart';
-import 'dummydata.dart';
-import 'midi_theory.dart';
-import 'music_theory.dart';
-import 'my_buttons.dart';
-import 'ui_models.dart';
-import 'util.dart';
+import '../animations/animations.dart';
+import '../beatscratch_plugin.dart';
+import '../util/dummydata.dart';
+import 'melody_menu_browser.dart';
+import '../util/midi_theory.dart';
+import '../util/music_theory.dart';
+import '../widget/my_buttons.dart';
+import '../ui_models.dart';
+import '../util/util.dart';
 
 class PartMelodiesView extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
@@ -599,7 +600,9 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   title: MyFlatButton(
                       onPressed: () {
                         selectPart(part);
-                        requestScrollToTop(-1);
+                        if (widget.autoScroll) {
+                          requestScrollToTop(-1);
+                        }
                       },
                       child: Align(
                           alignment: Alignment.bottomLeft,
@@ -664,16 +667,29 @@ class _MelodiesViewState extends State<_MelodiesView> {
                     childCount: _items.length,
                   ),
                 )),
+            SliverAppBar(
+              leading: Container(),
+              backgroundColor: backgroundColor,
+              floating: true,
+              pinned: false,
+              expandedHeight: 50.0,
+              flexibleSpace: MelodyMenuBrowser(part: part, currentSection: currentSection,
+                onMelodySelected: (melody) => createMelody(melody.clone().copyWith((it) { it.id = uuid.v4(); })),
+              ),
+            ),
             if (part.instrument.type == selectedMelody?.instrumentType)
               buildAddFromTemplateButton(backgroundColor, textColor, selectedMelody.clone(),
-              icon: Icons.control_point_duplicate),
+                  icon: Icons.control_point_duplicate),
             if (part.instrument.type == InstrumentType.harmonic)
               buildAddFromTemplateButton(backgroundColor, textColor, odeToJoyA()),
             if (part.instrument.type == InstrumentType.harmonic)
               buildAddFromTemplateButton(backgroundColor, textColor, odeToJoyB()),
-            if (part.instrument.type == InstrumentType.drum) buildAddFromTemplateButton(backgroundColor, textColor, boom()),
-            if (part.instrument.type == InstrumentType.drum) buildAddFromTemplateButton(backgroundColor, textColor, chick()),
-            if (part.instrument.type == InstrumentType.drum) buildAddFromTemplateButton(backgroundColor, textColor, tssst()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddFromTemplateButton(backgroundColor, textColor, boom()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddFromTemplateButton(backgroundColor, textColor, chick()),
+            if (part.instrument.type == InstrumentType.drum)
+              buildAddFromTemplateButton(backgroundColor, textColor, tssst()),
             if (part.instrument.type == InstrumentType.drum)
               buildAddFromTemplateButton(backgroundColor, textColor, tsstTsst()),
             if (part.instrument.type == InstrumentType.drum)
@@ -747,13 +763,29 @@ class _MelodiesViewState extends State<_MelodiesView> {
             setReferenceVolume(reference, 1.0);
             editingMelody = true;
             setKeyboardPart(part);
-            requestScrollToTop(0);
+            if (widget.autoScroll) {
+              requestScrollToTop(0);
+            }
 //            } else {
 //              requestScrollToTop(part.melodies.length - 1);
 //            }
           });
         },),
     );
+  }
+  
+  createMelody(Melody newMelody) {
+    _lastAddedMelody = newMelody;
+    setState(() {
+      int index = part.melodies.length;
+      part.melodies.insert(index, newMelody);
+      BeatScratchPlugin.createMelody(part, newMelody);
+      final reference = currentSection.referenceTo(newMelody);
+      toggleMelodyReference(reference);
+      if (widget.autoScroll) {
+        requestScrollToTop(part.melodies.length - 1);
+      }
+    });
   }
 
   Widget buildAddFromTemplateButton(Color backgroundColor, Color textColor, Melody newMelody,
@@ -787,18 +819,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       pinned: false,
       expandedHeight: 50.0,
       flexibleSpace: MyFlatButton(
-          onPressed: () {
-            _lastAddedMelody = newMelody;
-            setState(() {
-              int index = part.melodies.length;
-              part.melodies.insert(index, newMelody);
-              BeatScratchPlugin.createMelody(part, newMelody);
-              final reference = currentSection.referenceTo(newMelody);
-              toggleMelodyReference(reference);
-              requestScrollToTop(part.melodies.length - 1);
-
-            });
-          },
+          onPressed: () => createMelody(newMelody),
           child: Stack(children: [
             if (false)
               Align(

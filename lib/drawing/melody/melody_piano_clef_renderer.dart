@@ -1,7 +1,7 @@
 import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
 import 'package:flutter/material.dart';
 
-import '../../keyboard.dart';
+import '../../widget/keyboard.dart';
 
 class MelodyPianoClefRenderer extends BaseMelodyRenderer {
   @override

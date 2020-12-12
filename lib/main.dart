@@ -2,35 +2,36 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fluro/fluro.dart' as Fluro;
-import 'package:beatscratch_flutter_redux/clearCaches.dart';
+import 'package:beatscratch_flutter_redux/cache_management.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
 import 'package:beatscratch_flutter_redux/midi_settings.dart';
-import 'package:beatscratch_flutter_redux/score_manager.dart';
+import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
-import 'keyboard.dart';
-import 'melody_view.dart';
-import 'my_buttons.dart';
-import 'my_platform.dart';
-import 'score_picker.dart';
-import 'section_list.dart';
-import 'part_melodies_view.dart';
-import 'colorboard.dart';
+import 'widget/keyboard.dart';
+import 'part_melodies_view/melody_menu_browser.dart';
+import 'melody_view/melody_view.dart';
+import 'widget/my_buttons.dart';
+import 'widget/my_platform.dart';
+import 'storage/score_picker.dart';
+import 'widget/section_list.dart';
+import 'part_melodies_view/part_melodies_view.dart';
+import 'widget/colorboard.dart';
 import 'package:flutter/services.dart';
-import 'url_conversions.dart';
+import 'util/url_conversions.dart';
 import 'colors.dart';
-import 'util.dart';
+import 'util/util.dart';
 import 'ui_models.dart';
 import 'package:flutter/foundation.dart';
-import 'dummydata.dart';
+import 'util/dummydata.dart';
 import 'main_toolbars.dart';
-import 'music_theory.dart';
-import 'music_utils.dart';
+import 'util/music_theory.dart';
+import 'util/music_utils.dart';
 
 final app = MyApp();
 
@@ -723,16 +724,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    BeatScratchPlugin.setupWebStuff();
     showBeatCounts = false;
     score = widget.initialScore;
     _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = (Score scoreToOpen) {
+      scoreToOpen.migrate();
+      MelodyMenuBrowser.loadScoreData();
       setState(() {
-        scoreToOpen.migrate();
         BeatScratchPlugin.createScore(scoreToOpen);
         score = scoreToOpen;
         clearMutableCaches();
         currentSection = scoreToOpen.sections.first;
+        melodyViewMode = interactionMode == InteractionMode.view ? MelodyViewMode.score : MelodyViewMode.section;
         selectedMelody = null;
         selectedPart = null;
         keyboardPart = scoreToOpen.parts.first;
@@ -755,7 +759,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
     }
 //    BeatScratchPlugin.createScore(_score);
-    BeatScratchPlugin.setupWebStuff();
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
         currentSection = score.sections.firstWhere((section) => section.id == sectionId);
@@ -1476,7 +1479,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       width: 25,
                       child: MyRaisedButton(
                           padding: EdgeInsets.all(0),
-                          child: RotatedBox(quarterTurns: vertical ? 1 : 0, child: Text("x1")),
+                          child: RotatedBox(quarterTurns: vertical ? 1 : 0, child: Text("x1", maxLines: 1, overflow: TextOverflow.fade)),
                           onPressed: () {
                             BeatScratchPlugin.bpmMultiplier = 1;
                             BeatScratchPlugin.onSynthesizerStatusChange();
@@ -1661,9 +1664,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       visible: (_secondToolbarHeight != null && _secondToolbarHeight != 0) ||
           (_landscapePhoneSecondToolbarWidth != null && _landscapePhoneSecondToolbarWidth != 0) ||
           _scalableUI,
-      toggleTempoPosition: _landscapePhoneUI ? () {
+      tempoLongPress: _landscapePhoneUI ? () {
         setState(() {
-          _bottomTapInBar = !_bottomTapInBar;
+          if (!_showTapInBar) {
+            _showTapInBar = true;
+            _bottomTapInBar = true;
+          } else {
+            _bottomTapInBar = !_bottomTapInBar;
+          }
         });
       } : null
   );

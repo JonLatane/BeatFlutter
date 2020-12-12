@@ -1,6 +1,6 @@
 import 'package:quiver/iterables.dart';
 
-import 'generated/protos/music.pb.dart';
+import '../generated/protos/music.pb.dart';
 import 'midi_theory.dart';
 import 'util.dart';
 
@@ -173,6 +173,31 @@ Score defaultScore() => Score()
     newPartFor(Score()),
     newDrumPart()
   ]);
+
+
+Score melodyPreview(Melody melody, Part part, Section section) {
+  melody = melody.clone().copyWith((it) {
+    it.id = uuid.v4();
+  });
+  part = part.clone().copyWith((it) {
+    it.id = uuid.v4();
+    it.melodies.clear();
+    it.melodies.add(melody);
+  });
+  section = section.clone().copyWith((it) {
+    it.id = uuid.v4();
+    it.melodies.clear();
+    it.melodies.add(MelodyReference()
+      ..melodyId = melody.id
+      ..playbackType = MelodyReference_PlaybackType.playback_indefinitely
+      ..volume = 1
+    );
+  });
+  Score result = Score();
+  result.parts.add(part);
+  result.sections.add(section);
+  return result;
+}
 
 extension MidiThings on Score {
   bool usesChannel(int channel) => parts.any((part) => part.instrument.midiChannel == channel);

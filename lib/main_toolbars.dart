@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/score_manager.dart';
+import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 //import 'package:file_picker/file_picker.dart';
@@ -11,17 +11,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'beatscratch_plugin.dart';
-import 'clearCaches.dart';
+import 'cache_management.dart';
 import 'colors.dart';
 import 'generated/protos/music.pb.dart';
-import 'my_buttons.dart';
-import 'my_platform.dart';
-import 'my_popup_menu.dart';
-import 'score_picker.dart';
+import 'widget/my_buttons.dart';
+import 'widget/my_platform.dart';
+import 'widget/my_popup_menu.dart';
+import 'storage/score_picker.dart';
 import 'ui_models.dart';
-import 'url_conversions.dart';
-import 'music_theory.dart';
-import 'util.dart';
+import 'util/url_conversions.dart';
+import 'util/music_theory.dart';
+import 'util/util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   final Score score;
@@ -608,7 +608,7 @@ class SecondToolbar extends StatelessWidget {
   final VoidCallback toggleKeyboardConfiguration;
   final VoidCallback toggleColorboardConfiguration;
   final VoidCallback toggleTempoConfiguration;
-  final VoidCallback toggleTempoPosition;
+  final VoidCallback tempoLongPress;
   final bool editingMelody;
   final bool showKeyboard;
   final bool showKeyboardConfiguration;
@@ -635,7 +635,7 @@ class SecondToolbar extends StatelessWidget {
     this.toggleKeyboardConfiguration,
     this.toggleColorboardConfiguration,
     this.sectionColor,
-    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical, this.visible, this.toggleTempoPosition
+    this.enableColorboard, this.editingMelody, this.toggleTempoConfiguration, this.showTempoConfiguration, this.vertical, this.visible, this.tempoLongPress
   }) : super(key: key);
 
   Widget columnOrRow(BuildContext context, {List<Widget> children}) {
@@ -745,7 +745,7 @@ class SecondToolbar extends StatelessWidget {
               )
             ]),
             onPressed: toggleTempoConfiguration,
-            onLongPress: showTempoConfiguration ? toggleTempoPosition : null,
+            onLongPress: tempoLongPress,
             color: (showTempoConfiguration) ? Colors.white : Colors.grey,
           ))),
       AnimatedContainer(

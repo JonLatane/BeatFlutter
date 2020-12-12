@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../generated/protos/music.pb.dart';
 import 'package:unification/unification.dart';
-import '../music_theory.dart';
+import '../util/music_theory.dart';
 import '../colors.dart';
 
 

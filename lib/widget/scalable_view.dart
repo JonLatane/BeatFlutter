@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 
 import 'incrementable_value.dart';
 import 'my_buttons.dart';
-import 'ui_models.dart';
+import '../ui_models.dart';
 
 class ScalableView extends StatelessWidget {
   final VoidCallback onScaleDown;

@@ -7,19 +7,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:unification/unification.dart';
 
-import 'drawing/color_guide.dart';
-import 'drawing/harmony_beat_renderer.dart';
-import 'drawing/melody/melody.dart';
-import 'drawing/melody/melody_clef_renderer.dart';
-import 'drawing/melody/melody_color_guide.dart';
-import 'drawing/melody/melody_staff_lines_renderer.dart';
-import 'dummydata.dart';
-import 'generated/protos/music.pb.dart';
-import 'midi_theory.dart';
-import 'music_notation_theory.dart';
-import 'music_theory.dart';
-import 'ui_models.dart';
-import 'util.dart';
+import '../drawing/color_guide.dart';
+import '../drawing/harmony_beat_renderer.dart';
+import '../drawing/melody/melody.dart';
+import '../drawing/melody/melody_clef_renderer.dart';
+import '../drawing/melody/melody_color_guide.dart';
+import '../drawing/melody/melody_staff_lines_renderer.dart';
+import '../util/dummydata.dart';
+import '../generated/protos/music.pb.dart';
+import '../util/midi_theory.dart';
+import '../util/music_notation_theory.dart';
+import '../util/music_theory.dart';
+import '../ui_models.dart';
+import '../util/util.dart';
 
 const double _extraBeatsSpaceForClefs = 2;
 
@@ -796,7 +796,11 @@ class MusicSystemPainter extends CustomPainter {
       if (parts.any((p) => p.id == part.id)) {
         double opacity = 1;
         if (!melodiesToRender.contains(focusedMelody)) {
-          opacity = 0.6;
+          if (renderingSection.id == section.id) {
+            opacity = 0.6;
+          } else {
+            opacity = 0;
+          }
         }
         _renderMelodyBeat(
             canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, opacity, renderQueue,
@@ -951,7 +955,7 @@ class MusicSystemPainter extends CustomPainter {
       int rsIndex = score.sections.indexWhere((s) => s.id == renderingSection.id);
       if (rsIndex > 0 && renderingSectionBeat == 0 && score.sections[rsIndex - 1].id == section.id) {
       } else
-        opacityFactor *= 0.25;
+        opacityFactor *= 0.33;
     }
     MelodyMeasureLinesRenderer()
       ..section = renderingSection

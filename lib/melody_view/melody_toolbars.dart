@@ -1,17 +1,17 @@
-import 'package:beatscratch_flutter_redux/clearCaches.dart';
+import 'package:beatscratch_flutter_redux/cache_management.dart';
 import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
-import 'beatscratch_plugin.dart';
-import 'dummydata.dart';
-import 'music_theory.dart';
-import 'my_buttons.dart';
-import 'part_melodies_view.dart';
-import 'ui_models.dart';
-import 'music_utils.dart';
-import 'util.dart';
-import 'incrementable_value.dart';
+import '../beatscratch_plugin.dart';
+import '../util/dummydata.dart';
+import '../util/music_theory.dart';
+import '../widget/my_buttons.dart';
+import '../part_melodies_view/part_melodies_view.dart';
+import '../ui_models.dart';
+import '../util/music_utils.dart';
+import '../util/util.dart';
+import '../widget/incrementable_value.dart';
 
 class MelodyToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;

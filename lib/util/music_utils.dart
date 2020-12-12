@@ -1,9 +1,9 @@
-import 'package:beatscratch_flutter_redux/midi_theory.dart';
+import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:unification/unification.dart';
 import 'package:dart_midi/src/byte_writer.dart';
 
-import 'generated/protos/music.pb.dart';
+import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
 extension ScoreReKey on Score {

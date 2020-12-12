@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 //import 'sizeutil.dart';
 import '../generated/protos/music.pb.dart';
 import 'package:unification/unification.dart';
-import '../music_theory.dart';
+import '../util/music_theory.dart';
 
 extension PreserveColor on Paint {
   preserveProperties(VoidCallback callback) {

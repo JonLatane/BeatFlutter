@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
-import 'package:beatscratch_flutter_redux/dummydata.dart';
+import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:beatscratch_flutter_redux/ui_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,14 +11,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:path_provider/path_provider.dart';
-import 'melody_view.dart';
-import 'my_buttons.dart';
+import '../melody_view/melody_view.dart';
+import '../widget/my_buttons.dart';
 import 'score_manager.dart';
 
-import 'animations/size_fade_transition.dart';
-import 'generated/protos/music.pb.dart';
-import 'generated/protos/protobeats_plugin.pb.dart';
-import 'music_utils.dart';
+import '../animations/size_fade_transition.dart';
+import '../generated/protos/music.pb.dart';
+import '../generated/protos/protobeats_plugin.pb.dart';
+import '../util/music_utils.dart';
 
 enum ScorePickerMode {
   create,

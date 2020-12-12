@@ -1,7 +1,7 @@
-import 'package:beatscratch_flutter_redux/midi_theory.dart';
+import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
 import 'package:unification/unification.dart';
 
-import 'generated/protos/music.pb.dart';
+import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
 extension NoteLetterTheory on NoteLetter {
@@ -349,9 +349,13 @@ extension Enabled on MelodyReference {
   bool get isEnabled => this.playbackType.value != MelodyReference_PlaybackType.disabled.value;
 }
 
+extension InstrumentTypeTheory on InstrumentType {
+  bool get isDrum => this == InstrumentType.drum;
+}
+
 extension PartTheory on Part {
 //  String get convenientName => (name.isEmpty) ? name : "Part ${id.substring(0, 5)}";
-  bool get isDrum => instrument.type == InstrumentType.drum;
+  bool get isDrum => instrument.type.isDrum;
   bool get isHarmonic => instrument.type == InstrumentType.harmonic;
   String get midiName => isDrum ? "Drums" : midiInstruments[instrument.midiInstrument];
 }

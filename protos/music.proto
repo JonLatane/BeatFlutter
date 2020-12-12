@@ -199,6 +199,29 @@ message Instrument {
   uint32 midi_instrument = 5;
   uint32 midi_gm2_msb = 6;
   uint32 midi_gm2_lsb = 7;
+  // This list of SoundFont names and KeySwitch labels is to be compared against
+  // what the user has available in
+  SoundFonts sound_fonts = 8;
+}
+
+// A SoundFonts message can represent one of two things:
+// 1) A prioritized list of preferred SoundFonts/KeySwitches to be used for a Part
+// 2) A list of all SoundFonts and KeySwitches available on the system.
+// The platform audio system is responsible for picking the appropriate SoundFonts
+// for a Part based on these names and labels. So when users load SoundFonts, they should
+// ideally not mess with names of them. (Labels are hardcoded in the SFZ files and less
+// likely to be messed with.)
+message SoundFonts {
+  repeated SoundFont sound_fonts = 1;
+}
+
+message SoundFont {
+  string name = 1;
+  repeated KeySwitch key_switches = 2;
+}
+
+message KeySwitch {
+  string label = 1;
 }
 
 message Part {

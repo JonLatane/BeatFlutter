@@ -1,20 +1,12 @@
-import 'dart:io';
-import 'dart:math';
-
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:flutter/rendering.dart';
-
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
-
-import 'my_buttons.dart';
-import 'my_platform.dart';
-import 'ui_models.dart';
+import 'package:uuid/uuid.dart';
 
 var uuid = Uuid();
 

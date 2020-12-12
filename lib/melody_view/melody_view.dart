@@ -3,16 +3,16 @@ import 'dart:math';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
-import 'beatscratch_plugin.dart';
+import '../beatscratch_plugin.dart';
 import 'instrument_picker.dart';
 import 'melody_renderer.dart';
 import 'melody_toolbars.dart';
-import 'music_theory.dart';
-import 'music_notation_theory.dart';
-import 'my_buttons.dart';
-import 'ui_models.dart';
-import 'util.dart';
-import 'incrementable_value.dart';
+import '../util/music_theory.dart';
+import '../util/music_notation_theory.dart';
+import '../widget/my_buttons.dart';
+import '../ui_models.dart';
+import '../util/util.dart';
+import '../widget/incrementable_value.dart';
 
 class MelodyView extends StatefulWidget {
   final double melodyViewSizeFactor;
@@ -807,7 +807,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                 child: AnimatedOpacity(
                                   duration: animationDuration,
                                   opacity: !autoFocus ? 1 : 0,
-                                  child: Icon(Icons.center_focus_strong, color: Colors.grey),
+                                  child: Icon(Icons.center_focus_weak_outlined, color: Colors.grey),
                                 ),
                               ),
                               Transform.translate(
@@ -815,7 +815,7 @@ class _MelodyViewState extends State<MelodyView> with TickerProviderStateMixin {
                                 child: AnimatedOpacity(
                                   duration: animationDuration,
                                   opacity: autoFocus ? 1 : 0,
-                                  child: Icon(Icons.center_focus_strong, color: widget.sectionColor),
+                                  child: Icon(Icons.center_focus_weak_outlined, color: widget.sectionColor),
                                 ),
                               ),
                             ]))),
