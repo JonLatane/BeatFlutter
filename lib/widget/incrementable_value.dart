@@ -32,6 +32,7 @@ class IncrementableValue extends StatefulWidget {
   final IconData incrementIcon;
   final IconData decrementIcon;
   final VoidCallback onPointerUpCallback;
+  final VoidCallback onPointerDownCallback;
 
   const IncrementableValue({
     Key key,
@@ -46,7 +47,7 @@ class IncrementableValue extends StatefulWidget {
     this.incrementTimingDifferenceMs = 50,
     this.collapsing = false,
     this.incrementIcon = Icons.keyboard_arrow_up_rounded,
-    this.decrementIcon = Icons.keyboard_arrow_down_rounded, this.onPointerUpCallback,
+    this.decrementIcon = Icons.keyboard_arrow_down_rounded, this.onPointerUpCallback, this.onPointerDownCallback,
   }) : super(key: key);
 
   @override
@@ -82,7 +83,9 @@ class _IncrementableValueState extends State<IncrementableValue> {
         width: widget.valueWidth + 2*buttonWidth, height: 48,
         child: Listener(child:
           MyFlatButton(onPressed: (){}, color: Colors.transparent, padding: EdgeInsets.zero, child: /*Row(children:[Expanded(child:Column(children: [Expanded(child:*/ SizedBox()/*)]))])*/),
-          onPointerDown: (_){}, onPointerUp: (_){
+          onPointerDown: (_){
+            widget.onPointerDownCallback?.call();
+          }, onPointerUp: (_){
             widget.onPointerUpCallback?.call();
           }, onPointerMove: (_){},
         )),
@@ -128,6 +131,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
           ]),
 
           onPointerDown: (event) {
+            widget.onPointerDownCallback?.call();
             incrementStartPos = event.position;
             incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
             lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
@@ -166,7 +170,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
               vibrate();
               incrementStartPos = event.position;
               incrementStartTimeMs = eventTime;
-              print("increment");
+              // print("increment");
               widget.onIncrement();
             } else if(isDown && widget.onDecrement != null) {
               vibrate();

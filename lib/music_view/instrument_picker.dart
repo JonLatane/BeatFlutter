@@ -23,8 +23,9 @@ class PartConfiguration extends StatefulWidget {
   final Part part;
   final Function(VoidCallback) superSetState;
   final double availableHeight;
+  final bool visible;
 
-  const PartConfiguration({Key key, this.part, this.superSetState, this.availableHeight}) : super(key: key);
+  const PartConfiguration({Key key, this.part, this.superSetState, this.availableHeight, this.visible}) : super(key: key);
 
   @override
   _PartConfigurationState createState() => _PartConfigurationState();
@@ -143,11 +144,13 @@ class _PartConfigurationState extends State<PartConfiguration> {
     if (MyPlatform.isIOS) {
       maxMidiChannel = 4;
     }
-    double height = 280;
-    double bottomBlankSpaceHeight = context.isLandscapePhone ? MediaQuery.of(context).size.height * 0.15 : 0;
+    double height = widget.visible ? 280 : 0;
+    double bottomBlankSpaceHeight = context.isLandscapePhone && widget.visible ? MediaQuery.of(context).size.height * 0.15 : 0;
     return SingleChildScrollView(
         controller: scrollController,
-        child: Container(
+        child: AnimatedContainer(
+            duration: animationDuration,
+            curve: Curves.ease,
             height: height + bottomBlankSpaceHeight,
             child: Column(children: [
               Row(children: [
@@ -215,7 +218,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 Expanded(
                     child: Padding(
                         padding: EdgeInsets.only(left: 5),
-                        child: Text("MIDI Instrument:", style: TextStyle(fontSize: 16, color: Colors.white)))),
+                        child: Text("MIDI Instrument:", overflow: TextOverflow.fade, maxLines: 1, style: TextStyle(fontSize: 16, color: Colors.white)))),
                 Icon(Icons.search, color: Colors.white),
                 Container(
                     width: 120,
@@ -246,7 +249,9 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 items: items,
                 itemBuilder: _buildMidiInstrumentDisplay,
               )),
-              Container(height: bottomBlankSpaceHeight),
+              AnimatedContainer(
+                duration: animationDuration,
+                curve: Curves.ease,height: bottomBlankSpaceHeight),
             ])));
   }
 }

@@ -1,24 +1,23 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
-import 'package:beatscratch_flutter_redux/util/dummydata.dart';
-import 'package:beatscratch_flutter_redux/ui_models.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/colors.dart';
+import 'package:beatscratch_flutter_redux/ui_models.dart';
+import 'package:beatscratch_flutter_redux/util/dummydata.dart';
+import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import 'package:path_provider/path_provider.dart';
-import '../melody_view/melody_view.dart';
-import '../widget/my_buttons.dart';
-import 'score_manager.dart';
 
 import '../animations/size_fade_transition.dart';
 import '../generated/protos/music.pb.dart';
 import '../generated/protos/protobeats_plugin.pb.dart';
+import '../music_view/score_preview.dart';
 import '../util/music_utils.dart';
+import '../widget/my_buttons.dart';
+import 'score_manager.dart';
 
 enum ScorePickerMode {
   create,
@@ -362,10 +361,18 @@ class _Score extends StatefulWidget {
 }
 
 class __ScoreState extends State<_Score> {
-  bool _confirmingDelete = false;
+  bool _confirmingDelete;
   DateTime lastFileLastModified;
 
   Score _previewScore;
+  BSNotifier notifyUpdate;
+
+  @override
+  initState() {
+    super.initState();
+    _confirmingDelete = false;
+    notifyUpdate = BSNotifier();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -381,6 +388,7 @@ class __ScoreState extends State<_Score> {
           _previewScore = previewScore;
         });
       });
+      notifyUpdate();
       lastFileLastModified = lastModified;
     }
     if (scoreName == widget.overwritingScoreName) {
@@ -443,57 +451,17 @@ class __ScoreState extends State<_Score> {
                       child: Column(children: [
                     Expanded(
                         child: previewScore != null
-                            ? IgnorePointer(
-                                child: MelodyView(
-                                initialScale: 0.1,
-                                previewMode: true,
-                                isCurrentScore: isCurrentScore,
-                                enableColorboard: false,
-                                superSetState: setState,
-                                melodyViewSizeFactor: 1.0,
-                                melodyViewMode: MelodyViewMode.score,
-                                score: previewScore,
-                                currentSection: previewScore?.sections?.first,
-                                colorboardNotesNotifier: ValueNotifier([]),
-                                keyboardNotesNotifier: ValueNotifier([]),
-                                melody: null,
-                                part: null,
-                                sectionColor: chromaticSteps[0],
-                                splitMode: SplitMode.full,
-                                renderingMode: RenderingMode.notation,
-                                toggleSplitMode: () {},
-                                closeMelodyView: () {},
-                                toggleMelodyReference: (r) {},
-                                setReferenceVolume: (r, d) {},
-                                editingMelody: false,
-                                toggleEditingMelody: () {},
-                                setPartVolume: (p, v) {},
-                                setMelodyName: (m, n) {},
-                                setSectionName: (s, n) {},
-                                setKeyboardPart: (p) {},
-                                setColorboardPart: (p) {},
-                                colorboardPart: null,
-                                keyboardPart: null,
-                                height: _Score.height,
-                                deletePart: (part) {},
-                                deleteMelody: (melody) {},
-                                deleteSection: (section) {},
-                                selectBeat: (beat) {},
-                                cloneCurrentSection: () {},
-                              ))
+                            ? Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                          color: Colors.white.withOpacity(0.3),
+                          child: SingleChildScrollView(child: ScorePreview(previewScore,
+                                  scale: 0.1, width:200, height: 300, notifyUpdate: notifyUpdate))),
+                                ),
+                              ],
+                            )
                             : SizedBox()),
-//            Text(scoreName, textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-//            if(midiController.id == "keyboard" && !kIsWeb)
-//              Text("MIDI controllers connected to your device route to the Keyboard Part.", textAlign: TextAlign.center ,style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w100)),
-//            if(midiController.id == "colorboard")
-//              Switch(
-//                activeColor: sectionColor,
-//                value: enableColorboard,
-//                onChanged: setColorboardEnabled,
-////                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-//              ),
-
-//                Expanded(child:SizedBox()),
                   ]))
                 ])),
             AnimatedOpacity(

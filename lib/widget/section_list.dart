@@ -143,33 +143,7 @@ class _SectionListState extends State<SectionList> {
   _animateToNewlySelectedSection() {
     try {
       if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
-        int index = widget.score.sections.indexOf(widget.currentSection);
-        if (widget.scrollDirection == Axis.horizontal) {
-          double currentPosition = _scrollController.position.pixels;
-          double position = _Section.width * (index);
-          double widthOfExtraStuff = 120.0;
-          if (currentPosition > position) {
-            position = min(_scrollController.position.maxScrollExtent, position);
-            _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-          } else if (currentPosition + MediaQuery
-            .of(context)
-            .size
-            .width - _Section.width - widthOfExtraStuff < position) {
-            position = position - MediaQuery
-              .of(context)
-              .size
-              .width + _Section.width + widthOfExtraStuff;
-            position = min(_scrollController.position.maxScrollExtent, position);
-            _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-          }
-//        if(_scrollController.position.pixels < position) {
-//          _scrollController.position.
-//        }
-        } else {
-          double position = _Section.height * (index);
-          position = min(_scrollController.position.maxScrollExtent, position);
-          _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
-        }
+        _animateToCurrentSection();
       }
     } catch(any) {
 
@@ -177,6 +151,22 @@ class _SectionListState extends State<SectionList> {
     _previousSection = widget.currentSection;
   }
 
+  _animateToCurrentSection() {
+    int index = widget.score.sections.indexOf(widget.currentSection);
+    if (widget.scrollDirection == Axis.horizontal) {
+      double marginSections = context.isTablet ? 2.62 : context.isLandscapePhone ? 1.38 : .38;
+      double position = _Section.width * (index - marginSections);
+      position = min(_scrollController.position.maxScrollExtent, position);
+      position = max(0, position);
+      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+    } else {
+      double marginSections = context.isTablet || context.isPortraitPhone ? 3.62 : 1.62;
+      double position = _Section.height * (index - marginSections);
+      position = min(_scrollController.position.maxScrollExtent, position);
+      position = max(0, position);
+      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+    }
+  }
   Widget getList(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Section>(
       scrollDirection: widget.scrollDirection,

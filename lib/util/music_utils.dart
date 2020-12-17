@@ -34,33 +34,6 @@ extension ScoreReKey on Score {
   }
 }
 
-extension Migrations on Score {
-  migrate() {
-    _setBpmsOnSections();
-    _separateNoteOnAndOffs();
-  }
-
-  _setBpmsOnSections() {
-    double firstSeenBpm;
-    for (Section section in sections) {
-      if (section.tempo != null && section.tempo.bpm != null) {
-        firstSeenBpm = section.tempo.bpm;
-        break;
-      }
-    }
-    sections.forEach((section) {
-      if (section.tempo == null || section.tempo.bpm == null) {
-        section.tempo = Tempo()..bpm = firstSeenBpm ?? 123;
-      }
-    });
-  }
-  _separateNoteOnAndOffs() {
-    parts.expand((p) => p.melodies).forEach((melody) {
-      melody.separateNoteOnAndOffs();
-    });
-  }
-}
-
 extension DeleteNotes on Melody {
   deleteMidiNote(int midiNote, int subdivision) {
     // First delete the NoteOnEvent here

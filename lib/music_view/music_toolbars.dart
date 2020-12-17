@@ -13,7 +13,7 @@ import '../util/music_utils.dart';
 import '../util/util.dart';
 import '../widget/incrementable_value.dart';
 
-class MelodyToolbar extends StatefulWidget {
+class MusicToolbar extends StatefulWidget {
   final MelodyViewMode melodyViewMode;
   final bool editingMelody;
   final Melody melody;
@@ -25,7 +25,7 @@ class MelodyToolbar extends StatefulWidget {
   final Function(Melody, String) setMelodyName;
   final Function(Melody) deleteMelody;
 
-  const MelodyToolbar(
+  const MusicToolbar(
       {Key key,
       this.melody,
       this.currentSection,
@@ -40,10 +40,10 @@ class MelodyToolbar extends StatefulWidget {
       : super(key: key);
 
   @override
-  MelodyToolbarState createState() => MelodyToolbarState();
+  MusicToolbarState createState() => MusicToolbarState();
 }
 
-class MelodyToolbarState extends State<MelodyToolbar> {
+class MusicToolbarState extends State<MusicToolbar> {
   MelodyReference get melodyReference => widget.currentSection.referenceTo(widget.melody);
 
   bool get melodySelected => widget.melody != null;

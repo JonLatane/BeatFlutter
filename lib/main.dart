@@ -1,37 +1,37 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:fluro/fluro.dart' as Fluro;
-import 'package:beatscratch_flutter_redux/cache_management.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/protobeats_plugin.pb.dart';
-import 'package:beatscratch_flutter_redux/midi_settings.dart';
-import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'beatscratch_plugin.dart';
-import 'widget/keyboard.dart';
+import 'cache_management.dart';
+import 'colors.dart';
+import 'generated/protos/music.pb.dart';
+import 'generated/protos/protobeats_plugin.pb.dart';
+import 'main_toolbars.dart';
+import 'midi_settings.dart';
+import 'music_view/music_view.dart';
 import 'part_melodies_view/melody_menu_browser.dart';
-import 'melody_view/melody_view.dart';
+import 'part_melodies_view/part_melodies_view.dart';
+import 'storage/migrations.dart';
+import 'storage/score_manager.dart';
+import 'storage/score_picker.dart';
+import 'storage/url_conversions.dart';
+import 'ui_models.dart';
+import 'util/dummydata.dart';
+import 'util/music_theory.dart';
+import 'util/util.dart';
+import 'widget/colorboard.dart';
+import 'widget/keyboard.dart';
 import 'widget/my_buttons.dart';
 import 'widget/my_platform.dart';
-import 'storage/score_picker.dart';
 import 'widget/section_list.dart';
-import 'part_melodies_view/part_melodies_view.dart';
-import 'widget/colorboard.dart';
-import 'package:flutter/services.dart';
-import 'util/url_conversions.dart';
-import 'colors.dart';
-import 'util/util.dart';
-import 'ui_models.dart';
-import 'package:flutter/foundation.dart';
-import 'util/dummydata.dart';
-import 'main_toolbars.dart';
-import 'util/music_theory.dart';
-import 'util/music_utils.dart';
 
 final app = MyApp();
 
@@ -624,11 +624,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get _topNotchPaddingReal => MediaQuery.of(context).padding.top;
 
-  double get _secondToolbarHeight => (_scalableUI)
-      ? 0
-      : interactionMode == InteractionMode.edit || showViewOptions
+  double get _secondToolbarHeight => _portraitPhoneUI ?  interactionMode == InteractionMode.edit || showViewOptions
           ? 36
-          : 0;
+          : 0 : 0;
 
   double get _landscapePhoneBeatscratchToolbarWidth => _landscapePhoneUI ? 48 : 0;
 
@@ -658,7 +656,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 150
       : 0;
 
-  double get _tempoConfigurationHeight => !_scalableUI ? (_showTapInBar ? 34 : 0) : 0;
+  double get _tempoConfigurationHeight => _portraitPhoneUI && _showTapInBar? 34 : 0;
 
   bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
 
@@ -821,6 +819,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     keyboardNotesNotifier = ValueNotifier(Set());
 
     loadingAnimationController = AnimationController(vsync: this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(Duration(seconds: 10), () => MelodyMenuBrowser.loadScoreData());
+    });
   }
 
   @override
@@ -1716,12 +1718,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         8 -
         _topNotchPaddingReal
         - _bottomTapInBarHeight;
-    double width =
+    double partMelodiesWidth =
         data.size.width - verticalSectionListWidth - _leftNotchPadding - _rightNotchPadding - _landscapeTapInBarWidth;
 //    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
 //      height += 36;
 //    }
-    final landscapePartsWidth = (width - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
+    final landscapePartsWidth = (partMelodiesWidth - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
         (1 - _melodyViewSizeFactor);
     final portraitMelodyHeight = height * _melodyViewSizeFactor;
 
@@ -1791,21 +1793,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       (context.isPortrait)
           ? Column(children: [
               Expanded(
-                child: partMelodiesView(context, width, height * (1 - _melodyViewSizeFactor), bottomShadow: true),
+                child: partMelodiesView(context, partMelodiesWidth, height * (1 - _melodyViewSizeFactor), bottomShadow: true),
               ),
               AnimatedContainer(
                   curve: Curves.linear,
                   duration: slowAnimationDuration,
                   padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
                   height: portraitMelodyHeight,
-                  child: _melodyView(context, height * _melodyViewSizeFactor))
+                  child: _melodyView(context, height * _melodyViewSizeFactor),)
             ])
           : Row(children: [
               AnimatedContainer(
                 curve: Curves.easeInOut,
                 duration: slowAnimationDuration,
                 width: landscapePartsWidth,
-                child: partMelodiesView(context, width, height, rightShadow: true),
+                child: partMelodiesView(context, partMelodiesWidth, height, rightShadow: true),
               ),
               Expanded(
                   child: AnimatedContainer(
@@ -1847,11 +1849,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       enableColorboard: enableColorboard,
       showBeatCounts: showBeatCounts,
       showViewOptions: showViewOptions,
+      scoreManager: _scoreManager,
     );
   }
 
-  MelodyView _melodyView(BuildContext context, double height) {
-    return MelodyView(
+  MusicView _melodyView(BuildContext context, double height) {
+    return MusicView(
       key: ValueKey("main-melody-view"),
       enableColorboard: enableColorboard,
       superSetState: setState,

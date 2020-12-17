@@ -24,6 +24,7 @@ Melody baseMelody() => Melody()
 ;
 
 Melody boomChick() => baseMelody()
+  ..name = "Boom-Chick"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
@@ -97,6 +98,50 @@ Melody tsstTsstSwing() => baseMelody()
   ..setMidiDataFromSimpleMelody({
     2: [-18], 5: [-18]
   }, simpleVelocity: 42)
+;
+
+Melody thirteenOutOfThirtyTwo() => baseMelody()
+  ..name = "13/32"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 8
+  ..length = 32
+  ..setMidiDataFromSimpleMelody({
+    5: [-18],
+  }, simpleVelocity: 127)
+;
+
+Melody fiveOutOfThirtyTwo() => baseMelody()
+  ..name = "5/32"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 8
+  ..length = 32
+  ..setMidiDataFromSimpleMelody({
+    13: [-18],
+  }, simpleVelocity: 127)
+;
+
+Melody twentyOneOutOfThirtyTwo() => baseMelody()
+  ..name = "21/32"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 8
+  ..length = 32
+  ..setMidiDataFromSimpleMelody({
+    21: [-18],
+  }, simpleVelocity: 127)
+;
+
+Melody twentyNineOutOfThirtyTwo() => baseMelody()
+  ..name = "29/32"
+  ..instrumentType = InstrumentType.drum
+  ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
+  ..subdivisionsPerBeat = 8
+  ..length = 32
+  ..setMidiDataFromSimpleMelody({
+    29: [-18],
+  }, simpleVelocity: 127)
 ;
 
 Melody odeToJoy() => baseMelody()

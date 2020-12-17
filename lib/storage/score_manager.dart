@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
-import '../util/url_conversions.dart';
+import 'url_conversions.dart';
 
 
 /// ScoreManager gonna be funky if [BeatScratchPlugin.supportsStorage]
@@ -85,7 +85,7 @@ class ScoreManager {
     } catch (e) {
       score = defaultScore();
     }
-    doOpenScore(score);
+    doOpenScore?.call(score);
   }
 
   loadFromScoreUrl(String scoreUrl,
@@ -199,7 +199,7 @@ class ScoreManager {
 
   Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);
 
-  Future<Score> loadScore(File file) async => Score.fromBuffer(file.readAsBytesSync());
+  static Future<Score> loadScore(File file) async => Score.fromBuffer(file.readAsBytesSync());
 }
 
 extension ScoreName on FileSystemEntity {

@@ -8,7 +8,7 @@ import 'package:unification/unification.dart';
 import 'package:http/http.dart' as http;
 
 import '../generated/protos/music.pb.dart';
-import 'util.dart';
+import '../util/util.dart';
 
 var _base58 = BaseXCodec('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 final urlPrefix = MyPlatform.isDebug ? "http://localhost:8000/app-staging/" : "https://beatscratch.io/app/";
