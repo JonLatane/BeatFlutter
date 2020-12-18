@@ -360,7 +360,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                         flex: context.isTabletOrLandscapey ? 3 : 2,
                         child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: (MyPlatform.isMobile || MyPlatform.isDebug)
+                            onPressed: false // (MyPlatform.isMobile || MyPlatform.isDebug)
                                 ? () {
                                     setState(() {
                                       switch (scrollingMode) {

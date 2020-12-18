@@ -12,6 +12,7 @@ import '../drawing/drawing.dart';
 import '../generated/protos/music.pb.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
+import 'incrementable_value.dart';
 import 'my_buttons.dart';
 import 'my_platform.dart';
 import '../ui_models.dart';
@@ -28,16 +29,18 @@ class Keyboard extends StatefulWidget {
   final double leftMargin;
   final double distanceFromBottom;
 
-  const Keyboard({Key key,
-    this.height,
-    this.showConfiguration,
-    this.hideConfiguration,
-    this.sectionColor,
-    this.part,
-    this.pressedNotesNotifier,
-    this.width,
-    this.leftMargin, this.distanceFromBottom})
-    : super(key: key);
+  const Keyboard(
+      {Key key,
+      this.height,
+      this.showConfiguration,
+      this.hideConfiguration,
+      this.sectionColor,
+      this.part,
+      this.pressedNotesNotifier,
+      this.width,
+      this.leftMargin,
+      this.distanceFromBottom})
+      : super(key: key);
 
   @override
   KeyboardState createState() => KeyboardState();
@@ -47,29 +50,45 @@ Rect _visibleRect = Rect.zero;
 
 class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   static const double _minHalfStepWidthInPx = 5;
-  static const double maxHalfStepWidthInPx = 500;
+  static const double _maxHalfStepWidthInPx = 500;
+
+  double get _minHalfStepWidthBasedOnScreenSize => widget.width / keysOnScreen;
+
+  double get _maxHalfStepWidthBasedOnScreenSize => widget.width / 5;
+
   double get minHalfStepWidthInPx => max(_minHalfStepWidthInPx, _minHalfStepWidthBasedOnScreenSize);
+
+  double get maxHalfStepWidthInPx => min(_maxHalfStepWidthInPx, _maxHalfStepWidthBasedOnScreenSize);
+
   bool useOrientation = false;
   List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
+  ScrollingMode previousScrollingMode;
+  bool showScrollHint = false;
 
   List<AnimationController> _scaleAnimationControllers = [];
+
   AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
   double _halfStepWidthInPx = 35;
+
   double get halfStepWidthInPx => _halfStepWidthInPx;
+
   set halfStepWidthInPx(double value) {
     _halfStepWidthInPx = halfStepWidthInPx;
-    _scaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _scaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
     _scaleAnimationControllers.clear();
     AnimationController scaleAnimationController = animationController();
     _scaleAnimationControllers.add(scaleAnimationController);
     Animation animation;
-    animation = Tween<double>(begin: _halfStepWidthInPx, end: value)
-      .animate(scaleAnimationController)
+    animation = Tween<double>(begin: _halfStepWidthInPx, end: value).animate(scaleAnimationController)
       ..addListener(() {
-        setState(() { _halfStepWidthInPx = animation.value; });
+        setState(() {
+          _halfStepWidthInPx = animation.value;
+        });
       });
     scaleAnimationController.forward();
   }
@@ -83,15 +102,16 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   int get keysOnScreen => highestPitch - lowestPitch + 1;
 
   double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
-  bool showScrollHint = false;
-  ScrollingMode previousScrollingMode;
+
+  Map<int, int> _pointerIdsToTones = Map();
+  double _startHalfStepWidthInPx;
 
   @override
   void initState() {
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     scrollPositionNotifier = ValueNotifier(0);
-    if(MyPlatform.isMobile) {
+    if (MyPlatform.isMobile) {
       try {
         _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
           if (scrollingMode != ScrollingMode.sideScroll) {
@@ -118,11 +138,11 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
               Animation animation;
               animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
-                .animate(orientationAnimationController)
-                ..addListener(() {
-                  scrollPositionNotifier.value = animation.value;
+                  .animate(orientationAnimationController)
+                    ..addListener(() {
+                      scrollPositionNotifier.value = animation.value;
 //                setState(() {});
-                });
+                    });
               orientationAnimationController.forward(from: scrollPositionNotifier.value);
 //            scrollPositionNotifier.value = newScrollPositionValue;
             }
@@ -137,7 +157,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _scaleAnimationControllers.forEach((controller) { controller.dispose(); });
+    _scaleAnimationControllers.forEach((controller) {
+      controller.dispose();
+    });
     _scaleAnimationControllers.clear();
     for (StreamSubscription<dynamic> subscription in _streamSubscriptions) {
       subscription.cancel();
@@ -145,18 +167,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Map<int, int> _pointerIdsToTones = Map();
-  double _startHalfStepWidthInPx;
-  double _minHalfStepWidthBasedOnScreenSize;
-
   @override
   Widget build(BuildContext context) {
-    _minHalfStepWidthBasedOnScreenSize = widget.width / keysOnScreen;
     double halfStepsOnScreen = widget.width / halfStepWidthInPx;
     double physicalWidth = 88 * halfStepWidthInPx;
 //    print("physicalWidth=$physicalWidth");
     double minNewValue = widget.width / keysOnScreen;
-    if(halfStepWidthInPx < minNewValue) {
+    if (halfStepWidthInPx < minNewValue) {
       halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
     }
     if (previousScrollingMode != ScrollingMode.sideScroll && scrollingMode == ScrollingMode.sideScroll) {
@@ -181,25 +198,24 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             }
           },
           child: Column(children: [
-
-    GestureDetector(
-    onScaleStart: (details) => setState(() {
-      _startHalfStepWidthInPx = halfStepWidthInPx;
-    }),
-    onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
-      if (details.scale > 0) {
-        halfStepWidthInPx = max(minHalfStepWidthInPx, min(maxHalfStepWidthInPx,
-          _startHalfStepWidthInPx * details.scale));
-      }
-    }),
-    child:AnimatedContainer(
-                duration: animationDuration,
-                height: touchScrollAreaHeight,
-                width: physicalWidth,
-                color: widget.sectionColor,
-                child: Align(
-                    alignment: Alignment.center,
-                    child: Container(height: 5, width: physicalWidth, color: Colors.black54)))),
+            GestureDetector(
+                onScaleStart: (details) => setState(() {
+                      _startHalfStepWidthInPx = halfStepWidthInPx;
+                    }),
+                onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
+                      if (details.scale > 0) {
+                        halfStepWidthInPx = max(
+                            minHalfStepWidthInPx, min(maxHalfStepWidthInPx, _startHalfStepWidthInPx * details.scale));
+                      }
+                    }),
+                child: AnimatedContainer(
+                    duration: animationDuration,
+                    height: touchScrollAreaHeight,
+                    width: physicalWidth,
+                    color: widget.sectionColor,
+                    child: Align(
+                        alignment: Alignment.center,
+                        child: Container(height: 5, width: physicalWidth, color: Colors.black54)))),
             CustomPaint(
               size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
               isComplex: true,
@@ -219,12 +235,12 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
       Column(children: [
         IgnorePointer(
           child: AnimatedContainer(
-            duration: animationDuration,
-            height: touchScrollAreaHeight,
-            child: AnimatedOpacity(
+              duration: animationDuration,
+              height: touchScrollAreaHeight,
+              child: AnimatedOpacity(
                 opacity: showScrollHint ? 0.8 : 0,
                 duration: animationDuration,
-                  child: AnimatedContainer(
+                child: AnimatedContainer(
                     height: 16,
                     duration: animationDuration,
                     padding: EdgeInsets.symmetric(horizontal: 5),
@@ -238,15 +254,16 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                       Row(children: [
                         Icon(Icons.arrow_left),
                         Expanded(child: SizedBox()),
-                        Expanded(child: Text("Scroll", maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11))),
+                        Expanded(
+                            child: Text("Scroll",
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11))),
                         Expanded(child: SizedBox()),
                         Icon(Icons.arrow_right),
                       ]),
                       Expanded(child: SizedBox()),
                     ])),
-                )),
-        )
-      ,
+              )),
+        ),
         Expanded(
             child: Listener(
                 onPointerDown: (event) {
@@ -316,7 +333,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
         AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight, child: SizedBox()),
         AnimatedContainer(
             duration: animationDuration,
-            height: max(0,widget.height - touchScrollAreaHeight),
+            height: max(0, widget.height - touchScrollAreaHeight),
             color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
             child: widget.showConfiguration
                 ? Row(children: [
@@ -332,11 +349,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               Container(
                                   width: 25,
                                   child: MyRaisedButton(
-                                      onPressed: false ? () {
-                                        setState(() {
-                                          highestPitch++;
-                                        });
-                                      } : null,
+                                      onPressed: false
+                                          ? () {
+                                              setState(() {
+                                                highestPitch++;
+                                              });
+                                            }
+                                          : null,
                                       padding: EdgeInsets.all(0),
                                       child: Icon(Icons.arrow_upward))),
                               Container(
@@ -349,11 +368,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               Container(
                                   width: 25,
                                   child: MyRaisedButton(
-                                      onPressed: false ? () {
-                                        setState(() {
-                                          highestPitch--;
-                                        });
-                                      } : null,
+                                      onPressed: false
+                                          ? () {
+                                              setState(() {
+                                                highestPitch--;
+                                              });
+                                            }
+                                          : null,
                                       padding: EdgeInsets.all(0),
                                       child: Icon(Icons.arrow_downward))),
                               Expanded(
@@ -369,11 +390,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               Container(
                                   width: 25,
                                   child: MyRaisedButton(
-                                      onPressed: false ? () {
-                                        setState(() {
-                                          lowestPitch++;
-                                        });
-                                      } : null,
+                                      onPressed: false
+                                          ? () {
+                                              setState(() {
+                                                lowestPitch++;
+                                              });
+                                            }
+                                          : null,
                                       padding: EdgeInsets.all(0),
                                       child: Icon(Icons.arrow_upward))),
                               Container(
@@ -386,11 +409,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               Container(
                                   width: 25,
                                   child: MyRaisedButton(
-                                      onPressed: false ? () {
-                                        setState(() {
-                                          lowestPitch--;
-                                        });
-                                      } : null,
+                                      onPressed: false
+                                          ? () {
+                                              setState(() {
+                                                lowestPitch--;
+                                              });
+                                            }
+                                          : null,
                                       padding: EdgeInsets.all(0),
                                       child: Icon(Icons.arrow_downward))),
                               Expanded(
@@ -415,7 +440,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         flex: context.isTabletOrLandscapey ? 3 : 2,
                         child: MyRaisedButton(
                             padding: EdgeInsets.all(0),
-                            onPressed: (MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
+                            onPressed: false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
                                 ? () {
                                     setState(() {
                                       switch (scrollingMode) {
@@ -440,53 +465,83 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                   ? "Tilt"
                                   : (scrollingMode == ScrollingMode.roll)
                                       ? "Roll"
-                                      : (scrollingMode == ScrollingMode.sideScroll) ? "Roll" : "Wat"),
+                                      : (scrollingMode == ScrollingMode.sideScroll)
+                                          ? "Roll"
+                                          : "Wat"),
                               Expanded(child: SizedBox()),
                             ]))),
-                    Expanded(
-                        flex: context.isTabletOrLandscapey ? 3 : 1,
-                        child: Column(children: [
-                          Expanded(child: SizedBox()),
-                          Container(
-                              width: 36,
-                              child: MyRaisedButton(
-                                  padding: EdgeInsets.all(0),
-                                  onPressed: (halfStepWidthInPx < maxHalfStepWidthInPx)
-                                      ? () {
-                                          setState(() {
-                                            halfStepWidthInPx *= 1.62;
-                                          });
-                                        }
-                                      : null,
-                                  child: Icon(Icons.zoom_in))),
-                          Container(
-                              width: 36,
-                              child: MyRaisedButton(
-                                  padding: EdgeInsets.all(0),
-                                  onPressed: (halfStepWidthInPx > minHalfStepWidthInPx)
-                                      ? () {
-                                          setState(() {
-                                            double minNewValue = widget.width / keysOnScreen;
-                                            double newValue = halfStepWidthInPx / 1.62;
-                                            newValue = max(minNewValue, newValue);
-                                            halfStepWidthInPx  = newValue;
-                                          });
-                                        }
-                                      : null,
-                                  child: Icon(Icons.zoom_out))),
-                          Expanded(child: SizedBox()),
-                        ])),
+                    SizedBox(width: 5),
+                    Column(children: [
+                      Expanded(child: SizedBox()),
+                      zoomButton(),
+                      Expanded(child: SizedBox()),
+                    ]),
                   ])
                 : SizedBox())
       ]),
     ]);
   }
 
+  Container zoomButton() {
+    return Container(
+        color: Colors.black12,
+        padding: EdgeInsets.zero,
+        child: IncrementableValue(
+          child: Container(
+            // color: Colors.black12,
+            width: 48,
+            height: 48,
+            child: Align(
+                alignment: Alignment.center,
+                child: Stack(children: [
+                  AnimatedOpacity(
+                      opacity: 0.5,
+                      duration: animationDuration,
+                      child: Transform.translate(
+                          offset: Offset(-5, 5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out)))),
+                  AnimatedOpacity(
+                      opacity: 0.5,
+                      duration: animationDuration,
+                      child: Transform.translate(
+                          offset: Offset(5, -5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in)))),
+                  AnimatedOpacity(
+                      opacity: 0.8,
+                      duration: animationDuration,
+                      child: Transform.translate(
+                        offset: Offset(2, 20),
+                        child: Text(
+                            "${(1 + 99 * (halfStepWidthInPx - minHalfStepWidthInPx) / (maxHalfStepWidthInPx - minHalfStepWidthInPx)).toStringAsFixed(0)}%",
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                      )),
+                ])),
+          ),
+          collapsing: true,
+          incrementIcon: Icons.zoom_in,
+          decrementIcon: Icons.zoom_out,
+          onIncrement: (halfStepWidthInPx < maxHalfStepWidthInPx)
+              ? () {
+                  setState(() {
+                    halfStepWidthInPx = min(maxHalfStepWidthInPx, halfStepWidthInPx * 1.1);
+                  });
+                }
+              : null,
+          onDecrement: (halfStepWidthInPx > minHalfStepWidthInPx)
+              ? () {
+                  setState(() {
+                    halfStepWidthInPx = max(minHalfStepWidthInPx, halfStepWidthInPx / 1.1);
+                  });
+                }
+              : null,
+        ));
+  }
+
   static final Map<ArgumentList, int> diatonicToneCache = Map();
+
   int diatonicTone(double left) {
     final key = ArgumentList([left, lowestPitch, halfStepWidthInPx]);
     return diatonicToneCache.putIfAbsent(key, () => _diatonicTone(left));
   }
+
   int _diatonicTone(double left) {
     left += (lowestPitch - CanvasToneDrawer.BOTTOM) * halfStepWidthInPx;
     int diatonicTone = ((left + 0.245 * diatonicStepWidthInPx) / diatonicStepWidthInPx).floor() - 23;
@@ -535,7 +590,9 @@ class _KeyboardPainter extends CustomPainter {
       this.scrollPositionNotifier,
       this.halfStepsOnScreen,
       this.visibleRect})
-      : super(repaint: Listenable.merge([scrollPositionNotifier, pressedNotesNotifier, BeatScratchPlugin.pressedMidiControllerNotes]));
+      : super(
+            repaint: Listenable.merge(
+                [scrollPositionNotifier, pressedNotesNotifier, BeatScratchPlugin.pressedMidiControllerNotes]));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -623,12 +680,10 @@ class KeyboardRenderer extends CanvasToneDrawer {
               ..strokeWidth = 1);
 //        print("drawing white key ${visiblePitch.tone}: ${visiblePitch.tone.naturalOrSharpNote}");
 //        NoteSpecification ns = visiblePitch.tone.naturalOrSharpNote;
-        if(renderLettersAndNumbers) {
-          String text = NoteLetter.values
-            .firstWhere((letter) => letter.tone.mod12 == visiblePitch.tone.mod12)
-            .name;
+        if (renderLettersAndNumbers) {
+          String text = NoteLetter.values.firstWhere((letter) => letter.tone.mod12 == visiblePitch.tone.mod12).name;
           TextSpan span = new TextSpan(
-            text: text, style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.grey));
+              text: text, style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.grey));
           TextPainter tp = new TextPainter(
             text: span,
             textAlign: TextAlign.left,
@@ -662,8 +717,9 @@ class KeyboardRenderer extends CanvasToneDrawer {
         }
         if (renderLettersAndNumbers && tone.mod12 == 0) {
 //            alphaDrawerPaint.color = Colors.black;
-          TextSpan span = new TextSpan(text: (4 + (tone / 12)).toInt().toString(),
-            style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w100, color: Colors.grey));
+          TextSpan span = new TextSpan(
+              text: (4 + (tone / 12)).toInt().toString(),
+              style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w100, color: Colors.grey));
           TextPainter tp = new TextPainter(
             text: span,
             textAlign: TextAlign.left,

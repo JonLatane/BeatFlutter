@@ -220,6 +220,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set currentSection(Section section) {
     BeatScratchPlugin.setCurrentSection(section);
+    BeatScratchPlugin.currentBeat.value = min(section.beatCount - 1, BeatScratchPlugin.currentBeat.value);
     _currentSection = section;
     if (editingMelody && section.referenceTo(selectedMelody).playbackType == MelodyReference_PlaybackType.disabled) {
       editingMelody = false;
