@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 enum InteractionMode { view, edit }
 
-enum MelodyViewMode { score, section, part, melody, none }
+enum MusicViewMode { score, section, part, melody, none }
 
 enum SplitMode { half, full }
 

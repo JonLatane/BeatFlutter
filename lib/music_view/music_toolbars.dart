@@ -13,8 +13,8 @@ import '../util/music_utils.dart';
 import '../util/util.dart';
 import '../widget/incrementable_value.dart';
 
-class MusicToolbar extends StatefulWidget {
-  final MelodyViewMode melodyViewMode;
+class MelodyToolbar extends StatefulWidget {
+  final MusicViewMode musicViewMode;
   final bool editingMelody;
   final Melody melody;
   final Section currentSection;
@@ -25,7 +25,7 @@ class MusicToolbar extends StatefulWidget {
   final Function(Melody, String) setMelodyName;
   final Function(Melody) deleteMelody;
 
-  const MusicToolbar(
+  const MelodyToolbar(
       {Key key,
       this.melody,
       this.currentSection,
@@ -35,29 +35,32 @@ class MusicToolbar extends StatefulWidget {
       this.sectionColor,
       this.toggleEditingMelody,
       this.setMelodyName,
-      this.melodyViewMode,
+      this.musicViewMode,
       this.deleteMelody})
       : super(key: key);
 
   @override
-  MusicToolbarState createState() => MusicToolbarState();
+  MelodyToolbarState createState() => MelodyToolbarState();
 }
 
-class MusicToolbarState extends State<MusicToolbar> {
+class MelodyToolbarState extends State<MelodyToolbar> {
+  bool _showVolume;
+  TextEditingController nameController;
+
   MelodyReference get melodyReference => widget.currentSection.referenceTo(widget.melody);
-
   bool get melodySelected => widget.melody != null;
-
   bool get melodyEnabled => melodySelected && (melodyReference?.isEnabled ?? false);
-
   Melody confirmingDeleteFor;
-
   bool get isConfirmingDelete => confirmingDeleteFor != null && confirmingDeleteFor == widget.melody;
-
-  bool _showVolume = false;
   bool get showVolume => (melodyReference?.isEnabled == true) && (/*context.isTablet ||*/ _showVolume);
 
-  TextEditingController nameController = TextEditingController();
+  @override
+  initState() {
+    super.initState();
+    _showVolume = false;
+    nameController = TextEditingController();
+  }
+
   @override
   dispose() {
     nameController.dispose();
@@ -85,7 +88,7 @@ class MusicToolbarState extends State<MusicToolbar> {
       Expanded(
           child: Padding(
               padding: EdgeInsets.only(left: 5),
-              child: (widget.melodyViewMode == MelodyViewMode.melody)
+              child: (widget.musicViewMode == MusicViewMode.melody)
                   ? TextField(
                       controller: nameController,
                       textCapitalization: TextCapitalization.words,
@@ -101,8 +104,8 @@ class MusicToolbarState extends State<MusicToolbar> {
 //                      },
                       decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: (melodySelected) ? "Melody ${widget.melody.id.substring(0, 5)}" : ""),
-                    )
+                          hintText: (melodySelected) ? widget.melody.idName : "",
+                    ))
                   : Text(""))),
           AnimatedContainer(
             duration: animationDuration,
@@ -218,274 +221,19 @@ class MusicToolbarState extends State<MusicToolbar> {
           child: MyRaisedButton(
               onPressed: () {
                 setState(() {
-                  confirmingDeleteFor = widget.melody;
+                  if (widget.melody.name?.isEmpty != false &&
+                    (widget.melody.midiData.data.isEmpty
+                      || widget.melody.midiData.data.values.where((mc) => mc.data.length != 0).isEmpty)
+                  ) {
+                    widget.deleteMelody(widget.melody);
+                  } else {
+                    confirmingDeleteFor = widget.melody;
+                  }
                 });
               },
               padding: EdgeInsets.zero,
               child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
-  }
-}
-
-class MelodyEditingToolbar extends StatefulWidget {
-  final String melodyId;
-  final Score score;
-  final Color sectionColor;
-  final Section currentSection;
-  final bool editingMelody;
-  final ValueNotifier<int> highlightedBeat;
-  Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
-
-  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection, this.editingMelody, this.highlightedBeat}) : super(key: key);
-
-  @override
-  _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
-}
-
-class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with TickerProviderStateMixin {
-  AnimationController animationController;
-  Color recordingAnimationColor;
-  Animation<Color> recordingAnimation;
-  bool showHoldToClear = false;
-  bool showDataCleared = false;
-  bool animationStarted = false;
-  int get firstBeatOfSection => widget.score.firstBeatOfSection(widget.currentSection);
-
-  @override
-  void initState() {
-    super.initState();
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    recordingAnimation = ColorTween(
-      begin: Colors.grey,
-      end: chromaticSteps[7],
-    ).animate(animationController)
-      ..addListener(() {
-        setState(() {
-          recordingAnimationColor = recordingAnimation.value;
-        });
-      });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    animationController.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!animationStarted && widget.editingMelody && BeatScratchPlugin.playing) {
-      animationController.repeat(reverse: true);
-      animationStarted = true;
-    } else if (widget.editingMelody || !BeatScratchPlugin.playing) {
-      animationController.stop(canceled: false);
-      animationStarted = false;
-    }
-    Color recordingColor;
-    if(widget.editingMelody && BeatScratchPlugin.playing) {
-      recordingColor = recordingAnimationColor;
-    } else {
-      recordingColor = Colors.grey;
-    }
-    int beats;
-    if(widget.melody != null) {
-      beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
-    }
-    bool hasHighlightedBeat = widget.highlightedBeat.value != null && BeatScratchPlugin.playing && widget.editingMelody;
-    return Row(children: [
-      SizedBox(width: 5),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
-          ? () {
-          if(widget.melody != null && widget.melody.beatCount > 1) {
-            widget.melody.length -= widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
-          ? () {
-          if (widget.melody != null && widget.melody.beatCount <= 999) {
-            widget.melody.length += widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        }
-          : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
-//        valueWidth: 100,
-//        value: "$beats beat${beats == 1 ? "" : "s"}",
-      ),
-      SizedBox(width: 5),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
-          if((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
-            widget.melody?.subdivisionsPerBeat -= 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
-          if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
-            widget.melody?.subdivisionsPerBeat += 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-          child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
-      ),
-      SizedBox(width: 5),
-      Expanded(child: SizedBox(width: 5),),
-      AnimatedContainer(
-        duration: animationDuration,
-        width: showHoldToClear ? 35 : 0,
-        height: 36,
-        padding: EdgeInsets.only(left: 5),
-        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showHoldToClear ? 1 : 0,
-          child: Stack(children:[
-            Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
-            Text("Hold", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            Transform.translate(offset: Offset(0,  0), child:Align(alignment: Alignment.center, child:
-            Text("to", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            Transform.translate(offset: Offset(0, 7), child: Align(alignment: Alignment.center, child:
-            Text("clear", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-          ]))),
-      AnimatedContainer(
-        duration: animationDuration,
-        width: showDataCleared ? 45 : 0,
-        height: 36,
-        padding: EdgeInsets.only(left: 5),
-        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showDataCleared ? 1 : 0,
-          child: Stack(children:[
-            // Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
-            // Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            // Transform.translate(offset: Offset(0, 7), child:
-            Align(alignment: Alignment.center, child:
-            Text("Cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))
-            // ),
-          ]))),
-      AnimatedContainer(
-        duration: animationDuration,
-        width: 44,
-        height: 36,
-        padding: EdgeInsets.only(left: 8),
-        child:  MyRaisedButton(
-          color: Color(0x424242).withOpacity(1),
-          padding: EdgeInsets.zero,
-          onLongPress: widget.melody != null ? () {
-            print("clearing");
-            widget.melody.midiData.data.clear();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-            setState(() {
-              showDataCleared = true;
-              showHoldToClear = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showDataCleared = false;
-              });
-            });
-          } : null,
-          onPressed: () {
-            setState(() {
-              showHoldToClear = true;
-              showDataCleared = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showHoldToClear = false;
-              });
-            });
-          },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
-            child: Stack(
-              children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep, color: Colors.white)),
-                Align(alignment: Alignment.bottomRight, child: Padding(
-                  padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("All",
-                    style: TextStyle(fontSize:10, color: Colors.white),),)
-                ))
-              ],
-            )))),
-      AnimatedContainer(
-        duration: animationDuration,
-        width: 44,
-        height: 36,
-        padding: EdgeInsets.only(left: 8),
-        child:  MyRaisedButton(
-          color: Color(0x424242).withOpacity(1),
-          padding: EdgeInsets.zero,
-          onLongPress: widget.melody != null ? () {
-            print("clearing single beat");
-            int beatToDelete = widget.highlightedBeat.value;
-            if (beatToDelete == null) {
-              beatToDelete = BeatScratchPlugin.currentBeat.value;
-            } else {
-              beatToDelete -= firstBeatOfSection;
-            }
-            widget.melody.deleteBeat(beatToDelete);
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-            setState(() {
-              showDataCleared = true;
-              showHoldToClear = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showDataCleared = false;
-              });
-            });
-          } : null,
-          onPressed: () {
-            setState(() {
-              showHoldToClear = true;
-              showDataCleared = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showHoldToClear = false;
-              });
-            });
-          },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
-            child: Stack(
-              children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep,
-                  color: hasHighlightedBeat ? widget.sectionColor : Colors.white)),
-                Align(alignment: Alignment.bottomRight, child: Padding(
-                  padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("Beat",
-                    style: TextStyle(fontSize:10,
-                      color: hasHighlightedBeat ? widget.sectionColor : Colors.white, fontWeight: FontWeight.w400),)),
-                ))
-              ],
-            )))),
-      SizedBox(width: 7),
-      Column(children: [
-        SizedBox(height: 3),
-        Transform.translate(offset: Offset(0, 5), child:
-        Icon(Icons.fiber_manual_record, color: recordingColor)),
-        Text('Recording',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 12, color: recordingColor)),
-      ]),
-      SizedBox(width: 7),
-    ]);
   }
 }
 
@@ -498,7 +246,8 @@ class PartToolbar extends StatefulWidget {
   final Part keyboardPart;
   final Function(Part) deletePart;
   final bool configuringPart;
-  final VoidCallback toggleConfiguringPart;
+  final bool browsingPartMelodies;
+  final VoidCallback toggleConfiguringPart, toggleBrowsingPartMelodies;
   final bool enableColorboard;
 
   const PartToolbar(
@@ -510,8 +259,9 @@ class PartToolbar extends StatefulWidget {
       this.keyboardPart,
       this.deletePart,
       this.configuringPart,
+        this.browsingPartMelodies,
       this.toggleConfiguringPart,
-      this.sectionColor, this.enableColorboard})
+      this.sectionColor, this.enableColorboard, this.toggleBrowsingPartMelodies})
       : super(key: key);
 
   @override
@@ -616,6 +366,30 @@ class PartToolbarState extends State<PartToolbar> {
                               child: Checkbox(value: widget.colorboardPart == widget.part, onChanged: null)))
                     ])))),
         AnimatedContainer(
+          duration: animationDuration,
+          width: (/*melodyEnabled && */!isConfirmingDelete) ? 40 : 0,
+          height: 36,
+          padding: EdgeInsets.only(right: 5),
+          child: MyRaisedButton(
+            color: (widget.browsingPartMelodies)
+              ? widget.sectionColor == chromaticSteps[7]
+              ? Colors.white : widget.sectionColor : null,
+            onPressed: () {
+              widget.toggleBrowsingPartMelodies();
+            },
+            padding: EdgeInsets.all(0),
+            child: AnimatedOpacity(duration: animationDuration, opacity: (widget.part != null && !isConfirmingDelete) ? 1 : 0,
+              child: Stack(children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Icon(Icons.list,))
+              ])
+            ),
+          )),
+        AnimatedContainer(
             duration: animationDuration,
             width: isConfirmingDelete ? 128 : 0,
             height: 36,
@@ -678,7 +452,7 @@ class SectionToolbar extends StatefulWidget {
   final bool canDeleteSection;
   final Section currentSection;
   final Color sectionColor;
-  final MelodyViewMode melodyViewMode;
+  final MusicViewMode musicViewMode;
   final Function(Section, String) setSectionName;
   final Function(Section) deleteSection;
   final Function cloneCurrentSection;
@@ -689,7 +463,7 @@ class SectionToolbar extends StatefulWidget {
       {Key key,
       this.currentSection,
       this.sectionColor,
-      this.melodyViewMode,
+      this.musicViewMode,
       this.setSectionName,
       this.deleteSection,
       this.canDeleteSection,
@@ -728,12 +502,12 @@ class SectionToolbarState extends State<SectionToolbar> {
       Expanded(
           child: Padding(
               padding: EdgeInsets.only(left: 5),
-              child: (widget.melodyViewMode == MelodyViewMode.section)
+              child: (widget.musicViewMode == MusicViewMode.section)
                   ? TextField(
                       style: TextStyle(fontWeight: FontWeight.w100),
                       controller: nameController,
                       textCapitalization: TextCapitalization.words,
-                      onChanged: (widget.melodyViewMode == MelodyViewMode.section)
+                      onChanged: (widget.musicViewMode == MusicViewMode.section)
                           ? (value) {
                               widget.currentSection.name = value;
                               widget.setSectionName(widget.currentSection, widget.currentSection.name);
@@ -744,8 +518,8 @@ class SectionToolbarState extends State<SectionToolbar> {
 //                      },
                       decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: (widget.melodyViewMode == MelodyViewMode.section)
-                              ? "Section ${widget.currentSection.id.substring(0, 5)}"
+                          hintText: (widget.musicViewMode == MusicViewMode.section)
+                              ? widget.currentSection.idName
                               : ""),
                     )
                   : Text(""))),
@@ -759,7 +533,7 @@ class SectionToolbarState extends State<SectionToolbar> {
             color: widget.editingSection ? Colors.white : null,
             child: AnimatedOpacity(
               duration: animationDuration,
-              opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
+              opacity: widget.musicViewMode != MusicViewMode.section || isConfirmingDelete ? 0 : 1,
               child: Icon(Icons.edit)),
             onPressed: () {
               widget.setEditingSection(!widget.editingSection);
@@ -775,7 +549,7 @@ class SectionToolbarState extends State<SectionToolbar> {
               padding: EdgeInsets.zero,
               child: AnimatedOpacity(
                   duration: animationDuration,
-                  opacity: widget.melodyViewMode != MelodyViewMode.section || isConfirmingDelete ? 0 : 1,
+                  opacity: widget.musicViewMode != MusicViewMode.section || isConfirmingDelete ? 0 : 1,
                   child: Icon(Icons.control_point_duplicate)))),
       AnimatedContainer(
           duration: animationDuration,
@@ -833,218 +607,5 @@ class SectionToolbarState extends State<SectionToolbar> {
               padding: EdgeInsets.zero,
               child: Padding(padding: EdgeInsets.all(5), child: Image.asset("assets/trash.png")))),
     ]));
-  }
-}
-
-
-class SectionEditingToolbar extends StatefulWidget {
-  final Score score;
-  final Color sectionColor;
-  final Section currentSection;
-
-  const SectionEditingToolbar({Key key, this.sectionColor, this.score, this.currentSection}) : super(key: key);
-
-  @override
-  _SectionEditingToolbarState createState() => _SectionEditingToolbarState();
-}
-
-class _SectionEditingToolbarState extends State<SectionEditingToolbar> with TickerProviderStateMixin {
-  AnimationController animationController;
-  Color recordingAnimationColor;
-  Animation<Color> recordingAnimation;
-
-  static final List<NoteName> keys = [
-    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural,
-    NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.sharp,
-    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.natural,
-    NoteName()..noteLetter = NoteLetter.D..noteSign = NoteSign.sharp,
-    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.natural,
-//    NoteName()..noteLetter = NoteLetter.E..noteSign = NoteSign.sharp,
-//    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.natural,
-    NoteName()..noteLetter = NoteLetter.F..noteSign = NoteSign.sharp,
-    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.natural,
-    NoteName()..noteLetter = NoteLetter.G..noteSign = NoteSign.sharp,
-    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.natural,
-//    NoteName()..noteLetter = NoteLetter.A..noteSign = NoteSign.sharp,
-    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.flat,
-    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.natural,
-//    NoteName()..noteLetter = NoteLetter.B..noteSign = NoteSign.sharp,
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-//    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-//    animationController.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-//    recordingAnimation = ColorTween(
-//      begin: Colors.grey,
-//      end: chromaticSteps[7],
-//    ).animate(animationController)
-//      ..addListener(() {
-//        setState(() {
-//          recordingAnimationColor = recordingAnimation.value;
-//        });
-//      });
-//    animationController.repeat(reverse: true);
-//    Color recordingColor;
-//    if(widget.melody != null && BeatScratchPlugin.playing) {
-//      recordingColor = recordingAnimationColor;
-//    } else {
-//      recordingColor = Colors.grey;
-//    }
-    NoteName key = widget.currentSection.harmony.data[0].rootNote;
-    int keyIndex = keys.indexOf(key);
-    return Row(children: [
-      SizedBox(width: 5),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: (widget.currentSection.beatCount > 1)
-          ? () {
-          if(widget.currentSection.beatCount > 1) {
-            widget.currentSection.harmony.length -= widget.currentSection.harmony.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-
-//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
-        } : null,
-        onIncrement: (widget.currentSection.beatCount <= 999)
-          ? () {
-          if(widget.currentSection.beatCount <= 999) {
-            widget.currentSection.harmony.length += widget.currentSection.harmony.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-//          BeatScratchPlugin.updateMelody(widget.melody);
-        }
-          : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: widget.currentSection.beatCount)),
-      ),
-      SizedBox(width:5),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: (widget.currentSection.tempo.bpm >  21) ? () {
-          widget.currentSection.tempo.bpm--;
-          BeatScratchPlugin.updateSections(widget.score);
-          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-        } : null,
-        onIncrement: (widget.currentSection.tempo.bpm < 499) ? () {
-          widget.currentSection.tempo.bpm++;
-          BeatScratchPlugin.updateSections(widget.score);
-          BeatScratchPlugin.unmultipliedBpm = widget.currentSection.tempo.bpm;
-          BeatScratchPlugin.onSynthesizerStatusChange();
-        } : null,
-        child: Container(
-          width: 36,
-          padding: EdgeInsets.only(top: 7, bottom: 5),
-          child: Stack(children: [
-            Align(
-              alignment: Alignment.center,
-              child: AnimatedOpacity(opacity: 0.4, duration: animationDuration, child: Transform.scale(scale: 0.8, child: Image.asset('assets/metronome.png'))),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child:
-              Transform.translate(offset: Offset(0, -7), child:
-              Text(widget.currentSection.tempo.bpm.toStringAsFixed(0), style: TextStyle(fontWeight: FontWeight.w700) )),
-            )
-          ])),
-      ),
-      Expanded(child: SizedBox(width: 5),),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: (widget.currentSection.meter.defaultBeatsPerMeasure > 1)
-          ? () {
-          if(widget.currentSection.meter.defaultBeatsPerMeasure > 1) {
-            widget.currentSection.meter.defaultBeatsPerMeasure -= 1;
-            MelodyTheory.tonesInMeasureCache.clear();
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-        } : null,
-        onIncrement: (widget.currentSection.meter.defaultBeatsPerMeasure < 99)
-          ? () {
-          if(widget.currentSection.meter.defaultBeatsPerMeasure < 99) {
-            widget.currentSection.meter.defaultBeatsPerMeasure += 1;
-            MelodyTheory.tonesInMeasureCache.clear();
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateSections(widget.score);
-          }
-        } : null,
-        child: Container(
-          width: 30,
-          height: 32,
-          padding: EdgeInsets.only(left:5),
-          child: Stack(children: [
-            Align(alignment: Alignment.center, child:
-            Transform.translate(offset: Offset(-1.5, -9), child:
-            Text(widget.currentSection.meter.defaultBeatsPerMeasure.toString(),
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)))),
-            Align(alignment: Alignment.center, child:
-            Transform.translate(offset: Offset(-1.5, 6), child:
-            Text("4",
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            )))
-          ])),
-      ),
-      SizedBox(width:5),
-      IncrementableValue(
-        collapsing: true,
-        onDecrement: () {
-          int newKeyIndex = keyIndex - 1;
-          if (newKeyIndex < 0) {
-            newKeyIndex += keys.length;
-          }
-          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
-          MelodyTheory.tonesInMeasureCache.clear();
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
-          clearMutableCaches();
-
-//          BeatScratchPlugin.updateMelody(widget.currentSection.harmony);
-        },
-        onIncrement: () {
-          int newKeyIndex = keyIndex + 1;
-          if (newKeyIndex >= keys.length) {
-            newKeyIndex -= keys.length;
-          }
-          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
-          MelodyTheory.tonesInMeasureCache.clear();
-          BeatScratchPlugin.onSynthesizerStatusChange();
-          BeatScratchPlugin.updateSections(widget.score);
-          clearMutableCaches();
-        },
-        child: Container(
-          width: 30,
-          height: 32,
-          padding: EdgeInsets.only(left:5),
-          child: Align(alignment: Alignment.center,
-            child: Transform.translate(offset: Offset(-1.5, -2),
-              child:Text(key.simpleString, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w200))))),
-      ),
-//      IncrementableValue(
-//        onDecrement: null,
-//        onIncrement: null,
-//        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-//          child:BeatsBadge(beats: widget.currentSection.harmony.subdivisionsPerBeat, isPerBeat: true,)),
-//      ),
-      SizedBox(width: 5),
-    ]);
   }
 }

@@ -24,28 +24,20 @@ class MusicScrollContainer extends StatefulWidget {
   static const double minScale = 0.1;
   static const double maxScale = 1.0;
 
-  final MelodyViewMode melodyViewMode;
+  final MusicViewMode musicViewMode;
   final Score score;
   final Section currentSection;
   final Color sectionColor;
   final Melody focusedMelody;
   final RenderingMode renderingMode;
-  final double xScale;
-  final double yScale;
-  final double targetXScale;
-  final double targetYScale;
-  final ValueNotifier<Iterable<int>> colorboardNotesNotifier;
-  final ValueNotifier<Iterable<int>> keyboardNotesNotifier;
+  final double xScale, yScale, targetXScale, targetYScale;
+  final ValueNotifier<Iterable<int>> keyboardNotesNotifier, colorboardNotesNotifier;
   final List<MusicStaff> staves;
-  final Part focusedPart;
-  final Part keyboardPart;
-  final Part colorboardPart;
-  final double height;
-  final double width;
+  final Part focusedPart, keyboardPart, colorboardPart;
+  final double height, width;
   final bool previewMode;
   final bool isCurrentScore;
-  final ValueNotifier<int> highlightedBeat;
-  final ValueNotifier<int> focusedBeat;
+  final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final ValueNotifier<Offset> requestedScrollOffsetForScale;
   final bool isTwoFingerScaling;
   final ChangeNotifier scrollToCurrentBeat;
@@ -55,6 +47,7 @@ class MusicScrollContainer extends StatefulWidget {
   final bool isPreview;
   final ValueNotifier<ScaleUpdate> notifyXScaleUpdate, notifyYScaleUpdate;
   final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
+  final ValueNotifier<double> verticalScrollNotifier;
 
   const MusicScrollContainer(
       {Key key,
@@ -67,7 +60,7 @@ class MusicScrollContainer extends StatefulWidget {
       this.renderingMode,
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
-      this.melodyViewMode,
+      this.musicViewMode,
       this.staves,
       this.keyboardPart,
       this.colorboardPart,
@@ -77,8 +70,9 @@ class MusicScrollContainer extends StatefulWidget {
       this.previewMode,
       this.isCurrentScore,
       this.highlightedBeat,
-      this.requestedScrollOffsetForScale,
       this.focusedBeat,
+      this.tappedBeat,
+      this.requestedScrollOffsetForScale,
       this.targetXScale,
       this.targetYScale,
       this.isTwoFingerScaling,
@@ -90,7 +84,8 @@ class MusicScrollContainer extends StatefulWidget {
       this.notifyXScaleUpdate,
       this.notifyYScaleUpdate,
       this.xScaleNotifier,
-      this.yScaleNotifier})
+      this.yScaleNotifier,
+      this.verticalScrollNotifier})
       : super(key: key);
 
   @override
@@ -103,10 +98,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   ScrollController verticalController;
 
   AnimationController animationController;
-  ValueNotifier<double> colorGuideOpacityNotifier;
-  ValueNotifier<double> colorblockOpacityNotifier;
-  ValueNotifier<double> notationOpacityNotifier;
-  ValueNotifier<double> sectionScaleNotifier;
+  ValueNotifier<double> colorGuideOpacityNotifier,
+      colorblockOpacityNotifier,
+      notationOpacityNotifier,
+      sectionScaleNotifier;
 
   // partTopOffsets are animated based off the Renderer's StaffConfigurations
   ValueNotifier<List<MusicStaff>> stavesNotifier;
@@ -121,12 +116,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   ScrollController timeScrollController;
   double _prevBeat;
   String _prevSectionOrder;
-  double _prevXScale;
   String _prevSectionId;
-  DateTime _lastScaleTime = DateTime(0);
   Rect visibleRect = Rect.zero;
 
-  bool get isViewingSection => widget.melodyViewMode != MelodyViewMode.score;
+  bool get isViewingSection => widget.musicViewMode != MusicViewMode.score;
 
   int get numberOfBeats => /*isViewingSection ? widget.currentSection.harmony.beatCount :*/
       widget.score.beatCount;
@@ -143,11 +136,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
-  double get toolbarHeight => widget.melodyViewMode == MelodyViewMode.score ? 0 : 48;
+  double get toolbarHeight => widget.musicViewMode == MusicViewMode.score ? 0 : 48;
 
   double get renderAreaHeight => widget.height - toolbarHeight;
 
-  double get sectionsHeight => widget.melodyViewMode == MelodyViewMode.score ? 30 : 0;
+  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ? 30 : 0;
 
   double get overallCanvasHeight =>
       max(renderAreaHeight, widget.staves.length * MusicSystemPainter.staffHeight * yScale) + sectionsHeight;
@@ -205,6 +198,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     widget.centerCurrentSection.addListener(_constrainToSectionBounds);
     // scrollToCurrentBeat
     timeScrollController.addListener(_isScrollingListener);
+    verticalController.addListener(_verticalScrollListener);
     xScaleUpdateListener = _scaleUpdateListener(widget.notifyXScaleUpdate, (update) {
       widget.xScaleNotifier.value = update.newScale;
       scrollToFocusedBeat(instant: widget.isTwoFingerScaling);
@@ -236,10 +230,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     });
   }
 
+  _verticalScrollListener() {
+    widget.verticalScrollNotifier.value = verticalController.offset;
+  }
+
   _onScrollStopped() {
     if (widget.autoScroll &&
         !widget.isTwoFingerScaling &&
-        (widget.melodyViewMode != MelodyViewMode.score || !BeatScratchPlugin.playing)) {
+        (widget.musicViewMode != MusicViewMode.score || !BeatScratchPlugin.playing)) {
       _constrainToSectionBounds();
     }
   }
@@ -269,6 +267,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     focusedPart.dispose();
     sectionColor.dispose();
     timeScrollController.removeListener(_isScrollingListener);
+    verticalController.removeListener(_verticalScrollListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
     widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
     widget.notifyXScaleUpdate.removeListener(xScaleUpdateListener);
@@ -276,34 +275,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     super.dispose();
   }
 
-  MelodyViewMode _prevViewMode;
+  MusicViewMode _prevViewMode;
   bool _hasBuilt = false;
   DateTime _lastAutoScrollTime = DateTime(0);
 
   @override
   Widget build(BuildContext context) {
-    String key = widget.score.id;
-    // if (widget.requestedScrollOffsetForScale.value != null) {
-    //   timeScrollController.animateTo(xScale * (timeScrollController.offset + widget.requestedScrollOffsetForScale.value.dx),
-    //     duration: Duration(milliseconds: 200), curve: Curves.linear);
-    //   widget.requestedScrollOffsetForScale.value = null;
-    // }
-    if (widget.currentSection != null) {
-      key = widget.currentSection.toString();
-    }
     _animateOpacitiesAndScale();
     _animateStaffAndPartPositions();
     focusedPart.value = widget.focusedPart;
     sectionColor.value = widget.sectionColor;
     animationController.forward(from: 0);
 
-    int currentBeatOfSection = BeatScratchPlugin.currentBeat.value;
     double currentBeat = this.currentBeat;
-    Duration beatAnimationDuration = animationDuration;
-    // if(_prevViewMode == MelodyViewMode.score && widget.melodyViewMode != MelodyViewMode.score
-    //     && _prevBeat > widget.currentSection.beatCount - 2) {
-    //   beatAnimationDuration = Duration(microseconds: 1);
-    // }
     String sectionOrder = widget.score.sections.map((e) => e.id).join();
     if (!widget.isPreview) {
       if (widget.isTwoFingerScaling) {
@@ -312,8 +296,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
         // scrollToFocusedBeat();
       } else if (widget.autoScroll) {
         if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds > 1000) {
-          if (_prevViewMode == MelodyViewMode.score &&
-              widget.melodyViewMode != MelodyViewMode.score &&
+          if (_prevViewMode == MusicViewMode.score &&
+              widget.musicViewMode != MusicViewMode.score &&
               _prevBeat > widget.currentSection.beatCount - 2) {
             Future.delayed(slowAnimationDuration, () {
               _constrainToSectionBounds();
@@ -353,24 +337,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
         }
       }
     }
-    //TODO reimplement scrolling with playback, better though
-    // final isFirstBeatOfMeasure = _prevBeat != currentBeat &&
-    //   currentBeatOfSection % widget.currentSection.meter.defaultBeatsPerMeasure == 0;
-    // final switchedToScoreView = _prevViewMode != widget.melodyViewMode && widget.melodyViewMode == MelodyViewMode.score;
-    // if(widget.isCurrentScore && (isFirstBeatOfMeasure/* || switchedToScoreView*/)) {
-    //   scrollToBeat(currentBeat, beatAnimationDuration: beatAnimationDuration,
-    //     delay: switchedToScoreView ? Duration(milliseconds:
-    //       animationDuration.inMilliseconds + slowAnimationDuration.inMilliseconds
-    //     ) : null);
-    // }
-    _prevViewMode = widget.melodyViewMode;
+    _prevViewMode = widget.musicViewMode;
     _prevBeat = currentBeat;
-    _prevXScale = widget.xScale;
     _prevSectionOrder = sectionOrder;
     _prevSectionId = widget.currentSection.id;
     _hasBuilt = true;
 
-    final useMaxCanvasHeight = true; // DateTime.now().difference(_lastScaleTime).inMilliseconds  < 1000;
     return SingleChildScrollView(
         controller: verticalController,
 //        key: Key(key),
@@ -392,7 +364,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
                       sectionScaleNotifier: sectionScaleNotifier,
                       score: widget.score,
                       section: widget.currentSection,
-                      melodyViewMode: widget.melodyViewMode,
+                      musicViewMode: widget.musicViewMode,
                       xScaleNotifier: widget.xScaleNotifier,
                       yScaleNotifier: widget.yScaleNotifier,
                       focusedMelodyId: widget.focusedMelody?.id,
@@ -412,6 +384,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
                       isCurrentScore: widget.isCurrentScore,
                       highlightedBeat: widget.highlightedBeat,
                       focusedBeat: widget.focusedBeat,
+                      tappedBeat: widget.tappedBeat,
                       firstBeatOfSection: firstBeatOfSection,
                       renderPartNames: widget.renderPartNames,
                       isPreview: widget.isPreview,
@@ -460,7 +433,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     final beatWidth = targetBeatWidth;
     double animationPos = (currentBeat) * beatWidth;
     animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width + 0.62 * targetBeatWidth);
-    // if (widget.melodyViewMode != MelodyViewMode.score) {
+    // if (widget.musicViewMode != MusicViewMode.score) {
     //   if (sectionCanBeCentered) {
     //     double start = (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) * beatWidth;
     //     animationPos = min(animationPos, start - (marginBeatsForSection / 2) * beatWidth);
@@ -496,7 +469,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
     print("_constrainToSectionBounds");
-    // if (widget.melodyViewMode != MelodyViewMode.score) {
+    // if (widget.musicViewMode != MusicViewMode.score) {
     //TODO restrict the user to their current section more properly
     double position = timeScrollController.position.pixels;
     double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
@@ -568,7 +541,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     double colorGuideOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 0.5 : 0;
     double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
     double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
-    double sectionScaleValue = widget.melodyViewMode == MelodyViewMode.score ? 1 : 0;
+    double sectionScaleValue = widget.musicViewMode == MusicViewMode.score ? 1 : 0;
     Animation animation1;
     animation1 =
         Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue).animate(animationController)

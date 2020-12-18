@@ -1,5 +1,4 @@
 
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -9,14 +8,14 @@ import 'package:flutter/material.dart';
 
 import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
-import '../util/music_notation_theory.dart';
 import '../util/bs_notifiers.dart';
+import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 import 'music_system_painter.dart';
 
 class ScorePreview extends StatefulWidget {
   final Score score;
-  final MelodyViewMode melodyViewMode;
+  final MusicViewMode musicViewMode;
   final bool renderPartNames;
   final bool renderSections;
   final double width;
@@ -25,7 +24,7 @@ class ScorePreview extends StatefulWidget {
   final BSNotifier notifyUpdate;
 
   const ScorePreview(this.score, {Key key, this.width = 300, this.height = 100, this.scale = 0.15,
-    this.melodyViewMode = MelodyViewMode.score, this.renderPartNames = true, this.renderSections = true,
+    this.musicViewMode = MusicViewMode.score, this.renderPartNames = true, this.renderSections = true,
     this.notifyUpdate,
   }) : super(key: key);
 
@@ -61,7 +60,7 @@ class _ScorePreviewState extends State<ScorePreview> {
       sectionScaleNotifier: ValueNotifier(widget.renderSections ? 1 : 0),
       score: widget.score,
       section: widget.score.sections.first,
-      melodyViewMode: widget.melodyViewMode,
+      musicViewMode: widget.musicViewMode,
       xScaleNotifier: ValueNotifier(widget.scale),
       yScaleNotifier: ValueNotifier(widget.scale),
       staves: ValueNotifier(staves),

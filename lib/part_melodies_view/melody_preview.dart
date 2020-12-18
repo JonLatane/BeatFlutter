@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../generated/protos/music.pb.dart';
 import '../music_view/score_preview.dart';
 import '../util/dummydata.dart';
+import '../util/music_theory.dart';
 
 class MelodyPreview extends StatefulWidget {
   final Section section;
@@ -21,6 +22,48 @@ class MelodyPreview extends StatefulWidget {
 
   @override
   _MelodyPreviewState createState() => _MelodyPreviewState();
+
+  static Gradient generateVolumeDecoration(MelodyReference reference, Section section,
+    {@required bool isSelectedMelody, @required Color bgColor, @required Color sectionColor}
+    ) {
+    if (reference.isEnabled) {
+      Color volumeColor = isSelectedMelody ? Colors.white : sectionColor;
+      Color notVolumeColor = isSelectedMelody && reference.volume == 0.0 ? Colors.white : bgColor;
+      return LinearGradient(
+        begin: Alignment.centerLeft,
+        end:
+        Alignment(1.0, 0.0),
+        colors: [
+          reference.volume > 0.0 ? volumeColor : notVolumeColor,
+          reference.volume > 0.1 ? volumeColor : notVolumeColor,
+          reference.volume > 0.2 ? volumeColor : notVolumeColor,
+          reference.volume > 0.3 ? volumeColor : notVolumeColor,
+          reference.volume > 0.4 ? volumeColor : notVolumeColor,
+          reference.volume > 0.5 ? volumeColor : notVolumeColor,
+          reference.volume > 0.6 ? volumeColor : notVolumeColor,
+          reference.volume > 0.7 ?   volumeColor : notVolumeColor,
+          reference.volume > 0.8 ?   volumeColor : notVolumeColor,
+          reference.volume > 0.9 ?   volumeColor : notVolumeColor,
+          reference.volume == 1.0 ?  volumeColor : notVolumeColor,
+        ],
+        tileMode: TileMode.repeated, // repeats the gradient over the canvas
+      );
+    } else {
+      var baseGradient = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment(1.0, 0.0),
+        colors: [bgColor, bgColor],
+        tileMode: TileMode.repeated, // repeats the gradient over the canvas
+      );
+      const baseSelectedGradient = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment(1.0, 0.0),
+        colors: [Colors.white, Colors.white],
+        tileMode: TileMode.repeated, // repeats the gradient over the canvas
+      );
+      return isSelectedMelody ? baseSelectedGradient : baseGradient;
+    }
+  }
 }
 
 class _MelodyPreviewState extends State<MelodyPreview> {
@@ -28,19 +71,19 @@ class _MelodyPreviewState extends State<MelodyPreview> {
   Score preview;
   BSNotifier notifyUpdate;
 
-  String get previewKey => "${widget.melody.id}-${widget.melody.hashCode}|${widget.part.id}|" +
+  String get previewKey => "${widget.melody.id}-${widget.melody.hashCode}|${widget.part?.id ?? "null"}|" +
     "${widget.section.id}-${widget.section.hashCode}";
 
   @override
   initState() {
     super.initState();
-    preview =  melodyPreview(widget.melody, widget.part, widget.section);
+    preview =  melodyPreview(widget.melody ?? Melody(), widget.part ?? Part(), widget.section ?? Section());
     notifyUpdate = BSNotifier();
   }
   @override
   Widget build(BuildContext context) {
     if (lastPreviewKey != previewKey) {
-      preview =  melodyPreview(widget.melody, widget.part, widget.section);
+      preview =  melodyPreview(widget.melody ?? Melody(), widget.part ?? Part(), widget.section ?? Section());
       lastPreviewKey = previewKey;
       notifyUpdate();
     }
@@ -52,4 +95,5 @@ class _MelodyPreviewState extends State<MelodyPreview> {
       ),
     );
   }
+
 }

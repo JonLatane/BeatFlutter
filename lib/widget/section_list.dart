@@ -2,16 +2,16 @@ import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/part_melodies_view/part_melodies_view.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import '../util/dummydata.dart';
-import 'my_buttons.dart';
+import 'package:implicitly_animated_reorderable_list/transitions.dart';
+
 import '../ui_models.dart';
+import '../util/dummydata.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
-
-import '../animations/size_fade_transition.dart';
+import 'beats_badge.dart';
+import 'my_buttons.dart';
 
 class SectionList extends StatefulWidget {
   final Axis scrollDirection;

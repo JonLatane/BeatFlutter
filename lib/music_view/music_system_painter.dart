@@ -25,12 +25,14 @@ class MusicSystemPainter extends CustomPainter {
   static const double extraBeatsSpaceForClefs = 2;
   static const double staffHeight = 500;
 
+  Paint _tickPaint = Paint()..style = PaintingStyle.fill;
+
   final String focusedMelodyId;
   final Score score;
   final Section section;
   final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
   final Rect Function() visibleRect;
-  final MelodyViewMode melodyViewMode;
+  final MusicViewMode musicViewMode;
   final ValueNotifier<double> colorblockOpacityNotifier,
       colorGuideOpacityNotifier,
       notationOpacityNotifier,
@@ -40,7 +42,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
   final ValueNotifier<Part> focusedPart, keyboardPart, colorboardPart;
-  final ValueNotifier<int> highlightedBeat, focusedBeat;
+  final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
 
@@ -51,23 +53,23 @@ class MusicSystemPainter extends CustomPainter {
   Melody get focusedMelody =>
       score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
 
-  bool get isViewingSection => melodyViewMode != MelodyViewMode.score;
+  bool get isViewingSection => musicViewMode != MusicViewMode.score;
 
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score.beatCount;
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
   double get width => standardBeatWidth * numberOfBeats;
-  Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
   MusicSystemPainter({
     this.isPreview,
     this.focusedBeat,
+    this.tappedBeat,
     this.firstBeatOfSection,
     this.highlightedBeat,
-    this.melodyViewMode,
+    this.musicViewMode,
     this.colorGuideOpacityNotifier,
     this.sectionColor,
     this.focusedPart,
@@ -101,6 +103,7 @@ class MusicSystemPainter extends CustomPainter {
           keyboardPart,
           colorboardPart,
           focusedBeat,
+          tappedBeat,
           BeatScratchPlugin.pressedMidiControllerNotes,
           BeatScratchPlugin.currentBeat,
           xScaleNotifier,
@@ -158,7 +161,7 @@ class MusicSystemPainter extends CustomPainter {
         // Figure out what beat of what section we're drawing
         int renderingSectionBeat = renderingBeat;
         Section renderingSection = this.section;
-        // if (melodyViewMode == MelodyViewMode.score) {
+        // if (musicViewMode == MusicViewMode.score) {
         int _beat = 0;
         int sectionIndex = 0;
         Section candidate = score.sections[sectionIndex];
@@ -277,7 +280,7 @@ class MusicSystemPainter extends CustomPainter {
       MusicStaff staff,
       Iterable<MusicStaff> staffConfiguration) {
     double blackOpacity = 0;
-    if (melodyViewMode != MelodyViewMode.score && renderingSection.id != section.id) {
+    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
       blackOpacity = 0.12;
     }
     canvas.drawRect(
@@ -356,10 +359,7 @@ class MusicSystemPainter extends CustomPainter {
             Paint()
               ..style = PaintingStyle.fill
               ..color = sectionColor.value.withAlpha(55));
-      } else if (isCurrentScore &&
-              // renderingSection == section &&
-              renderingBeat == focusedBeat.value /* && BeatScratchPlugin.playing*/
-          ) {
+      } else if (isCurrentScore && (renderingBeat == focusedBeat.value || renderingBeat == tappedBeat.value)) {
         canvas.drawRect(
             melodyBounds,
             Paint()
@@ -483,7 +483,7 @@ class MusicSystemPainter extends CustomPainter {
 
   void _renderMeasureLines(Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
     double opacityFactor = 1;
-    if (melodyViewMode != MelodyViewMode.score && renderingSection.id != section.id) {
+    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
       int rsIndex = score.sections.indexWhere((s) => s.id == renderingSection.id);
       if (rsIndex > 0 && renderingSectionBeat == 0 && score.sections[rsIndex - 1].id == section.id) {
       } else
@@ -542,7 +542,7 @@ class MusicSystemPainter extends CustomPainter {
     if (melodyBounds.left < visibleRect().left + standardBeatWidth) {
       opacityFactor = max(0, min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
     }
-    if (melodyViewMode != MelodyViewMode.score && renderingSection.id != section.id) {
+    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
       opacityFactor *= 0.25;
     }
     if (melody != null) {

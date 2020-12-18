@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:unification/unification.dart';
 
 import '../animations/animations.dart';
@@ -22,10 +23,11 @@ import '../widget/my_platform.dart';
 import '../widget/scalable_view.dart';
 import 'melody_menu_browser.dart';
 import 'melody_preview.dart';
+import '../widget/beats_badge.dart';
 
 class PartMelodiesView extends StatefulWidget {
   final ScoreManager scoreManager;
-  final MelodyViewMode melodyViewMode;
+  final MusicViewMode musicViewMode;
   final bool enableColorboard;
   final Score score;
   final Color sectionColor;
@@ -51,7 +53,7 @@ class PartMelodiesView extends StatefulWidget {
   final bool showViewOptions;
 
   PartMelodiesView(
-      {this.melodyViewMode,
+      {this.musicViewMode,
       this.superSetState,
       this.score,
       this.sectionColor,
@@ -881,9 +883,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       child: Transform.translate(
                           offset: Offset(5, -1),
                           child: Text(
-                            newMelody.name?.isNotEmpty ?? false
-                                ? newMelody.name
-                                : "Melody ${newMelody.id.substring(0, 5)}",
+                            newMelody.canonicalName,
                             maxLines: 1,
                             overflow: TextOverflow.fade,
                             style: TextStyle(
@@ -928,70 +928,6 @@ class _MelodiesViewState extends State<_MelodiesView> {
               show: true,
             )));
       })).toList());
-  }
-}
-
-double beatsBadgeWidth(int beats) {
-  double width = 30;
-  if (beats == null) {
-    beats = 9999;
-  }
-  if (beats > 99) width = 40;
-  if (beats > 999) width = 50;
-  if (beats > 9999) width = 60;
-  if (beats > 99999) width = 70;
-  return width;
-}
-
-class BeatsBadge extends StatelessWidget {
-  final int beats;
-  final bool show;
-  final double opacity;
-  final bool isPerBeat;
-
-  const BeatsBadge({Key key, this.beats, this.show = true, this.opacity = 0.5, this.isPerBeat = false})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-        duration: animationDuration,
-        opacity: show ? opacity : 0,
-        child: AnimatedContainer(
-          duration: animationDuration,
-          width: show ? beatsBadgeWidth(beats) : 0,
-          height: 25,
-          child: Stack(children: [
-            Align(
-                alignment: Alignment.center,
-                child: Transform.translate(
-                    offset: Offset(0, -5),
-                    child: Text(
-                      "$beats",
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      style: TextStyle(fontWeight: FontWeight.w900, color: isPerBeat ? Colors.white : Colors.black),
-                    ))),
-            Align(
-                alignment: Alignment.center,
-                child: Transform.translate(
-                    offset: Offset(0, 6),
-                    child: Text(
-                      isPerBeat ? "/beat" : "beat${beats == 1 ? "" : "s"}",
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w100, fontSize: 8, color: isPerBeat ? Colors.white : Colors.black),
-                    ))),
-          ]),
-          padding: EdgeInsets.zero,
-          decoration: BoxDecoration(
-              color: isPerBeat ? Colors.black : Colors.white,
-              border: Border.all(
-                color: Colors.black,
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(5))),
-        ));
   }
 }
 
@@ -1090,31 +1026,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
     if (widget.showMediumDetails) {
       gradient = isSelectedMelody ? baseSelectedGradient : baseGradient;
     } else {
-      if (reference.isEnabled) {
-        Color volumeColor = isSelectedMelody ? Colors.white : widget.sectionColor;
-        Color notVolumeColor = isSelectedMelody && reference.volume == 0.0 ? Colors.white : bgColor;
-        gradient = LinearGradient(
-          begin: Alignment.centerLeft,
-          end:
-          Alignment(1.0, 0.0),
-          colors: [
-            reference.volume > 0.0 ? volumeColor : notVolumeColor,
-            reference.volume > 0.1 ? volumeColor : notVolumeColor,
-            reference.volume > 0.2 ? volumeColor : notVolumeColor,
-            reference.volume > 0.3 ? volumeColor : notVolumeColor,
-            reference.volume > 0.4 ? volumeColor : notVolumeColor,
-            reference.volume > 0.5 ? volumeColor : notVolumeColor,
-            reference.volume > 0.6 ? volumeColor : notVolumeColor,
-          reference.volume > 0.7 ?   volumeColor : notVolumeColor,
-          reference.volume > 0.8 ?   volumeColor : notVolumeColor,
-          reference.volume > 0.9 ?   volumeColor : notVolumeColor,
-          reference.volume == 1.0 ?  volumeColor : notVolumeColor,
-          ], // red to yellow
-          tileMode: TileMode.repeated, // repeats the gradient over the canvas
-        );
-      } else {
-        gradient = isSelectedMelody ? baseSelectedGradient : baseGradient;
-      }
+      gradient = MelodyPreview.generateVolumeDecoration(reference, widget.currentSection, isSelectedMelody: isSelectedMelody, bgColor: bgColor, sectionColor: widget.sectionColor);
     }
 
     if (state == ReorderableItemState.dragProxy || state == ReorderableItemState.dragProxyFinished) {
@@ -1268,7 +1180,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                         }
                     },
                     decoration: InputDecoration(
-                          border: InputBorder.none, hintText: "Melody ${widget.melody.id.substring(0, 5)}"),
+                          border: InputBorder.none, hintText: widget.melody.idName),
                   ),
                       )),
                   ReorderableListener(

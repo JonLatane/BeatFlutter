@@ -15,14 +15,16 @@ import '../util/music_theory.dart';
 import '../util/bs_notifiers.dart';
 import '../widget/my_popup_menu.dart';
 import '../widget/my_popup_menu.dart' as myPopup;
+import '../widget/beats_badge.dart';
 
 class MelodyMenuBrowser extends StatefulWidget {
   final Part part;
   final Section currentSection;
   final Function(Melody) onMelodySelected;
   final Color textColor;
+  final Widget child;
 
-  const MelodyMenuBrowser({Key key, this.part, this.currentSection, this.onMelodySelected, this.textColor = Colors.white}) : super(key: key);
+  const MelodyMenuBrowser({Key key, this.child, this.part, this.currentSection, this.onMelodySelected, this.textColor = Colors.white}) : super(key: key);
 
   @override
   _MelodyMenuBrowserState createState() => _MelodyMenuBrowserState();
@@ -94,7 +96,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
     return new MyPopupMenuButton(
       // color: widget.instrumentType.isDrum ? Colors.brown : Colors.grey,
       padding: EdgeInsets.zero,
-      child: Column(children: [Expanded(
+      child: widget.child ?? Column(children: [Expanded(
         child: Row(children: [
           SizedBox(width: 15),
           Icon(Icons.folder_open, color: widget.textColor),
@@ -225,7 +227,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             Expanded(child: Opacity(opacity: isDuplicate? 0.5 : 1, child: Text(melody.name))),
             SizedBox(width: 5),
             Padding(padding: EdgeInsets.symmetric(vertical: 2), child: Icon(Icons.add)),
-            if (!isDuplicate) SizedBox(width: 5),
+            if (!isDuplicate && widget.part.instrument.type == melody.instrumentType) SizedBox(width: 5),
             if (isDuplicate) Transform.scale(
               scale: 0.8,
               child: Container(
@@ -235,7 +237,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                   Stack(
                     children: [
                       // Transform.scale(scale: 1.1, child: Icon(Icons.circle, color: Color(0xFF424242))),
-                      Transform.translate(offset: Offset(0, -1.5), child: Transform.scale(scale: 0.7, child: Icon(Icons.warning_amber_outlined, color: chromaticSteps[5]))),
+                      Transform.translate(offset: Offset(0, -0.5), child: Transform.scale(scale: 0.7, child: Icon(Icons.warning_amber_sharp, color: chromaticSteps[5]))),
                     ],
                   ),
                   Stack(
@@ -249,11 +251,34 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                   SizedBox(width: 5)
               ])),
             ),
+            if (widget.part.instrument.type != melody.instrumentType) Transform.scale(
+              scale: 0.8,
+              child: Container(
+                decoration: BoxDecoration(color: Color(0xFF212121), borderRadius: BorderRadius.circular(5)),
+                padding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
+                child: Row(children:[
+                  Stack(
+                    children: [
+                      // Transform.scale(scale: 1.1, child: Icon(Icons.circle, color: Color(0xFF424242))),
+                      Transform.translate(offset: Offset(0, -0.5), child: Transform.scale(scale: 0.8, child: Icon(Icons.warning_amber_sharp, color: chromaticSteps[7]))),
+                    ],
+                  ),
+                  Stack(
+                    children: [
+                      Transform.translate(offset: Offset(0, -5),
+                        child: Text("Wrong", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w200))),
+                      Transform.translate(offset: Offset(0, 5),
+                        child: Text("Part Type", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w200)))
+                    ],
+                  ),
+                  SizedBox(width: 5)
+                ])),
+            ),
           ]),
               Opacity(opacity: isDuplicate? 0.5 : 1, child: MelodyPreview(section: widget.currentSection, part: widget.part, melody: melody,)),
         ],
       ),
-      enabled: true,
+      enabled: melody.instrumentType == widget.part.instrument.type,
     );
   }
 

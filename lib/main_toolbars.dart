@@ -542,11 +542,11 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                                       Container(
                                         width: widget.vertical ? 44 : 80,
                                         child: Text(
-                                          widget.openMelody != null ? widget.openMelody.name?.isNotEmpty ?? false ? widget.openMelody.name : "Melody ${widget.openMelody.id.substring(0, 5)}"
+                                          widget.openMelody != null ? widget.openMelody.canonicalName
                                             : widget.openPart != null ? widget.openPart.midiName
                                             : widget.isMelodyViewOpen || (widget.prevPart == null && widget.prevMelody == null)
                                               ? widget.currentSection.name?.isNotEmpty ?? false ? widget.currentSection.name : "Section ${widget.currentSection.id.substring(0, 5)}"
-                                            : widget.prevMelody != null ? widget.prevMelody.name?.isNotEmpty ?? false ? widget.prevMelody.name : "Melody ${widget.prevMelody.id.substring(0, 5)}"
+                                            : widget.prevMelody != null ? widget.prevMelody.canonicalName
                                             : widget.prevPart != null ? widget.prevPart.midiName
                                             : "Oops",
                                           textAlign: TextAlign.center,

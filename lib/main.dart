@@ -148,16 +148,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  MelodyViewMode _melodyViewMode = MelodyViewMode.score;
+  MusicViewMode _musicViewMode = MusicViewMode.score;
 
-  MelodyViewMode get melodyViewMode => _melodyViewMode;
+  MusicViewMode get musicViewMode => _musicViewMode;
 
-  set melodyViewMode(MelodyViewMode value) {
-    _melodyViewMode = value;
-    if (value != MelodyViewMode.melody) {
+  set musicViewMode(MusicViewMode value) {
+    _musicViewMode = value;
+    if (value != MusicViewMode.melody) {
       selectedMelody = null;
     }
-    if (value != MelodyViewMode.part) {
+    if (value != MusicViewMode.part) {
       selectedPart = null;
     }
   }
@@ -191,26 +191,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        _setKeyboardPart(part);
 //      }
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
-      if (_isPhone) {
-        _hadVerticalSectionListBefore = verticalSectionList;
-        _hadSplitModeBefore = splitMode == SplitMode.half;
-        if (_isLandscapePhone) {
-          verticalSectionList = true;
-          splitMode = SplitMode.full;
-        } else {
-          verticalSectionList = false;
-          splitMode = SplitMode.full;
-        }
-      }
-      _showMelodyView();
+      // if (_isPhone) {
+      //   _hadVerticalSectionListBefore = verticalSectionList;
+      //   _hadSplitModeBefore = splitMode == SplitMode.half;
+      //   if (_isLandscapePhone) {
+      //     // verticalSectionList = true;
+      //     // splitMode = SplitMode.full;
+      //   } else {
+      //     verticalSectionList = false;
+      //     splitMode = SplitMode.full;
+      //   }
+      // }
+      _showMusicView();
     } else {
       BeatScratchPlugin.setRecordingMelody(null);
-      if (_isPhone && selectedMelody != null) {
-        verticalSectionList = _hadVerticalSectionListBefore ?? verticalSectionList;
-        splitMode = (_hadSplitModeBefore == true) ? SplitMode.half : splitMode;
-      }
-      _hadVerticalSectionListBefore = null;
-      _hadSplitModeBefore = null;
+      // if (_isPhone && selectedMelody != null) {
+      //   verticalSectionList = _hadVerticalSectionListBefore ?? verticalSectionList;
+      //   splitMode = (_hadSplitModeBefore == true) ? SplitMode.half : splitMode;
+      // }
+      // _hadVerticalSectionListBefore = null;
+      // _hadSplitModeBefore = null;
     }
   }
 
@@ -301,7 +301,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  _showMelodyView() {
+  _showMusicView() {
     if (interactionMode == InteractionMode.edit) {
       if (splitMode == SplitMode.half) {
         _melodyViewSizeFactor = 0.5;
@@ -313,7 +313,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  _hideMelodyView() {
+  _hideMusicView() {
     setState(() {
       _melodyViewSizeFactor = 0;
       _prevSelectedMelody = selectedMelody;
@@ -323,7 +323,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       selectedMelody = null;
       editingMelody = false;
       selectedPart = null;
-      melodyViewMode = MelodyViewMode.none;
+      musicViewMode = MusicViewMode.none;
     });
   }
 
@@ -334,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       } else {
         splitMode = SplitMode.half;
       }
-      _showMelodyView();
+      _showMusicView();
     });
   }
 
@@ -389,7 +389,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Color get sectionColor => sectionColors[score.sections.indexOf(currentSection) % sectionColors.length];
 
-  _selectOrDeselectMelody(Melody melody) {
+  _selectOrDeselectMelody(Melody melody, {bool hideMusicOnDeselect: true}) {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
@@ -398,17 +398,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (editingMelody) {
           BeatScratchPlugin.setRecordingMelody(melody);
         }
-        melodyViewMode = MelodyViewMode.melody;
-        _showMelodyView();
+        musicViewMode = MusicViewMode.melody;
+        _showMusicView();
       } else {
         selectedMelody = null;
         editingMelody = false;
-        _hideMelodyView();
+        if (hideMusicOnDeselect) {
+          _hideMusicView();
+        } else {
+          final part = score.parts.firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
+          _selectOrDeselectPart(part, hideMusicOnDeselect: hideMusicOnDeselect);
+        }
       }
     });
   }
 
-  _selectOrDeselectPart(Part part) {
+  _selectOrDeselectPart(Part part, {bool hideMusicOnDeselect: true}) {
     setState(() {
       print("yay");
       if (selectedPart != part) {
@@ -416,16 +421,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _prevSelectedPart = part;
         _prevSelectedMelody = null;
         editingMelody = false;
-        melodyViewMode = MelodyViewMode.part;
-        _showMelodyView();
+        musicViewMode = MusicViewMode.part;
+        _showMusicView();
       } else {
-        _hideMelodyView();
+        if (hideMusicOnDeselect) {
+          _hideMusicView();
+        } else {
+          if (musicViewMode == MusicViewMode.melody) {
+            _selectOrDeselectMelody(selectedMelody, hideMusicOnDeselect: hideMusicOnDeselect);
+          } else {
+            selectedPart = null;
+            _prevSelectedPart = null;
+            musicViewMode = MusicViewMode.section;
+          }
+        }
       }
-//      if (selectedMelody != melody) {
-//        selectedMelody = melody;
-//      } else {
-//        selectedMelody = null;
-//      }
     });
   }
 
@@ -482,9 +492,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         showViewOptions = false;
         _showTapInBar = false;
       }
-      melodyViewMode = MelodyViewMode.score;
+      musicViewMode = MusicViewMode.score;
       selectedMelody = null;
-      _showMelodyView();
+      _showMusicView();
     });
   }
 
@@ -498,15 +508,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (selectedMelody != null) {
           _prevSelectedMelody = selectedMelody;
           _prevSelectedPart = null;
-          _hideMelodyView();
+          _hideMusicView();
         } else if (selectedPart != null) {
           _prevSelectedMelody = null;
           _prevSelectedPart = selectedPart;
-          _hideMelodyView();
-        } else if (melodyViewMode == MelodyViewMode.section) {
+          _hideMusicView();
+        } else if (musicViewMode == MusicViewMode.section) {
           _prevSelectedMelody = null;
           _prevSelectedPart = null;
-          _hideMelodyView();
+          _hideMusicView();
         } else {
           if (_prevSelectedMelody != null) {
             _selectOrDeselectMelody(_prevSelectedMelody);
@@ -530,9 +540,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         } else if (_prevSelectedPart != null) {
           _selectOrDeselectPart(_prevSelectedPart);
         } else {
-          melodyViewMode = MelodyViewMode.section;
+          musicViewMode = MusicViewMode.section;
         }
-        _showMelodyView();
+        _showMusicView();
 //        _hideMelodyView();
       }
     });
@@ -577,16 +587,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (currentSection == section) {
         editingMelody = false;
-        if (melodyViewMode != MelodyViewMode.section) {
-          melodyViewMode = MelodyViewMode.section;
+        if (musicViewMode != MusicViewMode.section) {
+          musicViewMode = MusicViewMode.section;
           _prevSelectedMelody = null;
           _prevSelectedPart = null;
-          _showMelodyView();
+          _showMusicView();
         } else {
           if (!melodyViewVisible) {
-            _showMelodyView();
+            _showMusicView();
           } else {
-            _hideMelodyView();
+            _hideMusicView();
           }
         }
       } else {
@@ -735,7 +745,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         score = scoreToOpen;
         clearMutableCaches();
         currentSection = scoreToOpen.sections.first;
-        melodyViewMode = interactionMode == InteractionMode.view ? MelodyViewMode.score : MelodyViewMode.section;
+        musicViewMode = interactionMode == InteractionMode.view ? MusicViewMode.score : MusicViewMode.section;
         selectedMelody = null;
         selectedPart = null;
         keyboardPart = scoreToOpen.parts.first;
@@ -862,7 +872,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _goBack() {
     if (interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
       setState(() {
-        _hideMelodyView();
+        _hideMusicView();
       });
       return true;
     } else if (showMidiConfiguration || _showKeyboardConfiguration || _showColorboardConfiguration) {
@@ -918,13 +928,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     if (splitMode == null) {
       splitMode = (context.isTablet) ? SplitMode.half : SplitMode.full;
-      verticalSectionList = context.isTablet;
+      verticalSectionList = context.isTablet || context.isLandscapePhone;
     }
     _isPhone = context.isPhone;
     _isLandscapePhone = context.isLandscapePhone;
-    if (editingMelody && _isPhone) {
-      verticalSectionList = context.isLandscape;
-    }
+    // if (editingMelody && _isPhone) {
+    //   verticalSectionList = context.isLandscape;
+    // }
     if (context.isLandscape) {
       SystemChrome.setEnabledSystemUIOverlays([]);
     } else {
@@ -1721,7 +1731,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         - _bottomTapInBarHeight;
     double partMelodiesWidth =
         data.size.width - verticalSectionListWidth - _leftNotchPadding - _rightNotchPadding - _landscapeTapInBarWidth;
-//    if (melodyViewMode == MelodyViewMode.score || melodyViewMode == MelodyViewMode.none) {
+//    if (musicViewMode == MusicViewMode.score || musicViewMode == MusicViewMode.none) {
 //      height += 36;
 //    }
     final landscapePartsWidth = (partMelodiesWidth - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
@@ -1822,7 +1832,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _partMelodiesView(BuildContext context, double availableWidth, double availableHeight) {
     return PartMelodiesView(
       key: ValueKey("main-part-melodies-view"),
-      melodyViewMode: melodyViewMode,
+      musicViewMode: musicViewMode,
       superSetState: setState,
       currentSection: currentSection,
       score: score,
@@ -1844,7 +1854,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       colorboardPart: colorboardPart,
       keyboardPart: keyboardPart,
       editingMelody: editingMelody,
-      hideMelodyView: _hideMelodyView,
+      hideMelodyView: _hideMusicView,
       availableWidth: availableWidth,
       height: availableHeight,
       enableColorboard: enableColorboard,
@@ -1860,7 +1870,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       enableColorboard: enableColorboard,
       superSetState: setState,
       melodyViewSizeFactor: _melodyViewSizeFactor,
-      melodyViewMode: melodyViewMode,
+      musicViewMode: musicViewMode,
       score: score,
       currentSection: currentSection,
       colorboardNotesNotifier: colorboardNotesNotifier,
@@ -1871,7 +1881,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       splitMode: splitMode,
       renderingMode: renderingMode,
       toggleSplitMode: toggleMelodyViewDisplayMode,
-      closeMelodyView: _hideMelodyView,
+      closeMelodyView: _hideMusicView,
       toggleMelodyReference: _toggleReferenceDisabled,
       setReferenceVolume: _setReferenceVolume,
       editingMelody: editingMelody,
@@ -1901,7 +1911,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               this.selectedPart = this.score.parts[index];
             } else {
               this.selectedPart = null;
-              this.melodyViewMode = MelodyViewMode.section;
+              this.musicViewMode = MusicViewMode.section;
             }
           }
           if (part == this.keyboardPart) {
@@ -2002,6 +2012,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       },
       showViewOptions: showViewOptions,
+      selectOrDeselectPart: (part) {
+        _selectOrDeselectPart(part, hideMusicOnDeselect: false);
+      },
+      selectOrDeselectMelody: (melody) {
+        _selectOrDeselectMelody(melody);
+      },
+      showBeatCounts: showBeatCounts,
+      createMelody: (part, newMelody) {
+        setState(() {
+          //final newMelody = defaultMelody(sectionBeats: currentSection.beatCount);
+          part.melodies.insert(0, newMelody);
+          BeatScratchPlugin.createMelody(part, newMelody);
+          final reference = currentSection.referenceTo(newMelody)
+            ..playbackType = MelodyReference_PlaybackType.playback_indefinitely;
+          BeatScratchPlugin.updateSections(score);
+          Future.delayed(slowAnimationDuration, ()
+          {
+            _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
+          });
+        });
+      },
     );
   }
 
