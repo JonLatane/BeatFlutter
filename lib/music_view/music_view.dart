@@ -107,7 +107,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   bool isConfiguringPart;
   bool isEditingSection;
   bool _isTwoFingerScaling = false;
-  Offset _previousOffset = Offset.zero;
+  // Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
   Offset _offset = Offset.zero;
   Offset _startFocalPoint = Offset.zero;
@@ -115,7 +115,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   double _startVerticalScale = 1.0;
   bool _hasSwipedClosed = false;
 
-  double _xScale, _yScale;
+  ValueNotifier<double> xScaleNotifier, yScaleNotifier;
 
   /// Always immediately updated; the return values of [xScale] and [yScale].
   double _targetedXScale, _targetedYScale;
@@ -197,13 +197,44 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         });
       scaleAnimationController.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          onComplete();
+          Future.delayed(animationDuration, () {
+            print("_startValueAnimation onComplete");
+            onComplete?.call();
+          });
         }
       });
       scaleAnimationController.forward();
     }
   }
 
+  static const focusTimeout = 2500;
+  _updateFocusedBeatValue() {
+    if (focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+      focusedBeat.value = getBeat(
+        Offset(
+          melodyRendererVisibleRect.width / (context.isLandscape && widget.splitMode == SplitMode.half ? 4 : 2),
+          0),
+        targeted: false);
+
+      focusedBeatUpdated = DateTime.now();
+      delayClear() {
+        Future.delayed(Duration(milliseconds: focusTimeout), () {
+          if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+            print("Cleared focusedBeat");
+            focusedBeat.value = null;
+          } else {
+            delayClear();
+          }
+        });
+      }
+
+      delayClear();
+      print("Set focusedBeat to ${focusedBeat.value}");
+    } else {
+      focusedBeatUpdated = DateTime.now();
+      print("Keeping focusedBeat at ${focusedBeat.value}");
+    }
+  }
   _animateScaleAtomically(
       {@required DateTime Function() getLockTime,
       @required Function(DateTime) setLockTime,
@@ -211,41 +242,19 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       @required double Function() currentValue,
       @required Function(double) applyAnimatedValue,
       @required List<AnimationController> controllers,
-      @required BSValueNotifier<ScaleUpdate> notifyUpdate}) {
-    if (value() == currentValue()) return;
+      @required BSValueNotifier<ScaleUpdate> notifyUpdate,}) {
+    if (value() == currentValue()) {
+      return;
+    }
 
     bool lock() {
-      final lockTime = DateTime.now().add(animationDuration);
+      final lockTime = DateTime.now();
       setLockTime(lockTime);
       return getLockTime() == lockTime;
     }
 
-    final focusTimeout = 2500;
     startAnimation() {
-      if (focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
-        focusedBeat.value = getBeat(
-            Offset(
-                melodyRendererVisibleRect.width / (context.isLandscape && widget.splitMode == SplitMode.half ? 4 : 2),
-                0),
-            targeted: false);
-        focusedBeatUpdated = DateTime.now();
-        delayClear() {
-          Future.delayed(Duration(milliseconds: focusTimeout), () {
-            if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
-              print("Cleared focusedBeat");
-              focusedBeat.value = null;
-            } else {
-              delayClear();
-            }
-          });
-        }
-
-        delayClear();
-        print("Set focusedBeat to ${focusedBeat.value}");
-      } else {
-        focusedBeatUpdated = DateTime.now();
-        print("Keeping focusedBeat at ${focusedBeat.value}");
-      }
+      _updateFocusedBeatValue();
       _startValueAnimation(
           value: value,
           currentValue: currentValue,
@@ -259,36 +268,46 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 value: value,
                 currentValue: currentValue,
                 applyAnimatedValue: applyAnimatedValue,
-                controllers: controllers);
+                controllers: controllers,);
           });
       notifyUpdate(ScaleUpdate(currentValue(), value()));
     }
 
     if (getLockTime() == null || DateTime.now().difference(getLockTime()).inMilliseconds > 500) {
       if (lock()) {
+        print("unlocked");
         startAnimation();
       } else {
-        Future.delayed(animationDuration, () {
-          if (lock()) {
-            startAnimation();
-          }
-        });
+        print("locked");
+        retry() {
+          Future.delayed(animationDuration, () {
+            if (lock()) {
+              print("unlocked: retry");
+              startAnimation();
+            } else {
+              retry();
+            }
+          });
+        }
+        retry();
       }
     }
   }
 
-  double get targetXScale => _targetedXScale ?? _yScale;
+  double get _xScale => xScaleNotifier.value;
+  set _xScale(value) => xScaleNotifier.value = value;
+  double get _yScale => yScaleNotifier.value;
+  set _yScale(value) => yScaleNotifier.value = value;
 
-  double get targetYScale => _targetedYScale ?? _xScale;
+  double get xScale => _targetedXScale;
 
-  double get xScale => targetXScale;
-
-  double get yScale => targetYScale;
+  double get yScale => _targetedYScale;
 
   set xScale(double value) {
+    value = max(0, min(maxScale, value));
     _targetedXScale = value;
     _animateScaleAtomically(
-      value: () => targetXScale,
+      value: () => xScale,
       currentValue: () => _xScale,
       applyAnimatedValue: (value) => _xScale = value,
       controllers: _xScaleAnimationControllers,
@@ -299,11 +318,20 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       notifyUpdate: _xScaleUpdate,
     );
   }
+  set rawXScale(double value) {
+    value = max(minScale, min(maxScale, value));
+    _updateFocusedBeatValue();
+    final oldValue = _xScale;
+    _targetedXScale = value;
+    _xScale = value;
+    _xScaleUpdate(ScaleUpdate(oldValue, value));
+  }
 
   set yScale(double value) {
+    value = max(minScale, min(maxScale, value));
     _targetedYScale = value;
     _animateScaleAtomically(
-      value: () => targetYScale,
+      value: () => yScale,
       currentValue: () => _yScale,
       applyAnimatedValue: (value) => _yScale = value,
       controllers: _yScaleAnimationControllers,
@@ -313,6 +341,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       getLockTime: () => _yScaleLock,
       notifyUpdate: _yScaleUpdate,
     );
+  }
+  set rawYScale(double value) {
+    value = max(minScale, min(maxScale, value));
+    final oldValue = _yScale;
+    _targetedYScale = value;
+    _yScale = value;
+    _yScaleUpdate(ScaleUpdate(oldValue, value));
   }
 
   @override
@@ -339,6 +374,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     autoScroll = true;
     autoFocus = true;
     _previouslyAligned = true;
+    xScaleNotifier = ValueNotifier(null);
+    yScaleNotifier = ValueNotifier(null);
   }
 
   double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
@@ -391,6 +428,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         _xScale = 0.22;
         _yScale = 0.22;
       }
+      _targetedXScale = _xScale;
+      _targetedYScale = _yScale;
+    }
+    if (_xScale.notRoughlyEquals(_targetedXScale) || _yScale.notRoughlyEquals(_targetedYScale)) {
+      xScale = xScale;
+      yScale = yScale;
     }
     // if (context.isPortrait) {
     //   var verticalSizeHalved = (_previousSplitMode == SplitMode.full && widget.splitMode == SplitMode.half) ||
@@ -761,12 +804,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   }
                   _previouslyAligned = false;
                   _isTwoFingerScaling = true;
-                  _previousOffset = _offset;
                   int beat = getBeat(details.focalPoint);
-                  setState(() {
-                    focusedBeat.value = beat;
-                  });
-                  // _startFocalPoint = details.focalPoint;
+                  focusedBeat.value = beat;
                   _startHorizontalScale = xScale;
                   _startVerticalScale = yScale;
                 }),
@@ -779,40 +818,20 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   int beat = getBeat(details.focalPoint);
                   focusedBeat.value = beat;
                 }
-                double oldXScale, oldYScale;
                 if (details.horizontalScale > 0) {
-                  oldXScale = _xScale;
-                  final target = max(minScale, min(maxScale, _startHorizontalScale * details.horizontalScale));
-                  _targetedXScale = target;
-                  _xScale = target;
-//                  if(_xScale > maxScaleDiscrepancy * _yScale) {
-//                    _yScale = _xScale * minScaleDiscrepancy;
-//                  }
-//                  if(_xScale < minScaleDiscrepancy * _yScale) {
-//                    _yScale = _xScale * minScaleDiscrepancy;
-//                  }
+                  final target = _startHorizontalScale * details.horizontalScale;
+                  rawXScale = target;
                 }
                 if (details.verticalScale > 0) {
-                  oldYScale = _yScale;
-                  final target = max(minScale, min(maxScale, _startVerticalScale * details.verticalScale));
-                  _targetedYScale = target;
-                  _yScale = target;
+                  final target = _startVerticalScale * details.verticalScale;
+                  rawYScale = target;
                 }
-                // TODO: Use _startFocalPoint to scroll the MelodyRenderer ScrollViews
-                final Offset normalizedOffset = (_startFocalPoint - _previousOffset) / _startHorizontalScale;
-                final Offset newOffset = details.focalPoint - normalizedOffset * xScale;
-
-                // requestedScrollOffsetForScale.value = newOffset * 1.1;
-                _offset = newOffset;
               });
             },
             onScaleEnd: (ScaleEndDetails details) {
               _ignoreNextScale = false;
               _isTwoFingerScaling = false;
-              setState(() {
-                focusedBeat.value = null;
-              });
-              //_horizontalScale = max(0.1, min(16, _horizontalScale.ceil().toDouble()));
+              focusedBeat.value = null;
             },
             child: Stack(children: [
               MusicScrollContainer(
@@ -837,8 +856,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 highlightedBeat: highlightedBeat,
                 focusedBeat: focusedBeat,
                 requestedScrollOffsetForScale: requestedScrollOffsetForScale,
-                targetXScale: targetXScale,
-                targetYScale: targetYScale,
+                targetXScale: xScale,
+                targetYScale: yScale,
                 isTwoFingerScaling: _isTwoFingerScaling,
                 scrollToCurrentBeat: scrollToCurrentBeat,
                 centerCurrentSection: centerCurrentSection,
@@ -847,6 +866,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 isPreview: widget.isPreview,
                 notifyXScaleUpdate: _xScaleUpdate,
                 notifyYScaleUpdate: _yScaleUpdate,
+                xScaleNotifier: xScaleNotifier,
+                yScaleNotifier: yScaleNotifier,
               ),
               if (!widget.isPreview)
                 Row(children: [

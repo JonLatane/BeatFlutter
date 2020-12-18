@@ -28,7 +28,7 @@ class MusicSystemPainter extends CustomPainter {
   final String focusedMelodyId;
   final Score score;
   final Section section;
-  final double xScale, yScale;
+  final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
   final Rect Function() visibleRect;
   final MelodyViewMode melodyViewMode;
   final ValueNotifier<double> colorblockOpacityNotifier,
@@ -44,9 +44,13 @@ class MusicSystemPainter extends CustomPainter {
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
 
+  double get xScale => xScaleNotifier.value;
+
+  double get yScale => yScaleNotifier.value;
 
   Melody get focusedMelody =>
-    score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
+      score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
+
   bool get isViewingSection => melodyViewMode != MelodyViewMode.score;
 
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score.beatCount;
@@ -77,8 +81,8 @@ class MusicSystemPainter extends CustomPainter {
     this.keyboardNotesNotifier,
     this.score,
     this.section,
-    this.xScale,
-    this.yScale,
+    this.xScaleNotifier,
+    this.yScaleNotifier,
     this.visibleRect,
     this.focusedMelodyId,
     this.colorblockOpacityNotifier,
@@ -98,7 +102,9 @@ class MusicSystemPainter extends CustomPainter {
           colorboardPart,
           focusedBeat,
           BeatScratchPlugin.pressedMidiControllerNotes,
-          BeatScratchPlugin.currentBeat
+          BeatScratchPlugin.currentBeat,
+          xScaleNotifier,
+          yScaleNotifier,
         ])) {
     _tickPaint.color = Colors.black;
     _tickPaint.strokeWidth = 2.0;
@@ -252,7 +258,7 @@ class MusicSystemPainter extends CustomPainter {
 //    }
     if (visibleRect().right > left) {
       canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
-        Paint()..color=Colors.white);
+          Paint()..color = Colors.white);
       // canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
       //   Paint()..color=Colors.black12);
     }
