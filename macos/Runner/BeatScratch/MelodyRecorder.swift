@@ -21,6 +21,17 @@ extension Dictionary {
 class MelodyRecorder {
   static let sharedInstance = MelodyRecorder()
   private init() {}
+  private var recordedSegment = RecordedSegment()
+  
+  private func cut() -> RecordedSegment {
+    let segment = recordedSegment
+    clear()
+    return segment
+  }
+  
+  func clear() {
+    recordedSegment = RecordedSegment()
+  }
   var recordingMelodyId: String?
   var recordingMelody: Melody? {
     get {
@@ -30,80 +41,57 @@ class MelodyRecorder {
       return BeatScratchPlugin.sharedInstance.score.parts.flatMap { $0.melodies }.first { $0.id == recordingMelodyId }
     }
     set {
-      if newValue != nil {
-        if var part: Part = BeatScratchPlugin.sharedInstance.score.parts.first(where: { $0.melodies.contains { $0.id == recordingMelodyId } }) {
-          part.melodies.removeAll { $0.id == newValue!.id }
-          part.melodies.append(newValue!)
-          BeatScratchPlugin.sharedInstance.score.parts.removeAll { $0.id == part.id }
-          BeatScratchPlugin.sharedInstance.score.parts.append(part)
-        }
+      recordingMelodyId = newValue?.id
+      if newValue == nil {
+        clear()
       }
     }
   }
   
-  private var recordingBeat: Int?
-  private var beatStartTime: CFTimeInterval?
-  var recordedData = Dictionary<CFTimeInterval, [UInt8]>()
-  
   func notifyNotePlayed(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel) {
-    if recordingMelody != nil {
-      let time = CACurrentMediaTime()
-      recordedData.processUpdate(time) {
-        var data = $0 ?? []
-        data.append(0x90)
-        data.append(note)
-        data.append(velocity)
-        return data
-      }
+    if recordingMelodyId != nil {
+      var x = RecordedSegment.RecordedData()
+      x.timestamp = UInt64(CACurrentMediaTime() * 1000)
+      x.midiData = Data([0x90, note, velocity])
+      recordedSegment.recordedData.append(x)
     }
   }
   
   func notifyNoteStopped(note: MIDINoteNumber, channel: MIDIChannel) {
-    if recordingMelody != nil {
-      let time = CACurrentMediaTime()
-      recordedData.processUpdate(time) {
-        var data = $0 ?? []
-        data.append(0x80)
-        data.append(note)
-        data.append(127)
-        return data
-      }
+    if recordingMelodyId != nil {
+      var x = RecordedSegment.RecordedData()
+      x.timestamp = UInt64(CACurrentMediaTime() * 1000)
+      x.midiData = Data([0x80, note])
+      recordedSegment.recordedData.append(x)
     }
   }
   
   func notifyBeatFinished() {
     if recordingMelodyId != nil {
+      var beat = Double(BeatScratchScorePlayer.sharedInstance.currentTick) / BeatScratchPlaybackThread.ticksPerBeat
+      if beat < 0 {
+        let m = recordingMelody!
+        beat += Double(m.length / m.subdivisionsPerBeat)
+      }
+      var rb = RecordedSegment.RecordedBeat()
+      rb.beat = UInt32(beat)
+      rb.timestamp = UInt64(CACurrentMediaTime() * 1000)
+      recordedSegment.beats.append(rb)
       recordToMelody()
-      beatStartTime = CACurrentMediaTime()
-      recordingBeat = Int(Double(BeatScratchScorePlayer.sharedInstance.currentTick) / BeatScratchPlaybackThread.ticksPerBeat)
     }
   }
   
   private func recordToMelody() {
-    if var melody = recordingMelody, let startTime = beatStartTime, let beat = recordingBeat {
-      let endTime = CACurrentMediaTime()
-      recordedData.forEach {
-        let time: CFTimeInterval = $0.key
-        let value: [UInt8] = $0.value
-        let subdivisionsPerBeat = melody.subdivisionsPerBeat
-        let length = melody.length
-        let beatSize = (endTime - startTime) //* (Double(subdivisionsPerBeat + 1))/Double(subdivisionsPerBeat)
-        let beatProgress = time - startTime
-        let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
-        var subdivision = Int32((normalizedProgress * Double(subdivisionsPerBeat)).rounded())
-        subdivision += Int32(beat) * Int32(subdivisionsPerBeat)
-        subdivision = (subdivision + Int32(length)) % Int32(length)
-        
-        melody.midiData.data.processUpdate(subdivision) {
-          var change = $0 ?? MidiChange()
-          change.data.append(contentsOf: value)
-          return change
-        }
+    if recordingMelodyId != nil {
+      // Need at least two beat points to be worth sending data
+      if recordedSegment.beats.count > 1 {
+        let segment = cut()
+        let lastBeat = segment.beats.max { (rb1, rb2) -> Bool in rb1.timestamp < rb2.timestamp }!
+        recordedSegment.beats.append(lastBeat)
+        BeatScratchPlugin.sharedInstance.notifyRecordedSegment(segment)
+      } else {
+        print("recordToMelody: Not enough beats")
       }
-      recordingMelody = melody
-      let verify = recordingMelody
-      BeatScratchPlugin.sharedInstance.notifyRecordedMelody()
     }
-    recordedData.removeAll()
   }
 }

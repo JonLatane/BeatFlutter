@@ -5,6 +5,7 @@ import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/painting.dart';
 import 'package:unification/unification.dart';
 
 import '../drawing/color_guide.dart';
@@ -41,7 +42,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
-  final ValueNotifier<Part> focusedPart, keyboardPart, colorboardPart;
+  final ValueNotifier<Part> keyboardPart, colorboardPart, focusedPart, tappedPart;
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
@@ -52,8 +53,6 @@ class MusicSystemPainter extends CustomPainter {
 
   Melody get focusedMelody =>
       score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
-
-  bool get isViewingSection => musicViewMode != MusicViewMode.score;
 
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score.beatCount;
 
@@ -73,6 +72,7 @@ class MusicSystemPainter extends CustomPainter {
     this.colorGuideOpacityNotifier,
     this.sectionColor,
     this.focusedPart,
+    this.tappedPart,
     this.keyboardPart,
     this.colorboardPart,
     this.staves,
@@ -247,7 +247,7 @@ class MusicSystemPainter extends CustomPainter {
             //   _renderSubdividedColorGuide(
             //     renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
             // }
-            _renderMelodies(melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat,
+            _renderMelodies(part, melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat,
                 renderingBeat, left, staff, staves.value);
             //        canvas.restore();
           });
@@ -270,6 +270,7 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   _renderMelodies(
+      Part part,
       List<Melody> melodiesToRender,
       Canvas canvas,
       Rect melodyBounds,
@@ -364,7 +365,14 @@ class MusicSystemPainter extends CustomPainter {
             melodyBounds,
             Paint()
               ..style = PaintingStyle.fill
-              ..color = Colors.black12);
+              ..color = part != null && tappedPart.value?.id == part.id ? sectionColor.value.withOpacity(0.12) : Colors.black12);
+      }
+      if (isCurrentScore && (renderingBeat == tappedBeat.value) && part != null && tappedPart.value?.id == part.id) {
+        canvas.drawRect(
+          melodyBounds,
+          Paint()
+            ..style = PaintingStyle.fill
+            ..color = sectionColor.value.withOpacity(0.12));
       }
     }
   }

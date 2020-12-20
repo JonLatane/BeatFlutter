@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/protos/music.pb.dart';
-import '../music_view/score_preview.dart';
+import 'score_preview.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
 

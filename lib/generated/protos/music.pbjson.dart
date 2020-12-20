@@ -3,7 +3,7 @@
 //  source: protos/music.proto
 //
 // @dart = 2.3
-// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 const NoteLetter$json = const {
   '1': 'NoteLetter',
@@ -185,6 +185,29 @@ const Instrument$json = const {
     const {'1': 'midi_instrument', '3': 5, '4': 1, '5': 13, '10': 'midiInstrument'},
     const {'1': 'midi_gm2_msb', '3': 6, '4': 1, '5': 13, '10': 'midiGm2Msb'},
     const {'1': 'midi_gm2_lsb', '3': 7, '4': 1, '5': 13, '10': 'midiGm2Lsb'},
+    const {'1': 'sound_fonts', '3': 8, '4': 1, '5': 11, '6': '.SoundFonts', '10': 'soundFonts'},
+  ],
+};
+
+const SoundFonts$json = const {
+  '1': 'SoundFonts',
+  '2': const [
+    const {'1': 'sound_fonts', '3': 1, '4': 3, '5': 11, '6': '.SoundFont', '10': 'soundFonts'},
+  ],
+};
+
+const SoundFont$json = const {
+  '1': 'SoundFont',
+  '2': const [
+    const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
+    const {'1': 'key_switches', '3': 2, '4': 3, '5': 11, '6': '.KeySwitch', '10': 'keySwitches'},
+  ],
+};
+
+const KeySwitch$json = const {
+  '1': 'KeySwitch',
+  '2': const [
+    const {'1': 'label', '3': 1, '4': 1, '5': 9, '10': 'label'},
   ],
 };
 

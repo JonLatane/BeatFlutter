@@ -8,12 +8,14 @@ import '../util/fake_js.dart' if (dart.library.js) 'dart:js';
 
 import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/foundation.dart';
+import 'package:protobuf/protobuf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
+import '../util/proto_utils.dart';
 import 'url_conversions.dart';
 
 
@@ -70,7 +72,7 @@ class ScoreManager {
   }
 
   _saveCurrentScore(File scoreFile, Score score) async {
-    _currentScoreFile.writeAsBytes(score.clone().writeToBuffer());
+    _currentScoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
   }
 
   openScore(File file) async {

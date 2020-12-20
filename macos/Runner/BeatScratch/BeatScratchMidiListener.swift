@@ -101,7 +101,7 @@ class BeatScratchMidiListener : AKMIDIListener {
   func receivedMIDISystemCommand(_ data: [MIDIByte],
                                  portID: MIDIUniqueID?,
                                  offset: MIDITimeStamp) {
-    print("receivedMIDISystemCommand: \(data)")
+//    print("receivedMIDISystemCommand: \(data)")
   }
   
   func receivedMIDISetupChange() {

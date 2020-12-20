@@ -1,13 +1,14 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/util/music_notation_theory.dart';
-import 'package:beatscratch_flutter_redux/util/music_theory.dart';
-import 'package:beatscratch_flutter_redux/util/util.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
 import 'package:unification/unification.dart';
 
+import '../../generated/protos/music.pb.dart';
+import '../../util/music_notation_theory.dart';
+import '../../util/music_theory.dart';
+import '../../util/proto_utils.dart';
+import '../../util/util.dart';
 import '../canvas_tone_drawer.dart';
 import 'base_melody_renderer.dart';
 import 'melody_staff_lines_renderer.dart';
@@ -31,8 +32,8 @@ class _StemInstruction {
 }
 
 class _RenderInstructions {
-  final List<_NoteheadInstruction> noteheadInstructions = List();
-  final List<_StemInstruction> stemInstructions = List();
+  final List<_NoteheadInstruction> noteheadInstructions = [];
+  final List<_StemInstruction> stemInstructions = [];
 
   _RenderInstructions();
 }
@@ -469,7 +470,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         }
         newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, otherTones);
       });
-      computationChord = computationChord.copyWith((it) { it.chroma = newChroma; });
+      computationChord = computationChord.deepRebuild((Chord it) { it.chroma = newChroma; });
     }
     return _getPlaybackNotes(tones, computationChord);
   }

@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:protobuf/protobuf.dart';
 import 'package:unification/unification.dart';
 
-import '../animations/animations.dart';
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
@@ -17,13 +17,14 @@ import '../storage/score_manager.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
+import '../util/proto_utils.dart';
 import '../util/util.dart';
+import '../widget/beats_badge.dart';
 import '../widget/my_buttons.dart';
 import '../widget/my_platform.dart';
 import '../widget/scalable_view.dart';
 import 'melody_menu_browser.dart';
-import 'melody_preview.dart';
-import '../widget/beats_badge.dart';
+import '../music_preview/melody_preview.dart';
 
 class PartMelodiesView extends StatefulWidget {
   final ScoreManager scoreManager;
@@ -708,11 +709,11 @@ class _MelodiesViewState extends State<_MelodiesView> {
               pinned: false,
               expandedHeight: 50.0,
               flexibleSpace: MelodyMenuBrowser(part: part, currentSection: currentSection, textColor: textColor,
-                onMelodySelected: (melody) => createMelody(melody.clone().copyWith((it) { it.id = uuid.v4(); })),
+                onMelodySelected: (melody) => createMelody(melody.deepRebuild((it) { it.id = uuid.v4(); })),
               ),
             ),
             if (part.instrument.type == selectedMelody?.instrumentType)
-              buildAddFromTemplateButton(backgroundColor, textColor, selectedMelody.clone(),
+              buildAddFromTemplateButton(backgroundColor, textColor, selectedMelody.bsCopy(),
                   icon: Icons.control_point_duplicate),
             // if (part.instrument.type == InstrumentType.harmonic)
             //   buildAddFromTemplateButton(backgroundColor, textColor, odeToJoyA()),
@@ -809,7 +810,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
   
   createMelody(Melody newMelody) {
-    newMelody = newMelody.clone().copyWith((it) { it.id = uuid.v4(); });
+    newMelody = newMelody.deepRebuild((it) { it.id = uuid.v4(); });
     _lastAddedMelody = newMelody;
     setState(() {
       int index = part.melodies.length;

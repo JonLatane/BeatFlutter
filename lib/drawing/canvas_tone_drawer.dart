@@ -53,7 +53,7 @@ class CanvasToneDrawer {
 
 
   List<VisiblePitch> get visiblePitches {
-    List<VisiblePitch> result = List();
+    List<VisiblePitch> result = [];
     double orientationRange = highestPitch - lowestPitch + 1 -
       halfStepsOnScreen;
     // This "point" is under the same scale as bottomMostNote; i.e. 0.5f is a "quarter step"
@@ -86,7 +86,7 @@ class CanvasToneDrawer {
   }
 
   List<VisiblePitch> get visibleDiatonicPitches {
-    List<VisiblePitch> result = List();
+    List<VisiblePitch> result = [];
     double orientationRange = highestPitch - lowestPitch + 1 -
       halfStepsOnScreen;
     // This "point" is under the same scale as bottomMostNote; i.e. 0.5f is a "quarter step"

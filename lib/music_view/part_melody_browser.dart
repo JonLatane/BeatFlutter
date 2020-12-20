@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/part_melodies_view/melody_menu_browser.dart';
+import 'package:beatscratch_flutter_redux/layers_view/melody_menu_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
@@ -6,7 +6,7 @@ import 'package:implicitly_animated_reorderable_list/transitions.dart';
 
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../part_melodies_view/melody_preview.dart';
+import '../music_preview/melody_preview.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
@@ -23,7 +23,15 @@ class PartMelodyBrowser extends StatefulWidget {
   final Function(Part, Melody) createMelody;
 
   const PartMelodyBrowser(
-      {Key key, this.sectionColor, this.score, this.currentSection, this.part, this.browsingMelodies, this.selectOrDeselectMelody, this.createMelody, this.toggleMelodyReference})
+      {Key key,
+      this.sectionColor,
+      this.score,
+      this.currentSection,
+      this.part,
+      this.browsingMelodies,
+      this.selectOrDeselectMelody,
+      this.createMelody,
+      this.toggleMelodyReference})
       : super(key: key);
 
   @override
@@ -47,91 +55,76 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      SizedBox(width:5),
-      Container(
-        width: 48,
-        child: MyRaisedButton(
-            color: Color(0x424242).withOpacity(1),
-            padding: EdgeInsets.zero,
-            onLongPress: null,
-            onPressed: () {
-              widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount));
-            },
-            child: AnimatedOpacity(
-                duration: animationDuration,
-                opacity: widget.browsingMelodies ? 1 : 0,
-                child: Stack(
-                  children: [
-                    Align(alignment: Alignment.center, child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
-                    Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 1, bottom: 0),
-                          child: Transform.translate(
-                              offset: Offset(0, 0),
-                              child: Text(
-                                "Record",
-                                style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
-                              )),
-                        ))
-                  ],
-                ))),
-      ),
+      SizedBox(width: 5),
+      AnimatedOpacity(
+          duration: animationDuration,
+          opacity: widget.part != null ? 1 : 0,
+          child: Container(
+            width: 48,
+            child: MyRaisedButton(
+                color: Color(0x424242).withOpacity(1),
+                padding: EdgeInsets.zero,
+                onLongPress: null,
+                onPressed: () {
+                  widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount));
+                },
+                child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: widget.browsingMelodies ? 1 : 0,
+                    child: Stack(
+                      children: [
+                        Align(
+                            alignment: Alignment.center,
+                            child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                        Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 1, bottom: 0),
+                              child: Transform.translate(
+                                  offset: Offset(0, 0),
+                                  child: Text(
+                                    "Record",
+                                    style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
+                                  )),
+                            ))
+                      ],
+                    ))),
+          )),
       Expanded(child: getList(context)),
-      SizedBox(width:3),
-      Container(
-        color: Color(0x424242).withOpacity(1),
-        width: 48,
-        child: MelodyMenuBrowser(
-          part: widget.part,
-          currentSection: widget.currentSection,
-          child: Stack(
-            children: [
-              Align(alignment: Alignment.center, child: Icon(Icons.folder_open, color: Colors.white)),
-              Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 1, bottom: 0),
-                    child: Transform.translate(
-                        offset: Offset(0, 0),
-                        child: Text(
-                          "Import",
-                          style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
-                        )),
-                  ))
-            ],
-          ),
-          onMelodySelected: (melody) {
-            widget.createMelody(widget.part, melody);
-          },
-        )/*MyRaisedButton(
+      SizedBox(width: 3),
+      AnimatedOpacity(
+        duration: animationDuration,
+        opacity: widget.part != null ? 1 : 0,
+        child: Container(
           color: Color(0x424242).withOpacity(1),
-          padding: EdgeInsets.zero,
-          onLongPress: null,
-          onPressed: () {
-            //widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount));
-          },
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: widget.browsingMelodies ? 1 : 0,
+          width: 48,
+          child: MelodyMenuBrowser(
+            part: widget.part,
+            currentSection: widget.currentSection,
             child: Stack(
               children: [
                 Align(alignment: Alignment.center, child: Icon(Icons.folder_open, color: Colors.white)),
                 Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 1, bottom: 0),
-                    child: Transform.translate(
-                      offset: Offset(0, 0),
-                      child: Text(
-                        "Import",
-                        style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
-                      )),
-                  ))
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 1, bottom: 0),
+                      child: Transform.translate(
+                          offset: Offset(0, 0),
+                          child: Text(
+                            "Import",
+                            style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
+                          )),
+                    ))
               ],
-            )))*/,
+            ),
+            onMelodySelected: (melody) {
+              widget.createMelody(widget.part, melody);
+            },
+          )
+          ,
+        ),
       ),
-      SizedBox(width:5),
+      SizedBox(width: 5),
     ]);
   }
 
@@ -159,9 +152,6 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
         final width = 120.0;
         final height = widget.browsingMelodies ? 48.0 : 0.0;
 
-
-
-
         final tile = AnimatedOpacity(
             duration: animationDuration,
             opacity: reference.isEnabled ? 1 : 0.5,
@@ -173,19 +163,23 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                     height: height,
                     padding: EdgeInsets.only(left: 3),
                     child: Container(
-                      decoration: BoxDecoration(gradient: MelodyPreview.generateVolumeDecoration(reference, widget.currentSection, isSelectedMelody: false, bgColor: melodyColor, sectionColor: widget.sectionColor)),
+                      decoration: BoxDecoration(
+                          gradient: MelodyPreview.generateVolumeDecoration(reference, widget.currentSection,
+                              isSelectedMelody: false, bgColor: melodyColor, sectionColor: widget.sectionColor)),
                       child: MyFlatButton(
                           onPressed: () {
                             widget.selectOrDeselectMelody(melody);
                           },
-                        onLongPress: () {
+                          onLongPress: () {
                             final reference = widget.currentSection.referenceTo(melody);
                             widget.toggleMelodyReference(reference);
-                        },
+                          },
                           child: Text(melody.canonicalName,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                                 color: melody.canonicalName == melody.name ? Colors.black : Colors.grey,
                               ))),
                     )),
@@ -201,12 +195,12 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: MelodyPreview(
-                                      section: widget.currentSection,
-                                      part: widget.part,
-                                      melody: melody,
-                                      height: 48,
-                                      width: 150,
-                                      scale: 0.09),
+                                  section: widget.currentSection,
+                                  part: widget.part,
+                                  melody: melody,
+                                  height: 48,
+                                  width: 150,
+                                  scale: 0.09),
                             ),
                           ),
                         )))

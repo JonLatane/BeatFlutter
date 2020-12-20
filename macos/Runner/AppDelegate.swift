@@ -21,9 +21,9 @@ class AppDelegate: FlutterAppDelegate {
     // Get URL components from the incoming user activity.
     guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
           let incomingURL = userActivity.webpageURL,
-          let components = NSURLComponents(url: incomingURL, resolvingAgainstBaseURL: true) else {
-      return false
-    }
+          let _ = NSURLComponents(url: incomingURL, resolvingAgainstBaseURL: true) else {
+            return false
+          }
     
     return true
     

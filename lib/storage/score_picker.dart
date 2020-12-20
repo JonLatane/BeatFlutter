@@ -15,7 +15,7 @@ import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import '../animations/size_fade_transition.dart';
 import '../generated/protos/music.pb.dart';
 import '../generated/protos/protobeats_plugin.pb.dart';
-import '../music_view/score_preview.dart';
+import '../music_preview/score_preview.dart';
 import '../util/music_utils.dart';
 import '../widget/my_buttons.dart';
 import 'score_manager.dart';
@@ -74,7 +74,7 @@ class _ScorePickerState extends State<ScorePicker> {
   @override
   initState() {
     super.initState();
-    // nameController.value = nameController.value.copyWith(text: scoreManager.currentScoreName);
+    // nameController.value = nameController.value.rebuild(text: scoreManager.currentScoreName);
     nameFocus.addListener(() {
       widget.requestKeyboardFocused(nameFocus.hasFocus);
     });
@@ -102,7 +102,7 @@ class _ScorePickerState extends State<ScorePicker> {
     //   if (suggestedName == "Pasted Score") {
     //     suggestedName = widget.openedScore.name;
     //   }
-    //   nameController.value = nameController.value.copyWith(text: suggestedName);
+    //   nameController.value = nameController.value.rebuild(text: suggestedName);
     // }
     final suggestedName = ScoreManager.lastSuggestedScoreName;
     if (suggestedName != null) {

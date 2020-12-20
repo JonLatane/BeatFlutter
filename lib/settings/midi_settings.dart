@@ -11,10 +11,10 @@ import 'package:flutter_appavailability/flutter_appavailability.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
 
-import 'animations/size_fade_transition.dart';
-import 'generated/protos/protobeats_plugin.pb.dart';
-import 'widget/my_buttons.dart';
-import 'widget/my_platform.dart';
+import '../animations/size_fade_transition.dart';
+import '../generated/protos/protobeats_plugin.pb.dart';
+import '../widget/my_buttons.dart';
+import '../widget/my_platform.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;

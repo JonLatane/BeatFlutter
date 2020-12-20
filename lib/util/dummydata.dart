@@ -1,6 +1,8 @@
+import 'package:protobuf/protobuf.dart';
 import 'package:quiver/iterables.dart';
 
 import '../generated/protos/music.pb.dart';
+import '../util/proto_utils.dart';
 import 'midi_theory.dart';
 import 'util.dart';
 
@@ -221,15 +223,15 @@ Score defaultScore() => Score()
 
 
 Score melodyPreview(Melody melody, Part part, Section section) {
-  melody = melody.clone().copyWith((it) {
+  melody = melody.deepRebuild((it) {
     it.id = uuid.v4();
   });
-  part = part.clone().copyWith((it) {
+  part = part.deepRebuild((it) {
     it.id = uuid.v4();
     it.melodies.clear();
     it.melodies.add(melody);
   });
-  section = section.clone().copyWith((it) {
+  section = section.deepRebuild((it) {
     it.id = uuid.v4();
     it.melodies.clear();
     it.melodies.add(MelodyReference()

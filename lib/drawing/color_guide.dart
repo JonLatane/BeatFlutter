@@ -13,7 +13,7 @@ class ColorGuide extends CanvasToneDrawer {
   int drawPadding;
   int nonRootPadding;
   int drawnColorGuideAlpha;
-  Iterable<int> pressedNotes = List();
+  Iterable<int> pressedNotes = [];
 
   drawColorGuide(Canvas canvas) {
     //TODO enable drawing Melody colorguides on web

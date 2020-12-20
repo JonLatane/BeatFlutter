@@ -11,7 +11,7 @@ import '../ui_models.dart';
 import '../util/bs_notifiers.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
-import 'music_system_painter.dart';
+import '../music_view/music_system_painter.dart';
 
 class ScorePreview extends StatefulWidget {
   final Score score;

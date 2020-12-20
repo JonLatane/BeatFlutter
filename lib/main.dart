@@ -15,10 +15,10 @@ import 'colors.dart';
 import 'generated/protos/music.pb.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
 import 'main_toolbars.dart';
-import 'midi_settings.dart';
+import 'settings/midi_settings.dart';
 import 'music_view/music_view.dart';
-import 'part_melodies_view/melody_menu_browser.dart';
-import 'part_melodies_view/part_melodies_view.dart';
+import 'layers_view/melody_menu_browser.dart';
+import 'layers_view/part_melodies_view.dart';
 import 'storage/migrations.dart';
 import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
@@ -26,6 +26,7 @@ import 'storage/url_conversions.dart';
 import 'ui_models.dart';
 import 'util/dummydata.dart';
 import 'util/music_theory.dart';
+import 'util/proto_utils.dart';
 import 'util/util.dart';
 import 'widget/colorboard.dart';
 import 'widget/keyboard.dart';
@@ -295,12 +296,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool showBeatCounts;
 
-  updateScore(Function(Score) updates) {
-    setState(() {
-      score = score.copyWith(updates);
-    });
-  }
-
   _showMusicView() {
     if (interactionMode == InteractionMode.edit) {
       if (splitMode == SplitMode.half) {
@@ -382,6 +377,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _selectedPart = selectedPart;
     if (selectedPart != null) {
       keyboardPart = selectedPart;
+    }
+  }
+
+  Part _viewingPart;
+  Part get viewingPart => _viewingPart;
+  set viewingPart(Part viewingPart) {
+    _viewingPart = viewingPart;
+    if (viewingPart != null) {
+      keyboardPart = viewingPart;
     }
   }
 
@@ -1992,7 +1996,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           }
           currentSection.name = "$prefix 1";
         }
-        Section section = currentSection.clone();
+        Section section = currentSection.bsCopy();
         section.id = uuid.v4();
         final match = RegExp(
           r"^(.*?)(\d*)\s*$",
@@ -2002,7 +2006,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         int number = int.tryParse(match.group(2)) ?? 1;
         section.name = "$prefix ${number + 1}";
         section.melodies.clear();
-        section.melodies.addAll(currentSection.melodies.map((e) => e.clone()));
+        section.melodies.addAll(currentSection.melodies.map((e) => e.bsCopy()));
         _insertSection(section);
         section.tempo = Tempo()..bpm = currentSection.tempo.bpm;
       },
@@ -2150,7 +2154,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _landscapePhoneBeatscratchToolbarWidth -
               _leftNotchPadding -
               _rightNotchPadding -
-              _landscapePhoneSecondToolbarWidth,
+              _landscapePhoneSecondToolbarWidth -
+          _landscapeTapInBarWidth,
           leftMargin: /*_landscapePhoneBeatscratchToolbarWidth + */ _leftNotchPadding,
           part: keyboardPart,
           height: _keyboardHeight,

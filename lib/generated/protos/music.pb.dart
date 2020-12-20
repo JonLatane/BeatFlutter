@@ -3,7 +3,7 @@
 //  source: protos/music.proto
 //
 // @dart = 2.3
-// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
 
@@ -14,9 +14,9 @@ import 'music.pbenum.dart';
 export 'music.pbenum.dart';
 
 class NoteName extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('NoteName', createEmptyInstance: create)
-    ..e<NoteLetter>(1, 'noteLetter', $pb.PbFieldType.OE, defaultOrMaker: NoteLetter.C, valueOf: NoteLetter.valueOf, enumValues: NoteLetter.values)
-    ..e<NoteSign>(2, 'noteSign', $pb.PbFieldType.OE, defaultOrMaker: NoteSign.natural, valueOf: NoteSign.valueOf, enumValues: NoteSign.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'NoteName', createEmptyInstance: create)
+    ..e<NoteLetter>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'noteLetter', $pb.PbFieldType.OE, defaultOrMaker: NoteLetter.C, valueOf: NoteLetter.valueOf, enumValues: NoteLetter.values)
+    ..e<NoteSign>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'noteSign', $pb.PbFieldType.OE, defaultOrMaker: NoteSign.natural, valueOf: NoteSign.valueOf, enumValues: NoteSign.values)
     ..hasRequiredFields = false
   ;
 
@@ -24,8 +24,16 @@ class NoteName extends $pb.GeneratedMessage {
   factory NoteName() => create();
   factory NoteName.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory NoteName.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   NoteName clone() => NoteName()..mergeFromMessage(this);
-  NoteName copyWith(void Function(NoteName) updates) => super.copyWith((message) => updates(message as NoteName));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  NoteName copyWith(void Function(NoteName) updates) => super.copyWith((message) => updates(message as NoteName)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static NoteName create() => NoteName._();
@@ -55,10 +63,10 @@ class NoteName extends $pb.GeneratedMessage {
 }
 
 class Chord extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Chord', createEmptyInstance: create)
-    ..aOM<NoteName>(1, 'rootNote', subBuilder: NoteName.create)
-    ..aOM<NoteName>(2, 'bassNote', subBuilder: NoteName.create)
-    ..a<$core.int>(3, 'chroma', $pb.PbFieldType.OU3)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Chord', createEmptyInstance: create)
+    ..aOM<NoteName>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rootNote', subBuilder: NoteName.create)
+    ..aOM<NoteName>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bassNote', subBuilder: NoteName.create)
+    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'chroma', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -66,8 +74,16 @@ class Chord extends $pb.GeneratedMessage {
   factory Chord() => create();
   factory Chord.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Chord.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Chord clone() => Chord()..mergeFromMessage(this);
-  Chord copyWith(void Function(Chord) updates) => super.copyWith((message) => updates(message as Chord));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Chord copyWith(void Function(Chord) updates) => super.copyWith((message) => updates(message as Chord)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Chord create() => Chord._();
@@ -110,9 +126,9 @@ class Chord extends $pb.GeneratedMessage {
 }
 
 class Tempo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Tempo', createEmptyInstance: create)
-    ..a<$core.double>(1, 'bpm', $pb.PbFieldType.OF)
-    ..e<Tempo_Transition>(2, 'transition', $pb.PbFieldType.OE, defaultOrMaker: Tempo_Transition.a_tempo, valueOf: Tempo_Transition.valueOf, enumValues: Tempo_Transition.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Tempo', createEmptyInstance: create)
+    ..a<$core.double>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bpm', $pb.PbFieldType.OF)
+    ..e<Tempo_Transition>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'transition', $pb.PbFieldType.OE, defaultOrMaker: Tempo_Transition.a_tempo, valueOf: Tempo_Transition.valueOf, enumValues: Tempo_Transition.values)
     ..hasRequiredFields = false
   ;
 
@@ -120,8 +136,16 @@ class Tempo extends $pb.GeneratedMessage {
   factory Tempo() => create();
   factory Tempo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Tempo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Tempo clone() => Tempo()..mergeFromMessage(this);
-  Tempo copyWith(void Function(Tempo) updates) => super.copyWith((message) => updates(message as Tempo));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Tempo copyWith(void Function(Tempo) updates) => super.copyWith((message) => updates(message as Tempo)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Tempo create() => Tempo._();
@@ -151,8 +175,8 @@ class Tempo extends $pb.GeneratedMessage {
 }
 
 class Meter extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Meter', createEmptyInstance: create)
-    ..a<$core.int>(1, 'defaultBeatsPerMeasure', $pb.PbFieldType.OU3)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Meter', createEmptyInstance: create)
+    ..a<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'defaultBeatsPerMeasure', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -160,8 +184,16 @@ class Meter extends $pb.GeneratedMessage {
   factory Meter() => create();
   factory Meter.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Meter.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Meter clone() => Meter()..mergeFromMessage(this);
-  Meter copyWith(void Function(Meter) updates) => super.copyWith((message) => updates(message as Meter));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Meter copyWith(void Function(Meter) updates) => super.copyWith((message) => updates(message as Meter)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Meter create() => Meter._();
@@ -182,11 +214,11 @@ class Meter extends $pb.GeneratedMessage {
 }
 
 class Harmony extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Harmony', createEmptyInstance: create)
-    ..aOS(1, 'id')
-    ..a<$core.int>(2, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, 'length', $pb.PbFieldType.OU3)
-    ..m<$core.int, Chord>(100, 'data', entryClassName: 'Harmony.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Chord.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Harmony', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'length', $pb.PbFieldType.OU3)
+    ..m<$core.int, Chord>(100, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'data', entryClassName: 'Harmony.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Chord.create)
     ..hasRequiredFields = false
   ;
 
@@ -194,8 +226,16 @@ class Harmony extends $pb.GeneratedMessage {
   factory Harmony() => create();
   factory Harmony.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Harmony.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Harmony clone() => Harmony()..mergeFromMessage(this);
-  Harmony copyWith(void Function(Harmony) updates) => super.copyWith((message) => updates(message as Harmony));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Harmony copyWith(void Function(Harmony) updates) => super.copyWith((message) => updates(message as Harmony)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Harmony create() => Harmony._();
@@ -246,16 +286,16 @@ class Melody extends $pb.GeneratedMessage {
     101 : Melody_Data.midiData,
     0 : Melody_Data.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Melody', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Melody', createEmptyInstance: create)
     ..oo(0, [101])
-    ..aOS(1, 'id')
-    ..aOS(2, 'name')
-    ..a<$core.int>(3, 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, 'length', $pb.PbFieldType.OU3)
-    ..e<MelodyType>(5, 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.midi, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
-    ..e<InstrumentType>(6, 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
-    ..e<MelodyInterpretationType>(7, 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed_nonadaptive, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
-    ..aOM<MidiData>(101, 'midiData', subBuilder: MidiData.create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subdivisionsPerBeat', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'length', $pb.PbFieldType.OU3)
+    ..e<MelodyType>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.midi, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
+    ..e<InstrumentType>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
+    ..e<MelodyInterpretationType>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed_nonadaptive, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
+    ..aOM<MidiData>(101, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false
   ;
 
@@ -263,8 +303,16 @@ class Melody extends $pb.GeneratedMessage {
   factory Melody() => create();
   factory Melody.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Melody.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Melody clone() => Melody()..mergeFromMessage(this);
-  Melody copyWith(void Function(Melody) updates) => super.copyWith((message) => updates(message as Melody));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Melody copyWith(void Function(Melody) updates) => super.copyWith((message) => updates(message as Melody)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Melody create() => Melody._();
@@ -353,8 +401,8 @@ class Melody extends $pb.GeneratedMessage {
 }
 
 class MidiData extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiData', createEmptyInstance: create)
-    ..m<$core.int, MidiChange>(1, 'data', entryClassName: 'MidiData.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MidiChange.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'MidiData', createEmptyInstance: create)
+    ..m<$core.int, MidiChange>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'data', entryClassName: 'MidiData.DataEntry', keyFieldType: $pb.PbFieldType.OS3, valueFieldType: $pb.PbFieldType.OM, valueCreator: MidiChange.create)
     ..hasRequiredFields = false
   ;
 
@@ -362,8 +410,16 @@ class MidiData extends $pb.GeneratedMessage {
   factory MidiData() => create();
   factory MidiData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   MidiData clone() => MidiData()..mergeFromMessage(this);
-  MidiData copyWith(void Function(MidiData) updates) => super.copyWith((message) => updates(message as MidiData));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  MidiData copyWith(void Function(MidiData) updates) => super.copyWith((message) => updates(message as MidiData)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiData create() => MidiData._();
@@ -378,9 +434,9 @@ class MidiData extends $pb.GeneratedMessage {
 }
 
 class MelodicAttack extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodicAttack', createEmptyInstance: create)
-    ..p<$core.int>(1, 'tones', $pb.PbFieldType.PS3)
-    ..a<$core.double>(2, 'velocity', $pb.PbFieldType.OF)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'MelodicAttack', createEmptyInstance: create)
+    ..p<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tones', $pb.PbFieldType.PS3)
+    ..a<$core.double>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'velocity', $pb.PbFieldType.OF)
     ..hasRequiredFields = false
   ;
 
@@ -388,8 +444,16 @@ class MelodicAttack extends $pb.GeneratedMessage {
   factory MelodicAttack() => create();
   factory MelodicAttack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MelodicAttack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   MelodicAttack clone() => MelodicAttack()..mergeFromMessage(this);
-  MelodicAttack copyWith(void Function(MelodicAttack) updates) => super.copyWith((message) => updates(message as MelodicAttack));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  MelodicAttack copyWith(void Function(MelodicAttack) updates) => super.copyWith((message) => updates(message as MelodicAttack)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MelodicAttack create() => MelodicAttack._();
@@ -413,8 +477,8 @@ class MelodicAttack extends $pb.GeneratedMessage {
 }
 
 class MidiChange extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MidiChange', createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, 'data', $pb.PbFieldType.OY)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'MidiChange', createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'data', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -422,8 +486,16 @@ class MidiChange extends $pb.GeneratedMessage {
   factory MidiChange() => create();
   factory MidiChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiChange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   MidiChange clone() => MidiChange()..mergeFromMessage(this);
-  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiChange create() => MidiChange._();
@@ -444,14 +516,15 @@ class MidiChange extends $pb.GeneratedMessage {
 }
 
 class Instrument extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Instrument', createEmptyInstance: create)
-    ..aOS(1, 'name')
-    ..e<InstrumentType>(2, 'type', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
-    ..a<$core.double>(3, 'volume', $pb.PbFieldType.OF)
-    ..a<$core.int>(4, 'midiChannel', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, 'midiInstrument', $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, 'midiGm2Msb', $pb.PbFieldType.OU3)
-    ..a<$core.int>(7, 'midiGm2Lsb', $pb.PbFieldType.OU3)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Instrument', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..e<InstrumentType>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
+    ..a<$core.double>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'volume', $pb.PbFieldType.OF)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiChannel', $pb.PbFieldType.OU3)
+    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiInstrument', $pb.PbFieldType.OU3)
+    ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiGm2Msb', $pb.PbFieldType.OU3)
+    ..a<$core.int>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiGm2Lsb', $pb.PbFieldType.OU3)
+    ..aOM<SoundFonts>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'soundFonts', subBuilder: SoundFonts.create)
     ..hasRequiredFields = false
   ;
 
@@ -459,8 +532,16 @@ class Instrument extends $pb.GeneratedMessage {
   factory Instrument() => create();
   factory Instrument.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Instrument.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Instrument clone() => Instrument()..mergeFromMessage(this);
-  Instrument copyWith(void Function(Instrument) updates) => super.copyWith((message) => updates(message as Instrument));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Instrument copyWith(void Function(Instrument) updates) => super.copyWith((message) => updates(message as Instrument)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Instrument create() => Instrument._();
@@ -532,13 +613,139 @@ class Instrument extends $pb.GeneratedMessage {
   $core.bool hasMidiGm2Lsb() => $_has(6);
   @$pb.TagNumber(7)
   void clearMidiGm2Lsb() => clearField(7);
+
+  @$pb.TagNumber(8)
+  SoundFonts get soundFonts => $_getN(7);
+  @$pb.TagNumber(8)
+  set soundFonts(SoundFonts v) { setField(8, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasSoundFonts() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearSoundFonts() => clearField(8);
+  @$pb.TagNumber(8)
+  SoundFonts ensureSoundFonts() => $_ensure(7);
+}
+
+class SoundFonts extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SoundFonts', createEmptyInstance: create)
+    ..pc<SoundFont>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'soundFonts', $pb.PbFieldType.PM, subBuilder: SoundFont.create)
+    ..hasRequiredFields = false
+  ;
+
+  SoundFonts._() : super();
+  factory SoundFonts() => create();
+  factory SoundFonts.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SoundFonts.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SoundFonts clone() => SoundFonts()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SoundFonts copyWith(void Function(SoundFonts) updates) => super.copyWith((message) => updates(message as SoundFonts)); // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SoundFonts create() => SoundFonts._();
+  SoundFonts createEmptyInstance() => create();
+  static $pb.PbList<SoundFonts> createRepeated() => $pb.PbList<SoundFonts>();
+  @$core.pragma('dart2js:noInline')
+  static SoundFonts getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SoundFonts>(create);
+  static SoundFonts _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<SoundFont> get soundFonts => $_getList(0);
+}
+
+class SoundFont extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SoundFont', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..pc<KeySwitch>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'keySwitches', $pb.PbFieldType.PM, subBuilder: KeySwitch.create)
+    ..hasRequiredFields = false
+  ;
+
+  SoundFont._() : super();
+  factory SoundFont() => create();
+  factory SoundFont.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SoundFont.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SoundFont clone() => SoundFont()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SoundFont copyWith(void Function(SoundFont) updates) => super.copyWith((message) => updates(message as SoundFont)); // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SoundFont create() => SoundFont._();
+  SoundFont createEmptyInstance() => create();
+  static $pb.PbList<SoundFont> createRepeated() => $pb.PbList<SoundFont>();
+  @$core.pragma('dart2js:noInline')
+  static SoundFont getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SoundFont>(create);
+  static SoundFont _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get name => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set name($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearName() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<KeySwitch> get keySwitches => $_getList(1);
+}
+
+class KeySwitch extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'KeySwitch', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'label')
+    ..hasRequiredFields = false
+  ;
+
+  KeySwitch._() : super();
+  factory KeySwitch() => create();
+  factory KeySwitch.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory KeySwitch.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  KeySwitch clone() => KeySwitch()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  KeySwitch copyWith(void Function(KeySwitch) updates) => super.copyWith((message) => updates(message as KeySwitch)); // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static KeySwitch create() => KeySwitch._();
+  KeySwitch createEmptyInstance() => create();
+  static $pb.PbList<KeySwitch> createRepeated() => $pb.PbList<KeySwitch>();
+  @$core.pragma('dart2js:noInline')
+  static KeySwitch getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<KeySwitch>(create);
+  static KeySwitch _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get label => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set label($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasLabel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLabel() => clearField(1);
 }
 
 class Part extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Part', createEmptyInstance: create)
-    ..aOS(1, 'id')
-    ..aOM<Instrument>(3, 'instrument', subBuilder: Instrument.create)
-    ..pc<Melody>(4, 'melodies', $pb.PbFieldType.PM, subBuilder: Melody.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Part', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOM<Instrument>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'instrument', subBuilder: Instrument.create)
+    ..pc<Melody>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'melodies', $pb.PbFieldType.PM, subBuilder: Melody.create)
     ..hasRequiredFields = false
   ;
 
@@ -546,8 +753,16 @@ class Part extends $pb.GeneratedMessage {
   factory Part() => create();
   factory Part.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Part.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Part clone() => Part()..mergeFromMessage(this);
-  Part copyWith(void Function(Part) updates) => super.copyWith((message) => updates(message as Part));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Part copyWith(void Function(Part) updates) => super.copyWith((message) => updates(message as Part)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Part create() => Part._();
@@ -582,10 +797,10 @@ class Part extends $pb.GeneratedMessage {
 }
 
 class MelodyReference extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('MelodyReference', createEmptyInstance: create)
-    ..aOS(1, 'melodyId')
-    ..e<MelodyReference_PlaybackType>(2, 'playbackType', $pb.PbFieldType.OE, defaultOrMaker: MelodyReference_PlaybackType.disabled, valueOf: MelodyReference_PlaybackType.valueOf, enumValues: MelodyReference_PlaybackType.values)
-    ..a<$core.double>(3, 'volume', $pb.PbFieldType.OF)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'MelodyReference', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'melodyId')
+    ..e<MelodyReference_PlaybackType>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'playbackType', $pb.PbFieldType.OE, defaultOrMaker: MelodyReference_PlaybackType.disabled, valueOf: MelodyReference_PlaybackType.valueOf, enumValues: MelodyReference_PlaybackType.values)
+    ..a<$core.double>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'volume', $pb.PbFieldType.OF)
     ..hasRequiredFields = false
   ;
 
@@ -593,8 +808,16 @@ class MelodyReference extends $pb.GeneratedMessage {
   factory MelodyReference() => create();
   factory MelodyReference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MelodyReference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   MelodyReference clone() => MelodyReference()..mergeFromMessage(this);
-  MelodyReference copyWith(void Function(MelodyReference) updates) => super.copyWith((message) => updates(message as MelodyReference));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  MelodyReference copyWith(void Function(MelodyReference) updates) => super.copyWith((message) => updates(message as MelodyReference)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MelodyReference create() => MelodyReference._();
@@ -633,14 +856,14 @@ class MelodyReference extends $pb.GeneratedMessage {
 }
 
 class Section extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Section', createEmptyInstance: create)
-    ..aOS(1, 'id')
-    ..aOS(2, 'name')
-    ..aOM<Harmony>(3, 'harmony', subBuilder: Harmony.create)
-    ..aOM<Meter>(4, 'meter', subBuilder: Meter.create)
-    ..aOM<Tempo>(5, 'tempo', subBuilder: Tempo.create)
-    ..aOM<NoteName>(6, 'key', subBuilder: NoteName.create)
-    ..pc<MelodyReference>(100, 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Section', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..aOM<Harmony>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'harmony', subBuilder: Harmony.create)
+    ..aOM<Meter>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'meter', subBuilder: Meter.create)
+    ..aOM<Tempo>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tempo', subBuilder: Tempo.create)
+    ..aOM<NoteName>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key', subBuilder: NoteName.create)
+    ..pc<MelodyReference>(100, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
     ..hasRequiredFields = false
   ;
 
@@ -648,8 +871,16 @@ class Section extends $pb.GeneratedMessage {
   factory Section() => create();
   factory Section.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Section.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Section clone() => Section()..mergeFromMessage(this);
-  Section copyWith(void Function(Section) updates) => super.copyWith((message) => updates(message as Section));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Section copyWith(void Function(Section) updates) => super.copyWith((message) => updates(message as Section)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Section create() => Section._();
@@ -726,11 +957,11 @@ class Section extends $pb.GeneratedMessage {
 }
 
 class Score extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Score', createEmptyInstance: create)
-    ..aOS(1, 'id')
-    ..aOS(2, 'name')
-    ..pc<Part>(3, 'parts', $pb.PbFieldType.PM, subBuilder: Part.create)
-    ..pc<Section>(4, 'sections', $pb.PbFieldType.PM, subBuilder: Section.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Score', createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..pc<Part>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'parts', $pb.PbFieldType.PM, subBuilder: Part.create)
+    ..pc<Section>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sections', $pb.PbFieldType.PM, subBuilder: Section.create)
     ..hasRequiredFields = false
   ;
 
@@ -738,8 +969,16 @@ class Score extends $pb.GeneratedMessage {
   factory Score() => create();
   factory Score.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Score.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Score clone() => Score()..mergeFromMessage(this);
-  Score copyWith(void Function(Score) updates) => super.copyWith((message) => updates(message as Score));
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Score copyWith(void Function(Score) updates) => super.copyWith((message) => updates(message as Score)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Score create() => Score._();

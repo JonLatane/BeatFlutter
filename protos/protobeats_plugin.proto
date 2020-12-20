@@ -54,3 +54,20 @@ message Playback {
   }
   Mode mode = 1;
 }
+
+// The data type used to send recordings to Dart for processing into a Melody.
+// Any arbitrary MIDI input on the platform can be recorded into a new
+// RecordedData and appended to the RecordedSegment, along with times for
+// RecordedBeats, and the shared Dart side can process this into a Melody.
+message RecordedSegment {
+  message RecordedBeat {
+    uint64 timestamp = 1;
+    uint32 beat = 2;
+  }
+  repeated RecordedBeat beats = 1;
+  message RecordedData {
+    uint64 timestamp = 1;
+    bytes midiData = 2;
+  }
+  repeated RecordedData recorded_data = 2;
+}

@@ -155,7 +155,6 @@ class BeatScratchPlugin {
         case "checkBeatScratchAudioStatus":
           result(Conductor.sharedInstance.samplersInitialized)
           self.notifyMidiDevices()
-          result(nil)
           break
         case "resetAudioSystem":
           Conductor.sharedInstance.initMidi()
@@ -242,15 +241,12 @@ class BeatScratchPlugin {
     }
   }
   
-  func notifyRecordedMelody() {
+  func notifyRecordedSegment(_ segment: RecordedSegment) {
     do {
-      if let recordingMelody = MelodyRecorder.sharedInstance.recordingMelody {
-        if recordingMelody.midiData.data.count > 0 {
-          channel?.invokeMethod("notifyRecordedMelody", arguments: try recordingMelody.serializedData())
-        }
-      }
+      print("notifyRecordedSegment")
+      channel?.invokeMethod("notifyRecordedSegment", arguments: try segment.serializedData())
     } catch {
-      print("Failed to notifyRecordedMelody: \(error)")
+      print("Failed to notifyRecordedSegment: \(error)")
     }
   }
   

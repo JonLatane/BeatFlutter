@@ -3,7 +3,7 @@
 //  source: protos/protobeats_plugin.proto
 //
 // @dart = 2.3
-// ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 const MidiSynthesizer$json = const {
   '1': 'MidiSynthesizer',
@@ -87,6 +87,31 @@ const Playback_Mode$json = const {
   '2': const [
     const {'1': 'score', '2': 0},
     const {'1': 'section', '2': 1},
+  ],
+};
+
+const RecordedSegment$json = const {
+  '1': 'RecordedSegment',
+  '2': const [
+    const {'1': 'beats', '3': 1, '4': 3, '5': 11, '6': '.RecordedSegment.RecordedBeat', '10': 'beats'},
+    const {'1': 'recorded_data', '3': 2, '4': 3, '5': 11, '6': '.RecordedSegment.RecordedData', '10': 'recordedData'},
+  ],
+  '3': const [RecordedSegment_RecordedBeat$json, RecordedSegment_RecordedData$json],
+};
+
+const RecordedSegment_RecordedBeat$json = const {
+  '1': 'RecordedBeat',
+  '2': const [
+    const {'1': 'timestamp', '3': 1, '4': 1, '5': 4, '10': 'timestamp'},
+    const {'1': 'beat', '3': 2, '4': 1, '5': 13, '10': 'beat'},
+  ],
+};
+
+const RecordedSegment_RecordedData$json = const {
+  '1': 'RecordedData',
+  '2': const [
+    const {'1': 'timestamp', '3': 1, '4': 1, '5': 4, '10': 'timestamp'},
+    const {'1': 'midiData', '3': 2, '4': 1, '5': 12, '10': 'midiData'},
   ],
 };
 

@@ -136,13 +136,17 @@ extension AKSampler {
                                 endPoint: 0.0)
     let sampleFileURL = baseURL.appendingPathComponent(sample)
     if sample.hasSuffix(".wv") {
-      loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: sampleFileURL.path))
+      let string = (sampleFileURL.path as NSString).utf8String
+      let buffer = UnsafeMutablePointer(mutating: string)
+      loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: buffer))
     } else {
       if sample.hasSuffix(".aif") || sample.hasSuffix(".wav") {
         let compressedFileURL = baseURL.appendingPathComponent(String(sample.dropLast(4) + ".wv"))
         let fileMgr = FileManager.default
         if fileMgr.fileExists(atPath: compressedFileURL.path) {
-          loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: compressedFileURL.path))
+          let string = (compressedFileURL.path as NSString).utf8String
+          let buffer = UnsafeMutablePointer(mutating: string)
+          loadCompressedSampleFile(from: AKSampleFileDescriptor(sampleDescriptor: sd, path: buffer))
         } else {
           let sampleFile = try AKAudioFile(forReading: sampleFileURL)
           loadAKAudioFile(from: sd, file: sampleFile)
