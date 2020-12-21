@@ -6,6 +6,7 @@ import '../generated/protos/protobeats_plugin.pb.dart';
 import '../util/bs_notifiers.dart';
 import '../util/util.dart';
 import '../util/proto_utils.dart';
+import '../util/music_theory.dart';
 
 /// Recording V2 uses a queue. [RecordedSegment] objects - basically the lowest-level data possible -
 /// are sent to this singleton queue for processing.
@@ -50,29 +51,6 @@ class RecordedSegmentQueue {
       updateRecordingMelody?.call(melody);
       BeatScratchPlugin.updateMelody(melody);
     }
-    //TODO adapt/fix/rewrite this Swift implementation
-    //   if var melody = recordingMelody, let startTime = beatStartTime, let beat = recordingBeat {
-    //     let endTime = CACurrentMediaTime()
-    //     recordedData.forEach {
-    //       let time: CFTimeInterval = $0.key
-    //       let value: [UInt8] = $0.value
-    //       let subdivisionsPerBeat = melody.subdivisionsPerBeat
-    //       let length = melody.length
-    //       let beatSize = (endTime - startTime) //* (Double(subdivisionsPerBeat + 1))/Double(subdivisionsPerBeat)
-    //       let beatProgress = time - startTime
-    //       let normalizedProgress = beatProgress/beatSize // Between 0-1 "maybe".
-    //       var subdivision = Int32((normalizedProgress * Double(subdivisionsPerBeat)).rounded())
-    //       subdivision += Int32(beat) * Int32(subdivisionsPerBeat)
-    //       subdivision = (subdivision + Int32(length)) % Int32(length)
-    //
-    //       melody.midiData.data.processUpdate(subdivision) {
-    //         var change = $0 ?? MidiChange()
-    //         change.data.append(contentsOf: value)
-    //         return change
-    //       }
-    //     }
-    //   }
-    // }
   }
 
   static _processSegmentData(RecordedSegment segment, RecordedSegment_RecordedData data, Melody melody,
@@ -85,7 +63,8 @@ class RecordedSegmentQueue {
     double relativePosition = (data.timestamp.toDouble() - firstBeat.timestamp.toDouble()) /
       (secondBeat.timestamp.toDouble() - firstBeat.timestamp.toDouble());
     // print("firstBeatSubdivision=$firstBeatSubdivision; secondBeatSubdivision=$secondBeatSubdivision; relativePosition=$relativePosition");
-    int targetSubdivision = firstBeatSubdivision + (relativePosition * melody.subdivisionsPerBeat).floor();
+    int targetSubdivision = firstBeatSubdivision + (relativePosition * melody.subdivisionsPerBeat).round();
+    targetSubdivision = targetSubdivision.bsMod(melody.length);
     MidiChange midiChange = melody.midiData.data.putIfAbsent(targetSubdivision, () => MidiChange()..data = []);
     midiChange.data.addAll(data.midiData);
     melody.midiData.data[targetSubdivision] = midiChange;
