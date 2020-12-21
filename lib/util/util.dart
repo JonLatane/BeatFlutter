@@ -141,7 +141,7 @@ extension Iterables<E> on Iterable<E> {
   Map<K, List<E>> groupBy<K>(K Function(E) keyFunction) => fold(<K, List<E>>{},
       (Map<K, List<E>> map, E element) => map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
 
-  E maxBy(int Function(E) valueFunction) => (isEmpty)
+  E maxBy(num Function(E) valueFunction) => (isEmpty)
       ? null
       : reduce((value, element) {
           if (value == null) {
@@ -153,7 +153,7 @@ extension Iterables<E> on Iterable<E> {
           return value;
         });
 
-  E minBy(int Function(E) valueFunction) => reduce((value, element) {
+  E minBy(num Function(E) valueFunction) => reduce((value, element) {
         if (value == null) {
           return element;
         }

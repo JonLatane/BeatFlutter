@@ -37,7 +37,7 @@ class MusicScrollContainer extends StatefulWidget {
   final bool previewMode;
   final bool isCurrentScore;
   final bool isTwoFingerScaling;
-  final BSNotifier scrollToCurrentBeat, centerCurrentSection;
+  final BSNotifier scrollToCurrentBeat, centerCurrentSection, scrollToPart;
   final bool autoScroll, autoFocus, renderPartNames, isPreview;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier, colorboardNotesNotifier;
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
@@ -84,7 +84,7 @@ class MusicScrollContainer extends StatefulWidget {
       this.notifyYScaleUpdate,
       this.xScaleNotifier,
       this.yScaleNotifier,
-      this.verticalScrollNotifier})
+      this.verticalScrollNotifier, this.scrollToPart})
       : super(key: key);
 
   @override
@@ -208,6 +208,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     });
     widget.notifyXScaleUpdate.addListener(xScaleUpdateListener);
     widget.notifyYScaleUpdate.addListener(yScaleUpdateListener);
+    widget.scrollToPart.addListener(scrollToPart);
   }
 
   DateTime _lastScrollEventSeen = DateTime(0);
@@ -269,6 +270,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     timeScrollController.removeListener(_isScrollingListener);
     verticalController.removeListener(_verticalScrollListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
+    widget.scrollToPart.removeListener(scrollToPart);
     widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
     widget.notifyXScaleUpdate.removeListener(xScaleUpdateListener);
     widget.notifyYScaleUpdate.removeListener(_constrainToSectionBounds);
@@ -291,10 +293,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     String sectionOrder = widget.score.sections.map((e) => e.id).join();
     if (!widget.isPreview) {
       if (widget.isTwoFingerScaling) {
-        scrollToFocusedBeat(instant: false);
-      } else if (widget.focusedBeat.value != null) {
+        scrollToFocusedBeat(instant: true);
+      } /*else if (widget.focusedBeat.value != null) {
         // scrollToFocusedBeat();
-      } else if (widget.autoScroll) {
+      }*/ else if (widget.autoScroll) {
         if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds > 1000) {
           if (_prevViewMode == MusicViewMode.score &&
               widget.musicViewMode != MusicViewMode.score &&
@@ -398,7 +400,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   }) {
     if (instant) {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: Duration(milliseconds: 5), curve: Curves.linear);
+          beatAnimationDuration: Duration(milliseconds: 1), curve: Curves.linear);
     } else {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
           beatAnimationDuration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -448,14 +450,23 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     }
   }
 
+
+  void scrollToPart() {
+    print("scrollToPart");
+    verticalController.animateTo(0, duration: animationDuration, curve: Curves.ease);
+  }
+  void scrollToBottomMostPart() {
+    verticalController.animateTo(maxVerticalPosition, duration: animationDuration, curve: Curves.ease);
+  }
+
   bool get sectionCanBeCentered => sectionWidth + targetClefWidth <= visibleWidth;
   int get staffCount => stavesNotifier.value.length;
   double get maxVerticalPosition => max(0, (staffCount)* MusicSystemPainter.staffHeight * yScale - widget.height + 100);
   void scrollToCurrentBeat() {
     if (widget.autoFocus) {
-      verticalController.animateTo(0, duration: animationDuration, curve: Curves.ease);
+      scrollToPart();
     } else if (verticalController.offset > maxVerticalPosition) {
-      verticalController.animateTo(maxVerticalPosition, duration: animationDuration, curve: Curves.ease);
+      scrollToBottomMostPart();
     }
     if (sectionCanBeCentered) {
       _constrainToSectionBounds();

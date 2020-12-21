@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/recording/recording.dart';
 import 'package:fluro/fluro.dart' as Fluro;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -168,7 +169,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _editingMelody = false;
   bool _softKeyboardVisible = false;
 
-  bool get editingMelody => _editingMelody;
 
   bool _hadVerticalSectionListBefore;
   bool _hadSplitModeBefore;
@@ -184,34 +184,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               : 40
           : 65;
 
+  bool get editingMelody => _editingMelody;
   set editingMelody(value) {
     _editingMelody = value;
     if (value) {
-//      var part = _score.parts.firstWhere((part) => part.melodies.any((it) => it.id == selectedMelody.id));
-//      if (part != null) {
-//        _setKeyboardPart(part);
-//      }
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
-      // if (_isPhone) {
-      //   _hadVerticalSectionListBefore = verticalSectionList;
-      //   _hadSplitModeBefore = splitMode == SplitMode.half;
-      //   if (_isLandscapePhone) {
-      //     // verticalSectionList = true;
-      //     // splitMode = SplitMode.full;
-      //   } else {
-      //     verticalSectionList = false;
-      //     splitMode = SplitMode.full;
-      //   }
-      // }
       _showMusicView();
     } else {
       BeatScratchPlugin.setRecordingMelody(null);
-      // if (_isPhone && selectedMelody != null) {
-      //   verticalSectionList = _hadVerticalSectionListBefore ?? verticalSectionList;
-      //   splitMode = (_hadSplitModeBefore == true) ? SplitMode.half : splitMode;
-      // }
-      // _hadVerticalSectionListBefore = null;
-      // _hadSplitModeBefore = null;
+    }
+    if (BeatScratchPlugin.supportsRecordingV2) {
+      RecordedSegmentQueue.enabled.value = value;
     }
   }
 
@@ -826,6 +809,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //        _score.parts.expand((s) => s.melodies).firstWhere((m) => m.id == melody.id).midiData = melody.midiData;
       });
     };
+    RecordedSegmentQueue.getRecordingMelody = () => musicViewMode == MusicViewMode.melody && editingMelody 
+      ? selectedMelody : null;
+    RecordedSegmentQueue.updateRecordingMelody = BeatScratchPlugin.onRecordingMelodyUpdated;
     keyboardPart = score.parts.firstWhere((part) => true, orElse: () => null);
     colorboardPart =
         score.parts.firstWhere((part) => part.instrument.type == InstrumentType.harmonic, orElse: () => null);
@@ -979,7 +965,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   Expanded(
                       child: Row(children: [
                     _verticalSectionList(),
-                    Expanded(child: _partsAndMelodiesAndMelodyView(context))
+                    Expanded(child: _layersAndMusicView(context))
                   ])),
                   if (_portraitPhoneUI) _toolbarsInColumn(context),
                   if (_scalableUI) _toolbarsInRow(context),
@@ -1529,10 +1515,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ]);
   }
 
-  Widget _toolbars(BuildContext context) {
-    return _scalableUI ? _toolbarsInRow(context) : _toolbarsInColumn(context);
-  }
-
   BeatScratchToolbar createBeatScratchToolbar(
           {bool vertical = false, bool leftHalfOnly = false, bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
@@ -1713,7 +1695,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return result;
   }
 
-  Widget _partsAndMelodiesAndMelodyView(BuildContext context) {
+  Widget _layersAndMusicView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
         data.padding.top -
@@ -1733,16 +1715,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         8 -
         _topNotchPaddingReal
         - _bottomTapInBarHeight;
-    double partMelodiesWidth =
+    double layersWidth =
         data.size.width - verticalSectionListWidth - _leftNotchPadding - _rightNotchPadding - _landscapeTapInBarWidth;
 //    if (musicViewMode == MusicViewMode.score || musicViewMode == MusicViewMode.none) {
 //      height += 36;
 //    }
-    final landscapePartsWidth = (partMelodiesWidth - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
+    final landscapeLayersWidth = (layersWidth - _landscapePhoneSecondToolbarWidth - _landscapePhoneBeatscratchToolbarWidth) *
         (1 - _melodyViewSizeFactor);
     final portraitMelodyHeight = height * _melodyViewSizeFactor;
 
-    Widget partMelodiesView(context, width, height, {bool bottomShadow = false, bool rightShadow = false}) {
+    Widget layersView(context, width, height, {bool bottomShadow = false, bool rightShadow = false}) {
       return Stack(
         children: [
           _partMelodiesView(context, width, height),
@@ -1757,7 +1739,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       child: AnimatedContainer(
                           curve: Curves.easeInOut,
                           duration: slowAnimationDuration,
-                          width: min(20, landscapePartsWidth),
+                          width: min(20, landscapeLayersWidth),
                           // color: Colors.black,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -1808,27 +1790,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       (context.isPortrait)
           ? Column(children: [
               Expanded(
-                child: partMelodiesView(context, partMelodiesWidth, height * (1 - _melodyViewSizeFactor), bottomShadow: true),
+                child: layersView(context, layersWidth, height * (1 - _melodyViewSizeFactor), bottomShadow: true),
               ),
               AnimatedContainer(
                   curve: Curves.linear,
                   duration: slowAnimationDuration,
                   padding: EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
                   height: portraitMelodyHeight,
-                  child: _melodyView(context, height * _melodyViewSizeFactor),)
+                  child: _musicView(context, height * _melodyViewSizeFactor),)
             ])
           : Row(children: [
               AnimatedContainer(
                 curve: Curves.easeInOut,
                 duration: slowAnimationDuration,
-                width: landscapePartsWidth,
-                child: partMelodiesView(context, partMelodiesWidth, height, rightShadow: true),
+                width: landscapeLayersWidth,
+                child: layersView(context, layersWidth, height, rightShadow: true),
               ),
               Expanded(
                   child: AnimatedContainer(
                       duration: animationDuration,
                       padding: EdgeInsets.only(left: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                      child: _melodyView(context, height)))
+                      child: _musicView(context, height)))
             ])
     ]);
   }
@@ -1868,7 +1850,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  MusicView _melodyView(BuildContext context, double height) {
+  MusicView _musicView(BuildContext context, double height) {
     return MusicView(
       key: ValueKey("main-melody-view"),
       enableColorboard: enableColorboard,

@@ -10,4 +10,6 @@ extension ProtoUtils<T extends GeneratedMessage> on T {
     dynamic copy = clone();
     return copy.copyWith(updates);
   }
+
+  String get logString =>  "\n  ${toString().replaceAll("\n", "\n  ")}";
 }

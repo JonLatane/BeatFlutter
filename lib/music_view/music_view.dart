@@ -144,7 +144,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   Map<MusicViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
 
-  BSNotifier scrollToCurrentBeat, centerCurrentSection;
+  BSNotifier scrollToCurrentBeat, centerCurrentSection, scrollToPart;
 
   static const double maxScaleDiscrepancy = 1.5;
   static const double minScaleDiscrepancy = 1 / maxScaleDiscrepancy;
@@ -398,6 +398,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     _xScaleUpdate = BSValueNotifier(null);
     _yScaleUpdate = BSValueNotifier(null);
     centerCurrentSection = BSNotifier();
+    scrollToPart = BSNotifier();
 
     isConfiguringPart = false;
     isBrowsingPartMelodies = false;
@@ -867,6 +868,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               print("onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
               tappedBeat.value = beat;
               double absoluteY = verticalScrollingPosition.value + details.localPosition.dy;
+              absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
+              if(widget.musicViewMode == MusicViewMode.score) {
+                absoluteY -= MusicSystemPainter.calculateSectionHeight(yScale);
+              }
               int partIndex = (absoluteY / (yScale * MusicSystemPainter.staffHeight)).floor();
               if (!autoFocus ||
                       widget.musicViewMode ==
@@ -912,6 +917,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               if (widget.musicViewMode == MusicViewMode.score) {
                 widget.selectBeat(tappedBeat.value);
                 widget.setKeyboardPart(tappedPart.value);
+                if (autoFocus) {
+                  print("scrollToPart");
+                  scrollToPart();
+                }
                 return;
               }
               final part = tappedPart.value;
@@ -920,6 +929,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 widget.selectOrDeselectPart(part);
               } else if (widget.musicViewMode == MusicViewMode.section) {
                 widget.selectOrDeselectPart(part);
+              }
+              if (autoFocus) {
+                print("scrollToPart");
+                scrollToPart();
               }
               widget.selectBeat(tappedBeat.value);
             },
@@ -994,6 +1007,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 targetYScale: yScale,
                 isTwoFingerScaling: _isTwoFingerScaling,
                 scrollToCurrentBeat: scrollToCurrentBeat,
+                scrollToPart: scrollToPart,
                 centerCurrentSection: centerCurrentSection,
                 autoScroll: autoScroll,
                 autoFocus: autoFocus,

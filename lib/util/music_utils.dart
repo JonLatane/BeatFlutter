@@ -71,25 +71,6 @@ extension DeleteNotes on Melody {
   }
 }
 
-extension DeleteEvent on MidiChange {
-  // List<int> dataWithout(bool Function(MidiEvent) eventFilter) {
-  //   ByteWriter writer = ByteWriter();
-  //   midiEvents.forEach((midiEvent) {
-  //     if (midiEvent is NoteOnEvent) {
-  //       midiEvent.writeEvent(writer);
-  //       noteOns.add(midiEvent.noteNumber);
-  //     } else if (midiEvent is NoteOffEvent) {
-  //       if (!noteOns.contains(midiEvent.noteNumber)) {
-  //         midiEvent.writeEvent(writer);
-  //       } else {
-  //         madeChanges = true;
-  //         midiEvent.writeEvent(nextWriter);
-  //       }
-  //     }
-  //   });
-  // }
-}
-
 extension SeparateNoteOnAndOff on Melody {
   bool separateNoteOnAndOffs() {
     bool madeChanges = false;

@@ -81,7 +81,7 @@ class BeatScratchPlugin {
         case "notifyRecordedSegment":
           final Uint8List rawData = call.arguments;
           final RecordedSegment segment = RecordedSegment.fromBuffer(rawData);
-          print("Received RecordedSegment! Data:\n  ${segment.toString().replaceAll("\n", "\n  ")}");
+          // print("Received RecordedSegment! Data:\n  ${segment.toString().replaceAll("\n", "\n  ")}");
           RecordedSegmentQueue.segments.add(segment);
           return Future.value(null);
           break;

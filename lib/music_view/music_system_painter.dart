@@ -113,10 +113,12 @@ class MusicSystemPainter extends CustomPainter {
     _tickPaint.strokeWidth = 2.0;
   }
 
-  double get harmonyHeight => min(100, 30 * yScale);
 
+  static double calculateHarmonyHeight(double scale) => min(100, 30 * scale);
+  static double calculateSectionHeight(double scale) => max(22, calculateHarmonyHeight(scale));
+
+  double get harmonyHeight => calculateHarmonyHeight(yScale);
   double get idealSectionHeight => max(22, harmonyHeight);
-
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
   double get melodyHeight => staffHeight * yScale;

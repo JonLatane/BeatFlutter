@@ -61,7 +61,7 @@ class MelodyRecorder {
     if recordingMelodyId != nil {
       var x = RecordedSegment.RecordedData()
       x.timestamp = UInt64(CACurrentMediaTime() * 1000)
-      x.midiData = Data([0x80, note])
+      x.midiData = Data([0x80, note, 127])
       recordedSegment.recordedData.append(x)
     }
   }
