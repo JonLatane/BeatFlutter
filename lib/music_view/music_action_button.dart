@@ -48,7 +48,7 @@ class MusicActionButton extends StatelessWidget {
           color: Colors.black12,
           height: height,
           width: width,
-          child: onPressed == null ? child : MyFlatButton(onPressed: onPressed, child: child))
+          child: onPressed == null ? child : MyFlatButton(onPressed: onPressed, padding: EdgeInsets.zero, child: child))
       ]));
   }
 }

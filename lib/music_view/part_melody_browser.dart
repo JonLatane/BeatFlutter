@@ -66,7 +66,7 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                 padding: EdgeInsets.zero,
                 onLongPress: null,
                 onPressed: () {
-                  widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount));
+                  widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount)..instrumentType=widget.part.instrument.type);
                 },
                 child: AnimatedOpacity(
                     duration: animationDuration,

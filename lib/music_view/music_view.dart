@@ -880,6 +880,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             onTapDown: (details) {
               int beat = getBeat(details.localPosition);
               print("onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
+              if (details.localPosition.dx > width - 104 && details.localPosition.dy > widget.height - 52) {
+                return;
+              }
+
               tappedBeat.value = beat;
               double absoluteY = verticalScrollingPosition.value + details.localPosition.dy;
               absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
@@ -916,10 +920,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               });
             },
             onTapUp: (details) {
-              if (ignoreNextTap) {
+              if (ignoreNextTap || tappedBeat.value == null) {
                 return;
               }
-              int beat = getBeat(details.localPosition);
+              int beat = tappedBeat.value;
               print("onTapUp: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
               if (BeatScratchPlugin.playing && editingMelody && highlightedBeat.value != beat) {
                 setState(() {
@@ -934,9 +938,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               }
             },
             onLongPress: () {
-              if (widget.score.parts.isEmpty) return;
+              if (widget.score.parts.isEmpty || tappedPart.value == null || tappedBeat.value == null) return;
               if (widget.musicViewMode == MusicViewMode.score) {
-                widget.selectBeat(tappedBeat.value);
+                if (!BeatScratchPlugin.playing) {
+                  widget.selectBeat(tappedBeat.value);
+                }
                 widget.setKeyboardPart(tappedPart.value);
                 if (autoFocus) {
                   print("scrollToPart");
@@ -951,10 +957,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               } else if (widget.musicViewMode == MusicViewMode.section) {
                 widget.selectOrDeselectPart(part);
               }
-              if (autoFocus) {
-                print("scrollToPart");
-                scrollToPart();
-              }
+              scrollToPart();
               if (!BeatScratchPlugin.playing) {
                 widget.selectBeat(tappedBeat.value);
               }

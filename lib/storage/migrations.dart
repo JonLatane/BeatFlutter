@@ -4,6 +4,7 @@ import '../util/music_utils.dart';
 
 extension Migrations on Score {
   migrate() {
+    parts.forEach((p) => p.melodies.forEach((m) => m.instrumentType = p.instrument.type));
     _setBpmsOnSections();
     _separateNoteOnAndOffs();
   }
