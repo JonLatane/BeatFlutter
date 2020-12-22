@@ -285,7 +285,7 @@ class Conductor {
 //      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
       let channel = channelOverride ?? args[0] & 0xF
 //      print("parseFirstMidiCommand: ????? noteOff. note: \(noteNumber), attacks=\(attacks)");
-      if attacks.contains(where: { $0.tone == noteNumber }) {
+      if attacks.contains(where: { $0.tone == noteNumber && $0.melodyId == melodyId }) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.100) {
 //          print("parseFirstMidiCommand: DELAYED noteOff. note: \(noteNumber), velocity=(127), channel=\(channel)");
           self.stopNote(note: noteNumber, channel: channel, record: record)
