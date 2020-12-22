@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/rendering.dart';
@@ -15,8 +16,6 @@ import 'package:vibration/vibration.dart';
 import 'my_buttons.dart';
 import 'my_platform.dart';
 import '../ui_models.dart';
-
-
 
 class IncrementableValue extends StatefulWidget {
   final Function onIncrement;
@@ -33,6 +32,7 @@ class IncrementableValue extends StatefulWidget {
   final IconData decrementIcon;
   final VoidCallback onPointerUpCallback;
   final VoidCallback onPointerDownCallback;
+  final bool musicActionButtonStyle;
 
   const IncrementableValue({
     Key key,
@@ -47,7 +47,10 @@ class IncrementableValue extends StatefulWidget {
     this.incrementTimingDifferenceMs = 50,
     this.collapsing = false,
     this.incrementIcon = Icons.keyboard_arrow_up_rounded,
-    this.decrementIcon = Icons.keyboard_arrow_down_rounded, this.onPointerUpCallback, this.onPointerDownCallback,
+    this.decrementIcon = Icons.keyboard_arrow_down_rounded,
+    this.onPointerUpCallback,
+    this.onPointerDownCallback,
+    this.musicActionButtonStyle = false,
   }) : super(key: key);
 
   @override
@@ -61,75 +64,105 @@ class _IncrementableValueState extends State<IncrementableValue> {
   bool hasVibration = false;
   static const _msDelay = 3000;
   static const _delay = Duration(milliseconds: _msDelay);
+  bool _disposed = false;
+
   vibrate() {
-    if(hasVibration) {
+    if (hasVibration) {
       Vibration.vibrate(duration: 25);
     }
   }
+
   @override
   void initState() {
-    if(MyPlatform.isMobile) {
+    super.initState();
+    _disposed = false;
+    if (MyPlatform.isMobile) {
       Vibration.hasVibrator().then((value) => hasVibration = value);
     }
-    super.initState();
   }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     bool showButtons = !widget.collapsing || DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
     double buttonWidth = showButtons ? 28 : 0;
+    Widget bgListener = AnimatedContainer(
+        duration: animationDuration,
+        width: widget.valueWidth + 2 * buttonWidth,
+        height: 48,
+        child: Listener(
+          child: MyFlatButton(onPressed: () {}, color: Colors.transparent, padding: EdgeInsets.zero, child: SizedBox()),
+          onPointerDown: (_) {
+            widget.onPointerDownCallback?.call();
+          },
+          onPointerUp: (_) {
+            widget.onPointerUpCallback?.call();
+          },
+          onPointerMove: (_) {},
+        ));
     return Stack(
       children: [
-      AnimatedContainer(duration: animationDuration,
-        width: widget.valueWidth + 2*buttonWidth, height: 48,
-        child: Listener(child:
-          MyFlatButton(onPressed: (){}, color: Colors.transparent, padding: EdgeInsets.zero, child: /*Row(children:[Expanded(child:Column(children: [Expanded(child:*/ SizedBox()/*)]))])*/),
-          onPointerDown: (_){
-            widget.onPointerDownCallback?.call();
-          }, onPointerUp: (_){
-            widget.onPointerUpCallback?.call();
-          }, onPointerMove: (_){},
-        )),
+        widget.musicActionButtonStyle
+            ? MusicActionButton(
+                visible: true,
+                onPressed: null,
+                width: widget.valueWidth + 2 * buttonWidth,
+                height: 48,
+                child: bgListener)
+            : bgListener,
         // Row(children:[Expanded(child:MyFlatButton(onPressed: (){}, color: Colors.black54, child:
         //   Column(children: [Expanded(child: SizedBox())])
         // )),]),
         Listener(
           child: Row(children: [
             AnimatedContainer(
-              width: buttonWidth,
-              padding: EdgeInsets.only(left: showButtons ? 3 : 0),
-              duration: animationDuration,
-              child: MyRaisedButton(
-                child: AnimatedOpacity(duration: animationDuration, opacity: showButtons? 1 : 0, child: Icon(widget.decrementIcon),),
-                onPressed: () {
-                  lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-                  widget.onDecrement() ;
-                },
-                padding: EdgeInsets.all(0),
-              )),
-            widget.child ??
-              Container(
-                width: widget.valueWidth,
+                width: buttonWidth,
+                padding: EdgeInsets.only(left: showButtons ? 3 : 0),
+                duration: animationDuration,
                 child: MyRaisedButton(
-                  onPressed: widget.onValuePressed,
+                  child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: showButtons ? 1 : 0,
+                    child: Icon(widget.decrementIcon),
+                  ),
+                  onPressed: () {
+                    lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+                    widget.onDecrement();
+                  },
                   padding: EdgeInsets.all(0),
-                  child: Text(
-                    widget.value ?? "null",
-                    style: widget.textStyle ?? TextStyle(color: Colors.white),
-                  ))),
+                )),
+            widget.child ??
+                Container(
+                    width: widget.valueWidth,
+                    child: MyRaisedButton(
+                        onPressed: widget.onValuePressed,
+                        padding: EdgeInsets.all(0),
+                        child: Text(
+                          widget.value ?? "null",
+                          style: widget.textStyle ?? TextStyle(color: Colors.white),
+                        ))),
             AnimatedContainer(
-              width: buttonWidth,
-              padding: EdgeInsets.only(right: showButtons ? 3 : 0),
-              duration: animationDuration,
-              child: MyRaisedButton(
-                child: AnimatedOpacity(duration: animationDuration, opacity: showButtons? 1 : 0, child: Icon(widget.incrementIcon),),
-                onPressed: () {
-                  lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-                  widget.onIncrement() ;
-                },
-                padding: EdgeInsets.all(0),
-              )),
+                width: buttonWidth,
+                padding: EdgeInsets.only(right: showButtons ? 3 : 0),
+                duration: animationDuration,
+                child: MyRaisedButton(
+                  child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: showButtons ? 1 : 0,
+                    child: Icon(widget.incrementIcon),
+                  ),
+                  onPressed: () {
+                    lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+                    widget.onIncrement();
+                  },
+                  padding: EdgeInsets.all(0),
+                )),
           ]),
-
           onPointerDown: (event) {
             widget.onPointerDownCallback?.call();
             incrementStartPos = event.position;
@@ -139,11 +172,14 @@ class _IncrementableValueState extends State<IncrementableValue> {
             if (widget.collapsing) {
               checkCanCollapse() {
                 if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs > _msDelay) {
-                  setState(() {});
+                  if (!_disposed) {
+                    setState(() {});
+                  }
                 } else {
                   Future.delayed(const Duration(seconds: 1), checkCanCollapse);
                 }
               }
+
               setState(() {});
               checkCanCollapse();
             }
@@ -152,27 +188,28 @@ class _IncrementableValueState extends State<IncrementableValue> {
             lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
             Offset difference = event.position - incrementStartPos;
             int eventTime = DateTime.now().millisecondsSinceEpoch;
-            if(difference.distanceSquared < widget.incrementDistance || eventTime - incrementStartTimeMs < widget.incrementTimingDifferenceMs) {
+            if (difference.distanceSquared < widget.incrementDistance ||
+                eventTime - incrementStartTimeMs < widget.incrementTimingDifferenceMs) {
               return; // Hasn't moved far enough/had enough time to increment again.
             }
             bool isUp = false;
             bool isDown = false;
             double direction = difference.direction;
-            if(direction >= -0.75 * pi && direction < 0.25 * pi) {
+            if (direction >= -0.75 * pi && direction < 0.25 * pi) {
               isUp = true;
-            } else if(direction >= 0.25 * pi) {
+            } else if (direction >= 0.25 * pi) {
               isDown = true;
-            } else if(direction < -0.75 * pi) {
+            } else if (direction < -0.75 * pi) {
               isDown = true;
             }
 //          print("direction=$direction | isUp=$isUp | isDown=$isDown");
-            if(isUp && widget.onIncrement != null) {
+            if (isUp && widget.onIncrement != null) {
               vibrate();
               incrementStartPos = event.position;
               incrementStartTimeMs = eventTime;
               // print("increment");
               widget.onIncrement();
-            } else if(isDown && widget.onDecrement != null) {
+            } else if (isDown && widget.onDecrement != null) {
               vibrate();
               incrementStartPos = event.position;
               incrementStartTimeMs = eventTime;

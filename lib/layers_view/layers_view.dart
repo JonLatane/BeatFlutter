@@ -26,7 +26,7 @@ import '../widget/scalable_view.dart';
 import 'melody_menu_browser.dart';
 import '../music_preview/melody_preview.dart';
 
-class PartMelodiesView extends StatefulWidget {
+class LayersView extends StatefulWidget {
   final ScoreManager scoreManager;
   final MusicViewMode musicViewMode;
   final bool enableColorboard;
@@ -53,7 +53,7 @@ class PartMelodiesView extends StatefulWidget {
   final bool showBeatCounts;
   final bool showViewOptions;
 
-  PartMelodiesView(
+  LayersView(
       {this.musicViewMode,
       this.superSetState,
       this.score,
@@ -79,12 +79,12 @@ class PartMelodiesView extends StatefulWidget {
       this.height, Key key, this.showViewOptions, this.scoreManager}): super(key : key);
 
   @override
-  _PartMelodiesViewState createState() {
-    return new _PartMelodiesViewState();
+  _LayersViewState createState() {
+    return new _LayersViewState();
   }
 }
 
-class _PartMelodiesViewState extends State<PartMelodiesView> {
+class _LayersViewState extends State<LayersView> {
   final ScrollController controller = ScrollController();
   static const double minColumnWidth = 100;
   static const double maxColumnWidth = 250;
@@ -1204,7 +1204,7 @@ class __MelodyReferenceState extends State<_MelodyReference> with TickerProvider
                     duration: animationDuration,
                     opacity: widget.showHighDetails ? 0 : reference.isEnabled ? 0.5 : 0.25,
                     child: MelodyPreview(section: widget.currentSection, part: widget.part, melody: widget.melody, height: 65,
-                      width: _PartMelodiesViewState.minColumnWidth - 4,
+                      width: _LayersViewState.minColumnWidth - 4,
                       scale: 0.11),
                   ),
                 ],

@@ -24,6 +24,7 @@ enum ScorePickerMode {
   create,
   open,
   duplicate,
+  show,
   none,
 }
 
@@ -115,7 +116,7 @@ class _ScorePickerState extends State<ScorePicker> {
     final nameIsValid = nameController.value.text.trim().isNotEmpty &&
         nameController.value.text.trim() != ScoreManager.PASTED_SCORE &&
         nameController.value.text.trim() != ScoreManager.WEB_SCORE;
-    bool showHeader = true;
+    bool showHeader = widget.mode != ScorePickerMode.none && widget.mode != ScorePickerMode.show;
     String headerText;
     String extraDetailText = "";
     IconData icon;
@@ -143,11 +144,11 @@ class _ScorePickerState extends State<ScorePicker> {
         headerText = "";
         break;
     }
-    bool detailsTextInColumn = MediaQuery.of(context).size.width < 600;
+    bool detailsTextInColumn = MediaQuery.of(context).size.width < 500;
     return Column(
       children: [
         AnimatedContainer(
-          height: showHeader ? 40 : 0,
+          height: showHeader ? 45 : 0,
           duration: animationDuration,
           child: AnimatedOpacity(
             duration: animationDuration,
@@ -329,7 +330,7 @@ class _ScorePickerState extends State<ScorePicker> {
         position = min(_scrollController.position.maxScrollExtent, position);
         _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
       } else {
-        widget.requestMode(ScorePickerMode.open);
+        widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text);
         overwritingScoreName = null;
@@ -347,7 +348,7 @@ class _ScorePickerState extends State<ScorePicker> {
         position = min(_scrollController.position.maxScrollExtent, position);
         _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
       } else {
-        widget.requestMode(ScorePickerMode.open);
+        widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text, score: widget.openedScore);
         overwritingScoreName = null;
@@ -474,7 +475,9 @@ class __ScoreState extends State<_Score> {
       _confirmingDelete = false;
       _previewScore = null;
       Future.microtask(() {
-        Score previewScore = Score.fromBuffer(File(widget.file.path).readAsBytesSync());
+        final file = widget.file;
+        if (file == null) return;
+        Score previewScore = Score.fromBuffer(File(file.path).readAsBytesSync());
         setState(() {
           _previewScore = previewScore;
         });

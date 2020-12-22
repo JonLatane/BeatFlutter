@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
@@ -28,6 +29,7 @@ class Keyboard extends StatefulWidget {
   final double width;
   final double leftMargin;
   final double distanceFromBottom;
+  final VoidCallback closeKeyboard;
 
   const Keyboard(
       {Key key,
@@ -39,7 +41,7 @@ class Keyboard extends StatefulWidget {
       this.pressedNotesNotifier,
       this.width,
       this.leftMargin,
-      this.distanceFromBottom})
+      this.distanceFromBottom, this.closeKeyboard})
       : super(key: key);
 
   @override
@@ -96,6 +98,8 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   double get diatonicStepWidthInPx => halfStepWidthInPx * 12 / 7;
   AnimationController orientationAnimationController;
   Animation orientationAnimation;
+  AnimationController blurAnimationController;
+  Animation blurAnimation;
   int highestPitch = CanvasToneDrawer.TOP;
   int lowestPitch = CanvasToneDrawer.BOTTOM;
 
@@ -106,10 +110,16 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   Map<int, int> _pointerIdsToTones = Map();
   double _startHalfStepWidthInPx;
 
+
   @override
   void initState() {
     super.initState();
     orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
+    blurAnimationController = AnimationController(vsync: this, duration: animationDuration,);
+    blurAnimation = Tween<double>(
+      begin: 0,
+      end: 5,
+    ).animate(blurAnimationController);
     scrollPositionNotifier = ValueNotifier(0);
     if (MyPlatform.isMobile) {
       try {
@@ -153,10 +163,17 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
         scrollingMode = ScrollingMode.sideScroll;
       }
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      blurAnimation.addListener(() => setState((){}));
+      // blurAnimationController.addListener(() => setState((){}));
+    });
   }
 
   @override
   void dispose() {
+    orientationAnimationController.dispose();
+    blurAnimationController.dispose();
     _scaleAnimationControllers.forEach((controller) {
       controller.dispose();
     });
@@ -178,15 +195,21 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     }
     if (previousScrollingMode != ScrollingMode.sideScroll && scrollingMode == ScrollingMode.sideScroll) {
       showScrollHint = true;
-      Future.delayed(Duration(seconds: 5), () {
+      Future.delayed(Duration(seconds: 25), () {
         showScrollHint = false;
       });
     } else if (previousScrollingMode == ScrollingMode.sideScroll && scrollingMode != ScrollingMode.sideScroll) {
       showScrollHint = false;
     }
+    if(widget.showConfiguration) {
+      blurAnimationController.forward();
+    } else {
+      blurAnimationController.reverse();
+    }
     previousScrollingMode = scrollingMode;
+    double sensitivity = 7;
     return Stack(children: [
-      CustomScrollView(key: Key("colorboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
+      CustomScrollView(key: Key("keyboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
         CustomSliverToBoxAdapter(
           setVisibleRect: (rect) {
             _visibleRect = rect;
@@ -208,6 +231,15 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                             minHalfStepWidthInPx, min(maxHalfStepWidthInPx, _startHalfStepWidthInPx * details.scale));
                       }
                     }),
+              onVerticalDragUpdate: (details) {
+                if (details.delta.dy > sensitivity) {
+                  // Down swipe
+                  print("Downswipe! details=$details");
+                  widget.closeKeyboard();
+                } else if (details.delta.dy < -sensitivity) {
+                  // Up swipe
+                }
+              },
                 child: AnimatedContainer(
                     duration: animationDuration,
                     height: touchScrollAreaHeight,
@@ -231,14 +263,14 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
           ]),
         )
       ]),
-//      Touch-handling area with the GestureDetector
+//      Touch-handling area with the Listener
       Column(children: [
         IgnorePointer(
           child: AnimatedContainer(
               duration: animationDuration,
               height: touchScrollAreaHeight,
               child: AnimatedOpacity(
-                opacity: showScrollHint ? 0.8 : 0,
+                opacity: showScrollHint ? 0.7 : 0,
                 duration: animationDuration,
                 child: AnimatedContainer(
                     height: 16,
@@ -248,16 +280,17 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                       borderRadius: BorderRadius.circular(5),
                       color: Colors.white,
                     ),
-                    width: 150,
+                    width: 210,
                     child: Column(children: [
                       Expanded(child: SizedBox()),
                       Row(children: [
                         Icon(Icons.arrow_left),
-                        Expanded(child: SizedBox()),
+                        // Expanded(child: SizedBox()),
                         Expanded(
-                            child: Text("Scroll",
+                            child: Text("Scroll | Swipe ⬇️ to Close",
+                                textAlign: TextAlign.center,
                                 maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11))),
-                        Expanded(child: SizedBox()),
+                        // Expanded(child: SizedBox()),
                         Icon(Icons.arrow_right),
                       ]),
                       Expanded(child: SizedBox()),
@@ -266,6 +299,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
         ),
         Expanded(
             child: Listener(
+                child: Container(color: Colors.black12),
                 onPointerDown: (event) {
                   double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
                   left -= widget.leftMargin;
@@ -325,160 +359,189 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                   try {
                     BeatScratchPlugin.stopNote(tone, 127, widget.part);
                   } catch (t) {}
-                },
-                child: Container(color: Colors.black12)))
+                },))
       ]),
 //    Configuration layer
+    Positioned(
+    top: touchScrollAreaHeight,
+    left: 0.1,
+    width: widget.width,
+    height: widget.height,
+    child: ClipRect(
+      child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: blurAnimation.value, sigmaY: blurAnimation.value),
+      child: Column(children: [
+          IgnorePointer(
+            child: AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight,
+              child: SizedBox(width: widget.width)),
+          ),
+          AnimatedContainer(
+              duration: animationDuration,
+              height: max(0, widget.height - touchScrollAreaHeight),
+              color: Colors.transparent,
+              child: widget.showConfiguration
+                  ? Row(children: [
+                      Expanded(
+                          flex: 3,
+                          child: Column(children: [
+                            Expanded(child: SizedBox())])),
+                    ])
+                  : SizedBox())
+        ])),
+    )),
       Column(children: [
-        AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight, child: SizedBox()),
+        IgnorePointer(
+          child: AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight,
+            child: SizedBox(width: widget.width)),
+        ),
         AnimatedContainer(
-            duration: animationDuration,
-            height: max(0, widget.height - touchScrollAreaHeight),
-            color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
-            child: widget.showConfiguration
-                ? Row(children: [
+          duration: animationDuration,
+          height: max(0, widget.height - touchScrollAreaHeight),
+          color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
+          child: widget.showConfiguration
+            ? Row(children: [
+            Expanded(
+              flex: 3,
+              child: Column(children: [
+                Expanded(child: SizedBox()),
+                Row(
+                  children: <Widget>[
                     Expanded(
-                        flex: 3,
-                        child: Column(children: [
-                          Expanded(child: SizedBox()),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ? () {
-                                              setState(() {
-                                                highestPitch++;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_upward))),
-                              Container(
-                                  width: 45,
-                                  child: MyRaisedButton(
-                                      onPressed: null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Text(highestPitch.naturalOrSharpNote.uiString,
-                                          style: TextStyle(color: Colors.white)))),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ? () {
-                                              setState(() {
-                                                highestPitch--;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_downward))),
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ? () {
-                                              setState(() {
-                                                lowestPitch++;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_upward))),
-                              Container(
-                                  width: 45,
-                                  child: MyRaisedButton(
-                                      onPressed: null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Text(lowestPitch.naturalOrSharpNote.uiString,
-                                          style: TextStyle(color: Colors.white)))),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ? () {
-                                              setState(() {
-                                                lowestPitch--;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_downward))),
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                            ],
-                          ),
-                          Expanded(child: SizedBox()),
-                        ])),
+                      child: SizedBox(),
+                    ),
+                    Container(
+                      width: 25,
+                      child: MyRaisedButton(
+                        onPressed: false
+                          ? () {
+                          setState(() {
+                            highestPitch++;
+                          });
+                        }
+                          : null,
+                        padding: EdgeInsets.all(0),
+                        child: Icon(Icons.arrow_upward))),
+                    Container(
+                      width: 45,
+                      child: MyRaisedButton(
+                        onPressed: null,
+                        padding: EdgeInsets.all(0),
+                        child: Text(highestPitch.naturalOrSharpNote.uiString,
+                          style: TextStyle(color: Colors.white)))),
+                    Container(
+                      width: 25,
+                      child: MyRaisedButton(
+                        onPressed: false
+                          ? () {
+                          setState(() {
+                            highestPitch--;
+                          });
+                        }
+                          : null,
+                        padding: EdgeInsets.all(0),
+                        child: Icon(Icons.arrow_downward))),
                     Expanded(
-                        flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: MyRaisedButton(
-                            padding: EdgeInsets.all(0),
-                            onPressed: () {
-                              setState(() {
-                                scrollingMode = ScrollingMode.sideScroll;
-                              });
-                            },
-                            color: (scrollingMode == ScrollingMode.sideScroll) ? widget.sectionColor : null,
-                            child: Text("Scroll"))),
+                      child: SizedBox(),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
                     Expanded(
-                        flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: MyRaisedButton(
-                            padding: EdgeInsets.all(0),
-                            onPressed: false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
-                                ? () {
-                                    setState(() {
-                                      switch (scrollingMode) {
-                                        case ScrollingMode.sideScroll:
-                                          scrollingMode = ScrollingMode.roll;
-                                          break;
-                                        case ScrollingMode.pitch:
-                                          scrollingMode = ScrollingMode.roll;
-                                          break;
-                                        case ScrollingMode.roll:
+                      child: SizedBox(),
+                    ),
+                    Container(
+                      width: 25,
+                      child: MyRaisedButton(
+                        onPressed: false
+                          ? () {
+                          setState(() {
+                            lowestPitch++;
+                          });
+                        }
+                          : null,
+                        padding: EdgeInsets.all(0),
+                        child: Icon(Icons.arrow_upward))),
+                    Container(
+                      width: 45,
+                      child: MyRaisedButton(
+                        onPressed: null,
+                        padding: EdgeInsets.all(0),
+                        child: Text(lowestPitch.naturalOrSharpNote.uiString,
+                          style: TextStyle(color: Colors.white)))),
+                    Container(
+                      width: 25,
+                      child: MyRaisedButton(
+                        onPressed: false
+                          ? () {
+                          setState(() {
+                            lowestPitch--;
+                          });
+                        }
+                          : null,
+                        padding: EdgeInsets.all(0),
+                        child: Icon(Icons.arrow_downward))),
+                    Expanded(
+                      child: SizedBox(),
+                    ),
+                  ],
+                ),
+                Expanded(child: SizedBox()),
+              ])),
+            Expanded(
+              flex: context.isTabletOrLandscapey ? 3 : 2,
+              child: MyRaisedButton(
+                padding: EdgeInsets.all(0),
+                onPressed: () {
+                  setState(() {
+                    scrollingMode = ScrollingMode.sideScroll;
+                  });
+                },
+                color: (scrollingMode == ScrollingMode.sideScroll) ? widget.sectionColor : null,
+                child: Text("Scroll"))),
+            Expanded(
+              flex: context.isTabletOrLandscapey ? 3 : 2,
+              child: MyRaisedButton(
+                padding: EdgeInsets.all(0),
+                onPressed: false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
+                  ? () {
+                  setState(() {
+                    switch (scrollingMode) {
+                      case ScrollingMode.sideScroll:
+                        scrollingMode = ScrollingMode.roll;
+                        break;
+                      case ScrollingMode.pitch:
+                        scrollingMode = ScrollingMode.roll;
+                        break;
+                      case ScrollingMode.roll:
 //                                  scrollingMode = ScrollingMode.pitch;
-                                          break;
-                                      }
-                                    });
-                                  }
-                                : null,
-                            color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
-                            child: Row(children: [
-                              Expanded(child: SizedBox()),
+                        break;
+                    }
+                  });
+                }
+                  : null,
+                color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
+                child: Row(children: [
+                  Expanded(child: SizedBox()),
 //                            Text("+"),
-                              Text((scrollingMode == ScrollingMode.pitch)
-                                  ? "Tilt"
-                                  : (scrollingMode == ScrollingMode.roll)
-                                      ? "Roll"
-                                      : (scrollingMode == ScrollingMode.sideScroll)
-                                          ? "Roll"
-                                          : "Wat"),
-                              Expanded(child: SizedBox()),
-                            ]))),
-                    SizedBox(width: 5),
-                    Column(children: [
-                      Expanded(child: SizedBox()),
-                      zoomButton(),
-                      Expanded(child: SizedBox()),
-                    ]),
-                  ])
-                : SizedBox())
-      ]),
+                  Text((scrollingMode == ScrollingMode.pitch)
+                    ? "Tilt"
+                    : (scrollingMode == ScrollingMode.roll)
+                    ? "Roll"
+                    : (scrollingMode == ScrollingMode.sideScroll)
+                    ? "Roll"
+                    : "Wat"),
+                  Expanded(child: SizedBox()),
+                ]))),
+            SizedBox(width: 5),
+            Column(children: [
+              Expanded(child: SizedBox()),
+              zoomButton(),
+              Expanded(child: SizedBox()),
+            ]),
+          ])
+            : SizedBox())
+      ])
     ]);
   }
 

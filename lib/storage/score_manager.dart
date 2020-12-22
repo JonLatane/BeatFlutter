@@ -72,6 +72,10 @@ class ScoreManager {
   }
 
   _saveCurrentScore(File scoreFile, Score score) async {
+    if (scoreFile.scoreName != WEB_SCORE && scoreFile.scoreName != PASTED_SCORE) {
+      print("Updating score name");
+      score.name = scoreFile.scoreName;
+    }
     _currentScoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
   }
 

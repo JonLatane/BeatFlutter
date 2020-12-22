@@ -192,7 +192,7 @@ class Conductor {
   var playingNotes: Dictionary<MIDIChannel, Array<MIDINoteNumber>> = [
   0:[],1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[],13:[],14:[],15:[],]
   func playNote(note: MIDINoteNumber, velocity: MIDIVelocity, channel: MIDIChannel, record: Bool = false) {
-    print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel), record=\(record)")
+//    print("Conductor playNote, note=\(note), velocity=\(velocity), channel=\(channel), record=\(record)")
     do {
       playingNotesAccess.wait()
       var notes: Array<MIDINoteNumber>? = playingNotes[channel]
@@ -212,7 +212,7 @@ class Conductor {
   }
   
   func stopNote(note: MIDINoteNumber, channel: MIDIChannel, record: Bool = false) {
-    print("Conductor stopNote, note=\(note), channel=\(channel), record=\(record)")
+//    print("Conductor stopNote, note=\(note), channel=\(channel), record=\(record)")
     do {
       playingNotesAccess.wait()
       var notes: Array<MIDINoteNumber>? = playingNotes[channel]
@@ -244,39 +244,59 @@ class Conductor {
   // Return the total number of bytes processed
   func parseMidi(_ midiData: [UInt8], channelOverride: UInt8? = nil, velocityMultiplier: Float = 1, record: Bool = false, playNoteOns: Bool = true, melodyId: String? = nil, attacks: inout Array<BeatScratchScorePlayer.Attack>) -> Int {
     var bytes = [UInt8](midiData)
-    var bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns, melodyId, &attacks)
-    var totalBytesProcessed = bytesProcessed
-    while(bytes.count > bytesProcessed) {
-      bytes.removeFirst(max(1,bytesProcessed))
-      bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns, melodyId, &attacks)
-      totalBytesProcessed += bytesProcessed
+//    print("parseMidi: \(bytes)")
+    if bytes.count == 0 {
+      return 0
     }
+    var totalBytesProcessed: Int = 0
+    repeat {
+      let bytesProcessed = Conductor.sharedInstance.parseFirstMidiCommand(bytes, channelOverride, velocityMultiplier, record, playNoteOns, melodyId, &attacks)
+//      print("parseMidi: processed \(bytesProcessed) from \(bytes)")
+      bytes.removeFirst(max(1,bytesProcessed))
+      totalBytesProcessed += bytesProcessed
+    } while(bytes.count > 0)
     return totalBytesProcessed
   }
   
   // Return the number of bytes processed
   private func parseFirstMidiCommand(_ args: [UInt8], _ channelOverride: UInt8?, _ velocityMultiplier: Float, _ record: Bool, _ playNoteOns: Bool, _ melodyId: String?, _ attacks: inout Array<BeatScratchScorePlayer.Attack>) -> Int {
-    if(args.count == 0) { return 0 }
+    if(args.count == 0) {
+//      print("parseFirstMidiCommand: NO DATA. args=\(args)");
+      return 0
+    }
     if((args[0] & 0xF0) == 0x90) { // noteOn
       if(playNoteOns) {
         let noteNumber = args[1]
         let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
         let channel = channelOverride ?? args[0] & 0xF
+//        print("parseFirstMidiCommand: playing noteOn. note: \(noteNumber), velocity=\(velocity), channel=\(channel)");
         playNote(note: noteNumber, velocity: velocity, channel: channel, record: record)
         if(melodyId != nil) {
+//          print("parseFirstMidiCommand: ADDING ATTACK");
           let attack = BeatScratchScorePlayer.Attack(melodyId: melodyId, channel: channel, tone: noteNumber, velocity: velocity)
           attacks.append(attack)
         }
+      } else {
+//        print("parseFirstMidiCommand: SKIPPING noteOn. args=\(args)");
       }
       return 3
     } else if((args[0] & 0xF0) == 0x80) { // noteOff
       let noteNumber = args[1]
 //      let velocity = MIDIVelocity(velocityMultiplier * Float(args[2]))
       let channel = channelOverride ?? args[0] & 0xF
-      stopNote(note: noteNumber, channel: channel, record: record)
+//      print("parseFirstMidiCommand: ????? noteOff. note: \(noteNumber), attacks=\(attacks)");
+      if attacks.contains(where: { $0.tone == noteNumber }) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.100) {
+//          print("parseFirstMidiCommand: DELAYED noteOff. note: \(noteNumber), velocity=(127), channel=\(channel)");
+          self.stopNote(note: noteNumber, channel: channel, record: record)
+        }
+      } else {
+//        print("parseFirstMidiCommand: playing noteOff. note: \(noteNumber), velocity=(127), channel=\(channel)");
+        stopNote(note: noteNumber, channel: channel, record: record)
+      }
       return 3
     } else {
-      print("unmatched MIDI bytes:");
+//      print("parseFirstMidiCommand: unmatched MIDI bytes:");
       print(args);
       return 0
     }

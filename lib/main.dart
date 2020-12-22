@@ -19,7 +19,7 @@ import 'main_toolbars.dart';
 import 'settings/midi_settings.dart';
 import 'music_view/music_view.dart';
 import 'layers_view/melody_menu_browser.dart';
-import 'layers_view/part_melodies_view.dart';
+import 'layers_view/layers_view.dart';
 import 'storage/migrations.dart';
 import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
@@ -169,15 +169,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _editingMelody = false;
   bool _softKeyboardVisible = false;
 
-  bool _hadVerticalSectionListBefore;
-  bool _hadSplitModeBefore;
-  bool _showBottomKeyboardPadding = false;
+  bool _isSoftwareKeyboardVisible = false;
 
-  double get bottomKeyboardPadding => _showBottomKeyboardPadding && context.isPortraitPhone
-      ? (showKeyboard ^ showColorboard)
-          ? 150
-          : 250
-      : context.isLandscapePhone
+  double get bottomKeyboardPadding => context.isLandscapePhone
           ? (showKeyboard ^ showColorboard)
               ? -30
               : 40
@@ -1293,15 +1287,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 if (withIcon) Icon(editingMelody ? Icons.fiber_manual_record : Icons.play_arrow, color: Colors.grey),
                 if (withText) SizedBox(width: 5),
                 if (withText)
-                  Text(
-                      BeatScratchPlugin.supportsPlayback
-                          ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "on-screen, with the pitch wheel or the damper pedal " : ""}to ${editingMelody ? "record" : "play"}"
-                          : "Playback not supported",
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      style: TextStyle(
-                          color: BeatScratchPlugin.supportsPlayback ? Colors.white : Colors.grey,
-                          fontWeight: FontWeight.w100))
+                  Expanded(
+                    child: Text(
+                        BeatScratchPlugin.supportsPlayback
+                            ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "here or with damper/pitch wheel" : "here"} to ${editingMelody ? "record" : "play"}"
+                            : "Playback not supported",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: BeatScratchPlugin.supportsPlayback ? Colors.white : Colors.grey,
+                            fontWeight: FontWeight.w100)),
+                  )
               ])),
           AnimatedOpacity(
               duration: animationDuration,
@@ -1832,7 +1828,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget _partMelodiesView(BuildContext context, double availableWidth, double availableHeight) {
-    return PartMelodiesView(
+    return LayersView(
       key: ValueKey("main-part-melodies-view"),
       musicViewMode: musicViewMode,
       superSetState: setState,
@@ -2031,6 +2027,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           BeatScratchPlugin.updateSections(score);
           Future.delayed(slowAnimationDuration, () {
             _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
+            Future.delayed(slowAnimationDuration, () {
+              setState(() {
+                editingMelody = true;
+              });
+            });
           });
         });
       },
@@ -2063,7 +2064,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       Icon(Icons.settings, color: Colors.white),
                       SizedBox(width: 3),
                       Text("MIDI Settings",
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ))),
@@ -2133,7 +2134,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             openedScore: score,
             requestKeyboardFocused: (focused) {
               setState(() {
-                _showBottomKeyboardPadding = focused;
+                _isSoftwareKeyboardVisible = focused;
               });
             },
             requestMode: (mode) {
@@ -2184,6 +2185,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           sectionColor: sectionColor,
           pressedNotesNotifier: keyboardNotesNotifier,
           distanceFromBottom: _bottomTapInBarHeight + _bottomNotchPadding,
+          closeKeyboard: showKeyboard ? _toggleKeyboard : () {},
         ));
   }
 

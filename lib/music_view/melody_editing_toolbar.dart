@@ -18,9 +18,20 @@ class MelodyEditingToolbar extends StatefulWidget {
   final Section currentSection;
   final bool editingMelody;
   final ValueNotifier<int> highlightedBeat;
+  final Function(MelodyReference, double) setReferenceVolume;
+
   Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
 
-  const MelodyEditingToolbar({Key key, this.melodyId, this.sectionColor, this.score, this.currentSection, this.editingMelody, this.highlightedBeat}) : super(key: key);
+  const MelodyEditingToolbar(
+      {Key key,
+      this.melodyId,
+      this.sectionColor,
+      this.score,
+      this.currentSection,
+      this.editingMelody,
+      this.highlightedBeat,
+      this.setReferenceVolume})
+      : super(key: key);
 
   @override
   _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
@@ -33,6 +44,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   bool showHoldToClear = false;
   bool showDataCleared = false;
   bool animationStarted = false;
+
   int get firstBeatOfSection => widget.score.firstBeatOfSection(widget.currentSection);
 
   @override
@@ -66,207 +78,268 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
       animationStarted = false;
     }
     Color recordingColor;
-    if(widget.editingMelody && BeatScratchPlugin.playing) {
+    if (widget.editingMelody && BeatScratchPlugin.playing) {
       recordingColor = recordingAnimationColor;
     } else {
       recordingColor = Colors.grey;
     }
     int beats;
-    if(widget.melody != null) {
+    if (widget.melody != null) {
       beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
     }
     bool hasHighlightedBeat = widget.highlightedBeat.value != null && BeatScratchPlugin.playing && widget.editingMelody;
+    final melodyReference = widget.currentSection.referenceTo(widget.melody);
     return Row(children: [
       SizedBox(width: 5),
       IncrementableValue(
         collapsing: true,
         onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
-          ? () {
-          if(widget.melody != null && widget.melody.beatCount > 1) {
-            widget.melody.length -= widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
+            ? () {
+                if (widget.melody != null && widget.melody.beatCount > 1) {
+                  widget.melody.length -= widget.melody.subdivisionsPerBeat;
+                  BeatScratchPlugin.onSynthesizerStatusChange();
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.updateMelody(widget.melody);
+                }
+              }
+            : null,
         onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
-          ? () {
-          if (widget.melody != null && widget.melody.beatCount <= 999) {
-            widget.melody.length += widget.melody.subdivisionsPerBeat;
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        }
-          : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child:BeatsBadge(beats: beats)),
+            ? () {
+                if (widget.melody != null && widget.melody.beatCount <= 999) {
+                  widget.melody.length += widget.melody.subdivisionsPerBeat;
+                  BeatScratchPlugin.onSynthesizerStatusChange();
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.updateMelody(widget.melody);
+                }
+              }
+            : null,
+        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child: BeatsBadge(beats: beats)),
 //        valueWidth: 100,
 //        value: "$beats beat${beats == 1 ? "" : "s"}",
       ),
       SizedBox(width: 5),
       IncrementableValue(
         collapsing: true,
-        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1 ? () {
-          if((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
-            widget.melody?.subdivisionsPerBeat -= 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24 ? () {
-          if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
-            widget.melody?.subdivisionsPerBeat += 1;
-            widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.updateMelody(widget.melody);
-          }
-        } : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-          child:BeatsBadge(beats: widget.melody?.subdivisionsPerBeat, isPerBeat: true,)),
+        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1
+            ? () {
+                if ((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
+                  widget.melody?.subdivisionsPerBeat -= 1;
+                  widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.onSynthesizerStatusChange();
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.updateMelody(widget.melody);
+                }
+              }
+            : null,
+        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24
+            ? () {
+                if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
+                  widget.melody?.subdivisionsPerBeat += 1;
+                  widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.onSynthesizerStatusChange();
+                  clearMutableCachesForMelody(widget.melody.id);
+                  BeatScratchPlugin.updateMelody(widget.melody);
+                }
+              }
+            : null,
+        child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+            child: BeatsBadge(
+              beats: widget.melody?.subdivisionsPerBeat,
+              isPerBeat: true,
+            )),
       ),
       SizedBox(width: 5),
-      Expanded(child: SizedBox(width: 5),),
-      AnimatedContainer(
+      Expanded(
+          child: AnimatedOpacity(
         duration: animationDuration,
-        width: showHoldToClear ? 35 : 0,
-        height: 36,
-        padding: EdgeInsets.only(left: 5),
-        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showHoldToClear ? 1 : 0,
-          child: Stack(children:[
-            Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
-            Text("Hold", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            Transform.translate(offset: Offset(0,  0), child:Align(alignment: Alignment.center, child:
-            Text("to", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            Transform.translate(offset: Offset(0, 7), child: Align(alignment: Alignment.center, child:
-            Text("clear", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-          ]))),
+        opacity: widget.melody != null && widget.editingMelody ? 1 : 0,
+        child: MySlider(
+            value: melodyReference?.volume ?? 0,
+            activeColor: widget.sectionColor,
+            onChanged: (widget.melody != null && widget.editingMelody)
+                ? (value) {
+                    widget.setReferenceVolume(melodyReference, value);
+                  } : null),
+      )),
       AnimatedContainer(
-        duration: animationDuration,
-        width: showDataCleared ? 45 : 0,
-        height: 36,
-        padding: EdgeInsets.only(left: 5),
-        child:  AnimatedOpacity(duration: animationDuration, opacity: widget.melody != null && showDataCleared ? 1 : 0,
-          child: Stack(children:[
-            // Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
-            // Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
-            // Transform.translate(offset: Offset(0, 7), child:
-            Align(alignment: Alignment.center, child:
-            Text("Cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))
-            // ),
-          ]))),
+          duration: animationDuration,
+          width: showHoldToClear ? 35 : 0,
+          height: 36,
+          padding: EdgeInsets.only(left: 5),
+          child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: widget.melody != null && showHoldToClear ? 1 : 0,
+              child: Stack(children: [
+                Transform.translate(
+                    offset: Offset(0, -7),
+                    child: Align(
+                        alignment: Alignment.center,
+                        child:
+                            Text("Hold", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                Transform.translate(
+                    offset: Offset(0, 0),
+                    child: Align(
+                        alignment: Alignment.center,
+                        child:
+                            Text("to", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                Transform.translate(
+                    offset: Offset(0, 7),
+                    child: Align(
+                        alignment: Alignment.center,
+                        child: Text("clear",
+                            maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+              ]))),
       AnimatedContainer(
-        duration: animationDuration,
-        width: 44,
-        height: 36,
-        padding: EdgeInsets.only(left: 8),
-        child:  MyRaisedButton(
-          color: Color(0x424242).withOpacity(1),
-          padding: EdgeInsets.zero,
-          onLongPress: widget.melody != null ? () {
-            print("clearing");
-            widget.melody.midiData.data.clear();
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-            setState(() {
-              showDataCleared = true;
-              showHoldToClear = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showDataCleared = false;
-              });
-            });
-          } : null,
-          onPressed: () {
-            setState(() {
-              showHoldToClear = true;
-              showDataCleared = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showHoldToClear = false;
-              });
-            });
-          },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
-            child: Stack(
-              children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep, color: Colors.white)),
-                Align(alignment: Alignment.bottomRight, child: Padding(
-                  padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("All",
-                    style: TextStyle(fontSize:10, color: Colors.white),),)
-                ))
-              ],
-            )))),
+          duration: animationDuration,
+          width: showDataCleared ? 45 : 0,
+          height: 36,
+          padding: EdgeInsets.only(left: 5),
+          child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: widget.melody != null && showDataCleared ? 1 : 0,
+              child: Stack(children: [
+                // Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
+                // Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                // Transform.translate(offset: Offset(0, 7), child:
+                Align(
+                    alignment: Alignment.center,
+                    child: Text("Cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))
+                // ),
+              ]))),
       AnimatedContainer(
-        duration: animationDuration,
-        width: 44,
-        height: 36,
-        padding: EdgeInsets.only(left: 8),
-        child:  MyRaisedButton(
-          color: Color(0x424242).withOpacity(1),
-          padding: EdgeInsets.zero,
-          onLongPress: widget.melody != null ? () {
-            print("clearing single beat");
-            int beatToDelete = widget.highlightedBeat.value;
-            if (beatToDelete == null) {
-              beatToDelete = BeatScratchPlugin.currentBeat.value;
-            } else {
-              beatToDelete -= firstBeatOfSection;
-            }
-            widget.melody.deleteBeat(beatToDelete);
-            clearMutableCachesForMelody(widget.melody.id);
-            BeatScratchPlugin.onSynthesizerStatusChange();
-            BeatScratchPlugin.updateMelody(widget.melody);
-            setState(() {
-              showDataCleared = true;
-              showHoldToClear = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showDataCleared = false;
-              });
-            });
-          } : null,
-          onPressed: () {
-            setState(() {
-              showHoldToClear = true;
-              showDataCleared = false;
-            });
-            Future.delayed(Duration(seconds: 3), () {
-              setState(() {
-                showHoldToClear = false;
-              });
-            });
-          },
-          child: AnimatedOpacity(duration: animationDuration, opacity: widget.editingMelody ? 1 : 0,
-            child: Stack(
-              children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep,
-                  color: hasHighlightedBeat ? widget.sectionColor : Colors.white)),
-                Align(alignment: Alignment.bottomRight, child: Padding(
-                  padding: const EdgeInsets.only(right: 1, bottom: 0),
-                  child: Transform.translate(offset: Offset(0,2), child: Text("Beat",
-                    style: TextStyle(fontSize:10,
-                      color: hasHighlightedBeat ? widget.sectionColor : Colors.white, fontWeight: FontWeight.w400),)),
-                ))
-              ],
-            )))),
+          duration: animationDuration,
+          width: 44,
+          height: 36,
+          padding: EdgeInsets.only(left: 8),
+          child: MyRaisedButton(
+              color: Color(0x424242).withOpacity(1),
+              padding: EdgeInsets.zero,
+              onLongPress: widget.melody != null
+                  ? () {
+                      print("clearing");
+                      widget.melody.midiData.data.clear();
+                      clearMutableCachesForMelody(widget.melody.id);
+                      BeatScratchPlugin.onSynthesizerStatusChange();
+                      BeatScratchPlugin.updateMelody(widget.melody);
+                      setState(() {
+                        showDataCleared = true;
+                        showHoldToClear = false;
+                      });
+                      Future.delayed(Duration(seconds: 3), () {
+                        setState(() {
+                          showDataCleared = false;
+                        });
+                      });
+                    }
+                  : null,
+              onPressed: () {
+                setState(() {
+                  showHoldToClear = true;
+                  showDataCleared = false;
+                });
+                Future.delayed(Duration(seconds: 3), () {
+                  setState(() {
+                    showHoldToClear = false;
+                  });
+                });
+              },
+              child: AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: widget.editingMelody ? 1 : 0,
+                  child: Stack(
+                    children: [
+                      Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep, color: Colors.white)),
+                      Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                              padding: const EdgeInsets.only(right: 1, bottom: 0),
+                              child: Transform.translate(
+                                offset: Offset(0, 2),
+                                child: Text(
+                                  "All",
+                                  style: TextStyle(fontSize: 10, color: Colors.white),
+                                ),
+                              )))
+                    ],
+                  )))),
+      AnimatedContainer(
+          duration: animationDuration,
+          width: 44,
+          height: 36,
+          padding: EdgeInsets.only(left: 8),
+          child: MyRaisedButton(
+              color: Color(0x424242).withOpacity(1),
+              padding: EdgeInsets.zero,
+              onLongPress: widget.melody != null
+                  ? () {
+                      print("clearing single beat");
+                      int beatToDelete = widget.highlightedBeat.value;
+                      if (beatToDelete == null) {
+                        beatToDelete = BeatScratchPlugin.currentBeat.value;
+                      } else {
+                        beatToDelete -= firstBeatOfSection;
+                      }
+                      widget.melody.deleteBeat(beatToDelete);
+                      clearMutableCachesForMelody(widget.melody.id);
+                      BeatScratchPlugin.onSynthesizerStatusChange();
+                      BeatScratchPlugin.updateMelody(widget.melody);
+                      setState(() {
+                        showDataCleared = true;
+                        showHoldToClear = false;
+                      });
+                      Future.delayed(Duration(seconds: 3), () {
+                        setState(() {
+                          showDataCleared = false;
+                        });
+                      });
+                    }
+                  : null,
+              onPressed: () {
+                setState(() {
+                  showHoldToClear = true;
+                  showDataCleared = false;
+                });
+                Future.delayed(Duration(seconds: 3), () {
+                  setState(() {
+                    showHoldToClear = false;
+                  });
+                });
+              },
+              child: AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: widget.editingMelody ? 1 : 0,
+                  child: Stack(
+                    children: [
+                      Align(
+                          alignment: Alignment.center,
+                          child:
+                              Icon(Icons.delete_sweep, color: hasHighlightedBeat ? widget.sectionColor : Colors.white)),
+                      Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 1, bottom: 0),
+                            child: Transform.translate(
+                                offset: Offset(0, 2),
+                                child: Text(
+                                  "Beat",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: hasHighlightedBeat ? widget.sectionColor : Colors.white,
+                                      fontWeight: FontWeight.w400),
+                                )),
+                          ))
+                    ],
+                  )))),
       SizedBox(width: 7),
       Column(children: [
         SizedBox(height: 1),
-        Transform.translate(offset: Offset(0, 5), child:
-        Icon(Icons.fiber_manual_record, color: recordingColor)),
+        Transform.translate(offset: Offset(0, 5), child: Icon(Icons.fiber_manual_record, color: recordingColor)),
         Text('Recording',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10, color: recordingColor)),
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10, color: recordingColor)),
       ]),
       SizedBox(width: 7),
     ]);

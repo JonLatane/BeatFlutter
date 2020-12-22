@@ -7,6 +7,7 @@ import '../util/bs_notifiers.dart';
 import '../util/util.dart';
 import '../util/proto_utils.dart';
 import '../util/music_theory.dart';
+import '../util/music_utils.dart';
 
 /// Recording V2 uses a queue. [RecordedSegment] objects - basically the lowest-level data possible -
 /// are sent to this singleton queue for processing.
@@ -47,6 +48,8 @@ class RecordedSegmentQueue {
       segment.recordedData.forEach((data) {
         _processSegmentData(segment, data, melody, firstBeat, secondBeat);
       });
+      print("applying PostProcessing: separateNoteOnAndOffs()");
+      melody.separateNoteOnAndOffs();
       print("updateRecordingMelody?.call: ${melody.logString}");
       updateRecordingMelody?.call(melody);
       BeatScratchPlugin.updateMelody(melody);

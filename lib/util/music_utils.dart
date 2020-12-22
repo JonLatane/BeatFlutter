@@ -74,7 +74,7 @@ extension DeleteNotes on Melody {
 extension SeparateNoteOnAndOff on Melody {
   bool separateNoteOnAndOffs() {
     bool madeChanges = false;
-    if(false/*type == MelodyType.midi*/) {
+    if(type == MelodyType.midi && false) {
       midiData.data.keys.forEach((index) {
         MidiChange midiChange =  midiData.data[index];
         int nextIndex = (index < midiData.data.length - 1) ? index + 1 : 0;

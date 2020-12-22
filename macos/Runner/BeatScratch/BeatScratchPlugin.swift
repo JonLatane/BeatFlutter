@@ -44,7 +44,7 @@ class BeatScratchPlugin {
     let conductor = Conductor.sharedInstance
     self.channel = channel
     channel.setMethodCallHandler { (call, result) in
-      print("Call from Swift: " + call.method)
+//      print("Call from Swift: " + call.method)
       do {
         switch call.method {
         case "sendMIDI":

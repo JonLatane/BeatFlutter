@@ -165,8 +165,9 @@ class BeatScratchScorePlayer {
       let melodyPosition = currentBeat * Double(melody.subdivisionsPerBeat) + Double(correspondingPosition)
       if let midiData = melody.midiData.data[Int32(melodyPosition) % Int32(melody.length)] {
         let bytes = [UInt8](midiData.data)
-        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume, playNoteOns: playNoteOns, attacks: &activeAttacks)
-        print("BeatScratchScorePlayer: processed \(processedBytes) of data")
+//        print("BeatScratchScorePlayer: CALLING parseMidi. bytes=\(bytes)");
+        let processedBytes = Conductor.sharedInstance.parseMidi(bytes, channelOverride: UInt8(part.instrument.midiChannel), velocityMultiplier: melodyReference.volume, playNoteOns: playNoteOns, melodyId: melody.id, attacks: &activeAttacks)
+//        print("BeatScratchScorePlayer: processed \(processedBytes) of data")
       }
     }
   }

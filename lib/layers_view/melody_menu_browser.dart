@@ -8,7 +8,7 @@ import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
 import '../music_preview/melody_preview.dart';
-import '../layers_view/part_melodies_view.dart';
+import '../layers_view/layers_view.dart';
 import '../storage/score_manager.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';

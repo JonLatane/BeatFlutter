@@ -453,7 +453,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   void scrollToPart() {
     print("scrollToPart");
-    verticalController.animateTo(0, duration: animationDuration, curve: Curves.ease);
+    if (widget.autoFocus) {
+      verticalController.animateTo(0, duration: animationDuration, curve: Curves.ease);
+    } else {
+      if (verticalController.offset > maxVerticalPosition) {
+        scrollToBottomMostPart();
+      }
+    }
   }
   void scrollToBottomMostPart() {
     verticalController.animateTo(maxVerticalPosition, duration: animationDuration, curve: Curves.ease);

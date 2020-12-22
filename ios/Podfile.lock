@@ -14,7 +14,7 @@ PODS:
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
-  - SwiftProtobuf (1.12.0)
+  - SwiftProtobuf (1.13.0)
   - url_launcher (0.0.1):
     - Flutter
   - vibration (1.7.2):
@@ -68,7 +68,7 @@ SPEC CHECKSUMS:
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
-  SwiftProtobuf: 4ef85479c18ca85b5482b343df9c319c62bda699
+  SwiftProtobuf: fd4693388a96c8c2df35d3b063272b0e7c499d00
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
   vibration: 528f5ef88e90d4a8fd1ef04afbf0ed3ac7c9801d
 
