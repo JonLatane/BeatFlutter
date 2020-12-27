@@ -47,13 +47,17 @@ class BeatScratchPlaybackThread {
   // Settable by the UI, auto-notifying of changes could cause loops
   var bpmMultiplier: Double = 1
   private let semaphore = DispatchSemaphore(value: 0)
+  var tickTime: Double {
+    get {
+      return 60000 / (self.unmultipliedBpm * bpmMultiplier * BeatScratchPlaybackThread.ticksPerBeat)
+    }
+  }
   
   func run() {
     while (!terminated) {
       do {
         if (!stopped) {
           let start: Double = CACurrentMediaTime() * 1000
-          let tickTime: Double = (60000 / (self.unmultipliedBpm * bpmMultiplier * BeatScratchPlaybackThread.ticksPerBeat))
 //          print("BeatScratchPlaybackThread: Tick @\(BeatScratchScorePlayer.sharedInstance.currentTick) (T:\(start)")
           try BeatScratchScorePlayer.sharedInstance.tick()
           while(CACurrentMediaTime() * 1000 < start + tickTime) {

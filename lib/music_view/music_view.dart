@@ -229,7 +229,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   static const focusTimeout = 2500;
 
-  _updateFocusedBeatValue() {
+  _updateFocusedBeatValue({bool withDelayClear = true}) {
     if (focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
       focusedBeat.value = getBeat(
           Offset(
@@ -237,18 +237,20 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           targeted: false);
 
       focusedBeatUpdated = DateTime.now();
-      delayClear() {
-        Future.delayed(Duration(milliseconds: focusTimeout), () {
-          if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
-            // print("Cleared focusedBeat");
-            focusedBeat.value = null;
-          } else {
-            delayClear();
-          }
-        });
-      }
 
-      delayClear();
+      if (withDelayClear) {
+        delayClear() {
+          Future.delayed(Duration(milliseconds: focusTimeout), () {
+            if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+              // print("Cleared focusedBeat");
+              focusedBeat.value = null;
+            } else {
+              delayClear();
+            }
+          });
+        }
+        delayClear();
+      }
       // print("Set focusedBeat to ${focusedBeat.value}");
     } else {
       focusedBeatUpdated = DateTime.now();
@@ -348,7 +350,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   set rawXScale(double value) {
     value = max(minScale, min(maxScale, value));
-    _updateFocusedBeatValue();
+    _updateFocusedBeatValue(withDelayClear: false);
     final oldValue = _xScale;
     _targetedXScale = value;
     _xScale = value;
@@ -984,7 +986,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   focusedBeat.value = beat;
                 }
                 if (details.scale > 0) {
-                  final target = _startHorizontalScale * details.horizontalScale;
+                  final target = _startHorizontalScale * details.scale;
                   rawXScale = target;
                   rawYScale = target;
                 }

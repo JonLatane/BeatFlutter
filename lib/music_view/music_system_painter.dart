@@ -367,7 +367,7 @@ class MusicSystemPainter extends CustomPainter {
             melodyBounds,
             Paint()
               ..style = PaintingStyle.fill
-              ..color = part != null && tappedPart.value?.id == part.id ? sectionColor.value.withOpacity(0.12) : Colors.black12);
+              ..color = part != null && tappedPart.value?.id == part.id && renderingBeat == tappedBeat.value ? sectionColor.value.withOpacity(0.12) : Colors.black12);
       }
       if (isCurrentScore && (renderingBeat == tappedBeat.value) && part != null && tappedPart.value?.id == part.id) {
         canvas.drawRect(

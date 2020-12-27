@@ -286,7 +286,8 @@ class Conductor {
       let channel = channelOverride ?? args[0] & 0xF
 //      print("parseFirstMidiCommand: ????? noteOff. note: \(noteNumber), attacks=\(attacks)");
       if attacks.contains(where: { $0.tone == noteNumber && $0.melodyId == melodyId }) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.100) {
+        let delay = (BeatScratchPlaybackThread.sharedInstance.tickTime / 2000) * Double(24) / Double(BeatScratchPlugin.sharedInstance.score.parts.flatMap { $0.melodies }.first { $0.id == melodyId }?.subdivisionsPerBeat ?? 12)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
 //          print("parseFirstMidiCommand: DELAYED noteOff. note: \(noteNumber), velocity=(127), channel=\(channel)");
           self.stopNote(note: noteNumber, channel: channel, record: record)
         }

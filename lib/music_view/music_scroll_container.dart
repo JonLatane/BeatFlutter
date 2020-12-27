@@ -400,7 +400,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   }) {
     if (instant) {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: Duration(milliseconds: 1), curve: Curves.linear);
+          beatAnimationDuration: Duration(milliseconds: 0), curve: Curves.linear);
     } else {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
           beatAnimationDuration: Duration(milliseconds: 200), curve: Curves.linear);
@@ -444,7 +444,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     // final offset = timeScrollController.offset;
     if (_hasBuilt && animationPos.notRoughlyEquals(timeScrollController.offset)) {
       try {
-        animate() => timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: curve);
+        animate() {
+          if (beatAnimationDuration.inMilliseconds > 0) {
+            timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: curve);
+          } else {
+            timeScrollController.jumpTo(animationPos);
+          }
+        }
         animate();
       } catch (e) {}
     }
