@@ -13,9 +13,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
 import 'colors.dart';
+import 'export/export.dart';
 import 'generated/protos/music.pb.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
 import 'main_toolbars.dart';
+import 'messages/messages.dart';
 import 'settings/midi_settings.dart';
 import 'music_view/music_view.dart';
 import 'layers_view/melody_menu_browser.dart';
@@ -172,10 +174,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _isSoftwareKeyboardVisible = false;
 
   double get bottomKeyboardPadding => context.isLandscapePhone
-          ? (showKeyboard ^ showColorboard)
-              ? -30
-              : 40
-          : 65;
+      ? (showKeyboard ^ showColorboard)
+          ? -30
+          : 40
+      : 65;
 
   bool get editingMelody => _editingMelody;
 
@@ -215,7 +217,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
   bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
   ScorePickerMode scorePickerMode = ScorePickerMode.none;
-  bool showScorePicker = false;
+  bool _showScorePicker = false;
+
+  bool get showScorePicker => _showScorePicker;
+
+  set showScorePicker(bool value) {
+    _showScorePicker = value;
+    if (value) {
+      exportUI.visible = false;
+    }
+  }
+
   bool showMidiConfiguration = false;
   bool showKeyboard = true;
   bool _showTapInBar = false;
@@ -652,8 +664,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 150
       : 0;
 
-  double get _tempoConfigurationHeight => _portraitPhoneUI && _showTapInBar ? 34 : 0;
-
   bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
 
   double get _statusBarHeight => _showStatusBar
@@ -669,26 +679,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ? 25
           : 30;
 
-  bool get pasteFailed => _pasteFailed;
-
   set pasteFailed(bool value) {
-    _pasteFailed = value;
-    if (value) {
-      Future.delayed(Duration(milliseconds: 1500), () {
-        setState(() {
-          _pasteFailed = false;
-        });
-      });
-    }
+    messagesUI.sendMessage(
+        icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]), message: "Paste Failed!", setState: setState);
   }
-
-  bool _pasteFailed = false;
-
-  double get _pasteFailedHeight => !_pasteFailed
-      ? 0
-      : _isLandscapePhone
-          ? 25
-          : 30;
 
   double get _tapInBarHeight => showTapInBar && !_bottomTapInBar
       ? (_isLandscapePhone)
@@ -714,6 +708,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get horizontalSectionListHeight => interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
   AnimationController loadingAnimationController;
+  ExportUI exportUI;
+  MessagesUI messagesUI;
 
   @override
   void initState() {
@@ -736,11 +732,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         keyboardPart = scoreToOpen.parts.first;
         colorboardPart =
             scoreToOpen.parts.firstWhere((Part p) => p.instrument.type != InstrumentType.drum, orElse: null);
+        exportUI.export.score = scoreToOpen;
       });
     };
     if (widget.pastebinCode != null) {
       _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
-        pasteFailed = true;
+        messagesUI.sendMessage(
+            icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
+            message: "Failed to load URL!",
+            setState: setState);
       });
     } else if (MyPlatform.isWeb) {
       BeatScratchPlugin.createScore(score);
@@ -762,18 +762,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setState(() {});
     };
     BeatScratchPlugin.onLoadScoreFromLink = (scoreUrl) {
-      _scoreManager.loadFromScoreUrl(scoreUrl,
-          newScoreDefaultFilename: ScoreManager.WEB_SCORE,
-          newScoreNameSuffix: ScoreManager.FROM_WEB,
-          currentScoreToSave: score, onSuccess: (_) {
-        setState(() {
-          scorePickerMode = ScorePickerMode.duplicate;
-          showScorePicker = true;
-          _viewMode();
+      saveCurrentScore();
+
+      bool failed = false;
+      Future.delayed(slowAnimationDuration, () {
+        _scoreManager.loadFromScoreUrl(scoreUrl,
+            newScoreDefaultFilename: ScoreManager.WEB_SCORE,
+            newScoreNameSuffix: ScoreManager.FROM_WEB,
+            currentScoreToSave: score, onSuccess: (_) {
+          setState(() {
+            scorePickerMode = ScorePickerMode.duplicate;
+            showScorePicker = true;
+            _viewMode();
+          });
+        }, onFail: () {
+          failed = true;
+          setState(() {
+            messagesUI.sendMessage(
+                icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
+                message: "Failed to open Score Link!",
+                setState: setState);
+          });
         });
-      }, onFail: () {
-        setState(() {
-          pasteFailed = true;
+
+        Future.delayed(slowAnimationDuration, () {
+          if (!failed) {
+            messagesUI.sendMessage(
+                icon: Icon(Icons.info, size: 18, color: chromaticSteps[0]),
+                message: "Opened linked score!",
+                setState: setState);
+          }
         });
       });
     };
@@ -818,6 +836,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     keyboardNotesNotifier = ValueNotifier(Set());
 
     loadingAnimationController = AnimationController(vsync: this);
+
+    exportUI = ExportUI();
+    messagesUI = MessagesUI();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(Duration(seconds: 10), () => MelodyMenuBrowser.loadScoreData());
@@ -959,15 +980,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _webBanner(context),
                   _downloadBanner(context),
                   _scorePicker(context),
+                  exportUI.build(context: context, setState: setState),
                   _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [_verticalSectionList(), Expanded(child: _layersAndMusicView(context))])),
                   if (_portraitPhoneUI) _toolbarsInColumn(context),
                   if (_scalableUI) _toolbarsInRow(context),
                   // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
-                  if (_portraitPhoneUI) _tempoConfigurationBar(context),
+                  // if (_portraitPhoneUI) _tempoConfigurationBar(context),
                   _midiSettings(context),
-                  _pasteFailedBar(context),
+                  // _pasteFailedBar(context),
+                  messagesUI.build(context: context, setState: setState),
                   _savingScoreBar(context),
                   _audioSystemWorkingBar(context),
                   _colorboard(context),
@@ -1229,25 +1252,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ]));
   }
 
-  Widget _pasteFailedBar(BuildContext context) {
-    return AnimatedContainer(
-        duration: animationDuration,
-        height: _pasteFailedHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          SizedBox(width: 5),
-          AnimatedOpacity(
-              duration: animationDuration,
-              opacity: _pasteFailed ? 1 : 0,
-              child: Icon(Icons.warning, size: 18, color: chromaticSteps[7])),
-          SizedBox(width: 5),
-          Text("Paste Failed!",
-              style: TextStyle(
-                color: Colors.white,
-              ))
-        ]));
-  }
-
   Widget _savingScoreBar(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
@@ -1279,7 +1283,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         (bottom && _bottomTapInBarHeight != 0);
     final double tapInFirstSize = !playing && tapInBeat == null ? 42 : 0;
     final double tapInSecondSize = !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2) ? 42 : 0;
-    tapInBarIcon({bool withText = true, bool withIcon = true}) => Stack(children: [
+    tapInBarInstructions({bool withText = true, bool withIcon = true}) => Stack(children: [
           AnimatedOpacity(
               duration: animationDuration,
               opacity: isDisplayed && !BeatScratchPlugin.playing ? 1 : 0,
@@ -1372,7 +1376,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                 ))),
       ),
-      if (!vertical) Expanded(child: Padding(padding: EdgeInsets.only(left: 7), child: tapInBarIcon())),
+      if (_scalableUI) Expanded(child: Padding(padding: EdgeInsets.only(left: 7), child: tapInBarInstructions())),
       if (vertical) SizedBox(height: 15),
       if (vertical)
         Expanded(
@@ -1384,6 +1388,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (!_portraitPhoneUI && !vertical)
         AnimatedOpacity(
             duration: animationDuration, opacity: isDisplayed ? 1 : 0, child: _tempoConfigurationBar(context)),
+      if (_portraitPhoneUI && !vertical)
+        Expanded(
+          child: AnimatedOpacity(
+              duration: animationDuration, opacity: isDisplayed ? 1 : 0, child: _tempoConfigurationBar(context)),
+        ),
       Container(
           height: 42,
           width: 42,
@@ -1441,7 +1450,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             opacity: _showTapInBar ? 1 : 0,
             child: AnimatedContainer(
                 duration: animationDuration,
-                height: _portraitPhoneUI ? (_tempoConfigurationHeight) : null,
+                height: _portraitPhoneUI ? 34 : null,
                 width: !_portraitPhoneUI ? (_showTapInBar ? 300 : 0) : null,
                 padding: _scalableUI || _landscapePhoneUI ? EdgeInsets.zero : EdgeInsets.only(bottom: 2, top: 0),
                 child: Row(children: [
@@ -1588,19 +1597,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             showBeatCounts = !showBeatCounts;
           });
         },
-        saveCurrentScore: () {
-          Future.microtask(() {
-            setState(() {
-              _savingScore = true;
-            });
-            _scoreManager.saveCurrentScore(score);
-            Future.delayed(animationDuration * 2, () {
-              setState(() {
-                _savingScore = false;
-              });
-            });
-          });
-        },
+        saveCurrentScore: saveCurrentScore,
         pasteScore: () async {
           ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
           if (data == null) {
@@ -1618,8 +1615,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             setState(() {
               scorePickerMode = ScorePickerMode.duplicate;
               showScorePicker = true;
+
+              messagesUI.sendMessage(
+                  icon: Icon(Icons.info, size: 18, color: chromaticSteps[0]),
+                  message: "Pasted ${score.name}!",
+                  setState: setState);
               _viewMode();
             });
+          });
+        },
+        export: () {
+          setState(() {
+            exportUI.visible = true;
+            showScorePicker = false;
           });
         },
         openMelody: selectedMelody,
@@ -1705,6 +1713,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return result;
   }
 
+  saveCurrentScore() {
+    Future.microtask(() {
+      setState(() {
+        _savingScore = true;
+      });
+      _scoreManager.saveCurrentScore(score);
+      Future.delayed(animationDuration * 2, () {
+        setState(() {
+          _savingScore = false;
+        });
+      });
+    });
+  }
+
   Widget _layersAndMusicView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
@@ -1715,12 +1737,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _scorePickerHeight -
         _colorboardHeight -
         _keyboardHeight -
-        _tempoConfigurationHeight -
+        messagesUI.height(context) -
         horizontalSectionListHeight -
         _tapInBarHeight -
         _statusBarHeight -
         webWarningHeight -
         _bottomNotchPadding -
+        exportUI.height -
         downloadLinksHeight +
         8 -
         _topNotchPaddingReal -
@@ -2053,7 +2076,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             curve: Curves.easeInOut,
             duration: animationDuration,
             padding: EdgeInsets.only(left: 5),
-            height: visible ? 22 : 0,
+            height: visible ? 26 : 0,
             child: Align(
                 alignment: Alignment.centerLeft,
                 child: AnimatedOpacity(
@@ -2061,17 +2084,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   duration: animationDuration,
                   child: Row(
                     children: [
-                      Icon(Icons.settings, color: Colors.white),
+                      Transform.translate(offset: Offset(0, 1.5), child: Icon(Icons.settings, color: Colors.white)),
                       SizedBox(width: 3),
                       Text("MIDI Settings",
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ))),
         AnimatedContainer(
             curve: Curves.easeInOut,
             duration: animationDuration,
-            height: visible ? max(0, _midiSettingsHeight - 22) : 0,
+            height: visible ? max(0, _midiSettingsHeight - 26) : 0,
             width: MediaQuery.of(context).size.width,
             color: Color(0xFF424242),
             child: MidiSettings(

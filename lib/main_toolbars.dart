@@ -3,12 +3,15 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 //import 'package:file_picker/file_picker.dart';
 //import 'package:file_picker_cross/file_picker_cross.dart';
 //import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
@@ -43,6 +46,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback saveCurrentScore;
   final String currentScoreName;
   final VoidCallback pasteScore;
+  final VoidCallback export;
   final Function(String) routeToCurrentScore;
   final bool vertical;
   final bool verticalSections;
@@ -56,35 +60,36 @@ class BeatScratchToolbar extends StatefulWidget {
 
   const BeatScratchToolbar(
       {Key key,
-      this.interactionMode,
-      this.viewMode,
-      this.editMode,
-      this.toggleViewOptions,
-      this.sectionColor,
-      this.togglePlaying,
-      this.toggleSectionListDisplayMode,
-      this.setRenderingMode,
-      this.renderingMode,
-      this.showMidiInputSettings,
-      this.showBeatCounts,
-      this.toggleShowBeatCounts,
-      this.showScorePicker,
-      this.saveCurrentScore,
-      this.currentScoreName,
-      this.score,
-      this.pasteScore,
-      this.scoreManager,
-      this.routeToCurrentScore,
-      this.vertical,
-      this.verticalSections,
-      this.openMelody,
-      this.prevMelody,
-      this.openPart,
-      this.prevPart,
-      this.isMelodyViewOpen,
-      this.currentSection,
-      this.leftHalfOnly,
-      this.rightHalfOnly})
+      @required this.interactionMode,
+      @required this.viewMode,
+      @required this.editMode,
+      @required this.toggleViewOptions,
+      @required this.sectionColor,
+      @required this.togglePlaying,
+      @required this.toggleSectionListDisplayMode,
+      @required this.setRenderingMode,
+      @required this.renderingMode,
+      @required this.showMidiInputSettings,
+      @required this.showBeatCounts,
+      @required this.toggleShowBeatCounts,
+      @required this.showScorePicker,
+      @required this.saveCurrentScore,
+      @required this.currentScoreName,
+      @required this.score,
+      @required this.pasteScore,
+      @required this.export,
+      @required this.scoreManager,
+      @required this.routeToCurrentScore,
+      @required this.vertical,
+      @required this.verticalSections,
+      @required this.openMelody,
+      @required this.prevMelody,
+      @required this.openPart,
+      @required this.prevPart,
+      @required this.isMelodyViewOpen,
+      @required this.currentSection,
+      @required this.leftHalfOnly,
+      @required this.rightHalfOnly})
       : super(key: key);
 
   @override
@@ -194,6 +199,15 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
     }
   }
 
+
+   _launchURL(String url) async {
+     if (await canLaunch(url)) {
+       await launch(url);
+     } else {
+       throw 'Could not launch $url';
+     }
+   }
+
   @override
   Widget build(BuildContext context) {
     if(widget.interactionMode == InteractionMode.view || widget.verticalSections) {
@@ -293,6 +307,14 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                 case "pasteScore":
                   widget.pasteScore();
                   break;
+                case "export":
+                  widget.export();
+                  break;
+                case "tutorial":
+                  break;
+                case "feedback":
+                  _launchURL("https://github.com/falrm/falrm.github.io/issues");
+                  break;
               }
               //setState(() {});
             },
@@ -367,6 +389,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                         ]),
                         enabled: BeatScratchPlugin.supportsStorage,
                       ),
+                      MyPopupMenuItem(
+                        value: "export",
+                        enabled: MyPlatform.isDebug,
+                        child: Row(children: [
+                          Expanded(child: Text('Export...')),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child:
+                          Icon(MyPlatform.isAppleOS ? CupertinoIcons.share_up : Icons.share))
+                        ]),
+                      ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
@@ -382,51 +414,37 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                       MyPopupMenuItem(
                         value: "midiSettings",
                         child: Row(children: [
-                          Expanded(child: Text('MIDI Settings...')),
+                          Expanded(child: Text('Settings...')),
                           Padding(
-                              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.settings))
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.settings))
                         ]),
                       ),
-                      // MyPopupMenuItem(
-                      //   value: "notationUi",
-                      //   child: Row(children: [
-                      //     Radio(
-                      //       value: RenderingMode.notation,
-                      //       onChanged: null,
-                      //       groupValue: widget.renderingMode,
-                      //     ),
-                      //     Expanded(child: Text('Notation UI')),
-                      //     Padding(
-                      //         padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                      //         child: Image.asset(
-                      //           'assets/notehead_filled.png',
-                      //           width: 20,
-                      //           height: 20,
-                      //         ))
-                      //   ]),
-                      // ),
-                      // MyPopupMenuItem(
-                      //   value: "colorblockUi",
-                      //   child: Row(children: [
-                      //     Radio(
-                      //       value: RenderingMode.colorblock,
-                      //       onChanged: null,
-                      //       groupValue: widget.renderingMode,
-                      //     ),
-                      //     Expanded(child: Text('Colorblock UI')),
-                      //     Padding(
-                      //         padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                      //         child: Image.asset(
-                      //           'assets/colorboard_vertical.png',
-                      //           width: 20,
-                      //           height: 20,
-                      //         ))
-                      //   ]),
-                      // ),
-//              const MyPopupMenuItem(
-//                value: "about",
-//                child: Text('About BeatScratch'),
-//              ),
+                      MyPopupMenuItem(
+                        value: "tutorial",
+                        enabled: false,
+                        child: Row(children: [
+                          Expanded(child: Text('Help/Tutorial')),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.help))
+                        ]),
+                      ),
+                      MyPopupMenuItem(
+                        value: "feedback",
+                        enabled: true,
+                        child: Row(children: [
+                          Expanded(child: Text('Feedback')),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                child: Stack(
+                                  children: [
+                                    Transform.translate(offset:Offset(-6,-6), child:Transform.scale(scale:0.8, child:Icon(FontAwesomeIcons.smile),),),
+                                    Transform.translate(offset:Offset(6,6), child:Transform.scale(scale:0.8, child:Icon(FontAwesomeIcons.sadTear)),),
+                                  ],
+                                )),
+                            Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(FontAwesomeIcons.github))
+                        ]),
+                      ),
                     ];
                   },
             padding: EdgeInsets.only(bottom: 10.0),

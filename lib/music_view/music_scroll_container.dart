@@ -140,7 +140,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   double get renderAreaHeight => widget.height - toolbarHeight;
 
-  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ? 30 : 0;
+  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score || xScale < 2 * MusicScrollContainer.minScale ?
+  30 : 0;
 
   double get overallCanvasHeight =>
       max(renderAreaHeight, widget.staves.length * MusicSystemPainter.staffHeight * yScale) + sectionsHeight;
@@ -197,7 +198,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     widget.scrollToCurrentBeat.addListener(scrollToCurrentBeat);
     widget.centerCurrentSection.addListener(_constrainToSectionBounds);
     // scrollToCurrentBeat
-    timeScrollController.addListener(_isScrollingListener);
+    timeScrollController.addListener(_timeScrollListener);
     verticalController.addListener(_verticalScrollListener);
     xScaleUpdateListener = _scaleUpdateListener(widget.notifyXScaleUpdate, (update) {
       widget.xScaleNotifier.value = update.newScale;
@@ -217,8 +218,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   static const int _autoScrollDelayDuration = 2500;
 
-  _isScrollingListener() {
+  _timeScrollListener() {
     _lastScrollEventSeen = DateTime.now();
+    double maxScrollExtent = max(10,overallCanvasWidth - 100);
+    if (timeScrollController.offset > maxScrollExtent) {
+      timeScrollController.jumpTo(maxScrollExtent);
+    }
     Future.delayed(Duration(milliseconds: _autoScrollDelayDuration + 50), () {
       if (_autoScrollDelayDuration <
               DateTime.now().millisecondsSinceEpoch - _lastScrollEventSeen.millisecondsSinceEpoch &&
@@ -233,6 +238,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   _verticalScrollListener() {
     widget.verticalScrollNotifier.value = verticalController.offset;
+    double maxScrollExtent = max(10,overallCanvasHeight - 100);
+    if (verticalController.offset > maxScrollExtent) {
+      verticalController.jumpTo(maxScrollExtent);
+    }
   }
 
   _onScrollStopped() {
@@ -267,7 +276,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     colorboardPart.dispose();
     focusedPart.dispose();
     sectionColor.dispose();
-    timeScrollController.removeListener(_isScrollingListener);
+    timeScrollController.removeListener(_timeScrollListener);
     verticalController.removeListener(_verticalScrollListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
     widget.scrollToPart.removeListener(scrollToPart);
@@ -565,7 +574,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     double colorGuideOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 0.5 : 0;
     double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
     double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
-    double sectionScaleValue = widget.musicViewMode == MusicViewMode.score ? 1 : 0;
+    double sectionScaleValue =  sectionsHeight != 0 ? 1 : 0;
     Animation animation1;
     animation1 =
         Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue).animate(animationController)

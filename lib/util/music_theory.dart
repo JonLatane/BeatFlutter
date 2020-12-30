@@ -323,7 +323,7 @@ extension MelodyTheory on Melody {
 
 extension SectionTheory on Section {
   String get idName => "Section ${id.substring(0, 5)}";
-  String get canonicalName => (name.isEmpty) ? name : idName;
+  String get canonicalName => (name.isNotEmpty) ? name : idName;
   double get realBeatCount => harmony.realBeatCount;
   int get beatCount => harmony.beatCount;
 

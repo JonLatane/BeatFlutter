@@ -10,9 +10,10 @@ class MusicActionButton extends StatelessWidget {
   final double width, height;
   final Widget child;
   final VoidCallback onPressed;
+  final Color color;
 
   MusicActionButton(
-    {Key key, this.visible = true, this.width = 48, this.height = 48, @required this.child, @required this.onPressed})
+    {Key key, this.visible = true, this.width = 48, this.height = 48, @required this.child, @required this.onPressed, this.color = Colors.black12})
     : super(key: key);
 
   @override
@@ -39,13 +40,13 @@ class MusicActionButton extends StatelessWidget {
               ignoring: !visible,
               child: AnimatedContainer(
                 duration: animationDuration,
-                color: Colors.black12,
+                color: color,
                 height: height,
                 width: width,
                 child: SizedBox())))),
         AnimatedContainer(
           duration: animationDuration,
-          color: Colors.black12,
+          color: color,
           height: height,
           width: width,
           child: onPressed == null ? child : MyFlatButton(onPressed: onPressed, padding: EdgeInsets.zero, child: child))

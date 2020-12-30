@@ -33,6 +33,7 @@ class IncrementableValue extends StatefulWidget {
   final VoidCallback onPointerUpCallback;
   final VoidCallback onPointerDownCallback;
   final bool musicActionButtonStyle;
+  final Color musicActionButtonColor;
 
   const IncrementableValue({
     Key key,
@@ -50,7 +51,7 @@ class IncrementableValue extends StatefulWidget {
     this.decrementIcon = Icons.keyboard_arrow_down_rounded,
     this.onPointerUpCallback,
     this.onPointerDownCallback,
-    this.musicActionButtonStyle = false,
+    this.musicActionButtonStyle = false, this.musicActionButtonColor,
   }) : super(key: key);
 
   @override
@@ -110,6 +111,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
         widget.musicActionButtonStyle
             ? MusicActionButton(
                 visible: true,
+                color: widget.musicActionButtonColor ?? Colors.black12,
                 onPressed: null,
                 width: widget.valueWidth + 2 * buttonWidth,
                 height: 48,

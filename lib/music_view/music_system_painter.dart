@@ -200,9 +200,7 @@ class MusicSystemPainter extends CustomPainter {
           }
 //        print("fontSize=$fontSize topOffset=$topOffset");
           TextSpan span = TextSpan(
-              text: renderingSection.name.isNotEmpty
-                  ? renderingSection.name
-                  : " Section ${renderingSection.id.substring(0, 5)}",
+              text: renderingSection.canonicalName,
               style: TextStyle(
                   fontFamily: "VulfSans",
                   fontSize: fontSize,

@@ -47,10 +47,11 @@ dependencies:
   path_provider: ^1.6.24
   shared_preferences: ^0.5.12+4
 #  file_picker: ^1.9.0
-#  file_picker_cross: ^2.0.0
+  file_picker_cross: ^4.2.6
 #  hive: ^1.4.1+1
   base_x: ^1.0.1
   archive: ^2.0.13
+  font_awesome_flutter: ^8.11.0
 
   #  reorderables: 0.2.12
 

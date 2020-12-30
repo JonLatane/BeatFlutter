@@ -128,7 +128,7 @@ class _ScorePickerState extends State<ScorePicker> {
       case ScorePickerMode.create:
         headerText = "Create Score";
         icon = Icons.add;
-        extraDetailText = "Create a Score with one Section at 123bpm in 4/4 time, a Piano Part and a Drum Part.";
+        extraDetailText = "Create a Score with one Section at 123bpm in 4/4 time, a Piano Part and a Drum Part. You can customize them in the Layers View.";
         break;
       case ScorePickerMode.duplicate:
         headerText = "Duplicate Score";
@@ -138,6 +138,8 @@ class _ScorePickerState extends State<ScorePicker> {
         if (openedScoreName != scoreManagerName) {
           extraDetailText =
               "The Score \"$openedScoreName\" has been opened with the name \"$scoreManagerName.\" To avoid data being overwritten, you should choose a new name and Duplicate it.";
+        } else {
+          extraDetailText = "Create a copy of the Score \"$openedScoreName\".";
         }
         break;
       default:
@@ -181,7 +183,8 @@ class _ScorePickerState extends State<ScorePicker> {
               ],
             ))),
         AnimatedContainer(
-          height: detailsTextInColumn && extraDetailText.isNotEmpty ? 48 : 0,
+          height: detailsTextInColumn && extraDetailText.isNotEmpty ?
+          extraDetailText.length < 64 ? 32 : 48 : 0,
           duration: animationDuration,
           child: AnimatedOpacity(
             duration: animationDuration,
@@ -193,8 +196,7 @@ class _ScorePickerState extends State<ScorePicker> {
                   children: [
                     SizedBox(width:5),
                     Expanded(
-                      child: Text(
-                        extraDetailText,
+                      child: Text(extraDetailText,
                         maxLines: 3,
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w200),
                       ),

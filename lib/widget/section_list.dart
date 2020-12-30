@@ -279,8 +279,7 @@ class _SectionState extends State<_Section> {
               Expanded(
                   child: Align(
                 alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
-                child: Text(
-                  hasName ? widget.section.name : "Section ${widget.section.id.substring(0, 5)}",
+                child: Text(widget.section.canonicalName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style:
