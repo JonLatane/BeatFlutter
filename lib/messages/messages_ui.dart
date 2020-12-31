@@ -3,6 +3,7 @@
 import 'package:beatscratch_flutter_redux/messages/bs_message.dart';
 import 'package:flutter/material.dart';
 
+import '../colors.dart';
 import '../ui_models.dart';
 import '../util/util.dart';
 
@@ -11,7 +12,13 @@ class MessagesUI {
   List<BSMessage> messages = [];
   double height(BuildContext context) => messages.length * _messageHeight(context);
 
-  sendMessage({@required icon, @required message, @required Function(VoidCallback) setState, timeout = const Duration(milliseconds: 1500),}) {
+  sendMessage({icon, @required message, @required Function(VoidCallback) setState, timeout = const Duration(milliseconds: 1500),
+  bool isError = false}) {
+    if (icon == null) {
+      icon = isError
+        ? Icon(Icons.warning, size: 18, color: chromaticSteps[7])
+        : Icon(Icons.info, size: 18, color: chromaticSteps[0]);
+    }
     final bsMessage = BSMessage(message: message, timeout: timeout, icon: icon);
     messages.add(bsMessage);
     Future.delayed(timeout, () {

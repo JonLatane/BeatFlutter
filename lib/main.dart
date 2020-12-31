@@ -714,6 +714,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    messagesUI = MessagesUI();
+    exportUI = ExportUI()..messagesUI = messagesUI;
     BeatScratchPlugin.setupWebStuff();
     showBeatCounts = false;
     score = widget.initialScore;
@@ -837,9 +839,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     loadingAnimationController = AnimationController(vsync: this);
 
-    exportUI = ExportUI();
-    messagesUI = MessagesUI();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(Duration(seconds: 10), () => MelodyMenuBrowser.loadScoreData());
     });
@@ -908,30 +907,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return false;
     }
   }
-
-  _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-//  final GoogleSignIn _googleSignIn = GoogleSignIn();
-//  final FirebaseAuth _auth = FirebaseAuth.instance;
-//  Future<FirebaseUser> _handleSignIn() async {
-//    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-//    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-//
-//    final AuthCredential credential = GoogleAuthProvider.getCredential(
-//      accessToken: googleAuth.accessToken,
-//      idToken: googleAuth.idToken,
-//    );
-//
-//    final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
-//    print("signed in " + user.displayName);
-//    return user;
-//  }
 
   @override
   Widget build(BuildContext context) {
@@ -1147,7 +1122,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         child: MyRaisedButton(
                             padding: _bannerPadding,
                             onPressed: () {
-                              _launchURL("https://beatscratch.io/privacy.html");
+                              launchURL("https://beatscratch.io/privacy.html");
                             },
                             child: Text("Privacy"))),
                     Padding(
@@ -1155,7 +1130,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         child: MyRaisedButton(
                             padding: _bannerPadding,
                             onPressed: () {
-                              _launchURL("https://beatscratch.io/usage.html");
+                              launchURL("https://beatscratch.io/usage.html");
                             },
                             child: Text("Docs"))),
                   ]))),
@@ -1187,7 +1162,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   MyFlatButton(
                       onPressed: () {
 //                _launchURL("https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
-                        _launchURL("https://play.google.com/apps/testing/io.beatscratch.beatscratch_flutter_redux");
+                        launchURL("https://play.google.com/apps/testing/io.beatscratch.beatscratch_flutter_redux");
                       },
                       padding: EdgeInsets.all(0),
                       child: Image.asset("assets/play_en_badge_web_generic.png")),
@@ -1195,7 +1170,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       offset: Offset(-5, 0),
                       child: MyFlatButton(
                           onPressed: () {
-                            _launchURL("https://testflight.apple.com/join/dXJr9JJs");
+                            launchURL("https://testflight.apple.com/join/dXJr9JJs");
                           },
                           padding: EdgeInsets.all(0),
                           child: Image.asset("assets/testflight-badge.png"))),
@@ -1206,7 +1181,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       child: MyFlatButton(
                           color: Colors.white,
                           onPressed: () {
-                            _launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+                            launchURL("https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
                           },
                           padding: EdgeInsets.all(0),
                           child: Stack(children: [
@@ -1227,7 +1202,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       child: MyRaisedButton(
                           padding: _bannerPadding,
                           onPressed: () {
-                            _launchURL("https://beatscratch.io/platforms.html");
+                            launchURL("https://beatscratch.io/platforms.html");
                           },
                           child: Text("Platform Feature Comparison"))),
                 ]))));

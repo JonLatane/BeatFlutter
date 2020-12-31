@@ -838,6 +838,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     return mainPart;
   }
 
+  selectBeat(int value) {
+    widget.selectBeat(value);
+    _updateFocusedBeatValue(value: value);
+  }
+
   Widget _mainMelody(BuildContext context) {
     List<MusicStaff> staves;
     Part mainPart = this.mainPart();
@@ -867,8 +872,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     } else {
       staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
     }
-    var width = MediaQuery.of(context).size.width / 2;
-    if (context.isPortrait && widget.splitMode == SplitMode.half) {
+    var width = MediaQuery.of(context).size.width;
+    if (context.isLandscape && widget.musicViewMode != MusicViewMode.score && widget.splitMode == SplitMode.half) {
       width = width / 2;
     }
 
@@ -892,8 +897,16 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             onTapDown: (details) {
               int beat = getBeat(details.localPosition);
               print("onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
-              if (details.localPosition.dx > width - 104 && details.localPosition.dy > widget.height - 52) {
+              if (details.localPosition.dx > width - 104 && details.localPosition.dy > widget.height - 104) {
                 return;
+              }
+              if (widget.showViewOptions) {
+                if (details.localPosition.dx > width - 52 && details.localPosition.dy > widget.height - 156) {
+                  return;
+                }
+                if (details.localPosition.dx > width - 156 && details.localPosition.dy > widget.height - 52) {
+                  return;
+                }
               }
 
               tappedBeat.value = beat;
@@ -946,32 +959,28 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   highlightedBeat.value = null;
                 });
               } else {
-                widget.selectBeat(beat);
+                selectBeat(beat);
               }
             },
             onLongPress: () {
               if (widget.score.parts.isEmpty || tappedPart.value == null || tappedBeat.value == null) return;
-              if (widget.musicViewMode == MusicViewMode.score) {
-                if (!BeatScratchPlugin.playing) {
-                  widget.selectBeat(tappedBeat.value);
-                }
-                widget.setKeyboardPart(tappedPart.value);
-                if (autoFocus) {
-                  print("scrollToPart");
-                  scrollToPart();
-                }
-                return;
-              }
               final part = tappedPart.value;
               if (part == null) return;
-              if (isPartOrMelodyView) {
-                widget.selectOrDeselectPart(part);
-              } else if (widget.musicViewMode == MusicViewMode.section) {
-                widget.selectOrDeselectPart(part);
+              if (widget.musicViewMode == MusicViewMode.score) {
+                widget.setKeyboardPart(part);
+              } else {
+                if (isPartOrMelodyView) {
+                  widget.selectOrDeselectPart(part);
+                } else if (widget.musicViewMode == MusicViewMode.section) {
+                  widget.selectOrDeselectPart(part);
+                }
               }
-              scrollToPart();
-              if (!BeatScratchPlugin.playing) {
-                widget.selectBeat(tappedBeat.value);
+              if (autoFocus) {
+                scrollToPart();
+              }
+              final beat = tappedBeat.value;
+              if (!BeatScratchPlugin.playing && beat != null) {
+                selectBeat(beat);
               }
             },
             onScaleStart: (details) => setState(() {
@@ -1298,7 +1307,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   _preButtonScale() {
     if (widget.musicViewMode != MusicViewMode.score) {
-      _updateFocusedBeatValue(value: BeatScratchPlugin.currentBeat.value);
+      _updateFocusedBeatValue(value: widget.score.firstBeatOfSection(widget.currentSection)
+        + BeatScratchPlugin.currentBeat.value);
     }
   }
 

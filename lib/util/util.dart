@@ -6,9 +6,19 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 var uuid = Uuid();
+
+
+launchURL(String url) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
 
 extension ContextUtils on BuildContext {
   bool get isTablet => MediaQuery.of(this).size.width > 500 && MediaQuery.of(this).size.height > 500;
@@ -179,4 +189,11 @@ extension FancyIterable on Iterable<int> {
   int get maximum => reduce(max);
 
   int get minimum => reduce(min);
+}
+
+extension ListDiff<T> on List<T> {
+  List<T> listDiff(List<T> l2) => (this.toSet()..addAll(l2))
+    .where((i) => !this.contains(i) || !l2.contains(i))
+    .toList();
+
 }

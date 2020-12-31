@@ -16,14 +16,20 @@ import 'package:http/http.dart' as http;
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
 import '../util/proto_utils.dart';
+import 'export_models.dart';
 import '../storage/url_conversions.dart';
 
 class ExportManager {
-  Directory _exportsDirectory;
+  Directory exportsDirectory;
+
+  File createExportFile(Score score, ExportType exportType) {
+    String path = "${exportsDirectory.path.toString()}/${Uri.encodeComponent(score.name)}-${DateTime.now().toString().replaceAll(" ", '-').replaceAll(":", '-').split(".").first}.${exportType.toString().split(".").last}";
+    return File(path);
+  }
 
   List<FileSystemEntity> get exportFiles {
-    if (_exportsDirectory != null) {
-      List<FileSystemEntity> result = _exportsDirectory?.listSync();
+    if (exportsDirectory != null) {
+      List<FileSystemEntity> result = exportsDirectory?.listSync();
       result.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       return result;
     }
@@ -37,8 +43,8 @@ class ExportManager {
   _initialize() async {
     if (!MyPlatform.isWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      _exportsDirectory = Directory("${documentsDirectory.path}/exports}");
-      _exportsDirectory.createSync();
+      exportsDirectory = Directory("${documentsDirectory.path}/exports");
+      exportsDirectory.createSync();
     }
   }
 }

@@ -201,6 +201,7 @@ class _ScorePickerState extends State<ScorePicker> {
                         style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w200),
                       ),
                     ),
+                    SizedBox(width:5),
                   ],
                 ),
                 Expanded(child:SizedBox()),

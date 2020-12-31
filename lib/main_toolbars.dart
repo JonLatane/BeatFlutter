@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/export/export.dart';
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -199,15 +200,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
     }
   }
 
-
-   _launchURL(String url) async {
-     if (await canLaunch(url)) {
-       await launch(url);
-     } else {
-       throw 'Could not launch $url';
-     }
-   }
-
   @override
   Widget build(BuildContext context) {
     if(widget.interactionMode == InteractionMode.view || widget.verticalSections) {
@@ -313,7 +305,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                 case "tutorial":
                   break;
                 case "feedback":
-                  _launchURL("https://github.com/falrm/falrm.github.io/issues");
+                  launchURL("https://github.com/falrm/falrm.github.io/issues");
                   break;
               }
               //setState(() {});
@@ -391,12 +383,12 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                       ),
                       MyPopupMenuItem(
                         value: "export",
-                        enabled: MyPlatform.isDebug,
+                        enabled: MyPlatform.isNative,
                         child: Row(children: [
                           Expanded(child: Text('Export...')),
                           Padding(
-                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child:
-                          Icon(MyPlatform.isAppleOS ? CupertinoIcons.share_up : Icons.share))
+                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                            child: ExportUI.exportIcon())
                         ]),
                       ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(

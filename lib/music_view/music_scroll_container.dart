@@ -144,7 +144,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   30 : 0;
 
   double get overallCanvasHeight =>
-      max(renderAreaHeight, widget.staves.length * MusicSystemPainter.staffHeight * yScale) + sectionsHeight;
+      (widget.staves.length * MusicSystemPainter.staffHeight * yScale) + sectionsHeight;
 
   double get maxCanvasHeight =>
       max(renderAreaHeight, widget.staves.length * MusicSystemPainter.staffHeight * MusicScrollContainer.maxScale) +
@@ -220,7 +220,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   _timeScrollListener() {
     _lastScrollEventSeen = DateTime.now();
-    double maxScrollExtent = max(10,overallCanvasWidth - 100);
+    double maxScrollExtent = widget.focusedBeat.value != null ? maxCanvasWidth : max(10, overallCanvasWidth - 200);
     if (timeScrollController.offset > maxScrollExtent) {
       timeScrollController.jumpTo(maxScrollExtent);
     }
@@ -238,7 +238,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   _verticalScrollListener() {
     widget.verticalScrollNotifier.value = verticalController.offset;
-    double maxScrollExtent = max(10,overallCanvasHeight - 100);
+    double maxScrollExtent = widget.focusedBeat.value != null ? maxCanvasHeight : max(10, overallCanvasHeight - 200);
     if (verticalController.offset > maxScrollExtent) {
       verticalController.jumpTo(maxScrollExtent);
     }
