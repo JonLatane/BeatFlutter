@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
+import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
 import 'package:share/share.dart';
 
@@ -12,6 +14,7 @@ import '../widget/my_buttons.dart';
 
 import '../colors.dart';
 import '../ui_models.dart';
+import '../util/music_theory.dart';
 import 'export_manager.dart';
 import 'export_models.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +22,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 
 class ExportUI {
-  static final double _baseHeight = 200;
+  static final double _baseHeight = 220;
   static final double _progressHeight = 30;
 
   static Widget exportIcon({double size = 24, Color color}) =>
@@ -41,7 +44,7 @@ class ExportUI {
 
   double get height => baseHeight + progressHeight;
 
-  Widget build({@required BuildContext context, @required Function(VoidCallback) setState}) {
+  Widget build({@required BuildContext context, @required Function(VoidCallback) setState, @required Section currentSection}) {
     return AnimatedContainer(
       duration: animationDuration,
       height: height,
@@ -92,14 +95,16 @@ class ExportUI {
                 Row(
                   children: [
                     Transform.translate(
-                        offset: Offset(1, 1.5), child: Icon(Icons.warning, size: 24, color: ChordColor.dominant.color)),
+                        offset: Offset(1, 1.5), child: Icon(Icons.info, size: 24, color: ChordColor.tonic.color)),
                     SizedBox(width: 5),
-                    Text("BETA", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500)),
-                    SizedBox(width: 5),
+                    Text("NOTE", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500)),
+                    SizedBox(width: 7),
                     Expanded(
                       child: Text(
-                          "MIDI Exports are currently not playable 😅 If you have a hex viewer handy and the experience to help me fix it, leave feedback!",
-                          style: TextStyle(fontSize: 8, color: Colors.white)),
+                          "BeatScratch MIDI Exports use 24-tick-per-beat timecoding. Many MIDI players, including "
+                            "Apple QuickTime-based players, cannot play this encoding. However, imports into software "
+                            "like Sibelius should work well!",
+                          style: TextStyle(fontSize: 9, color: Colors.white)),
                     ),
                     SizedBox(width: 5),
                   ],
@@ -107,7 +112,7 @@ class ExportUI {
                 SizedBox(height: 3),
                 Expanded(
                     child: Row(children: [
-                  Expanded(child: exportOptions(context: context, setState: setState)),
+                  Expanded(child: exportOptions(context: context, setState: setState, currentSection: currentSection)),
                   Container(
                       width: 44,
                       padding: EdgeInsets.zero,
@@ -147,9 +152,10 @@ class ExportUI {
                             Future.microtask(() {
                               File file;
                               try {
-                                File file = export(exportManager);
+                                file = export(exportManager);
                               } catch (e) {
                                 print(e);
+
                                 messagesUI.sendMessage(
                                     message: "MIDI Export failed!", isError: true, setState: setState);
                               }
@@ -159,9 +165,16 @@ class ExportUI {
                                 });
                                 if (MyPlatform.isMacOS) {
                                   messagesUI.sendMessage(
-                                      message: "Opening exports directory in Finder...", setState: setState);
+                                    message: "Opening exports directory in Finder...", setState: setState);
                                   Future.delayed(Duration(seconds: 1), () {
                                     launchURL("file://${exportManager.exportsDirectory.path}");
+                                    messagesUI.sendMessage(message: "Export complete!", setState: setState);
+                                  });
+                                } else if (MyPlatform.isIOS) {
+                                  messagesUI.sendMessage(
+                                    message: "Opening exports directory in Files...", setState: setState);
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    launchURL("shareddocuments://${exportManager.exportsDirectory.path}");
                                     messagesUI.sendMessage(message: "Export complete!", setState: setState);
                                   });
                                 } else if (MyPlatform.isMobile) {
@@ -185,10 +198,10 @@ class ExportUI {
   }
 
   static const TextStyle labelStyle = TextStyle(fontWeight: FontWeight.w200, color: Colors.white);
-  static const TextStyle valueStyle = TextStyle(fontWeight: FontWeight.w600, color: Colors.white);
+  static TextStyle valueStyle(Color color) => TextStyle(fontWeight: FontWeight.w600, color: color);
   static const EdgeInsets itemPadding = EdgeInsets.only(left: 5, top: 5, bottom: 5);
 
-  SingleChildScrollView exportOptions({@required BuildContext context, @required Function(VoidCallback) setState}) {
+  SingleChildScrollView exportOptions({@required BuildContext context, @required Function(VoidCallback) setState, @required Section currentSection}) {
     double width = MediaQuery.of(context).size.width;
     double scrollContainerWidth = width - 88;
     double exportTypeWidth = 100;
@@ -198,35 +211,77 @@ class ExportUI {
     double scrollContentsWidth = exportTypeWidth + sectionWidth + partsWidth + speedWidth;
     bool usesFlex = scrollContainerWidth > scrollContentsWidth;
 
-    Widget exportOption(String label, String value, double size, Color color) {
+    Widget exportOption(String label, String value, double size, Color color,
+      {List<String> values,List<String> disabledValues, Function(String) selectValue}) {
+      if (disabledValues == null) {
+        disabledValues = [];
+      }
+      if (values == null || values.isEmpty) {
+        values = [value];
+      }
+      if (!values.contains(value)) {
+        values = values + [value];
+      }
+
+      Widget column = Column(
+        children: [
+          // if (usesFlex) Expanded(child:SizedBox()),
+          ...values.map((v) {
+            final clickable = selectValue != null && !disabledValues.contains(v);
+            return MyFlatButton(
+              color: v == value ? Colors.white : Colors.black12,
+              padding: EdgeInsets.all(5),
+              onPressed: clickable ? () => selectValue(v) : null,
+              child: Text(v, textAlign: TextAlign.center, style:
+              valueStyle(!clickable ? Colors.grey : v == value ? Colors.black : Colors.white,)));
+          }).toList(),
+          // if (usesFlex) Expanded(child:SizedBox())
+        ]);
+      // if (!usesFlex) {
+        column = SingleChildScrollView(child: column);
+      // }
+
+      Widget tile = Container(
+        color: color,
+        child: Column(children: [
+          Text(label, style: labelStyle),
+          Expanded(child: Align(alignment: Alignment.center, child: column))
+        ]));
+
       if (usesFlex) {
         return Expanded(
             flex: size.toInt(),
-            child: Container(
-                color: color,
-                child: Column(children: [
-                  Text(label, style: labelStyle),
-                  Expanded(child: Align(alignment: Alignment.center, child: Text(value, style: valueStyle)))
-                ])));
+            child: tile);
       } else {
         return AnimatedContainer(
             duration: animationDuration,
             width: size,
             padding: itemPadding,
-            child: Container(
-                color: color,
-                child: Column(children: [
-                  Text(label, style: labelStyle),
-                  Expanded(child: Align(alignment: Alignment.center, child: Text(value, style: valueStyle)))
-                ])));
+            child: tile);
       }
     }
 
+    if (!export.score.sections.any((s) => s.id == export.sectionId)) {
+      export.sectionId = null;
+    }
+
     Widget row = Row(children: [
-      exportOption("Export Type", "MIDI", exportTypeWidth, chromaticSteps[1]),
-      exportOption("Speed", "1x", speedWidth, chromaticSteps[2]),
-      exportOption("Section", "Entire Score", sectionWidth, chromaticSteps[3]),
-      exportOption("Parts", "All", partsWidth, chromaticSteps[9]),
+      exportOption("Export Type", "MIDI", exportTypeWidth, chromaticSteps[1],
+        values: ["MIDI", "Audio"],
+        disabledValues: ["Audio"],
+        selectValue: (v) => setState(() { export.exportType = ExportType.midi; })),
+      exportOption("Speed", export.tempoMultiplier == 1.0 ? "1x" : "${export.tempoMultiplier.toStringAsFixed(3)}x", speedWidth, chromaticSteps[2],
+        values: [ "1x", "${(BeatScratchPlugin.bpmMultiplier ?? 1).toStringAsFixed(3)}x" ],
+        selectValue: (v) => setState(() {
+          export.tempoMultiplier = double.parse(v.replaceAll("x", ""));
+        })),
+      exportOption("Section", export.sectionId == null ? "Entire Score"
+        : export.score.sections.firstWhere((s) => s.id == export.sectionId)?.canonicalName ?? "NULL", sectionWidth, chromaticSteps[3],
+        values: [ "Entire Score", currentSection.canonicalName ],
+        selectValue: (v) => setState(() {
+          export.sectionId = (v=="Entire Score") ? null : currentSection.id;
+        })),
+      exportOption("Parts", "All Parts", partsWidth, chromaticSteps[9]),
       if (!usesFlex) SizedBox(width: 5),
     ]);
 

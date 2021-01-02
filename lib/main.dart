@@ -955,7 +955,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _webBanner(context),
                   _downloadBanner(context),
                   _scorePicker(context),
-                  exportUI.build(context: context, setState: setState),
+                  exportUI.build(context: context, setState: setState, currentSection: currentSection),
                   _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [_verticalSectionList(), Expanded(child: _layersAndMusicView(context))])),

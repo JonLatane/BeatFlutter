@@ -207,7 +207,7 @@ extension HarmonyTheory on Harmony {
 extension MelodyTheory on Melody {
   String get idName => "Melody ${id.substring(0, 5)}";
   String get canonicalName => name?.isNotEmpty == true ? name : idName;
-  int get beatCount => length ~/ subdivisionsPerBeat;
+  int get beatCount => (length / subdivisionsPerBeat).floor();
   double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
   Iterable<int> get tones => (type == MelodyType.midi)
     ? midiData.data.values.expand((it) => it.noteOns.map((e) => e.noteNumber - 60))

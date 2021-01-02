@@ -16,15 +16,23 @@ import 'package:http/http.dart' as http;
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
 import '../util/proto_utils.dart';
+import '../util/music_theory.dart';
 import 'export_models.dart';
 import '../storage/url_conversions.dart';
 
 class ExportManager {
   Directory exportsDirectory;
 
-  File createExportFile(Score score, ExportType exportType) {
-    String path = "${exportsDirectory.path.toString()}/${Uri.encodeComponent(score.name)}-${DateTime.now().toString().replaceAll(" ", '-').replaceAll(":", '-').split(".").first}.${exportType.toString().split(".").last}";
-    return File(path);
+  File createExportFile(BSExport export) {
+    String path = "${exportsDirectory.path.toString()}/${Uri.encodeComponent(export.score.name)}";
+    if (export.exportedSection != null) {
+      path += "-${Uri.encodeComponent(export.exportedSection.canonicalName)}";
+    }
+    path +="-${DateTime.now().toString().replaceAll(" ", '-').replaceAll(":", '-').split(".").first}";
+    path += ".${export.exportType.toString().split(".").last}";
+    File result =  File(path);
+    result.createSync();
+    return result;
   }
 
   List<FileSystemEntity> get exportFiles {
@@ -43,7 +51,7 @@ class ExportManager {
   _initialize() async {
     if (!MyPlatform.isWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      exportsDirectory = Directory("${documentsDirectory.path}/exports");
+      exportsDirectory = Directory("${documentsDirectory.path}/Exports");
       exportsDirectory.createSync();
     }
   }

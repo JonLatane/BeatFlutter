@@ -234,14 +234,14 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   static const focusTimeout = 2500;
 
-  _updateFocusedBeatValue({int value, bool withDelayClear = true}) {
+  _updateFocusedBeatValue({int value, bool withDelayClear = true, bool force = false}) {
     if (value == null) {
       value = getBeat(
         Offset(
           melodyRendererVisibleRect.width / (context.isLandscape && widget.splitMode == SplitMode.half ? 4 : 2), 0),
         targeted: false);
     }
-    if (focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+    if (force || focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
       focusedBeat.value = value;
 
       focusedBeatUpdated = DateTime.now();
@@ -840,7 +840,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   selectBeat(int value) {
     widget.selectBeat(value);
-    _updateFocusedBeatValue(value: value);
+    _updateFocusedBeatValue(value: value, force: true);
   }
 
   Widget _mainMelody(BuildContext context) {
