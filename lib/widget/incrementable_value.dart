@@ -132,10 +132,10 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     opacity: showButtons ? 1 : 0,
                     child: Icon(widget.decrementIcon),
                   ),
-                  onPressed: () {
+                  onPressed: widget.onDecrement != null ? () {
                     lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
                     widget.onDecrement();
-                  },
+                  } : null,
                   padding: EdgeInsets.all(0),
                 )),
             widget.child ??
@@ -158,10 +158,10 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     opacity: showButtons ? 1 : 0,
                     child: Icon(widget.incrementIcon),
                   ),
-                  onPressed: () {
+                  onPressed: widget.onIncrement != null ? () {
                     lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
                     widget.onIncrement();
-                  },
+                  } : null,
                   padding: EdgeInsets.all(0),
                 )),
           ]),

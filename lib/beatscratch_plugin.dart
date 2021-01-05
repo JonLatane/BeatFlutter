@@ -297,10 +297,10 @@ class BeatScratchPlugin {
   static void _pushScore(Score score, String remoteMethod, {bool includeParts = true, includeSections = true}) async {
 //    print("invoking $remoteMethod");
     if(!includeParts) {
-      score = score.deepRebuild((it) { it.parts.clear(); });
+      score = score.bsRebuild((it) { it.parts.clear(); });
     }
     if(!includeSections) {
-      score = score.deepRebuild((it) { it.sections.clear(); });
+      score = score.bsRebuild((it) { it.sections.clear(); });
     }
 //    print("invoking $remoteMethod");
     if(kIsWeb) {
@@ -331,7 +331,7 @@ class BeatScratchPlugin {
   /// Pushes or updates the [Part].
   static void _pushPart(Part part, String methodName, {bool includeMelodies = false}) async {
     if(!includeMelodies) {
-      part = part.deepRebuild((it) { it.melodies.clear(); });
+      part = part.bsRebuild((it) { it.melodies.clear(); });
     }
 
     if(kIsWeb) {

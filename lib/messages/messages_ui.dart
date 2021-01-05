@@ -8,16 +8,19 @@ import '../ui_models.dart';
 import '../util/util.dart';
 
 class MessagesUI {
+  MessagesUI(this.setState);
+
   static double _messageHeight(BuildContext context) => context.isLandscapePhone ? 25 : 30;
   List<BSMessage> messages = [];
   double height(BuildContext context) => messages.length * _messageHeight(context);
+  final Function(VoidCallback) setState;
 
-  sendMessage({icon, @required message, @required Function(VoidCallback) setState, timeout = const Duration(milliseconds: 1500),
+  sendMessage({@required message, icon, color, timeout = const Duration(milliseconds: 1500),
   bool isError = false}) {
     if (icon == null) {
       icon = isError
-        ? Icon(Icons.warning, size: 18, color: chromaticSteps[7])
-        : Icon(Icons.info, size: 18, color: chromaticSteps[0]);
+        ? Icon(Icons.warning, size: 18, color: color ?? chromaticSteps[7])
+        : Icon(Icons.info, size: 18, color: color ?? chromaticSteps[0]);
     }
     final bsMessage = BSMessage(message: message, timeout: timeout, icon: icon);
     messages.add(bsMessage);
@@ -25,13 +28,13 @@ class MessagesUI {
       setState((){
         bsMessage.visible = false;
         Future.delayed(animationDuration, () {
-          removeMessage(bsMessage, icon: icon, message: message, setState: setState);
+          removeMessage(bsMessage, icon: icon, message: message);
         });
       });
     });
   }
 
-  removeMessage(BSMessage bsMessage, {@required icon, @required message, @required Function(VoidCallback) setState, timeout = const Duration(milliseconds: 500),}) {
+  removeMessage(BSMessage bsMessage, {@required icon, @required message, timeout = const Duration(milliseconds: 500),}) {
     setState((){
       bsMessage.visible = false;
     });
@@ -42,11 +45,11 @@ class MessagesUI {
     });
   }
 
-  Widget build({@required BuildContext context, @required Function(VoidCallback) setState}) {
-    return Column(children: messages.map((m) => buildMessage(m, context: context, setState: setState)).toList(growable: false));
+  Widget build({@required BuildContext context}) {
+    return Column(children: messages.map((m) => buildMessage(m, context: context)).toList(growable: false));
   }
 
-  Widget buildMessage(BSMessage message, {@required BuildContext context, @required Function(VoidCallback) setState}) {
+  Widget buildMessage(BSMessage message, {@required BuildContext context,}) {
     return AnimatedContainer(
       duration: animationDuration,
       height: message.visible ? _messageHeight(context) : 0,

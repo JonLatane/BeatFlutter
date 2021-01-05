@@ -328,6 +328,7 @@ class _LayersViewState extends State<LayersView> {
 //        );
 //      },
       ),
+      zoomButtonColor: widget.keyboardPart.isDrum ? Colors.brown : Colors.grey,
       onScaleDown: (columnWidth > minColumnWidth)
         ? () {
         setState(() {
@@ -709,7 +710,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
               pinned: false,
               expandedHeight: 50.0,
               flexibleSpace: MelodyMenuBrowser(part: part, currentSection: currentSection, textColor: textColor,
-                onMelodySelected: (melody) => createMelody(melody.deepRebuild((it) { it.id = uuid.v4(); })),
+                onMelodySelected: (melody) => createMelody(melody.bsRebuild((it) { it.id = uuid.v4(); })),
               ),
             ),
             if (part.instrument.type == selectedMelody?.instrumentType)
@@ -810,7 +811,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
   
   createMelody(Melody newMelody) {
-    newMelody = newMelody.deepRebuild((it) { it.id = uuid.v4(); });
+    newMelody = newMelody.bsRebuild((it) { it.id = uuid.v4(); });
     _lastAddedMelody = newMelody;
     setState(() {
       int index = part.melodies.length;

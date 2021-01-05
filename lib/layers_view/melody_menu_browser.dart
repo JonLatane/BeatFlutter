@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:beatscratch_flutter_redux/util/util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import '../widget/my_popup_menu.dart';
 import '../widget/my_popup_menu.dart' as myPopup;
 import '../widget/beats_badge.dart';
 
+import '../util/proto_utils.dart';
 class MelodyMenuBrowser extends StatefulWidget {
   final Part part;
   final Section currentSection;
@@ -59,14 +61,14 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
   Part selectedPart;
   BSNotifier updatedMenu;
   String selectedSamples;
-  Iterable<String> get sampleLists => (widget.part.isDrum ? _sampleDrumMelodies : _sampleMelodies)
+  Iterable<String> get sampleLists => (widget.part?.isDrum ==true ? _sampleDrumMelodies : _sampleMelodies)
     .keys;
   List<Melody> get samples =>
-    (widget.part.isDrum ? _sampleDrumMelodies[selectedSamples] : _sampleMelodies[selectedSamples])
+    (widget.part?.isDrum == true ? _sampleDrumMelodies[selectedSamples] : _sampleMelodies[selectedSamples])
       ?? [];
 
   List<Melody> findDuplicatedMelodies(List<Melody> input) =>
-    input.where((it) => widget.part.melodies.any((m) => m.name == it.name)).toList();
+    input.where((it) => widget.part?.melodies?.any((m) => m.name == it.name) ?? false).toList();
 
   List<myPopup.PopupMenuEntry<String>> menuEntriesByDuplicateStatus(List<Melody> input, {bool isSample = false}) {
     if (input.isEmpty) {
@@ -96,6 +98,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
     return new MyPopupMenuButton(
       // color: widget.instrumentType.isDrum ? Colors.brown : Colors.grey,
       padding: EdgeInsets.zero,
+      tooltip: "Import Melody | ${widget.part?.midiName}",
       child: widget.child ?? Column(children: [Expanded(
         child: Row(children: [
           SizedBox(width: 15),
@@ -153,7 +156,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                 selectedSamples = value.replaceAll("samples-", "");
               } else {
                 selectedScore = _scoreDataCache.firstWhere((s) => s.id == value);
-                if (widget.part.isDrum) {
+                if (widget.part?.isDrum == true) {
                   selectedPart = selectedScore.parts.firstWhere((p) => p.isDrum, orElse: null);
                 }
               }
@@ -161,14 +164,14 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             } else if (selectedSamples != null) {
               if (value.startsWith("sample-")) {
                 final melody = samples.firstWhere((m) => "sample-${m.id}" == value);
-                widget.onMelodySelected(melody);
+                widget.onMelodySelected(melody.bsRebuild((m) { m.id = uuid.v4(); }));
               } // else - ???
             } else if (selectedPart == null) {
               selectedPart = selectedScore.parts.firstWhere((p) => p.id == value);
               updatedMenu();
             } else {
               final melody = selectedPart.melodies.firstWhere((m) => m.id == value);
-              widget.onMelodySelected(melody);
+              widget.onMelodySelected(melody.bsRebuild((m) { m.id = uuid.v4(); }));
             }
         }
 
@@ -200,8 +203,8 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
 
   TextStyle instrumentStyle(Part part, {bool header = false}) {
     return TextStyle(fontWeight: FontWeight.w800,
-      color: part.instrument.type == InstrumentType.drum ? Colors.brown.withOpacity(widget.part.isDrum ? 1 : 0.5)
-        : widget.part.isDrum || header ? Colors.grey : Colors.black,);
+      color: part?.instrument?.type == InstrumentType.drum ? Colors.brown.withOpacity(widget.part?.isDrum == true ? 1 : 0.5)
+        : widget.part?.isDrum == true || header ? Colors.grey : Colors.black,);
   }
 
   MyPopupMenuItem<String> partMenuItem(Part part) {
@@ -212,7 +215,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
         Text(part.midiName, style: instrumentStyle(part))),
         Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.chevron_right))
       ]),
-      enabled: part.instrument.type == widget.part.instrument.type,
+      enabled: part?.instrument?.type == widget.part?.instrument?.type,
     );
   }
 
@@ -227,7 +230,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             Expanded(child: Opacity(opacity: isDuplicate? 0.5 : 1, child: Text(melody.name))),
             SizedBox(width: 5),
             Padding(padding: EdgeInsets.symmetric(vertical: 2), child: Icon(Icons.add)),
-            if (!isDuplicate && widget.part.instrument.type == melody.instrumentType) SizedBox(width: 5),
+            if (!isDuplicate && widget.part?.instrument?.type == melody.instrumentType) SizedBox(width: 5),
             if (isDuplicate) Transform.scale(
               scale: 0.8,
               child: Container(
@@ -251,7 +254,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                   SizedBox(width: 5)
               ])),
             ),
-            if (widget.part.instrument.type != melody.instrumentType) Transform.scale(
+            if (widget.part?.instrument?.type != melody.instrumentType) Transform.scale(
               scale: 0.8,
               child: Container(
                 decoration: BoxDecoration(color: Color(0xFF212121), borderRadius: BorderRadius.circular(5)),
@@ -278,7 +281,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
               Opacity(opacity: isDuplicate? 0.5 : 1, child: MelodyPreview(section: widget.currentSection, part: widget.part, melody: melody,)),
         ],
       ),
-      enabled: melody.instrumentType == widget.part.instrument.type,
+      enabled: melody.instrumentType == widget.part?.instrument?.type,
     );
   }
 
@@ -303,7 +306,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
     return _splitListHeader(
       Text("Import\nMelody", textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
         style: TextStyle(fontSize: 10)/*style: instrumentStyle(part, header: true)*/),
-      Text(widget.part.midiName, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+      Text(widget.part?.midiName ?? "", textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
         style: instrumentStyle(widget.part, header: true)),
     );
   }

@@ -54,7 +54,14 @@ class ScoreManager {
     _prefs = await SharedPreferences.getInstance();
     if (!MyPlatform.isWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      _scoresDirectory = Directory("${documentsDirectory.path}/scores}");
+      final scoresPath = "${documentsDirectory.path}/Scores";
+
+      Directory _oldScoresDirectory = Directory("${documentsDirectory.path}/scores}");
+      if (_oldScoresDirectory.existsSync()) {
+        _oldScoresDirectory.renameSync(scoresPath);
+      }
+
+      _scoresDirectory = Directory(scoresPath);
       _scoresDirectory.createSync();
       loadCurrentScoreIntoUI();
     }

@@ -22,8 +22,9 @@ class ScalableView extends StatefulWidget {
   final bool visible;
   final Color primaryColor;
   final bool showViewOptions;
+  final Color zoomButtonColor;
 
-  const ScalableView({Key key, this.onScaleDown, this.onScaleUp, this.child, this.zoomLevelDescription, this.autoScroll, this.toggleAutoScroll, this.scrollToCurrent, this.visible = true, this.primaryColor = Colors.white, this.showViewOptions = true, this.onMicroScaleDown, this.onMicroScaleUp}) : super(key: key);
+  const ScalableView({Key key, this.onScaleDown, this.onScaleUp, this.child, this.zoomLevelDescription, this.autoScroll, this.toggleAutoScroll, this.scrollToCurrent, this.visible = true, this.primaryColor = Colors.white, this.showViewOptions = true, this.onMicroScaleDown, this.onMicroScaleUp, this.zoomButtonColor = Colors.black26}) : super(key: key);
 
   @override
   _ScalableViewState createState() => _ScalableViewState();
@@ -40,42 +41,39 @@ class _ScalableViewState extends State<ScalableView> {
           widget.child,
           Row(children:[
             Expanded(child: SizedBox()),
-            if (widget.autoScroll != null && widget.toggleAutoScroll != null)Column(children: [
-              Expanded(child: SizedBox()),
-                MusicActionButton(
-                  visible: widget.visible && widget.showViewOptions,
-                  onPressed: widget.toggleAutoScroll,
-                  child: Stack(children: [
-                    Transform.translate(
-                        offset: Offset(0, -6),
-                        child: Text("Auto",
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            style:
-                                TextStyle(fontSize: 10, color: widget.autoScroll ? widget.primaryColor : Colors.grey))),
-                    Transform.translate(
-                      offset: Offset(0, 6),
-                      child: AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: !widget.autoScroll ? 1 : 0,
-                        child: Icon(Icons.location_disabled, color: Colors.grey),
-                      ),
-                    ),
-                    Transform.translate(
-                      offset: Offset(0, 6),
-                      child: AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: widget.autoScroll ? 1 : 0,
-                        child: Icon(Icons.my_location, color: widget.primaryColor),
-                      ),
-                    ),
-                  ]),
-                ),
-                SizedBox(height: 2),
-            ]),
             SizedBox(width: 2),
             Column(children: [
               Expanded(child:SizedBox()),
+              if (widget.autoScroll != null && widget.toggleAutoScroll != null) MusicActionButton(
+                visible: widget.visible && widget.showViewOptions,
+                onPressed: widget.toggleAutoScroll,
+                child: Stack(children: [
+                  Transform.translate(
+                    offset: Offset(0, -6),
+                    child: Text("Auto",
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      style:
+                      TextStyle(fontSize: 10, color: widget.autoScroll ? widget.primaryColor : Colors.grey))),
+                  Transform.translate(
+                    offset: Offset(0, 6),
+                    child: AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: !widget.autoScroll ? 1 : 0,
+                      child: Icon(Icons.location_disabled, color: Colors.grey),
+                    ),
+                  ),
+                  Transform.translate(
+                    offset: Offset(0, 6),
+                    child: AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: widget.autoScroll ? 1 : 0,
+                      child: Icon(Icons.my_location, color: widget.primaryColor),
+                    ),
+                  ),
+                ]),
+              ),
+              SizedBox(height: 2),
               Container(color: Colors.black12, padding:EdgeInsets.all(0),
                 child:
                 IncrementableValue(child:
@@ -100,6 +98,7 @@ class _ScalableViewState extends State<ScalableView> {
                   valueWidth:48,
                   collapsing: true,
                   musicActionButtonStyle: true,
+                  musicActionButtonColor: widget.zoomButtonColor.withOpacity(0.26),
                   incrementIcon: Icons.zoom_in,
                   decrementIcon: Icons.zoom_out,
                   onIncrement: widget.onScaleUp,

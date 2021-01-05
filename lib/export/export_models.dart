@@ -16,9 +16,9 @@ class BSExport {
   double tempoMultiplier;
   ExportType exportType;
   String sectionId;
-  List<String> partIds;
+  final List<String> partIds = [];
 
-  BSExport({this.score, this.exportType = ExportType.midi, this.tempoMultiplier = 1, this.sectionId, this.partIds});
+  BSExport({this.score, this.exportType = ExportType.midi, this.tempoMultiplier = 1, this.sectionId});
 
   File call(ExportManager exportManager) {
     final midiFile = score.exportMidi(this);
@@ -27,7 +27,7 @@ class BSExport {
     return fileHandle;
   }
 
-  Section get exportedSection => score.sections.firstWhere((s) => s.id == sectionId, orElse: null);
+  Section get exportedSection => score.sections.isEmpty ? null : score.sections.firstWhere((s) => s.id == sectionId, orElse: () => null);
 
   bool includesSection(Section section) =>
     sectionId == null || sectionId == section.id;

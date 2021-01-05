@@ -223,15 +223,15 @@ Score defaultScore() => Score()
 
 
 Score melodyPreview(Melody melody, Part part, Section section) {
-  melody = melody.deepRebuild((it) {
+  melody = melody.bsRebuild((it) {
     it.id = uuid.v4();
   });
-  part = part.deepRebuild((it) {
+  part = part.bsRebuild((it) {
     it.id = uuid.v4();
     it.melodies.clear();
     it.melodies.add(melody);
   });
-  section = section.deepRebuild((it) {
+  section = section.bsRebuild((it) {
     it.id = uuid.v4();
     it.melodies.clear();
     it.melodies.add(MelodyReference()

@@ -13,7 +13,7 @@ class MusicActionButton extends StatelessWidget {
   final Color color;
 
   MusicActionButton(
-    {Key key, this.visible = true, this.width = 48, this.height = 48, @required this.child, @required this.onPressed, this.color = Colors.black12})
+    {Key key, this.visible = true, this.width = 48, this.height = 48, @required this.child, @required this.onPressed, this.color = Colors.black26})
     : super(key: key);
 
   @override

@@ -18,6 +18,7 @@ import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
 import 'colors.dart';
 import 'generated/protos/music.pb.dart';
+import 'messages/messages_ui.dart';
 import 'widget/my_buttons.dart';
 import 'widget/my_platform.dart';
 import 'widget/my_popup_menu.dart';
@@ -58,6 +59,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final bool isMelodyViewOpen;
   final bool leftHalfOnly;
   final bool rightHalfOnly;
+  final MessagesUI messagesUI;
 
   const BeatScratchToolbar(
       {Key key,
@@ -90,7 +92,7 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.isMelodyViewOpen,
       @required this.currentSection,
       @required this.leftHalfOnly,
-      @required this.rightHalfOnly})
+      @required this.rightHalfOnly, this.messagesUI})
       : super(key: key);
 
   @override
@@ -289,6 +291,11 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar> with TickerProv
                   Future.microtask(() async {
                     widget.score.name = widget.scoreManager.currentScoreName;
                     final urlString = (await widget.score.convertToShortUrl()) ?? widget.score.convertToUrl();
+                    if (!urlString.contains("#/s/")) {
+                      widget.messagesUI.sendMessage(
+                        message: "Failed to shorten URL via https://paste.ee! Copied long-form Score Link.", isError: true,
+                          color: chromaticSteps[5]);
+                    }
                     String pastebinCode = urlString.split('/').last;
                     Clipboard.setData(ClipboardData(text: urlString));
                     if (MyPlatform.isWeb) {

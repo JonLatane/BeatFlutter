@@ -1403,9 +1403,21 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     yScale = scale;
   }
 
-  double get alignedScale => min(maxScale, max(minScale, alignedStaffHeight / MusicSystemPainter.staffHeight));
+  double get alignedScale {
+    final result = min(maxScale, max(minScale, alignedStaffHeight / MusicSystemPainter.staffHeight));
+    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale){
+      return min(maxScale, max(minScale, result * 0.93));
+    }
+    return result;
+  }
 
-  double get partAlignedScale => min(maxScale, max(minScale, partAlignedStaffHeight / MusicSystemPainter.staffHeight));
+  double get partAlignedScale  {
+    final result = min(maxScale, max(minScale, partAlignedStaffHeight / MusicSystemPainter.staffHeight));
+    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale){
+      return min(maxScale, max(minScale, result * 0.93));
+    }
+    return result;
+  }
 
   // double get toolbarHeight => widget.musicViewMode == MusicViewMode.score ||widget.musicViewMode == MusicViewMode.none
   double get removedHeight => context.isLandscapePhone

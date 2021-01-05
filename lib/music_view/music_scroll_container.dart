@@ -21,7 +21,7 @@ class ScaleUpdate {
 }
 
 class MusicScrollContainer extends StatefulWidget {
-  static const double minScale = 0.1;
+  static const double minScale = 0.09;
   static const double maxScale = 1.0;
 
   final MusicViewMode musicViewMode;
@@ -220,9 +220,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   _timeScrollListener() {
     _lastScrollEventSeen = DateTime.now();
-    double maxScrollExtent = widget.focusedBeat.value != null ? maxCanvasWidth : max(10, overallCanvasWidth - 200);
+    double maxScrollExtent = widget.focusedBeat.value != null
+      ? maxCanvasWidth : max(10, overallCanvasWidth - 200);
     if (timeScrollController.offset > maxScrollExtent) {
-      timeScrollController.jumpTo(maxScrollExtent);
+      if (timeScrollController.offset > maxScrollExtent + 50) {
+        timeScrollController.animateTo(maxScrollExtent, duration: animationDuration, curve: Curves.ease);
+      } else {
+        timeScrollController.jumpTo(maxScrollExtent);
+      }
     }
     Future.delayed(Duration(milliseconds: _autoScrollDelayDuration + 50), () {
       if (_autoScrollDelayDuration <
@@ -240,7 +245,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     widget.verticalScrollNotifier.value = verticalController.offset;
     double maxScrollExtent = widget.focusedBeat.value != null ? maxCanvasHeight : max(10, overallCanvasHeight - 200);
     if (verticalController.offset > maxScrollExtent) {
-      verticalController.jumpTo(maxScrollExtent);
+      if (timeScrollController.offset > maxScrollExtent + 50) {
+        verticalController.animateTo(maxScrollExtent, duration: animationDuration, curve: Curves.ease);
+      } else {
+        verticalController.jumpTo(maxScrollExtent);
+      }
     }
   }
 

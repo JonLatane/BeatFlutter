@@ -680,8 +680,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 30;
 
   set pasteFailed(bool value) {
-    messagesUI.sendMessage(
-        icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]), message: "Paste Failed!", setState: setState);
+    messagesUI.sendMessage(message: "Paste Failed!", isError: true);
   }
 
   double get _tapInBarHeight => showTapInBar && !_bottomTapInBar
@@ -714,7 +713,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    messagesUI = MessagesUI();
+    messagesUI = MessagesUI(setState);
     exportUI = ExportUI()..messagesUI = messagesUI;
     BeatScratchPlugin.setupWebStuff();
     showBeatCounts = false;
@@ -739,10 +738,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     };
     if (widget.pastebinCode != null) {
       _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
-        messagesUI.sendMessage(
-            icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
-            message: "Failed to load URL!",
-            setState: setState);
+        messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
       });
     } else if (MyPlatform.isWeb) {
       BeatScratchPlugin.createScore(score);
@@ -780,19 +776,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }, onFail: () {
           failed = true;
           setState(() {
-            messagesUI.sendMessage(
-                icon: Icon(Icons.warning, size: 18, color: chromaticSteps[7]),
-                message: "Failed to open Score Link!",
-                setState: setState);
+            messagesUI.sendMessage(message: "Failed to open Score Link!", isError: true);
           });
         });
 
         Future.delayed(slowAnimationDuration, () {
           if (!failed) {
-            messagesUI.sendMessage(
-                icon: Icon(Icons.info, size: 18, color: chromaticSteps[0]),
-                message: "Opened linked score!",
-                setState: setState);
+            messagesUI.sendMessage(message: "Opened linked score!",);
           }
         });
       });
@@ -965,7 +955,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   // if (_portraitPhoneUI) _tempoConfigurationBar(context),
                   _midiSettings(context),
                   // _pasteFailedBar(context),
-                  messagesUI.build(context: context, setState: setState),
+                  messagesUI.build(context: context),
                   _savingScoreBar(context),
                   _audioSystemWorkingBar(context),
                   _colorboard(context),
@@ -1512,6 +1502,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           {bool vertical = false, bool leftHalfOnly = false, bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
         score: score,
+        messagesUI: messagesUI,
         currentSection: currentSection,
         scoreManager: _scoreManager,
         currentScoreName: MyPlatform.isWeb ? score.name : _scoreManager.currentScoreName,
@@ -1590,11 +1581,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             setState(() {
               scorePickerMode = ScorePickerMode.duplicate;
               showScorePicker = true;
-
-              messagesUI.sendMessage(
-                  icon: Icon(Icons.info, size: 18, color: chromaticSteps[0]),
-                  message: "Pasted ${score.name}!",
-                  setState: setState);
+              messagesUI.sendMessage(message: "Pasted ${score.name}!",);
               _viewMode();
             });
           });

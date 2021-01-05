@@ -440,7 +440,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
   }
 
   List<NoteSpecification> getPlaybackNotes(List<int> tones, Chord chord) {
-    var computationChord = chord;
+    Chord computationChord = chord;
     if(computationChord.chroma == 2047 && true) {
       int newChroma = 0;
       newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, tones);
@@ -470,7 +470,7 @@ class NotationMelodyRenderer extends BaseMelodyRenderer {
         }
         newChroma = _addTonesToChroma(newChroma, computationChord.rootNote.tone, otherTones);
       });
-      computationChord = computationChord.deepRebuild((Chord it) { it.chroma = newChroma; });
+      computationChord = computationChord.bsRebuild((Chord it) { it.chroma = newChroma; });
     }
     return _getPlaybackNotes(tones, computationChord);
   }
