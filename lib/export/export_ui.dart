@@ -19,7 +19,6 @@ import '../util/music_theory.dart';
 import 'export_manager.dart';
 import 'export_models.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 
 class ExportUI {
@@ -27,15 +26,17 @@ class ExportUI {
   static final double _progressHeight = 30;
 
   static Widget exportIcon({double size = 24, Color color}) =>
-    Transform.translate(offset: Offset(size * 2 / 24, 0),
-      child: Icon(MyPlatform.isAppleOS ? CupertinoIcons.share : Icons.share,
-        size : MyPlatform.isAppleOS ? size * 1.2 : size, color: color),
-    );
+      Transform.translate(
+        offset: Offset(size * 2 / 24, 0),
+        child: Icon(MyPlatform.isAppleOS ? CupertinoIcons.share : Icons.share,
+            size: MyPlatform.isAppleOS ? size * 1.2 : size, color: color),
+      );
 
   bool visible = false;
   bool exporting = false;
   final BSExport export = BSExport(score: defaultScore());
-  FilePickerCross midiFile = FilePickerCross(Uint8List(0), fileExtension: 'midi');
+  FilePickerCross midiFile =
+      FilePickerCross(Uint8List(0), fileExtension: 'midi');
   ExportManager exportManager = ExportManager();
   MessagesUI messagesUI;
 
@@ -45,7 +46,10 @@ class ExportUI {
 
   double get height => baseHeight + progressHeight;
 
-  Widget build({@required BuildContext context, @required Function(VoidCallback) setState, @required Section currentSection}) {
+  Widget build(
+      {@required BuildContext context,
+      @required Function(VoidCallback) setState,
+      @required Section currentSection}) {
     return AnimatedContainer(
       duration: animationDuration,
       height: height,
@@ -77,18 +81,25 @@ class ExportUI {
                           offset: Offset(1, 1.5),
                           child: exportIcon(size: 30, color: Colors.white)),
                       SizedBox(width: 5),
-            Transform.translate(offset: Offset(0,3),
-              child: Text("Export", style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w700))),
+                      Transform.translate(
+                          offset: Offset(0, 3),
+                          child: Text("Export",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700))),
                       SizedBox(width: 5),
                       Expanded(
                           child: Row(
                         children: [
                           Expanded(child: SizedBox()),
-                          Transform.translate(offset: Offset(0,3),
+                          Transform.translate(
+                            offset: Offset(0, 3),
                             child: Text(export?.score?.name ?? "null",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 12, color: Colors.white)),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white)),
                           ),
                           Expanded(child: SizedBox()),
                         ],
@@ -99,15 +110,21 @@ class ExportUI {
                   Row(
                     children: [
                       Transform.translate(
-                          offset: Offset(1, 1.5), child: Icon(Icons.info, size: 24, color: ChordColor.tonic.color)),
+                          offset: Offset(1, 1.5),
+                          child: Icon(Icons.info,
+                              size: 24, color: ChordColor.tonic.color)),
                       SizedBox(width: 5),
-                      Text("NOTE", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500)),
+                      Text("NOTE",
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500)),
                       SizedBox(width: 7),
                       Expanded(
                         child: Text(
                             "BeatScratch MIDI Exports use 24-tick-per-beat timecoding. Many MIDI players, including "
-                              "Apple QuickTime-based players, cannot play this encoding. However, imports into software "
-                              "like Sibelius should work well!",
+                            "Apple QuickTime-based players, cannot play this encoding. However, imports into software "
+                            "like Sibelius should work well!",
                             style: TextStyle(fontSize: 9, color: Colors.white)),
                       ),
                       SizedBox(width: 5),
@@ -116,7 +133,11 @@ class ExportUI {
                   SizedBox(height: 3),
                   Expanded(
                       child: Row(children: [
-                    Expanded(child: exportOptions(context: context, setState: setState, currentSection: currentSection)),
+                    Expanded(
+                        child: exportOptions(
+                            context: context,
+                            setState: setState,
+                            currentSection: currentSection)),
                     Container(
                         width: 44,
                         padding: EdgeInsets.zero,
@@ -127,7 +148,9 @@ class ExportUI {
                             child: Column(children: [
                               Expanded(child: SizedBox()),
                               Icon(Icons.cancel_outlined, color: Colors.white),
-                              Text("CANCEL", style: TextStyle(color: Colors.white, fontSize: 10)),
+                              Text("CANCEL",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 10)),
                               Expanded(child: SizedBox()),
                             ]),
                             padding: EdgeInsets.all(2),
@@ -146,7 +169,9 @@ class ExportUI {
                             child: Column(children: [
                               Expanded(child: SizedBox()),
                               Icon(Icons.arrow_forward, color: Colors.white),
-                              Text("EXPORT", style: TextStyle(color: Colors.white, fontSize: 10)),
+                              Text("EXPORT",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 10)),
                               Expanded(child: SizedBox()),
                             ]),
                             padding: EdgeInsets.all(2),
@@ -164,7 +189,8 @@ class ExportUI {
                                   }
 
                                   messagesUI.sendMessage(
-                                      message: "MIDI Export failed!", isError: true);
+                                      message: "MIDI Export failed!",
+                                      isError: true);
                                 }
                                 Future.delayed(Duration(seconds: 2), () {
                                   setState(() {
@@ -172,23 +198,32 @@ class ExportUI {
                                   });
                                   if (MyPlatform.isMacOS) {
                                     messagesUI.sendMessage(
-                                      message: "Opening exports directory in Finder...");
+                                        message:
+                                            "Opening exports directory in Finder...");
                                     Future.delayed(Duration(seconds: 1), () {
-                                      launchURL("file://${exportManager.exportsDirectory.path}");
-                                      messagesUI.sendMessage(message: "Export complete!");
+                                      launchURL(
+                                          "file://${exportManager.exportsDirectory.path}");
+                                      messagesUI.sendMessage(
+                                          message: "Export complete!");
                                     });
                                   } else if (MyPlatform.isIOS) {
                                     messagesUI.sendMessage(
-                                      message: "Opening exports directory in Files...");
+                                        message:
+                                            "Opening exports directory in Files...");
                                     Future.delayed(Duration(seconds: 1), () {
-                                      launchURL("shareddocuments://${exportManager.exportsDirectory.path}");
-                                      messagesUI.sendMessage(message: "Export complete!");
+                                      launchURL(
+                                          "shareddocuments://${exportManager.exportsDirectory.path}");
+                                      messagesUI.sendMessage(
+                                          message: "Export complete!");
                                     });
                                   } else if (MyPlatform.isMobile) {
-                                    messagesUI.sendMessage(message: "Sharing MIDI file...");
+                                    messagesUI.sendMessage(
+                                        message: "Sharing MIDI file...");
                                     Future.delayed(Duration(seconds: 1), () {
-                                      Share.shareFiles([file.path], text: export.score.name);
-                                      messagesUI.sendMessage(message: "Export complete!");
+                                      Share.shareFiles([file.path],
+                                          text: export.score.name);
+                                      messagesUI.sendMessage(
+                                          message: "Export complete!");
                                     });
                                   }
                                 });
@@ -205,22 +240,32 @@ class ExportUI {
     );
   }
 
-  static const TextStyle labelStyle = TextStyle(fontWeight: FontWeight.w200, color: Colors.white);
-  static TextStyle valueStyle(Color color) => TextStyle(fontWeight: FontWeight.w600, color: color);
-  static const EdgeInsets itemPadding = EdgeInsets.only(left: 5, top: 5, bottom: 5);
+  static const TextStyle labelStyle =
+      TextStyle(fontWeight: FontWeight.w200, color: Colors.white);
+  static TextStyle valueStyle(Color color) =>
+      TextStyle(fontWeight: FontWeight.w600, color: color);
+  static const EdgeInsets itemPadding =
+      EdgeInsets.only(left: 5, top: 5, bottom: 5);
 
-  SingleChildScrollView exportOptions({@required BuildContext context, @required Function(VoidCallback) setState, @required Section currentSection}) {
+  SingleChildScrollView exportOptions(
+      {@required BuildContext context,
+      @required Function(VoidCallback) setState,
+      @required Section currentSection}) {
     double width = MediaQuery.of(context).size.width;
     double scrollContainerWidth = width - 88;
     double exportTypeWidth = 100;
     double speedWidth = 100;
     double sectionWidth = 100;
     double partsWidth = 230;
-    double scrollContentsWidth = exportTypeWidth + sectionWidth + partsWidth + speedWidth;
+    double scrollContentsWidth =
+        exportTypeWidth + sectionWidth + partsWidth + speedWidth;
     bool usesFlex = scrollContainerWidth > scrollContentsWidth;
 
     Widget exportOption(String label, String value, double size, Color color,
-      {List<String> values,List<String> disabledValues, Widget customValue, Function(String) selectValue}) {
+        {List<String> values,
+        List<String> disabledValues,
+        Widget customValue,
+        Function(String) selectValue}) {
       if (disabledValues == null) {
         disabledValues = [];
       }
@@ -232,36 +277,40 @@ class ExportUI {
       }
       values = values.toSet().toList();
 
-      Widget column = Column(
-        children: [
-          // if (usesFlex) Expanded(child:SizedBox()),
-          ...values.map((v) {
-            final clickable = selectValue != null && !disabledValues.contains(v);
-            return MyFlatButton(
+      Widget column = Column(children: [
+        // if (usesFlex) Expanded(child:SizedBox()),
+        ...values.map((v) {
+          final clickable = selectValue != null && !disabledValues.contains(v);
+          return MyFlatButton(
               color: v == value ? Colors.white : Colors.black12,
               padding: EdgeInsets.all(5),
               onPressed: clickable ? () => selectValue(v) : null,
-              child: Text(v, textAlign: TextAlign.center, style:
-              valueStyle(!clickable ? Colors.grey : v == value ? Colors.black : Colors.white,)));
-          }).toList(),
-          if (customValue != null) customValue,
-          // if (usesFlex) Expanded(child:SizedBox())
-        ]);
+              child: Text(v,
+                  textAlign: TextAlign.center,
+                  style: valueStyle(
+                    !clickable
+                        ? Colors.grey
+                        : v == value
+                            ? Colors.black
+                            : Colors.white,
+                  )));
+        }).toList(),
+        if (customValue != null) customValue,
+        // if (usesFlex) Expanded(child:SizedBox())
+      ]);
       // if (!usesFlex) {
-        column = SingleChildScrollView(child: column);
+      column = SingleChildScrollView(child: column);
       // }
 
       Widget tile = Container(
-        color: color,
-        child: Column(children: [
-          Text(label, style: labelStyle),
-          Expanded(child: Align(alignment: Alignment.center, child: column))
-        ]));
+          color: color,
+          child: Column(children: [
+            Text(label, style: labelStyle),
+            Expanded(child: Align(alignment: Alignment.center, child: column))
+          ]));
 
       if (usesFlex) {
-        return Expanded(
-            flex: size.toInt(),
-            child: tile);
+        return Expanded(flex: size.toInt(), child: tile);
       } else {
         return AnimatedContainer(
             duration: animationDuration,
@@ -271,67 +320,111 @@ class ExportUI {
       }
     }
 
-    if (export.score == null || !export.score.sections.any((s) => s.id == export.sectionId)) {
+    if (export.score == null ||
+        !export.score.sections.any((s) => s.id == export.sectionId)) {
       export.sectionId = null;
     }
-    export.partIds.removeWhere((partId) => !export.score.parts.any((p) => partId == p.id));
+    export.partIds.removeWhere(
+        (partId) => !export.score.parts.any((p) => partId == p.id));
     if (export.partIds.length == export.score.parts.length) {
       export.partIds.clear();
     }
 
     Widget row = Row(children: [
       exportOption("Export Type", "MIDI", exportTypeWidth, chromaticSteps[1],
-        values: ["MIDI", "MusicXML", "Audio"],
-        disabledValues: ["MusicXML", "Audio"],
-        selectValue: (v) => setState(() { export.exportType = ExportType.midi; })),
-      exportOption("Speed", export.tempoMultiplier == 1.0 ? "1x" : "${export.tempoMultiplier.toStringAsFixed(3).replaceAll("1.000", "1")}x", speedWidth, chromaticSteps[2],
-        values: [ "1x", "${(BeatScratchPlugin.bpmMultiplier ?? 1).toStringAsFixed(3).replaceAll("1.000", "1")}x" ],
-        selectValue: (v) => setState(() {
-          export.tempoMultiplier = double.parse(v.replaceAll("x", ""));
-        })),
-      exportOption("Section", export.sectionId == null ? "Entire Score"
-        : export.score.sections.firstWhere((s) => s.id == export.sectionId)?.canonicalName ?? "NULL", sectionWidth, chromaticSteps[3],
-        values: [ "Entire Score", currentSection.canonicalName ],
-        selectValue: (v) => setState(() {
-          export.sectionId = (v=="Entire Score") ? null : currentSection.id;
-        })),
-      exportOption("Parts", export.partIds.isEmpty ? "All Parts" : null, partsWidth, chromaticSteps[9], values: ["All Parts"],
-        selectValue: (v) => setState(() {
-          if (v == "All Parts") export.partIds.clear();
-        }),
-      customValue: Container(height:90, child: Row(children: export.score.parts.map((p) => Expanded(child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 2),
-        child: MyFlatButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            setState(() {
-              if (!export.partIds.remove(p.id)) {
-                export.partIds.add(p.id);
-              }
-            });
-          },
-          child:Row(
-            children: [
-              Expanded(
-                child: AnimatedContainer(
-                  duration:animationDuration,
-                  color: (p.isDrum ? Colors.brown : Colors.grey).withOpacity(export.partIds.contains(p.id) ? 1 : 0.5),
-                  child: RotatedBox(quarterTurns: 3, child: Row(
-                    children: [
-                      SizedBox(width:3),
-                      Expanded(
-                        child: Text(p.midiName, maxLines: 2, overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                      ),
-                      SizedBox(width:3),
-                    ],
-                  ),),
-                ),
-              ),
-            ],
-          )
-        ),
-      ))).toList()))),
+          values: ["MIDI", "MusicXML", "Audio"],
+          disabledValues: ["MusicXML", "Audio"],
+          selectValue: (v) => setState(() {
+                export.exportType = ExportType.midi;
+              })),
+      exportOption(
+          "Speed",
+          export.tempoMultiplier == 1.0
+              ? "1x"
+              : "${export.tempoMultiplier.toStringAsFixed(3).replaceAll("1.000", "1")}x",
+          speedWidth,
+          chromaticSteps[2],
+          values: [
+            "1x",
+            "${(BeatScratchPlugin.bpmMultiplier ?? 1).toStringAsFixed(3).replaceAll("1.000", "1")}x"
+          ],
+          selectValue: (v) => setState(() {
+                export.tempoMultiplier = double.parse(v.replaceAll("x", ""));
+              })),
+      exportOption(
+          "Section",
+          export.sectionId == null
+              ? "Entire Score"
+              : export.score.sections
+                      .firstWhere((s) => s.id == export.sectionId)
+                      ?.canonicalName ??
+                  "NULL",
+          sectionWidth,
+          chromaticSteps[3],
+          values: ["Entire Score", currentSection.canonicalName],
+          selectValue: (v) => setState(() {
+                export.sectionId =
+                    (v == "Entire Score") ? null : currentSection.id;
+              })),
+      exportOption("Parts", export.partIds.isEmpty ? "All Parts" : null,
+          partsWidth, chromaticSteps[9],
+          values: ["All Parts"],
+          selectValue: (v) => setState(() {
+                if (v == "All Parts") export.partIds.clear();
+              }),
+          customValue: Container(
+              height: 90,
+              child: Row(
+                  children: export.score.parts
+                      .map((p) => Expanded(
+                              child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 2),
+                            child: MyFlatButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  setState(() {
+                                    if (!export.partIds.remove(p.id)) {
+                                      export.partIds.add(p.id);
+                                    }
+                                  });
+                                },
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: AnimatedContainer(
+                                        duration: animationDuration,
+                                        color: (p.isDrum
+                                                ? Colors.brown
+                                                : Colors.grey)
+                                            .withOpacity(
+                                                export.partIds.contains(p.id)
+                                                    ? 1
+                                                    : 0.5),
+                                        child: RotatedBox(
+                                          quarterTurns: 3,
+                                          child: Row(
+                                            children: [
+                                              SizedBox(width: 3),
+                                              Expanded(
+                                                child: Text(p.midiName,
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w800)),
+                                              ),
+                                              SizedBox(width: 3),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )),
+                          )))
+                      .toList()))),
       if (!usesFlex) SizedBox(width: 5),
     ]);
 
@@ -341,10 +434,13 @@ class ExportUI {
 
     return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: AnimatedContainer(duration: animationDuration, height: baseHeight, child: row));
+        child: AnimatedContainer(
+            duration: animationDuration, height: baseHeight, child: row));
   }
 
-  chooseExportFile({@required BuildContext context, @required Function(VoidCallback) setState}) async {
+  chooseExportFile(
+      {@required BuildContext context,
+      @required Function(VoidCallback) setState}) async {
     // String exportPath = await midiFile.exportToStorage();
 // show a dialog to open a file
     midiFile = await FilePickerCross.importFromStorage(

@@ -1,8 +1,8 @@
-import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'base_music_renderer.dart';
+import '../../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
-class MelodyColorGuide extends BaseMelodyRenderer {
+class MelodyColorGuide extends BaseMusicRenderer {
   @override bool showSteps = true;
   @override double normalizedDevicePitch = 0;
 

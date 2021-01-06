@@ -41,7 +41,8 @@ class Keyboard extends StatefulWidget {
       this.pressedNotesNotifier,
       this.width,
       this.leftMargin,
-      this.distanceFromBottom, this.closeKeyboard})
+      this.distanceFromBottom,
+      this.closeKeyboard})
       : super(key: key);
 
   @override
@@ -58,12 +59,15 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   double get _maxHalfStepWidthBasedOnScreenSize => widget.width / 5;
 
-  double get minHalfStepWidthInPx => max(_minHalfStepWidthInPx, _minHalfStepWidthBasedOnScreenSize);
+  double get minHalfStepWidthInPx =>
+      max(_minHalfStepWidthInPx, _minHalfStepWidthBasedOnScreenSize);
 
-  double get maxHalfStepWidthInPx => min(_maxHalfStepWidthInPx, _maxHalfStepWidthBasedOnScreenSize);
+  double get maxHalfStepWidthInPx =>
+      min(_maxHalfStepWidthInPx, _maxHalfStepWidthBasedOnScreenSize);
 
   bool useOrientation = false;
-  List<StreamSubscription<dynamic>> _streamSubscriptions = <StreamSubscription<dynamic>>[];
+  List<StreamSubscription<dynamic>> _streamSubscriptions =
+      <StreamSubscription<dynamic>>[];
   ValueNotifier<double> scrollPositionNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
@@ -72,7 +76,8 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   List<AnimationController> _scaleAnimationControllers = [];
 
-  AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 250));
+  AnimationController animationController() =>
+      AnimationController(vsync: this, duration: Duration(milliseconds: 250));
   double _halfStepWidthInPx = 35;
 
   double get halfStepWidthInPx => _halfStepWidthInPx;
@@ -86,12 +91,13 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     AnimationController scaleAnimationController = animationController();
     _scaleAnimationControllers.add(scaleAnimationController);
     Animation animation;
-    animation = Tween<double>(begin: _halfStepWidthInPx, end: value).animate(scaleAnimationController)
-      ..addListener(() {
-        setState(() {
-          _halfStepWidthInPx = animation.value;
-        });
-      });
+    animation = Tween<double>(begin: _halfStepWidthInPx, end: value)
+        .animate(scaleAnimationController)
+          ..addListener(() {
+            setState(() {
+              _halfStepWidthInPx = animation.value;
+            });
+          });
     scaleAnimationController.forward();
   }
 
@@ -105,17 +111,21 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   int get keysOnScreen => highestPitch - lowestPitch + 1;
 
-  double get touchScrollAreaHeight => (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
+  double get touchScrollAreaHeight =>
+      (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
 
   Map<int, int> _pointerIdsToTones = Map();
   double _startHalfStepWidthInPx;
 
-
   @override
   void initState() {
     super.initState();
-    orientationAnimationController = AnimationController(vsync: this, duration: Duration(milliseconds: 100));
-    blurAnimationController = AnimationController(vsync: this, duration: animationDuration,);
+    orientationAnimationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 100));
+    blurAnimationController = AnimationController(
+      vsync: this,
+      duration: animationDuration,
+    );
     blurAnimation = Tween<double>(
       begin: 0,
       end: 5,
@@ -133,7 +143,8 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 if (absoluteScrollPosition < 0) {
                   absoluteScrollPosition = -absoluteScrollPosition;
                 }
-                normalizedPitch = max(0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
+                normalizedPitch = max(
+                    0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
                 break;
               case ScrollingMode.roll:
 //              var maxRoll = -1.45; // All the way to the right
@@ -145,15 +156,19 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
             }
 
             double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
-            if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
+            if (newScrollPositionValue.isFinite &&
+                !newScrollPositionValue.isNaN) {
               Animation animation;
-              animation = Tween<double>(begin: scrollPositionNotifier.value, end: newScrollPositionValue)
+              animation = Tween<double>(
+                      begin: scrollPositionNotifier.value,
+                      end: newScrollPositionValue)
                   .animate(orientationAnimationController)
                     ..addListener(() {
                       scrollPositionNotifier.value = animation.value;
 //                setState(() {});
                     });
-              orientationAnimationController.forward(from: scrollPositionNotifier.value);
+              orientationAnimationController.forward(
+                  from: scrollPositionNotifier.value);
 //            scrollPositionNotifier.value = newScrollPositionValue;
             }
           }
@@ -165,7 +180,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      blurAnimation.addListener(() => setState((){}));
+      blurAnimation.addListener(() => setState(() {}));
       // blurAnimationController.addListener(() => setState((){}));
     });
   }
@@ -193,15 +208,17 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     if (halfStepWidthInPx < minNewValue) {
       halfStepWidthInPx = max(minNewValue, halfStepWidthInPx);
     }
-    if (previousScrollingMode != ScrollingMode.sideScroll && scrollingMode == ScrollingMode.sideScroll) {
+    if (previousScrollingMode != ScrollingMode.sideScroll &&
+        scrollingMode == ScrollingMode.sideScroll) {
       showScrollHint = true;
       Future.delayed(Duration(seconds: 25), () {
         showScrollHint = false;
       });
-    } else if (previousScrollingMode == ScrollingMode.sideScroll && scrollingMode != ScrollingMode.sideScroll) {
+    } else if (previousScrollingMode == ScrollingMode.sideScroll &&
+        scrollingMode != ScrollingMode.sideScroll) {
       showScrollHint = false;
     }
-    if(widget.showConfiguration) {
+    if (widget.showConfiguration) {
       blurAnimationController.forward();
     } else {
       blurAnimationController.reverse();
@@ -209,60 +226,73 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     previousScrollingMode = scrollingMode;
     double sensitivity = 7;
     return Stack(children: [
-      CustomScrollView(key: Key("keyboard-$physicalWidth"), scrollDirection: Axis.horizontal, slivers: [
-        CustomSliverToBoxAdapter(
-          setVisibleRect: (rect) {
-            _visibleRect = rect;
-            _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right, rect.bottom - touchScrollAreaHeight);
-            double newScrollPositionValue = rect.left / (physicalWidth - rect.width);
-            if (newScrollPositionValue.isFinite && !newScrollPositionValue.isNaN) {
-              scrollPositionNotifier.value = max(0.0, min(1.0, newScrollPositionValue));
+      CustomScrollView(
+          key: Key("keyboard-$physicalWidth"),
+          scrollDirection: Axis.horizontal,
+          slivers: [
+            CustomSliverToBoxAdapter(
+              setVisibleRect: (rect) {
+                _visibleRect = rect;
+                _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right,
+                    rect.bottom - touchScrollAreaHeight);
+                double newScrollPositionValue =
+                    rect.left / (physicalWidth - rect.width);
+                if (newScrollPositionValue.isFinite &&
+                    !newScrollPositionValue.isNaN) {
+                  scrollPositionNotifier.value =
+                      max(0.0, min(1.0, newScrollPositionValue));
 //                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
-            }
-          },
-          child: Column(children: [
-            GestureDetector(
-                onScaleStart: (details) => setState(() {
-                      _startHalfStepWidthInPx = halfStepWidthInPx;
-                    }),
-                onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
-                      if (details.scale > 0) {
-                        halfStepWidthInPx = max(
-                            minHalfStepWidthInPx, min(maxHalfStepWidthInPx, _startHalfStepWidthInPx * details.scale));
-                      }
-                    }),
-              onVerticalDragUpdate: (details) {
-                if (details.delta.dy > sensitivity) {
-                  // Down swipe
-                  print("Downswipe! details=$details");
-                  widget.closeKeyboard();
-                } else if (details.delta.dy < -sensitivity) {
-                  // Up swipe
                 }
               },
-                child: AnimatedContainer(
-                    duration: animationDuration,
-                    height: touchScrollAreaHeight,
-                    width: physicalWidth,
-                    color: widget.sectionColor,
-                    child: Align(
-                        alignment: Alignment.center,
-                        child: Container(height: 5, width: physicalWidth, color: Colors.black54)))),
-            CustomPaint(
-              size: Size(physicalWidth.floor().toDouble(), widget.height - touchScrollAreaHeight),
-              isComplex: true,
-              willChange: true,
-              painter: _KeyboardPainter(
-                  highestPitch: highestPitch,
-                  lowestPitch: lowestPitch,
-                  pressedNotesNotifier: widget.pressedNotesNotifier,
-                  scrollPositionNotifier: scrollPositionNotifier,
-                  halfStepsOnScreen: halfStepsOnScreen,
-                  visibleRect: () => _visibleRect),
-            ),
+              child: Column(children: [
+                GestureDetector(
+                    onScaleStart: (details) => setState(() {
+                          _startHalfStepWidthInPx = halfStepWidthInPx;
+                        }),
+                    onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
+                          if (details.scale > 0) {
+                            halfStepWidthInPx = max(
+                                minHalfStepWidthInPx,
+                                min(maxHalfStepWidthInPx,
+                                    _startHalfStepWidthInPx * details.scale));
+                          }
+                        }),
+                    onVerticalDragUpdate: (details) {
+                      if (details.delta.dy > sensitivity) {
+                        // Down swipe
+                        print("Downswipe! details=$details");
+                        widget.closeKeyboard();
+                      } else if (details.delta.dy < -sensitivity) {
+                        // Up swipe
+                      }
+                    },
+                    child: AnimatedContainer(
+                        duration: animationDuration,
+                        height: touchScrollAreaHeight,
+                        width: physicalWidth,
+                        color: widget.sectionColor,
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: Container(
+                                height: 5,
+                                width: physicalWidth,
+                                color: Colors.black54)))),
+                CustomPaint(
+                  size: Size(physicalWidth.floor().toDouble(),
+                      widget.height - touchScrollAreaHeight),
+                  isComplex: true,
+                  willChange: true,
+                  painter: _KeyboardPainter(
+                      highestPitch: highestPitch,
+                      lowestPitch: lowestPitch,
+                      pressedNotesNotifier: widget.pressedNotesNotifier,
+                      scrollPositionNotifier: scrollPositionNotifier,
+                      halfStepsOnScreen: halfStepsOnScreen,
+                      visibleRect: () => _visibleRect),
+                ),
+              ]),
+            )
           ]),
-        )
-      ]),
 //      Touch-handling area with the Listener
       Column(children: [
         IgnorePointer(
@@ -289,7 +319,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         Expanded(
                             child: Text("Scroll | Swipe ⬇️ to Close",
                                 textAlign: TextAlign.center,
-                                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11))),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11))),
                         // Expanded(child: SizedBox()),
                         Icon(Icons.arrow_right),
                       ]),
@@ -299,248 +331,288 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
         ),
         Expanded(
             child: Listener(
-                child: Container(color: Colors.black12),
-                onPointerDown: (event) {
-                  double left = scrollPositionNotifier.value * (physicalWidth - _visibleRect.width) + event.position.dx;
-                  left -= widget.leftMargin;
-                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
-                  double maxDy = widget.height - touchScrollAreaHeight;
-                  int tone;
-                  if (dy > maxDy / 2) {
-                    // Black key area press
-                    tone = (left / halfStepWidthInPx).floor() + lowestPitch;
-                  } else {
-                    // White key area press
-                    tone = diatonicTone(left);
-                  }
-                  try {
-                    BeatScratchPlugin.playNote(tone, 127, widget.part);
-                  } catch (t) {}
-                  _pointerIdsToTones[event.pointer] = tone;
-                  print("pressed tone $tone");
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
-                },
-                onPointerMove: (event) {
-                  double left = _visibleRect.left + event.position.dx;
-                  left -= widget.leftMargin;
-                  double dy = MediaQuery.of(context).size.height - event.position.dy - widget.distanceFromBottom;
-                  double maxDy = widget.height - touchScrollAreaHeight;
-                  int oldTone = _pointerIdsToTones[event.pointer];
-                  int tone;
-                  if (dy > maxDy / 2) {
-                    // Black key area press
-                    tone = (left / halfStepWidthInPx).floor() + lowestPitch;
-                  } else {
-                    // White key area press
-                    tone = diatonicTone(left);
-                  }
-                  if (tone != oldTone) {
-                    print("moving tone $oldTone to $tone");
-                    try {
-                      BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
-                      _pointerIdsToTones[event.pointer] = tone;
-                      widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-                      BeatScratchPlugin.playNote(tone, 127, widget.part);
-                    } catch (t) {
-                      print(t);
-                    }
-                  }
-                },
-                onPointerUp: (event) {
-                  int tone = _pointerIdsToTones.remove(event.pointer);
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-                  try {
-                    BeatScratchPlugin.stopNote(tone, 127, widget.part);
-                  } catch (t) {}
-                },
-                onPointerCancel: (event) {
-                  int tone = _pointerIdsToTones.remove(event.pointer);
-                  widget.pressedNotesNotifier.value = _pointerIdsToTones.values.toSet();
-                  try {
-                    BeatScratchPlugin.stopNote(tone, 127, widget.part);
-                  } catch (t) {}
-                },))
+          child: Container(color: Colors.black12),
+          onPointerDown: (event) {
+            double left = scrollPositionNotifier.value *
+                    (physicalWidth - _visibleRect.width) +
+                event.position.dx;
+            left -= widget.leftMargin;
+            double dy = MediaQuery.of(context).size.height -
+                event.position.dy -
+                widget.distanceFromBottom;
+            double maxDy = widget.height - touchScrollAreaHeight;
+            int tone;
+            if (dy > maxDy / 2) {
+              // Black key area press
+              tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+            } else {
+              // White key area press
+              tone = diatonicTone(left);
+            }
+            try {
+              BeatScratchPlugin.playNote(tone, 127, widget.part);
+            } catch (t) {}
+            _pointerIdsToTones[event.pointer] = tone;
+            print("pressed tone $tone");
+            widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
+          },
+          onPointerMove: (event) {
+            double left = _visibleRect.left + event.position.dx;
+            left -= widget.leftMargin;
+            double dy = MediaQuery.of(context).size.height -
+                event.position.dy -
+                widget.distanceFromBottom;
+            double maxDy = widget.height - touchScrollAreaHeight;
+            int oldTone = _pointerIdsToTones[event.pointer];
+            int tone;
+            if (dy > maxDy / 2) {
+              // Black key area press
+              tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+            } else {
+              // White key area press
+              tone = diatonicTone(left);
+            }
+            if (tone != oldTone) {
+              print("moving tone $oldTone to $tone");
+              try {
+                BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
+                _pointerIdsToTones[event.pointer] = tone;
+                widget.pressedNotesNotifier.value =
+                    _pointerIdsToTones.values.toSet();
+                BeatScratchPlugin.playNote(tone, 127, widget.part);
+              } catch (t) {
+                print(t);
+              }
+            }
+          },
+          onPointerUp: (event) {
+            int tone = _pointerIdsToTones.remove(event.pointer);
+            widget.pressedNotesNotifier.value =
+                _pointerIdsToTones.values.toSet();
+            try {
+              BeatScratchPlugin.stopNote(tone, 127, widget.part);
+            } catch (t) {}
+          },
+          onPointerCancel: (event) {
+            int tone = _pointerIdsToTones.remove(event.pointer);
+            widget.pressedNotesNotifier.value =
+                _pointerIdsToTones.values.toSet();
+            try {
+              BeatScratchPlugin.stopNote(tone, 127, widget.part);
+            } catch (t) {}
+          },
+        ))
       ]),
 //    Configuration layer
-    Positioned(
-    top: touchScrollAreaHeight,
-    left: 0.1,
-    width: widget.width,
-    height: widget.height,
-    child: ClipRect(
-      child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: blurAnimation.value, sigmaY: blurAnimation.value),
-      child: Column(children: [
-          IgnorePointer(
-            child: AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight,
-              child: SizedBox(width: widget.width)),
-          ),
-          AnimatedContainer(
-              duration: animationDuration,
-              height: max(0, widget.height - touchScrollAreaHeight),
-              color: Colors.transparent,
-              child: widget.showConfiguration
-                  ? Row(children: [
-                      Expanded(
-                          flex: 3,
-                          child: Column(children: [
-                            Expanded(child: SizedBox())])),
-                    ])
-                  : SizedBox())
-        ])),
-    )),
+      Positioned(
+          top: touchScrollAreaHeight,
+          left: 0.1,
+          width: widget.width,
+          height: widget.height,
+          child: ClipRect(
+            child: BackdropFilter(
+                filter: ImageFilter.blur(
+                    sigmaX: blurAnimation.value, sigmaY: blurAnimation.value),
+                child: Column(children: [
+                  IgnorePointer(
+                    child: AnimatedContainer(
+                        duration: animationDuration,
+                        height: touchScrollAreaHeight,
+                        child: SizedBox(width: widget.width)),
+                  ),
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      height: max(0, widget.height - touchScrollAreaHeight),
+                      color: Colors.transparent,
+                      child: widget.showConfiguration
+                          ? Row(children: [
+                              Expanded(
+                                  flex: 3,
+                                  child: Column(
+                                      children: [Expanded(child: SizedBox())])),
+                            ])
+                          : SizedBox())
+                ])),
+          )),
       Column(children: [
         IgnorePointer(
-          child: AnimatedContainer(duration: animationDuration, height: touchScrollAreaHeight,
-            child: SizedBox(width: widget.width)),
+          child: AnimatedContainer(
+              duration: animationDuration,
+              height: touchScrollAreaHeight,
+              child: SizedBox(width: widget.width)),
         ),
         AnimatedContainer(
-          duration: animationDuration,
-          height: max(0, widget.height - touchScrollAreaHeight),
-          color: widget.showConfiguration ? Colors.black26 : Colors.transparent,
-          child: widget.showConfiguration
-            ? Row(children: [
-            Expanded(
-              flex: 3,
-              child: Column(children: [
-                Expanded(child: SizedBox()),
-                Row(
-                  children: <Widget>[
+            duration: animationDuration,
+            height: max(0, widget.height - touchScrollAreaHeight),
+            color:
+                widget.showConfiguration ? Colors.black26 : Colors.transparent,
+            child: widget.showConfiguration
+                ? Row(children: [
                     Expanded(
-                      child: SizedBox(),
-                    ),
-                    Container(
-                      width: 25,
-                      child: MyRaisedButton(
-                        onPressed: false
-                          ? () {
-                          setState(() {
-                            highestPitch++;
-                          });
-                        }
-                          : null,
-                        padding: EdgeInsets.all(0),
-                        child: Icon(Icons.arrow_upward))),
-                    Container(
-                      width: 45,
-                      child: MyRaisedButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0),
-                        child: Text(highestPitch.naturalOrSharpNote.uiString,
-                          style: TextStyle(color: Colors.white)))),
-                    Container(
-                      width: 25,
-                      child: MyRaisedButton(
-                        onPressed: false
-                          ? () {
-                          setState(() {
-                            highestPitch--;
-                          });
-                        }
-                          : null,
-                        padding: EdgeInsets.all(0),
-                        child: Icon(Icons.arrow_downward))),
+                        flex: 3,
+                        child: Column(children: [
+                          Expanded(child: SizedBox()),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: SizedBox(),
+                              ),
+                              Container(
+                                  width: 25,
+                                  child: MyRaisedButton(
+                                      onPressed: false
+                                          ?
+                                          //ignore: dead_code
+                                          () {
+                                              setState(() {
+                                                highestPitch++;
+                                              });
+                                            }
+                                          : null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Icon(Icons.arrow_upward))),
+                              Container(
+                                  width: 45,
+                                  child: MyRaisedButton(
+                                      onPressed: null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Text(
+                                          highestPitch
+                                              .naturalOrSharpNote.uiString,
+                                          style:
+                                              TextStyle(color: Colors.white)))),
+                              Container(
+                                  width: 25,
+                                  child: MyRaisedButton(
+                                      onPressed: false
+                                          ?
+                                          //ignore: dead_code
+                                          () {
+                                              setState(() {
+                                                highestPitch--;
+                                              });
+                                            }
+                                          : null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Icon(Icons.arrow_downward))),
+                              Expanded(
+                                child: SizedBox(),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: SizedBox(),
+                              ),
+                              Container(
+                                  width: 25,
+                                  child: MyRaisedButton(
+                                      onPressed: false
+                                          ?
+                                          //ignore: dead_code
+                                          () {
+                                              setState(() {
+                                                lowestPitch++;
+                                              });
+                                            }
+                                          : null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Icon(Icons.arrow_upward))),
+                              Container(
+                                  width: 45,
+                                  child: MyRaisedButton(
+                                      onPressed: null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Text(
+                                          lowestPitch
+                                              .naturalOrSharpNote.uiString,
+                                          style:
+                                              TextStyle(color: Colors.white)))),
+                              Container(
+                                  width: 25,
+                                  child: MyRaisedButton(
+                                      onPressed: false
+                                          ?
+                                          //ignore: dead_code
+                                          () {
+                                              setState(() {
+                                                lowestPitch--;
+                                              });
+                                            }
+                                          : null,
+                                      padding: EdgeInsets.all(0),
+                                      child: Icon(Icons.arrow_downward))),
+                              Expanded(
+                                child: SizedBox(),
+                              ),
+                            ],
+                          ),
+                          Expanded(child: SizedBox()),
+                        ])),
                     Expanded(
-                      child: SizedBox(),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
+                        flex: context.isTabletOrLandscapey ? 3 : 2,
+                        child: MyRaisedButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed: () {
+                              setState(() {
+                                scrollingMode = ScrollingMode.sideScroll;
+                              });
+                            },
+                            color: (scrollingMode == ScrollingMode.sideScroll)
+                                ? widget.sectionColor
+                                : null,
+                            child: Text("Scroll"))),
                     Expanded(
-                      child: SizedBox(),
-                    ),
-                    Container(
-                      width: 25,
-                      child: MyRaisedButton(
-                        onPressed: false
-                          ? () {
-                          setState(() {
-                            lowestPitch++;
-                          });
-                        }
-                          : null,
-                        padding: EdgeInsets.all(0),
-                        child: Icon(Icons.arrow_upward))),
-                    Container(
-                      width: 45,
-                      child: MyRaisedButton(
-                        onPressed: null,
-                        padding: EdgeInsets.all(0),
-                        child: Text(lowestPitch.naturalOrSharpNote.uiString,
-                          style: TextStyle(color: Colors.white)))),
-                    Container(
-                      width: 25,
-                      child: MyRaisedButton(
-                        onPressed: false
-                          ? () {
-                          setState(() {
-                            lowestPitch--;
-                          });
-                        }
-                          : null,
-                        padding: EdgeInsets.all(0),
-                        child: Icon(Icons.arrow_downward))),
-                    Expanded(
-                      child: SizedBox(),
-                    ),
-                  ],
-                ),
-                Expanded(child: SizedBox()),
-              ])),
-            Expanded(
-              flex: context.isTabletOrLandscapey ? 3 : 2,
-              child: MyRaisedButton(
-                padding: EdgeInsets.all(0),
-                onPressed: () {
-                  setState(() {
-                    scrollingMode = ScrollingMode.sideScroll;
-                  });
-                },
-                color: (scrollingMode == ScrollingMode.sideScroll) ? widget.sectionColor : null,
-                child: Text("Scroll"))),
-            Expanded(
-              flex: context.isTabletOrLandscapey ? 3 : 2,
-              child: MyRaisedButton(
-                padding: EdgeInsets.all(0),
-                onPressed: false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
-                  ? () {
-                  setState(() {
-                    switch (scrollingMode) {
-                      case ScrollingMode.sideScroll:
-                        scrollingMode = ScrollingMode.roll;
-                        break;
-                      case ScrollingMode.pitch:
-                        scrollingMode = ScrollingMode.roll;
-                        break;
-                      case ScrollingMode.roll:
+                        flex: context.isTabletOrLandscapey ? 3 : 2,
+                        child: MyRaisedButton(
+                            padding: EdgeInsets.all(0),
+                            onPressed:
+                                false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
+                                    ?
+                                    //ignore: dead_code
+                                    () {
+                                        setState(() {
+                                          switch (scrollingMode) {
+                                            case ScrollingMode.sideScroll:
+                                              scrollingMode =
+                                                  ScrollingMode.roll;
+                                              break;
+                                            case ScrollingMode.pitch:
+                                              scrollingMode =
+                                                  ScrollingMode.roll;
+                                              break;
+                                            case ScrollingMode.roll:
 //                                  scrollingMode = ScrollingMode.pitch;
-                        break;
-                    }
-                  });
-                }
-                  : null,
-                color: (scrollingMode == ScrollingMode.sideScroll) ? null : widget.sectionColor,
-                child: Row(children: [
-                  Expanded(child: SizedBox()),
+                                              break;
+                                          }
+                                        });
+                                      }
+                                    : null,
+                            color: (scrollingMode == ScrollingMode.sideScroll)
+                                ? null
+                                : widget.sectionColor,
+                            child: Row(children: [
+                              Expanded(child: SizedBox()),
 //                            Text("+"),
-                  Text((scrollingMode == ScrollingMode.pitch)
-                    ? "Tilt"
-                    : (scrollingMode == ScrollingMode.roll)
-                    ? "Roll"
-                    : (scrollingMode == ScrollingMode.sideScroll)
-                    ? "Roll"
-                    : "Wat"),
-                  Expanded(child: SizedBox()),
-                ]))),
-            SizedBox(width: 5),
-            Column(children: [
-              Expanded(child: SizedBox()),
-              zoomButton(),
-              Expanded(child: SizedBox()),
-            ]),
-          ])
-            : SizedBox())
+                              Text((scrollingMode == ScrollingMode.pitch)
+                                  ? "Tilt"
+                                  : (scrollingMode == ScrollingMode.roll)
+                                      ? "Roll"
+                                      : (scrollingMode ==
+                                              ScrollingMode.sideScroll)
+                                          ? "Roll"
+                                          : "Wat"),
+                              Expanded(child: SizedBox()),
+                            ]))),
+                    SizedBox(width: 5),
+                    Column(children: [
+                      Expanded(child: SizedBox()),
+                      zoomButton(),
+                      Expanded(child: SizedBox()),
+                    ]),
+                  ])
+                : SizedBox())
       ])
     ]);
   }
@@ -561,12 +633,16 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                       opacity: 0.5,
                       duration: animationDuration,
                       child: Transform.translate(
-                          offset: Offset(-5, 5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out)))),
+                          offset: Offset(-5, 5),
+                          child: Transform.scale(
+                              scale: 1, child: Icon(Icons.zoom_out)))),
                   AnimatedOpacity(
                       opacity: 0.5,
                       duration: animationDuration,
                       child: Transform.translate(
-                          offset: Offset(5, -5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in)))),
+                          offset: Offset(5, -5),
+                          child: Transform.scale(
+                              scale: 1, child: Icon(Icons.zoom_in)))),
                   AnimatedOpacity(
                       opacity: 0.8,
                       duration: animationDuration,
@@ -574,7 +650,8 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         offset: Offset(2, 20),
                         child: Text(
                             "${(1 + 99 * (halfStepWidthInPx - minHalfStepWidthInPx) / (maxHalfStepWidthInPx - minHalfStepWidthInPx)).toStringAsFixed(0)}%",
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 12)),
                       )),
                 ])),
           ),
@@ -584,14 +661,16 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
           onIncrement: (halfStepWidthInPx < maxHalfStepWidthInPx)
               ? () {
                   setState(() {
-                    halfStepWidthInPx = min(maxHalfStepWidthInPx, halfStepWidthInPx * 1.1);
+                    halfStepWidthInPx =
+                        min(maxHalfStepWidthInPx, halfStepWidthInPx * 1.1);
                   });
                 }
               : null,
           onDecrement: (halfStepWidthInPx > minHalfStepWidthInPx)
               ? () {
                   setState(() {
-                    halfStepWidthInPx = max(minHalfStepWidthInPx, halfStepWidthInPx / 1.1);
+                    halfStepWidthInPx =
+                        max(minHalfStepWidthInPx, halfStepWidthInPx / 1.1);
                   });
                 }
               : null,
@@ -607,7 +686,10 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   int _diatonicTone(double left) {
     left += (lowestPitch - CanvasToneDrawer.BOTTOM) * halfStepWidthInPx;
-    int diatonicTone = ((left + 0.245 * diatonicStepWidthInPx) / diatonicStepWidthInPx).floor() - 23;
+    int diatonicTone =
+        ((left + 0.245 * diatonicStepWidthInPx) / diatonicStepWidthInPx)
+                .floor() -
+            23;
     int octave = (diatonicTone + 28) ~/ 7;
     int toneOffset;
     switch (diatonicTone.mod7) {
@@ -654,19 +736,23 @@ class _KeyboardPainter extends CustomPainter {
       this.halfStepsOnScreen,
       this.visibleRect})
       : super(
-            repaint: Listenable.merge(
-                [scrollPositionNotifier, pressedNotesNotifier, BeatScratchPlugin.pressedMidiControllerNotes]));
+            repaint: Listenable.merge([
+          scrollPositionNotifier,
+          pressedNotesNotifier,
+          BeatScratchPlugin.pressedMidiControllerNotes
+        ]));
 
   @override
   void paint(Canvas canvas, Size size) {
-    var bounds = Offset.zero & size;
+    // var bounds = Offset.zero & size;
 //    canvas.drawRect(visibleRect(), Paint());
 //    canvas.drawRect(bounds, Paint());
 //    canvas.clipRect(bounds);
     KeyboardRenderer()
       ..highestPitch = highestPitch
       ..lowestPitch = lowestPitch
-      ..pressedNotes = pressedNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
+      ..pressedNotes = pressedNotesNotifier.value
+          .followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
       ..renderVertically = false
       ..alphaDrawerPaint = Paint()
       ..halfStepsOnScreen = halfStepsOnScreen
@@ -732,7 +818,8 @@ class KeyboardRenderer extends CanvasToneDrawer {
         var toneBounds = visiblePitch.bounds;
 
         if (pressedNotes.contains(tone)) {
-          alphaDrawerPaint.color = chromaticSteps[(tone - chord.rootNote.tone).mod12];
+          alphaDrawerPaint.color =
+              chromaticSteps[(tone - chord.rootNote.tone).mod12];
           canvas.drawRect(toneBounds, alphaDrawerPaint);
         }
         canvas.drawRect(
@@ -744,16 +831,26 @@ class KeyboardRenderer extends CanvasToneDrawer {
 //        print("drawing white key ${visiblePitch.tone}: ${visiblePitch.tone.naturalOrSharpNote}");
 //        NoteSpecification ns = visiblePitch.tone.naturalOrSharpNote;
         if (renderLettersAndNumbers) {
-          String text = NoteLetter.values.firstWhere((letter) => letter.tone.mod12 == visiblePitch.tone.mod12).name;
+          String text = NoteLetter.values
+              .firstWhere(
+                  (letter) => letter.tone.mod12 == visiblePitch.tone.mod12)
+              .name;
           TextSpan span = new TextSpan(
-              text: text, style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w500, color: Colors.grey));
+              text: text,
+              style: TextStyle(
+                  fontFamily: "VulfSans",
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey));
           TextPainter tp = new TextPainter(
             text: span,
             textAlign: TextAlign.left,
             textDirection: TextDirection.ltr,
           );
           tp.layout();
-          tp.paint(canvas, new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4.5, toneBounds.bottom - 48));
+          tp.paint(
+              canvas,
+              new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4.5,
+                  toneBounds.bottom - 48));
         }
       });
 
@@ -770,7 +867,8 @@ class KeyboardRenderer extends CanvasToneDrawer {
             alphaDrawerPaint.color = Color(0xFF000000).withAlpha(alpha);
 
             if (pressedNotes.contains(tone)) {
-              alphaDrawerPaint.color = chromaticSteps[(tone - chord.rootNote.tone).mod12];
+              alphaDrawerPaint.color =
+                  chromaticSteps[(tone - chord.rootNote.tone).mod12];
             }
             canvas.drawRect(
                 Rect.fromLTRB(toneBounds.left, toneBounds.top, toneBounds.right,
@@ -782,14 +880,20 @@ class KeyboardRenderer extends CanvasToneDrawer {
 //            alphaDrawerPaint.color = Colors.black;
           TextSpan span = new TextSpan(
               text: (4 + (tone / 12)).toInt().toString(),
-              style: TextStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w100, color: Colors.grey));
+              style: TextStyle(
+                  fontFamily: "VulfSans",
+                  fontWeight: FontWeight.w100,
+                  color: Colors.grey));
           TextPainter tp = new TextPainter(
             text: span,
             textAlign: TextAlign.left,
             textDirection: TextDirection.ltr,
           );
           tp.layout();
-          tp.paint(canvas, new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4, toneBounds.bottom - 30));
+          tp.paint(
+              canvas,
+              new Offset(toneBounds.left + halfStepPhysicalDistance * 0.5 - 4,
+                  toneBounds.bottom - 30));
         }
       });
     });

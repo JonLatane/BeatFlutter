@@ -1,9 +1,9 @@
-import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
+import 'base_music_renderer.dart';
 import 'package:flutter/material.dart';
 
 import '../../widget/keyboard.dart';
 
-class MelodyPianoClefRenderer extends BaseMelodyRenderer {
+class MelodyPianoClefRenderer extends BaseMusicRenderer {
   @override
   bool showSteps = true;
 
@@ -18,7 +18,7 @@ class MelodyPianoClefRenderer extends BaseMelodyRenderer {
 //    canvas.rotate(0.1);
     canvas.rotate(-1.5707);
     canvas.translate(-bounds.height, 0);
-    var color = alphaDrawerPaint.color;
+    // var color = alphaDrawerPaint.color;
 //    print("color");
     KeyboardRenderer()
       ..renderLettersAndNumbers = false
@@ -29,7 +29,8 @@ class MelodyPianoClefRenderer extends BaseMelodyRenderer {
       ..renderVertically = false
       ..alphaDrawerPaint = alphaDrawerPaint
       ..halfStepsOnScreen = halfStepsOnScreen
-      ..bounds = Rect.fromPoints(Offset.zero, Offset(bounds.height, bounds.width))
+      ..bounds =
+          Rect.fromPoints(Offset.zero, Offset(bounds.height, bounds.width))
 //      ..bounds = bounds.translate(-bounds.left, -bounds.top)
       ..draw(canvas);
     canvas.restore();

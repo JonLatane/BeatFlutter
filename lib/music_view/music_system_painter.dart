@@ -10,17 +10,15 @@ import 'package:unification/unification.dart';
 
 import '../drawing/color_guide.dart';
 import '../drawing/harmony_beat_renderer.dart';
-import '../drawing/melody/melody.dart';
-import '../drawing/melody/melody_clef_renderer.dart';
-import '../drawing/melody/melody_color_guide.dart';
-import '../drawing/melody/melody_staff_lines_renderer.dart';
+import '../drawing/music/music.dart';
+import '../drawing/music/music_clef_renderer.dart';
+import '../drawing/music/music_staff_lines_renderer.dart';
 import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
 import '../util/midi_theory.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
-import '../util/util.dart';
 
 class MusicSystemPainter extends CustomPainter {
   static const double extraBeatsSpaceForClefs = 2;
@@ -38,11 +36,15 @@ class MusicSystemPainter extends CustomPainter {
       colorGuideOpacityNotifier,
       notationOpacityNotifier,
       sectionScaleNotifier;
-  final ValueNotifier<Iterable<int>> colorboardNotesNotifier, keyboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> colorboardNotesNotifier,
+      keyboardNotesNotifier;
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
-  final ValueNotifier<Part> keyboardPart, colorboardPart, focusedPart, tappedPart;
+  final ValueNotifier<Part> keyboardPart,
+      colorboardPart,
+      focusedPart,
+      tappedPart;
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
@@ -51,10 +53,12 @@ class MusicSystemPainter extends CustomPainter {
 
   double get yScale => yScaleNotifier.value;
 
-  Melody get focusedMelody =>
-      score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
+  Melody get focusedMelody => score.parts
+      .expand((p) => p.melodies)
+      .firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
 
-  int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score.beatCount;
+  int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score
+      .beatCount;
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
@@ -113,9 +117,9 @@ class MusicSystemPainter extends CustomPainter {
     _tickPaint.strokeWidth = 2.0;
   }
 
-
   static double calculateHarmonyHeight(double scale) => min(100, 30 * scale);
-  static double calculateSectionHeight(double scale) => max(22, calculateHarmonyHeight(scale));
+  static double calculateSectionHeight(double scale) =>
+      max(22, calculateHarmonyHeight(scale));
 
   double get harmonyHeight => calculateHarmonyHeight(yScale);
   double get idealSectionHeight => max(22, harmonyHeight);
@@ -126,32 +130,38 @@ class MusicSystemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // return;
-    final startTime = DateTime.now().millisecondsSinceEpoch;
+    // final startTime = DateTime.now().millisecondsSinceEpoch;
     bool drawContinuousColorGuide = false; //xScale <= 1;
 //    canvas.clipRect(Offset.zero & size);
 
     // Calculate from which beat we should start drawing
-    int startBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
+    int startBeat =
+        ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
 
+    // ignore: unused_local_variable
     double top, left, right, bottom;
     left = startBeat * standardBeatWidth;
 //    canvas.drawRect(visibleRect(), Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
     staves.value.forEach((staff) {
       double staffOffset = staffOffsets.value.putIfAbsent(staff.id, () => 0);
-      double top = visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
-      Rect staffLineBounds = Rect.fromLTRB(visibleRect().left, top, visibleRect().right, top + melodyHeight);
+      double top =
+          visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
+      Rect staffLineBounds = Rect.fromLTRB(
+          visibleRect().left, top, visibleRect().right, top + melodyHeight);
 //      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
-      _renderStaffLines(canvas, !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
-      Rect clefBounds =
-          Rect.fromLTRB(visibleRect().left, top, visibleRect().left + 2 * standardBeatWidth, top + melodyHeight);
+      _renderStaffLines(canvas,
+          !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
+      Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
+          visibleRect().left + 2 * standardBeatWidth, top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
       _renderClefs(canvas, clefBounds, staff);
     });
 
 //    left += 2 * standardBeatWidth;
-    int renderingBeat = startBeat - extraBeatsSpaceForClefs.toInt(); // To make room for clefs
+    int renderingBeat =
+        startBeat - extraBeatsSpaceForClefs.toInt(); // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
 //     bool keepRenderingBeats = true;
     while (left < visibleRect().right + standardBeatWidth) {
@@ -205,19 +215,23 @@ class MusicSystemPainter extends CustomPainter {
                   fontFamily: "VulfSans",
                   fontSize: fontSize,
                   fontWeight: FontWeight.w100,
-                  color: renderingSection.name.isNotEmpty ? Colors.black : Colors.grey));
+                  color: renderingSection.name.isNotEmpty
+                      ? Colors.black
+                      : Colors.grey));
           TextPainter tp = TextPainter(
             text: span,
-            strutStyle: StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
+            strutStyle:
+                StrutStyle(fontFamily: "VulfSans", fontWeight: FontWeight.w800),
             textAlign: TextAlign.left,
             textDirection: TextDirection.ltr,
           );
           tp.layout();
-          tp.paint(canvas, new Offset(left + standardBeatWidth * 0.08, top + topOffset));
+          tp.paint(canvas,
+              new Offset(left + standardBeatWidth * 0.08, top + topOffset));
         }
         top += sectionHeight;
 
-        Harmony renderingHarmony = renderingSection.harmony;
+        // Harmony renderingHarmony = renderingSection.harmony;
         right = left + standardBeatWidth;
         String sectionName = renderingSection.name;
         if (sectionName == null || sectionName.isEmpty) {
@@ -226,29 +240,45 @@ class MusicSystemPainter extends CustomPainter {
 
 //      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
 //        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
-        Rect harmonyBounds = Rect.fromLTRB(left, top, left + standardBeatWidth, top + harmonyHeight);
-        _renderHarmonyBeat(harmonyBounds, renderingSection, renderingSectionBeat, canvas);
+        Rect harmonyBounds = Rect.fromLTRB(
+            left, top, left + standardBeatWidth, top + harmonyHeight);
+        _renderHarmonyBeat(
+            harmonyBounds, renderingSection, renderingSectionBeat, canvas);
         top = top + harmonyHeight;
 
 //      print("renderingSectionBeat=$renderingSectionBeat");
 
         staves.value.forEach((staff) {
           staff.getParts(score, staves.value).forEach((part) {
-            double partOffset = partTopOffsets.value.putIfAbsent(part.id, () => 0);
+            double partOffset =
+                partTopOffsets.value.putIfAbsent(part.id, () => 0);
             List<Melody> melodiesToRender = renderingSection.melodies
-                .where((melodyReference) => melodyReference.playbackType != MelodyReference_PlaybackType.disabled)
-                .where((ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
+                .where((melodyReference) =>
+                    melodyReference.playbackType !=
+                    MelodyReference_PlaybackType.disabled)
+                .where((ref) =>
+                    part.melodies.any((melody) => melody.id == ref.melodyId))
                 .map((it) => score.melodyReferencedBy(it))
                 .toList();
             //        canvas.save();
             //        canvas.translate(0, partOffset);
-            Rect melodyBounds = Rect.fromLTRB(left, top + partOffset, right, top + partOffset + melodyHeight);
+            Rect melodyBounds = Rect.fromLTRB(
+                left, top + partOffset, right, top + partOffset + melodyHeight);
             // if (!drawContinuousColorGuide) {
             //   _renderSubdividedColorGuide(
             //     renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
             // }
-            _renderMelodies(part, melodiesToRender, canvas, melodyBounds, renderingSection, renderingSectionBeat,
-                renderingBeat, left, staff, staves.value);
+            _renderMelodies(
+                part,
+                melodiesToRender,
+                canvas,
+                melodyBounds,
+                renderingSection,
+                renderingSectionBeat,
+                renderingBeat,
+                left,
+                staff,
+                staves.value);
             //        canvas.restore();
           });
         });
@@ -260,12 +290,14 @@ class MusicSystemPainter extends CustomPainter {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
     if (visibleRect().right > left) {
-      canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
+      canvas.drawRect(
+          Rect.fromLTRB(left, visibleRect().top + sectionHeight,
+              visibleRect().right, visibleRect().bottom),
           Paint()..color = Colors.white);
       // canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
       //   Paint()..color=Colors.black12);
     }
-    final endTime = DateTime.now().millisecondsSinceEpoch;
+    // final endTime = DateTime.now().millisecondsSinceEpoch;
 //    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
   }
 
@@ -281,13 +313,18 @@ class MusicSystemPainter extends CustomPainter {
       MusicStaff staff,
       Iterable<MusicStaff> staffConfiguration) {
     double blackOpacity = 0;
-    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
+    if (musicViewMode != MusicViewMode.score &&
+        renderingSection.id != section.id) {
       blackOpacity = 0.12;
     }
     canvas.drawRect(
-        melodyBounds, Paint()..color = Colors.black.withOpacity(blackOpacity /* * colorblockOpacityNotifier.value*/));
+        melodyBounds,
+        Paint()
+          ..color = Colors.black.withOpacity(
+              blackOpacity /* * colorblockOpacityNotifier.value*/));
 
-    var renderQueue = List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
+    var renderQueue =
+        List<Melody>.from(melodiesToRender.where((it) => it != focusedMelody));
     renderQueue.sort((a, b) => -a.averageTone.compareTo(b.averageTone));
     renderQueue.removeWhere((element) => element.midiData.data.keys.isEmpty);
     int index = 0;
@@ -300,28 +337,40 @@ class MusicSystemPainter extends CustomPainter {
       switch ((index + 4) % 4) {
         case 0:
           melody = renderQueue.removeAt(0);
-          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
+          stemsUp =
+              averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
           break;
         case 1:
           melody = renderQueue.removeAt(renderQueue.length - 1);
-          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
+          stemsUp =
+              averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
           break;
         case 2:
           melody = renderQueue.removeAt(renderQueue.length - 1);
-          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
+          stemsUp =
+              averageToneToStemsUp.putIfAbsent(melody.averageTone, () => true);
           break;
         default:
           melody = renderQueue.removeAt(0);
-          stemsUp = averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
+          stemsUp =
+              averageToneToStemsUp.putIfAbsent(melody.averageTone, () => false);
       }
 
-      _renderMelodyBeat(canvas, melody, melodyBounds, renderingSection, renderingSectionBeat, stemsUp,
-          (focusedMelody == null) ? 1 : 0.2, renderQueue);
+      _renderMelodyBeat(
+          canvas,
+          melody,
+          melodyBounds,
+          renderingSection,
+          renderingSectionBeat,
+          stemsUp,
+          (focusedMelody == null) ? 1 : 0.2,
+          renderQueue);
       index++;
     }
 
     if (focusedMelody != null) {
-      final part = score.parts.firstWhere((p) => p.melodies.any((m) => m.id == focusedMelodyId));
+      final part = score.parts
+          .firstWhere((p) => p.melodies.any((m) => m.id == focusedMelodyId));
       final parts = staff.getParts(score, staffConfiguration);
       if (parts.any((p) => p.id == part.id)) {
         double opacity = 1;
@@ -332,15 +381,16 @@ class MusicSystemPainter extends CustomPainter {
             opacity = 0;
           }
         }
-        _renderMelodyBeat(
-            canvas, focusedMelody, melodyBounds, renderingSection, renderingSectionBeat, true, opacity, renderQueue,
+        _renderMelodyBeat(canvas, focusedMelody, melodyBounds, renderingSection,
+            renderingSectionBeat, true, opacity, renderQueue,
             renderLoopStarts: true);
       }
     }
 
     try {
       if (renderingBeat != 0) {
-        _renderMeasureLines(renderingSection, renderingSectionBeat, melodyBounds, canvas);
+        _renderMeasureLines(
+            renderingSection, renderingSectionBeat, melodyBounds, canvas);
       }
     } catch (e) {
       print("exception rendering measure lines: $e");
@@ -350,54 +400,72 @@ class MusicSystemPainter extends CustomPainter {
       if (isCurrentScore &&
           renderingSection == section &&
           renderingSectionBeat == BeatScratchPlugin.currentBeat.value) {
-        _renderCurrentBeat(canvas, melodyBounds, renderingSection, renderingSectionBeat, renderQueue, staff);
+        _renderCurrentBeat(canvas, melodyBounds, renderingSection,
+            renderingSectionBeat, renderQueue, staff);
       } else if (isCurrentScore &&
               renderingSection == section &&
-              renderingSectionBeat + firstBeatOfSection == highlightedBeat.value /* && BeatScratchPlugin.playing*/
+              renderingSectionBeat + firstBeatOfSection ==
+                  highlightedBeat.value /* && BeatScratchPlugin.playing*/
           ) {
         canvas.drawRect(
             melodyBounds,
             Paint()
               ..style = PaintingStyle.fill
               ..color = sectionColor.value.withAlpha(55));
-      } else if (isCurrentScore && (renderingBeat == focusedBeat.value || renderingBeat == tappedBeat.value)) {
+      } else if (isCurrentScore &&
+          (renderingBeat == focusedBeat.value ||
+              renderingBeat == tappedBeat.value)) {
         canvas.drawRect(
             melodyBounds,
             Paint()
               ..style = PaintingStyle.fill
-              ..color = part != null && tappedPart.value?.id == part.id && renderingBeat == tappedBeat.value ? sectionColor.value.withOpacity(0.12) : Colors.black12);
+              ..color = part != null &&
+                      tappedPart.value?.id == part.id &&
+                      renderingBeat == tappedBeat.value
+                  ? sectionColor.value.withOpacity(0.12)
+                  : Colors.black12);
       }
-      if (isCurrentScore && (renderingBeat == tappedBeat.value) && part != null && tappedPart.value?.id == part.id) {
+      if (isCurrentScore &&
+          (renderingBeat == tappedBeat.value) &&
+          part != null &&
+          tappedPart.value?.id == part.id) {
         canvas.drawRect(
-          melodyBounds,
-          Paint()
-            ..style = PaintingStyle.fill
-            ..color = sectionColor.value.withOpacity(0.12));
+            melodyBounds,
+            Paint()
+              ..style = PaintingStyle.fill
+              ..color = sectionColor.value.withOpacity(0.12));
       }
     }
   }
 
-  void _renderStaffLines(Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
+  void _renderStaffLines(
+      Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
-        ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
+        ..alphaDrawerPaint = (Paint()
+          ..color = Colors.black
+              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..draw(canvas);
     }
     if (drawContinuousColorGuide && colorGuideAlpha > 0) {
-      this.drawContinuousColorGuide(canvas, bounds.top - harmonyHeight, bounds.bottom);
+      this.drawContinuousColorGuide(
+          canvas, bounds.top - harmonyHeight, bounds.bottom);
     }
   }
 
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
     if (notationOpacityNotifier.value > 0) {
-      var clefs = (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
-          ? [Clef.drum_treble, Clef.drum_bass]
-          : [Clef.treble, Clef.bass];
+      var clefs =
+          (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
+              ? [Clef.drum_treble, Clef.drum_bass]
+              : [Clef.treble, Clef.bass];
       MelodyClefRenderer()
         ..xScale = xScale
         ..yScale = yScale
-        ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha((255 * notationOpacityNotifier.value).toInt()))
+        ..alphaDrawerPaint = (Paint()
+          ..color = Colors.black
+              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..clefs = clefs
         ..draw(canvas);
@@ -406,16 +474,23 @@ class MusicSystemPainter extends CustomPainter {
       MelodyPianoClefRenderer()
         ..xScale = xScale
         ..yScale = yScale
-        ..alphaDrawerPaint = (Paint()..color = Colors.black.withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
+        ..alphaDrawerPaint = (Paint()
+          ..color = Colors.black
+              .withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
         ..bounds = bounds
         ..draw(canvas);
     }
 
-    if (staff.getParts(score, staves.value).any((element) => element.id == focusedPart.value?.id)) {
+    if (staff
+        .getParts(score, staves.value)
+        .any((element) => element.id == focusedPart.value?.id)) {
       Rect highlight = Rect.fromPoints(
-          bounds.topLeft.translate(-bounds.width / 13, notationOpacityNotifier.value * bounds.height / 6),
-          bounds.bottomRight.translate(0, notationOpacityNotifier.value * -bounds.height / 10));
-      canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
+          bounds.topLeft.translate(-bounds.width / 13,
+              notationOpacityNotifier.value * bounds.height / 6),
+          bounds.bottomRight.translate(
+              0, notationOpacityNotifier.value * -bounds.height / 10));
+      canvas.drawRect(
+          highlight, Paint()..color = sectionColor.value.withAlpha(127));
     }
 
     if (renderPartNames) {
@@ -434,7 +509,9 @@ class MusicSystemPainter extends CustomPainter {
               fontFamily: "VulfSans",
               fontSize: max(11, 20 * yScale),
               fontWeight: FontWeight.w800,
-              color: colorblockOpacityNotifier.value > 0.5 ? Colors.black87 : Colors.black));
+              color: colorblockOpacityNotifier.value > 0.5
+                  ? Colors.black87
+                  : Colors.black));
       TextPainter tp = new TextPainter(
         text: span,
         textAlign: TextAlign.left,
@@ -454,8 +531,13 @@ class MusicSystemPainter extends CustomPainter {
     ..subdivisionsPerBeat = 1
     ..length = 1;
 
-  void _renderCurrentBeat(Canvas canvas, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-      Iterable<Melody> otherMelodiesOnStaff, MusicStaff staff,
+  void _renderCurrentBeat(
+      Canvas canvas,
+      Rect melodyBounds,
+      Section renderingSection,
+      int renderingSectionBeat,
+      Iterable<Melody> otherMelodiesOnStaff,
+      MusicStaff staff,
       {Paint backgroundPaint}) {
     canvas.drawRect(
         melodyBounds,
@@ -463,37 +545,65 @@ class MusicSystemPainter extends CustomPainter {
           ..style = PaintingStyle.fill
           ..color = Colors.black26);
     var staffParts = staff.getParts(score, staves.value);
-    bool hasColorboardPart = staffParts.any((part) => part.id == colorboardPart.value?.id);
-    bool hasKeyboardPart = staffParts.any((part) => part.id == keyboardPart.value?.id);
+    bool hasColorboardPart =
+        staffParts.any((part) => part.id == colorboardPart.value?.id);
+    bool hasKeyboardPart =
+        staffParts.any((part) => part.id == keyboardPart.value?.id);
     if (hasColorboardPart || hasKeyboardPart) {
-      _colorboardDummyMelody.setMidiDataFromSimpleMelody({0: colorboardNotesNotifier.value.toList()});
-      _keyboardDummyMelody.setMidiDataFromSimpleMelody(
-          {0: keyboardNotesNotifier.value.followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value).toList()});
+      _colorboardDummyMelody.setMidiDataFromSimpleMelody(
+          {0: colorboardNotesNotifier.value.toList()});
+      _keyboardDummyMelody.setMidiDataFromSimpleMelody({
+        0: keyboardNotesNotifier.value
+            .followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
+            .toList()
+      });
       // Stem will be up
       double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
           ? -100
-          : colorboardNotesNotifier.value.reduce((a, b) => a + b) / colorboardNotesNotifier.value.length.toDouble();
+          : colorboardNotesNotifier.value.reduce((a, b) => a + b) /
+              colorboardNotesNotifier.value.length.toDouble();
       double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty
           ? -100
-          : keyboardNotesNotifier.value.reduce((a, b) => a + b) / keyboardNotesNotifier.value.length.toDouble();
+          : keyboardNotesNotifier.value.reduce((a, b) => a + b) /
+              keyboardNotesNotifier.value.length.toDouble();
 
-      _keyboardDummyMelody.instrumentType = keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;
+      _keyboardDummyMelody.instrumentType =
+          keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;
       if (hasColorboardPart) {
-        _renderMelodyBeat(canvas, _colorboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-            avgColorboardNote > avgKeyboardNote, 1, otherMelodiesOnStaff);
+        _renderMelodyBeat(
+            canvas,
+            _colorboardDummyMelody,
+            melodyBounds,
+            renderingSection,
+            renderingSectionBeat,
+            avgColorboardNote > avgKeyboardNote,
+            1,
+            otherMelodiesOnStaff);
       }
       if (hasKeyboardPart) {
-        _renderMelodyBeat(canvas, _keyboardDummyMelody, melodyBounds, renderingSection, renderingSectionBeat,
-            avgColorboardNote <= avgKeyboardNote, 1, otherMelodiesOnStaff);
+        _renderMelodyBeat(
+            canvas,
+            _keyboardDummyMelody,
+            melodyBounds,
+            renderingSection,
+            renderingSectionBeat,
+            avgColorboardNote <= avgKeyboardNote,
+            1,
+            otherMelodiesOnStaff);
       }
     }
   }
 
-  void _renderMeasureLines(Section renderingSection, int renderingSectionBeat, Rect melodyBounds, Canvas canvas) {
+  void _renderMeasureLines(Section renderingSection, int renderingSectionBeat,
+      Rect melodyBounds, Canvas canvas) {
     double opacityFactor = 1;
-    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
-      int rsIndex = score.sections.indexWhere((s) => s.id == renderingSection.id);
-      if (rsIndex > 0 && renderingSectionBeat == 0 && score.sections[rsIndex - 1].id == section.id) {
+    if (musicViewMode != MusicViewMode.score &&
+        renderingSection.id != section.id) {
+      int rsIndex =
+          score.sections.indexWhere((s) => s.id == renderingSection.id);
+      if (rsIndex > 0 &&
+          renderingSectionBeat == 0 &&
+          score.sections[rsIndex - 1].id == section.id) {
       } else
         opacityFactor *= 0.33;
     }
@@ -506,36 +616,37 @@ class MusicSystemPainter extends CustomPainter {
       ..draw(canvas, 1);
   }
 
-  void _renderSubdividedColorGuide(
-      Harmony renderingHarmony, Rect melodyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
-    try {
-      Melody colorGuideMelody = focusedMelody;
-      if (colorGuideMelody == null) {
-        colorGuideMelody = Melody()
-          ..id = uuid.v4()
-          ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
-          ..length = renderingHarmony.length;
-      }
-      //          if(colorblockOpacityNotifier.value > 0) {
-      MelodyColorGuide()
-        ..overallBounds = melodyBounds
-        ..section = renderingSection
-        ..beatPosition = renderingSectionBeat
-        ..section = renderingSection
-        ..drawPadding = 3
-        ..nonRootPadding = 3
-        ..drawnColorGuideAlpha = colorGuideAlpha
-        ..isUserChoosingHarmonyChord = false
-        ..isMelodyReferenceEnabled = true
-        ..melody = colorGuideMelody
-        ..drawColorGuide(canvas);
-      //          }
-    } catch (t) {
-      print("failed to draw colorguide: $t");
-    }
-  }
+  // void _renderSubdividedColorGuide(Harmony renderingHarmony, Rect melodyBounds,
+  //     Section renderingSection, int renderingSectionBeat, Canvas canvas) {
+  //   try {
+  //     Melody colorGuideMelody = focusedMelody;
+  //     if (colorGuideMelody == null) {
+  //       colorGuideMelody = Melody()
+  //         ..id = uuid.v4()
+  //         ..subdivisionsPerBeat = renderingHarmony.subdivisionsPerBeat
+  //         ..length = renderingHarmony.length;
+  //     }
+  //     //          if(colorblockOpacityNotifier.value > 0) {
+  //     MelodyColorGuide()
+  //       ..overallBounds = melodyBounds
+  //       ..section = renderingSection
+  //       ..beatPosition = renderingSectionBeat
+  //       ..section = renderingSection
+  //       ..drawPadding = 3
+  //       ..nonRootPadding = 3
+  //       ..drawnColorGuideAlpha = colorGuideAlpha
+  //       ..isUserChoosingHarmonyChord = false
+  //       ..isMelodyReferenceEnabled = true
+  //       ..melody = colorGuideMelody
+  //       ..drawColorGuide(canvas);
+  //     //          }
+  //   } catch (t) {
+  //     print("failed to draw colorguide: $t");
+  //   }
+  // }
 
-  void _renderHarmonyBeat(Rect harmonyBounds, Section renderingSection, int renderingSectionBeat, Canvas canvas) {
+  void _renderHarmonyBeat(Rect harmonyBounds, Section renderingSection,
+      int renderingSectionBeat, Canvas canvas) {
     HarmonyBeatRenderer()
       ..overallBounds = harmonyBounds
       ..section = renderingSection
@@ -543,32 +654,45 @@ class MusicSystemPainter extends CustomPainter {
       ..draw(canvas);
   }
 
-  _renderMelodyBeat(Canvas canvas, Melody melody, Rect melodyBounds, Section renderingSection, int renderingSectionBeat,
-      bool stemsUp, double alpha, Iterable<Melody> otherMelodiesOnStaff,
+  _renderMelodyBeat(
+      Canvas canvas,
+      Melody melody,
+      Rect melodyBounds,
+      Section renderingSection,
+      int renderingSectionBeat,
+      bool stemsUp,
+      double alpha,
+      Iterable<Melody> otherMelodiesOnStaff,
       {bool renderLoopStarts = false}) {
     double opacityFactor = 1;
     if (melodyBounds.left < visibleRect().left + standardBeatWidth) {
-      opacityFactor = max(0, min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
+      opacityFactor = max(0,
+          min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
     }
-    if (musicViewMode != MusicViewMode.score && renderingSection.id != section.id) {
+    if (musicViewMode != MusicViewMode.score &&
+        renderingSection.id != section.id) {
       opacityFactor *= 0.25;
     }
     if (melody != null) {
       if (renderLoopStarts &&
-          renderingSectionBeat % (melody.length / melody.subdivisionsPerBeat) == 0 &&
+          renderingSectionBeat % (melody.length / melody.subdivisionsPerBeat) ==
+              0 &&
           renderingSection.id == section.id) {
-        Rect highlight = Rect.fromPoints(melodyBounds.topLeft.translate(-melodyBounds.width / 13, 0),
+        Rect highlight = Rect.fromPoints(
+            melodyBounds.topLeft.translate(-melodyBounds.width / 13, 0),
             melodyBounds.bottomLeft.translate(melodyBounds.width / 13, 0));
-        canvas.drawRect(highlight, Paint()..color = sectionColor.value.withAlpha(127));
+        canvas.drawRect(
+            highlight, Paint()..color = sectionColor.value.withAlpha(127));
       }
       try {
         if (colorblockOpacityNotifier.value > 0) {
-          ColorblockMelodyRenderer()
+          ColorblockMusicRenderer()
             ..uiScale = xScale
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
-            ..colorblockAlpha = colorblockOpacityNotifier.value * alpha * opacityFactor
+            ..colorblockAlpha =
+                colorblockOpacityNotifier.value * alpha * opacityFactor
             ..drawPadding = 3
             ..nonRootPadding = 3
             ..isUserChoosingHarmonyChord = false
@@ -581,14 +705,15 @@ class MusicSystemPainter extends CustomPainter {
       }
       try {
         if (notationOpacityNotifier.value > 0) {
-          NotationMelodyRenderer()
+          NotationMusicRenderer()
             ..otherMelodiesOnStaff = otherMelodiesOnStaff
             ..xScale = xScale
             ..yScale = yScale
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
-            ..notationAlpha = notationOpacityNotifier.value * alpha * opacityFactor
+            ..notationAlpha =
+                notationOpacityNotifier.value * alpha * opacityFactor
             ..drawPadding = 3
             ..nonRootPadding = 3
             ..stemsUp = stemsUp
@@ -605,7 +730,9 @@ class MusicSystemPainter extends CustomPainter {
 
   drawContinuousColorGuide(Canvas canvas, double top, double bottom) {
     // Calculate from which beat we should start drawing
-    int renderingBeat = ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor() - 2;
+    int renderingBeat =
+        ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor() -
+            2;
 
     final double startOffset = renderingBeat * standardBeatWidth;
     double left = startOffset;
@@ -631,10 +758,13 @@ class MusicSystemPainter extends CustomPainter {
       }
       Harmony renderingHarmony = renderingSection.harmony;
       double beatLeft = left;
-      for (int renderingSubdivision in range(renderingSectionBeat * renderingHarmony.subdivisionsPerBeat,
-          (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat - 1)) {
+      for (int renderingSubdivision in range(
+          renderingSectionBeat * renderingHarmony.subdivisionsPerBeat,
+          (renderingSectionBeat + 1) * renderingHarmony.subdivisionsPerBeat -
+              1)) {
         Chord chordAtSubdivision =
-            renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic; //TODO Is this default needed?
+            renderingHarmony.changeBefore(renderingSubdivision) ??
+                cChromatic; //TODO Is this default needed?
         if (renderingChord == null) {
           renderingChord = chordAtSubdivision;
         }
@@ -663,7 +793,8 @@ class MusicSystemPainter extends CustomPainter {
       left = beatLeft + standardBeatWidth;
       renderingBeat += 1;
     }
-    Rect renderingRect = Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
+    Rect renderingRect =
+        Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
     try {
       ColorGuide()
         ..renderVertically = true

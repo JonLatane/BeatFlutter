@@ -14,6 +14,7 @@ import '../util/music_utils.dart';
 class RecordedSegmentQueue {
   /// Gets the recording melody from your UI. Should be set in [State.initState] and [State.dispose].
   static Melody Function() getRecordingMelody;
+
   /// Should be set in [State.initState] and [State.dispose] for
   static Function(Melody) updateRecordingMelody;
   static Melody get recordingMelody => getRecordingMelody?.call();
@@ -31,9 +32,15 @@ class RecordedSegmentQueue {
   static _loop() async {
     if (enabled.value) {
       var segment;
-      try { segment = segments.removeFirst(); } catch(_) {}
+      try {
+        segment = segments.removeFirst();
+      } catch (_) {}
       if (segment != null) _processSegment(segment);
-      Future.delayed(Duration(milliseconds: BeatScratchPlugin.playing || segments.isNotEmpty ? 350 : 1000), () {
+      Future.delayed(
+          Duration(
+              milliseconds: BeatScratchPlugin.playing || segments.isNotEmpty
+                  ? 350
+                  : 1000), () {
         _loop();
       });
     }
@@ -43,8 +50,10 @@ class RecordedSegmentQueue {
     if (segment.recordedData.isEmpty) return;
     final melody = recordingMelody;
     if (melody != null) {
-      RecordedSegment_RecordedBeat firstBeat = segment.beats.minBy((rb) => rb.timestamp.toInt());
-      RecordedSegment_RecordedBeat secondBeat = segment.beats.maxBy((rb) => rb.timestamp.toInt());
+      RecordedSegment_RecordedBeat firstBeat =
+          segment.beats.minBy((rb) => rb.timestamp.toInt());
+      RecordedSegment_RecordedBeat secondBeat =
+          segment.beats.maxBy((rb) => rb.timestamp.toInt());
       segment.recordedData.forEach((data) {
         _processSegmentData(segment, data, melody, firstBeat, secondBeat);
       });
@@ -56,19 +65,26 @@ class RecordedSegmentQueue {
     }
   }
 
-  static _processSegmentData(RecordedSegment segment, RecordedSegment_RecordedData data, Melody melody,
-      RecordedSegment_RecordedBeat firstBeat, RecordedSegment_RecordedBeat secondBeat) {
+  static _processSegmentData(
+      RecordedSegment segment,
+      RecordedSegment_RecordedData data,
+      Melody melody,
+      RecordedSegment_RecordedBeat firstBeat,
+      RecordedSegment_RecordedBeat secondBeat) {
     // print("Processing RecordedData! Data: ${data.logString}");
     // print("First beat: ${firstBeat.logString}");
     // print("Second beat: ${secondBeat.logString}");
     int firstBeatSubdivision = firstBeat.beat * melody.subdivisionsPerBeat;
-    int secondBeatSubdivision = secondBeat.beat * melody.subdivisionsPerBeat;
-    double relativePosition = (data.timestamp.toDouble() - firstBeat.timestamp.toDouble()) /
-      (secondBeat.timestamp.toDouble() - firstBeat.timestamp.toDouble());
+    // int secondBeatSubdivision = secondBeat.beat * melody.subdivisionsPerBeat;
+    double relativePosition =
+        (data.timestamp.toDouble() - firstBeat.timestamp.toDouble()) /
+            (secondBeat.timestamp.toDouble() - firstBeat.timestamp.toDouble());
     // print("firstBeatSubdivision=$firstBeatSubdivision; secondBeatSubdivision=$secondBeatSubdivision; relativePosition=$relativePosition");
-    int targetSubdivision = firstBeatSubdivision + (relativePosition * melody.subdivisionsPerBeat).round();
+    int targetSubdivision = firstBeatSubdivision +
+        (relativePosition * melody.subdivisionsPerBeat).round();
     targetSubdivision = targetSubdivision.bsMod(melody.length);
-    MidiChange midiChange = melody.midiData.data.putIfAbsent(targetSubdivision, () => MidiChange()..data = []);
+    MidiChange midiChange = melody.midiData.data
+        .putIfAbsent(targetSubdivision, () => MidiChange()..data = []);
     midiChange.data.addAll(data.midiData);
     melody.midiData.data[targetSubdivision] = midiChange;
   }

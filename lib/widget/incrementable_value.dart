@@ -1,16 +1,11 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flutter/rendering.dart';
 
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
-import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 
 import 'my_buttons.dart';
@@ -51,7 +46,8 @@ class IncrementableValue extends StatefulWidget {
     this.decrementIcon = Icons.keyboard_arrow_down_rounded,
     this.onPointerUpCallback,
     this.onPointerDownCallback,
-    this.musicActionButtonStyle = false, this.musicActionButtonColor,
+    this.musicActionButtonStyle = false,
+    this.musicActionButtonColor,
   }) : super(key: key);
 
   @override
@@ -64,7 +60,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
   int incrementStartTimeMs;
   bool hasVibration = false;
   static const _msDelay = 3000;
-  static const _delay = Duration(milliseconds: _msDelay);
+  // static const _delay = Duration(milliseconds: _msDelay);
   bool _disposed = false;
 
   vibrate() {
@@ -90,14 +86,19 @@ class _IncrementableValueState extends State<IncrementableValue> {
 
   @override
   Widget build(BuildContext context) {
-    bool showButtons = !widget.collapsing || DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
+    bool showButtons = !widget.collapsing ||
+        DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
     double buttonWidth = showButtons ? 28 : 0;
     Widget bgListener = AnimatedContainer(
         duration: animationDuration,
         width: widget.valueWidth + 2 * buttonWidth,
         height: 48,
         child: Listener(
-          child: MyFlatButton(onPressed: () {}, color: Colors.transparent, padding: EdgeInsets.zero, child: SizedBox()),
+          child: MyFlatButton(
+              onPressed: () {},
+              color: Colors.transparent,
+              padding: EdgeInsets.zero,
+              child: SizedBox()),
           onPointerDown: (_) {
             widget.onPointerDownCallback?.call();
           },
@@ -132,10 +133,13 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     opacity: showButtons ? 1 : 0,
                     child: Icon(widget.decrementIcon),
                   ),
-                  onPressed: widget.onDecrement != null ? () {
-                    lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-                    widget.onDecrement();
-                  } : null,
+                  onPressed: widget.onDecrement != null
+                      ? () {
+                          lastTouchTimeMs =
+                              DateTime.now().millisecondsSinceEpoch;
+                          widget.onDecrement();
+                        }
+                      : null,
                   padding: EdgeInsets.all(0),
                 )),
             widget.child ??
@@ -146,7 +150,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
                         padding: EdgeInsets.all(0),
                         child: Text(
                           widget.value ?? "null",
-                          style: widget.textStyle ?? TextStyle(color: Colors.white),
+                          style: widget.textStyle ??
+                              TextStyle(color: Colors.white),
                         ))),
             AnimatedContainer(
                 width: buttonWidth,
@@ -158,10 +163,13 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     opacity: showButtons ? 1 : 0,
                     child: Icon(widget.incrementIcon),
                   ),
-                  onPressed: widget.onIncrement != null ? () {
-                    lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-                    widget.onIncrement();
-                  } : null,
+                  onPressed: widget.onIncrement != null
+                      ? () {
+                          lastTouchTimeMs =
+                              DateTime.now().millisecondsSinceEpoch;
+                          widget.onIncrement();
+                        }
+                      : null,
                   padding: EdgeInsets.all(0),
                 )),
           ]),
@@ -173,7 +181,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
             vibrate();
             if (widget.collapsing) {
               checkCanCollapse() {
-                if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs > _msDelay) {
+                if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs >
+                    _msDelay) {
                   if (!_disposed) {
                     setState(() {});
                   }
@@ -191,7 +200,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
             Offset difference = event.position - incrementStartPos;
             int eventTime = DateTime.now().millisecondsSinceEpoch;
             if (difference.distanceSquared < widget.incrementDistance ||
-                eventTime - incrementStartTimeMs < widget.incrementTimingDifferenceMs) {
+                eventTime - incrementStartTimeMs <
+                    widget.incrementTimingDifferenceMs) {
               return; // Hasn't moved far enough/had enough time to increment again.
             }
             bool isUp = false;

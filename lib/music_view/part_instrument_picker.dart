@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
@@ -12,7 +11,6 @@ import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:recase/recase.dart';
 import 'package:unification/unification.dart';
 
-import '../animations/animations.dart';
 import '../util/music_theory.dart';
 import '../widget/my_buttons.dart';
 import '../widget/my_platform.dart';
@@ -26,7 +24,13 @@ class PartConfiguration extends StatefulWidget {
   final double availableHeight;
   final bool visible;
 
-  const PartConfiguration({Key key, this.part, this.superSetState, this.availableHeight, this.visible}) : super(key: key);
+  const PartConfiguration(
+      {Key key,
+      this.part,
+      this.superSetState,
+      this.availableHeight,
+      this.visible})
+      : super(key: key);
 
   @override
   _PartConfigurationState createState() => _PartConfigurationState();
@@ -60,7 +64,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
   bool get isDrum => widget?.part?.isDrum ?? false;
   String searchText = "";
 
-  Widget _buildMidiInstrumentDisplay(BuildContext context, Animation<double> animation, item, int i) {
+  Widget _buildMidiInstrumentDisplay(
+      BuildContext context, Animation<double> animation, item, int i) {
     String displayedChannel = "";
     String text = "Drums";
     bool isSelected = false;
@@ -87,13 +92,16 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 fontWeight: FontWeight.w800,
                 color: isSelected
                     ? Colors.black
-                    : BeatScratchPlugin.isSynthesizerAvailable ? Colors.white : Colors.white.withAlpha(127)),
+                    : BeatScratchPlugin.isSynthesizerAvailable
+                        ? Colors.white
+                        : Colors.white.withAlpha(127)),
           ),
           Expanded(
               child: RotatedBox(
             quarterTurns: 3,
             child: MyFlatButton(
-                onPressed: isHarmonic && BeatScratchPlugin.isSynthesizerAvailable
+                onPressed: isHarmonic &&
+                        BeatScratchPlugin.isSynthesizerAvailable
                     ? () {
                         widget.superSetState(() {
                           setState(() {
@@ -134,11 +142,18 @@ class _PartConfigurationState extends State<PartConfiguration> {
 
   @override
   Widget build(BuildContext context) {
-    List<int> items = widget.part == null ? [] : isHarmonic ? range(0, 128).toList() : [-1];
+    List<int> items = widget.part == null
+        ? []
+        : isHarmonic
+            ? range(0, 128).toList()
+            : [-1];
     if (searchText.trim().isNotEmpty && isHarmonic) {
       items = items
           .where((i) =>
-              i == midiInstrument || midiInstruments[i].toLowerCase().contains(searchController.text.toLowerCase()))
+              i == midiInstrument ||
+              midiInstruments[i]
+                  .toLowerCase()
+                  .contains(searchController.text.toLowerCase()))
           .toList();
     }
     int maxMidiChannel = 15;
@@ -146,7 +161,9 @@ class _PartConfigurationState extends State<PartConfiguration> {
       maxMidiChannel = 4;
     }
     double height = widget.visible ? 280 : 0;
-    double bottomBlankSpaceHeight = context.isLandscapePhone && widget.visible ? MediaQuery.of(context).size.height * 0.15 : 0;
+    double bottomBlankSpaceHeight = context.isLandscapePhone && widget.visible
+        ? MediaQuery.of(context).size.height * 0.15
+        : 0;
     return SingleChildScrollView(
         controller: scrollController,
         child: AnimatedContainer(
@@ -157,19 +174,27 @@ class _PartConfigurationState extends State<PartConfiguration> {
               Row(children: [
                 Padding(
                     padding: EdgeInsets.only(left: 5),
-                    child: Text("Volume:", style: TextStyle(fontSize: 16, color: Colors.white))),
+                    child: Text("Volume:",
+                        style: TextStyle(fontSize: 16, color: Colors.white))),
                 SizedBox(
                   width: 50,
                 ),
                 Expanded(
                     child: MySlider(
-                        value: max(0.0, min(1.0, widget.part == null ? 0 : widget.part.instrument.volume)),
+                        value: max(
+                            0.0,
+                            min(
+                                1.0,
+                                widget.part == null
+                                    ? 0
+                                    : widget.part.instrument.volume)),
                         activeColor: Colors.white,
                         onChanged: (value) {
                           widget.superSetState(() {
                             setState(() {
                               widget.part?.instrument?.volume = value;
-                              BeatScratchPlugin.updatePartConfiguration(widget.part);
+                              BeatScratchPlugin.updatePartConfiguration(
+                                  widget.part);
                             });
                           });
                         }))
@@ -178,7 +203,9 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 Expanded(
                     child: Padding(
                         padding: EdgeInsets.only(left: 5),
-                        child: Text("MIDI Channel:", style: TextStyle(fontSize: 16, color: Colors.white)))),
+                        child: Text("MIDI Channel:",
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.white)))),
                 IncrementableValue(
                   onDecrement: (isHarmonic && midiChannel > 0)
                       ? () {
@@ -191,7 +218,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
                                 }
                               });
                             });
-                            BeatScratchPlugin.updatePartConfiguration(widget.part);
+                            BeatScratchPlugin.updatePartConfiguration(
+                                widget.part);
                           }
                         }
                       : null,
@@ -206,7 +234,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
                                 }
                               });
                             });
-                            BeatScratchPlugin.updatePartConfiguration(widget.part);
+                            BeatScratchPlugin.updatePartConfiguration(
+                                widget.part);
                           }
                         }
                       : null,
@@ -219,7 +248,11 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 Expanded(
                     child: Padding(
                         padding: EdgeInsets.only(left: 5),
-                        child: Text("MIDI Instrument:", overflow: TextOverflow.fade, maxLines: 1, style: TextStyle(fontSize: 16, color: Colors.white)))),
+                        child: Text("MIDI Instrument:",
+                            overflow: TextOverflow.fade,
+                            maxLines: 1,
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.white)))),
                 Icon(Icons.search, color: Colors.white),
                 Container(
                     width: 120,
@@ -232,7 +265,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
                       },
                       onTap: () {
                         if (context.isLandscapePhone) {
-                          scrollController.animateTo(100, duration: animationDuration, curve: Curves.ease);
+                          scrollController.animateTo(100,
+                              duration: animationDuration, curve: Curves.ease);
                         }
                       },
 //          onTap: () {
@@ -240,7 +274,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
 //              widget.hideMelodyView();
 //            }
 //          },
-                      decoration: InputDecoration(border: InputBorder.none, hintText: "Search"),
+                      decoration: InputDecoration(
+                          border: InputBorder.none, hintText: "Search"),
                     ))
               ]),
               Expanded(
@@ -251,8 +286,9 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 itemBuilder: _buildMidiInstrumentDisplay,
               )),
               AnimatedContainer(
-                duration: animationDuration,
-                curve: Curves.ease,height: bottomBlankSpaceHeight),
+                  duration: animationDuration,
+                  curve: Curves.ease,
+                  height: bottomBlankSpaceHeight),
             ])));
   }
 }

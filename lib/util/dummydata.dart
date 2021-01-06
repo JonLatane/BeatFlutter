@@ -1,4 +1,3 @@
-import 'package:protobuf/protobuf.dart';
 import 'package:quiver/iterables.dart';
 
 import '../generated/protos/music.pb.dart';
@@ -9,21 +8,25 @@ import 'util.dart';
 const int defaultSectionBeats = 16;
 const int defaultSectionSubdivisionsPerBeat = 4;
 const int defaultMelodySubdivisionsPerBeat = 12;
-const int defaultSectionLength = defaultSectionSubdivisionsPerBeat * defaultSectionBeats;
+const int defaultSectionLength =
+    defaultSectionSubdivisionsPerBeat * defaultSectionBeats;
 
 Chord cChromatic = Chord()
-  ..rootNote = (NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural)
+  ..rootNote = (NoteName()
+    ..noteLetter = NoteLetter.C
+    ..noteSign = NoteSign.natural)
   ..chroma = 2047;
 Chord cMinor = Chord()
-  ..rootNote = (NoteName()..noteLetter = NoteLetter.C..noteSign = NoteSign.natural)
+  ..rootNote = (NoteName()
+    ..noteLetter = NoteLetter.C
+    ..noteSign = NoteSign.natural)
   ..chroma = 274;
 
 Melody baseMelody() => Melody()
   ..id = uuid.v4()
   ..type = MelodyType.midi
   ..interpretationType = MelodyInterpretationType.fixed
-  ..midiData = MidiData()
-;
+  ..midiData = MidiData();
 
 Melody boomChick() => baseMelody()
   ..name = "Boom-Chick"
@@ -32,9 +35,9 @@ Melody boomChick() => baseMelody()
   ..subdivisionsPerBeat = 1
   ..length = 2
   ..setMidiDataFromSimpleMelody({
-    0: [-25], 1: [-22]
-  })
-;
+    0: [-25],
+    1: [-22]
+  });
 
 Melody boom() => baseMelody()
   ..name = "Boom"
@@ -44,8 +47,7 @@ Melody boom() => baseMelody()
   ..length = 2
   ..setMidiDataFromSimpleMelody({
     0: [-25],
-  })
-;
+  });
 
 Melody chick() => baseMelody()
   ..name = "Chick"
@@ -55,8 +57,7 @@ Melody chick() => baseMelody()
   ..length = 2
   ..setMidiDataFromSimpleMelody({
     1: [-22]
-  })
-;
+  });
 
 Melody tssst() => baseMelody()
   ..name = "Tssst"
@@ -66,8 +67,7 @@ Melody tssst() => baseMelody()
   ..length = 2
   ..setMidiDataFromSimpleMelody({
     1: [-18]
-  }, simpleVelocity: 84)
-;
+  }, simpleVelocity: 84);
 
 Melody tssstSwing() => baseMelody()
   ..name = "Tssst (Swing)"
@@ -77,8 +77,7 @@ Melody tssstSwing() => baseMelody()
   ..length = 3
   ..setMidiDataFromSimpleMelody({
     2: [-18]
-  }, simpleVelocity: 84)
-;
+  }, simpleVelocity: 84);
 
 Melody tsstTsst() => baseMelody()
   ..name = "Tsst-tsst"
@@ -87,9 +86,9 @@ Melody tsstTsst() => baseMelody()
   ..subdivisionsPerBeat = 4
   ..length = 4
   ..setMidiDataFromSimpleMelody({
-    1: [-18], 3: [-18]
-  }, simpleVelocity: 42)
-;
+    1: [-18],
+    3: [-18]
+  }, simpleVelocity: 42);
 
 Melody tsstTsstSwing() => baseMelody()
   ..name = "Tsst-tsst (Swing)"
@@ -98,9 +97,9 @@ Melody tsstTsstSwing() => baseMelody()
   ..subdivisionsPerBeat = 6
   ..length = 6
   ..setMidiDataFromSimpleMelody({
-    2: [-18], 5: [-18]
-  }, simpleVelocity: 42)
-;
+    2: [-18],
+    5: [-18]
+  }, simpleVelocity: 42);
 
 Melody thirteenOutOfThirtyTwo() => baseMelody()
   ..name = "13/32"
@@ -110,8 +109,7 @@ Melody thirteenOutOfThirtyTwo() => baseMelody()
   ..length = 32
   ..setMidiDataFromSimpleMelody({
     5: [-18],
-  }, simpleVelocity: 127)
-;
+  }, simpleVelocity: 127);
 
 Melody fiveOutOfThirtyTwo() => baseMelody()
   ..name = "5/32"
@@ -121,8 +119,7 @@ Melody fiveOutOfThirtyTwo() => baseMelody()
   ..length = 32
   ..setMidiDataFromSimpleMelody({
     13: [-18],
-  }, simpleVelocity: 127)
-;
+  }, simpleVelocity: 127);
 
 Melody twentyOneOutOfThirtyTwo() => baseMelody()
   ..name = "21/32"
@@ -132,8 +129,7 @@ Melody twentyOneOutOfThirtyTwo() => baseMelody()
   ..length = 32
   ..setMidiDataFromSimpleMelody({
     21: [-18],
-  }, simpleVelocity: 127)
-;
+  }, simpleVelocity: 127);
 
 Melody twentyNineOutOfThirtyTwo() => baseMelody()
   ..name = "29/32"
@@ -143,8 +139,7 @@ Melody twentyNineOutOfThirtyTwo() => baseMelody()
   ..length = 32
   ..setMidiDataFromSimpleMelody({
     29: [-18],
-  }, simpleVelocity: 127)
-;
+  }, simpleVelocity: 127);
 
 Melody odeToJoy() => baseMelody()
   ..name = "Ode to Joy"
@@ -152,16 +147,39 @@ Melody odeToJoy() => baseMelody()
   ..subdivisionsPerBeat = 2
   ..length = 64
   ..setMidiDataFromSimpleMelody(Map.from({
-    0:  [4],  2: [4],  4: [5],  6: [7],
-    8:  [7], 10: [5], 12: [4], 14: [2],
-    16: [0], 18: [0], 20: [2], 22: [4],
-    24: [4], 27: [2], 28: [2]
-  })..addAll({
-    0:  [4],  2: [4],  4: [5],  6: [7],
-    8:  [7], 10: [5], 12: [4], 14: [2],
-    16: [0], 18: [0], 20: [2], 22: [4],
-    24: [2], 27: [0], 28: [0]
-  }.map((key, value) => MapEntry(key + 32, value))));
+    0: [4],
+    2: [4],
+    4: [5],
+    6: [7],
+    8: [7],
+    10: [5],
+    12: [4],
+    14: [2],
+    16: [0],
+    18: [0],
+    20: [2],
+    22: [4],
+    24: [4],
+    27: [2],
+    28: [2]
+  })
+    ..addAll({
+      0: [4],
+      2: [4],
+      4: [5],
+      6: [7],
+      8: [7],
+      10: [5],
+      12: [4],
+      14: [2],
+      16: [0],
+      18: [0],
+      20: [2],
+      22: [4],
+      24: [2],
+      27: [0],
+      28: [0]
+    }.map((key, value) => MapEntry(key + 32, value))));
 
 Melody odeToJoyA() => baseMelody()
   ..name = "Ode to Joy A"
@@ -169,10 +187,21 @@ Melody odeToJoyA() => baseMelody()
   ..subdivisionsPerBeat = 2
   ..length = 32
   ..setMidiDataFromSimpleMelody(Map.from({
-    0:  [4],  2: [4],  4: [5],  6: [7],
-    8:  [7], 10: [5], 12: [4], 14: [2],
-    16: [0], 18: [0], 20: [2], 22: [4],
-    24: [4], 27: [2], 28: [2]
+    0: [4],
+    2: [4],
+    4: [5],
+    6: [7],
+    8: [7],
+    10: [5],
+    12: [4],
+    14: [2],
+    16: [0],
+    18: [0],
+    20: [2],
+    22: [4],
+    24: [4],
+    27: [2],
+    28: [2]
   }));
 
 Melody odeToJoyB() => baseMelody()
@@ -181,10 +210,21 @@ Melody odeToJoyB() => baseMelody()
   ..subdivisionsPerBeat = 2
   ..length = 32
   ..setMidiDataFromSimpleMelody(Map.from({
-    0:  [4],  2: [4],  4: [5],  6: [7],
-    8:  [7], 10: [5], 12: [4], 14: [2],
-    16: [0], 18: [0], 20: [2], 22: [4],
-    24: [2], 27: [0], 28: [0]
+    0: [4],
+    2: [4],
+    4: [5],
+    6: [7],
+    8: [7],
+    10: [5],
+    12: [4],
+    14: [2],
+    16: [0],
+    18: [0],
+    20: [2],
+    22: [4],
+    24: [2],
+    27: [0],
+    28: [0]
   }));
 
 Melody defaultMelody({int sectionBeats}) => baseMelody()
@@ -192,18 +232,16 @@ Melody defaultMelody({int sectionBeats}) => baseMelody()
   ..length = (sectionBeats ?? defaultSectionBeats) * 12
   ..interpretationType = MelodyInterpretationType.fixed
   ..type = MelodyType.midi
-  ..midiData = MidiData()
-;
+  ..midiData = MidiData();
 
-Harmony defaultHarmony() =>
-  Harmony()
-    ..id = uuid.v4()
-    ..subdivisionsPerBeat = defaultSectionSubdivisionsPerBeat
-    ..length = defaultSectionLength
-    ..data.addAll({
-      0: cChromatic,
+Harmony defaultHarmony() => Harmony()
+  ..id = uuid.v4()
+  ..subdivisionsPerBeat = defaultSectionSubdivisionsPerBeat
+  ..length = defaultSectionLength
+  ..data.addAll({
+    0: cChromatic,
 //      32: cMinor,
-    });
+  });
 
 Section defaultSection() => Section()
   ..id = uuid.v4()
@@ -216,11 +254,7 @@ Score defaultScore() => Score()
   ..sections.addAll([
     defaultSection(),
   ])
-  ..parts.addAll([
-    newPartFor(Score()),
-    newDrumPart()
-  ]);
-
+  ..parts.addAll([newPartFor(Score()), newDrumPart()]);
 
 Score melodyPreview(Melody melody, Part part, Section section) {
   melody = melody.bsRebuild((it) {
@@ -237,8 +271,7 @@ Score melodyPreview(Melody melody, Part part, Section section) {
     it.melodies.add(MelodyReference()
       ..melodyId = melody.id
       ..playbackType = MelodyReference_PlaybackType.playback_indefinitely
-      ..volume = 1
-    );
+      ..volume = 1);
   });
   Score result = Score();
   result.parts.add(part);
@@ -247,19 +280,28 @@ Score melodyPreview(Melody melody, Part part, Section section) {
 }
 
 extension MidiThings on Score {
-  bool usesChannel(int channel) => parts.any((part) => part.instrument.midiChannel == channel);
+  bool usesChannel(int channel) =>
+      parts.any((part) => part.instrument.midiChannel == channel);
 }
+
 Part newPartFor(Score score) {
   Part part = Part()
     ..id = uuid.v4()
     ..instrument = (Instrument()
-      ..midiInstrument = score.parts.any((part) => part.instrument.midiInstrument == 0 && part.instrument.type != InstrumentType.drum)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 34)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 25)
-        ? (score.parts.any((part) => part.instrument.midiInstrument == 4)
-        ? (72) : 4) : 25) : 34) : 0
-      ..midiChannel = (range(0,8).toList() + range(10,15).toList())
-        .firstWhere((channel) => !score.usesChannel(channel))
+      ..midiInstrument = score.parts.any((part) =>
+              part.instrument.midiInstrument == 0 &&
+              part.instrument.type != InstrumentType.drum)
+          ? (score.parts.any((part) => part.instrument.midiInstrument == 34)
+              ? (score.parts.any((part) => part.instrument.midiInstrument == 25)
+                  ? (score.parts
+                          .any((part) => part.instrument.midiInstrument == 4)
+                      ? (72)
+                      : 4)
+                  : 25)
+              : 34)
+          : 0
+      ..midiChannel = (range(0, 8).toList() + range(10, 15).toList())
+          .firstWhere((channel) => !score.usesChannel(channel))
       ..volume = 0.5
       ..type = InstrumentType.harmonic);
   return part;
@@ -269,7 +311,7 @@ Part newDrumPart() {
   Part part = Part()
     ..id = uuid.v4()
     ..instrument = (Instrument()
-      ..name = ""//"Drums"
+      ..name = "" //"Drums"
       ..volume = 0.5
       ..midiChannel = 9
       ..type = InstrumentType.drum);

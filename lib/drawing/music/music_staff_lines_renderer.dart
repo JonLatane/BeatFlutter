@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
+import 'base_music_renderer.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/util/music_notation_theory.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +92,7 @@ extension ClefNotes on Clef {
         : ledgers.where((it) =>  it.diatonicValue < diatonicMin && it.diatonicValue >= note.diatonicValue ));
 }
 
-class MelodyStaffLinesRenderer extends BaseMelodyRenderer {
+class MelodyStaffLinesRenderer extends BaseMusicRenderer {
   @override
   bool showSteps = true;
   @override

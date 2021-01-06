@@ -7,12 +7,10 @@ import 'package:dart_midi/dart_midi.dart';
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:protobuf/protobuf.dart';
 
 import 'recording/recording.dart';
 import 'settings/midi_settings.dart';
-import 'util/fake_js.dart'
-  if(dart.library.js) 'dart:js';
+import 'util/fake_js.dart' if (dart.library.js) 'dart:js';
 import 'util/proto_utils.dart';
 import 'util/music_utils.dart';
 
@@ -26,15 +24,17 @@ class BeatScratchPlugin {
   static final bool _supportsPlayback = true;
   static final int _playbackPreRenderBeats = MyPlatform.isWeb ? 2 : 0;
   static bool _playbackForceDisabled = false;
-  static bool get supportsPlayback => _supportsPlayback && !_playbackForceDisabled;
+  static bool get supportsPlayback =>
+      _supportsPlayback && !_playbackForceDisabled;
 
   static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
     ..setMethodCallHandler((call) {
-      switch(call.method) {
+      switch (call.method) {
         case "sendPressedMidiNotes":
           final Uint8List rawData = call.arguments;
           final MidiNotes notes = MidiNotes.fromBuffer(rawData);
-          pressedMidiControllerNotes.value = notes.midiNotes.map((e) => e - 60).toSet();
+          pressedMidiControllerNotes.value =
+              notes.midiNotes.map((e) => e - 60).toSet();
 //          print("dart: sendPressedMidiNotes: ${pressedMidiControllerNotes.value}");
 //           onSynthesizerStatusChange?.call();
 
@@ -108,7 +108,8 @@ class BeatScratchPlugin {
       context["notifyBpmMultiplier"] = _notifyBpmMultiplier;
       context["notifyUnmultipliedBpm"] = _notifyUnmultipliedBpm;
       context["notifyMidiDevices"] = _notifyMidiDevices;
-      context["notifyBeatScratchAudioAvailable"] = _notifyBeatScratchAudioAvailable;
+      context["notifyBeatScratchAudioAvailable"] =
+          _notifyBeatScratchAudioAvailable;
     }
   }
 
@@ -124,7 +125,7 @@ class BeatScratchPlugin {
 
   static _notifyMidiDevices(MidiDevices devices) {
     connectedControllers = List.from(devices.controllers
-      .where((it) => !MyPlatform.isIOS || it.name != "Session 1"));
+        .where((it) => !MyPlatform.isIOS || it.name != "Session 1"));
     _connectedSynthesizers = List.from(devices.synthesizers);
     onSynthesizerStatusChange?.call();
   }
@@ -168,12 +169,13 @@ class BeatScratchPlugin {
   static bool get metronomeEnabled => _metronomeEnabled;
   static set metronomeEnabled(bool value) {
     _metronomeEnabled = value;
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('setMetronomeEnabled', [value]);
     } else {
       _channel.invokeMethod('setMetronomeEnabled', value);
     }
   }
+
   static double _bpmMultiplier = 1.0;
   static double get bpmMultiplier => _bpmMultiplier;
   static set bpmMultiplier(double value) {
@@ -184,14 +186,13 @@ class BeatScratchPlugin {
       } else {
         _channel.invokeMethod('setBpmMultiplier', value);
       }
-    } catch(any) {
-
-    }
+    } catch (any) {}
   }
+
   static double unmultipliedBpm = 123;
   static bool _playing;
   static bool get playing {
-    if(_playing == null) {
+    if (_playing == null) {
       _playing = false;
       _doSynthesizerStatusChangeLoop();
     }
@@ -199,42 +200,47 @@ class BeatScratchPlugin {
   }
 
   static final ValueNotifier<int> currentBeat = ValueNotifier(0);
-  
+
   static bool _isBeatScratchAudioAvailable;
   static bool get isSynthesizerAvailable {
-    if(_isBeatScratchAudioAvailable == null) {
+    if (_isBeatScratchAudioAvailable == null) {
       _isBeatScratchAudioAvailable = false;
       _doSynthesizerStatusChangeLoop();
     }
     return _isBeatScratchAudioAvailable;
   }
+
   static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
   static Function(String) onLoadScoreFromLink;
   static Function(String) onSectionSelected;
   static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {
-    Future.delayed(Duration(seconds:5), () {
+    Future.delayed(Duration(seconds: 5), () {
       _checkBeatScratchAudioStatus();
       getApps();
       _doSynthesizerStatusChangeLoop();
     });
   }
-  static ValueNotifier<Iterable<int>> pressedMidiControllerNotes = ValueNotifier([]);
 
+  static ValueNotifier<Iterable<int>> pressedMidiControllerNotes =
+      ValueNotifier([]);
 
   static List<MidiController> connectedControllers = [];
-  static List<MidiController> get midiControllers => [
-    MidiController()
-    ..id = "keyboard"
-    ..name = "Keyboard"
-    ..enabled = true
-  ] + connectedControllers + [
-    MidiController()
-    ..id = "colorboard"
-    ..name = "Colorboard"
-    ..enabled = true
-  ];
+  static List<MidiController> get midiControllers =>
+      [
+        MidiController()
+          ..id = "keyboard"
+          ..name = "Keyboard"
+          ..enabled = true
+      ] +
+      connectedControllers +
+      [
+        MidiController()
+          ..id = "colorboard"
+          ..name = "Colorboard"
+          ..enabled = true
+      ];
 
   static List<MidiSynthesizer> _connectedSynthesizers = [];
   static List<MidiSynthesizer> get midiSynthesizers {
@@ -243,31 +249,34 @@ class BeatScratchPlugin {
       return connected;
     }
     return [
-      MidiSynthesizer()
-        ..id = "internal"
-        ..name = "BeatScratch\nAudio System"
-        ..enabled = true
-    ] + connected
-      .where((it) => MyPlatform.isAndroid || MyPlatform.isDebug)
-      .toList();
+          MidiSynthesizer()
+            ..id = "internal"
+            ..name = "BeatScratch\nAudio System"
+            ..enabled = true
+        ] +
+        connected
+            .where((it) => MyPlatform.isAndroid || MyPlatform.isDebug)
+            .toList();
   }
 
   static bool get _supportsSynthesizerConfig =>
-      _connectedSynthesizers.isNotEmpty && _connectedSynthesizers[0].id == 'internal';
+      _connectedSynthesizers.isNotEmpty &&
+      _connectedSynthesizers[0].id == 'internal';
 
   /// To add support for a platform in debug mode, have it return an "internal" synthesizer.
   /// To add that support in release mode, hardcode the appropriate [MyPlatform] check here.
   static bool get supportsSynthesizerConfig =>
-      MyPlatform.isAndroid || (MyPlatform.isAndroid && _supportsSynthesizerConfig);
+      MyPlatform.isAndroid ||
+      (MyPlatform.isAndroid && _supportsSynthesizerConfig);
 
   static void _checkBeatScratchAudioStatus() async {
     bool resultStatus;
-    if(kIsWeb) {
+    if (kIsWeb) {
       resultStatus = context.callMethod('checkBeatScratchAudioStatus', []);
     } else {
       resultStatus = await _channel.invokeMethod('checkBeatScratchAudioStatus');
     }
-    if(resultStatus == null) {
+    if (resultStatus == null) {
       print("Failed to retrieve Synthesizer Status from JS/Platform Channel");
       resultStatus = false;
     }
@@ -278,7 +287,7 @@ class BeatScratchPlugin {
   static void resetAudioSystem() async {
     _isBeatScratchAudioAvailable = false;
     onSynthesizerStatusChange?.call();
-    if(kIsWeb) {
+    if (kIsWeb) {
     } else {
       _channel.invokeMethod('resetAudioSystem');
     }
@@ -291,21 +300,27 @@ class BeatScratchPlugin {
   }
 
   static void updateSections(Score score) async {
-    _pushScore(score, 'updateSections', includeParts: false, includeSections: true);
+    _pushScore(score, 'updateSections',
+        includeParts: false, includeSections: true);
   }
 
-  static void _pushScore(Score score, String remoteMethod, {bool includeParts = true, includeSections = true}) async {
+  static void _pushScore(Score score, String remoteMethod,
+      {bool includeParts = true, includeSections = true}) async {
 //    print("invoking $remoteMethod");
-    if(!includeParts) {
-      score = score.bsRebuild((it) { it.parts.clear(); });
+    if (!includeParts) {
+      score = score.bsRebuild((it) {
+        it.parts.clear();
+      });
     }
-    if(!includeSections) {
-      score = score.bsRebuild((it) { it.sections.clear(); });
+    if (!includeSections) {
+      score = score.bsRebuild((it) {
+        it.sections.clear();
+      });
     }
 //    print("invoking $remoteMethod");
-    if(kIsWeb) {
+    if (kIsWeb) {
 //      print("invoking $remoteMethod as JavaScript with context $context");
-      context.callMethod(remoteMethod, [ score.protoJsify() ]);
+      context.callMethod(remoteMethod, [score.protoJsify()]);
     } else {
 //      print("invoking $remoteMethod through Platform Channel $_channel");
       _channel.invokeMethod(remoteMethod, score.bsCopy().writeToBuffer());
@@ -313,10 +328,11 @@ class BeatScratchPlugin {
   }
 
   static void setPlaybackMode(Playback_Mode mode) {
-    if(kIsWeb) {
-      context.callMethod('setPlaybackMode', [ mode.name ]);
+    if (kIsWeb) {
+      context.callMethod('setPlaybackMode', [mode.name]);
     } else {
-      _channel.invokeMethod('setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
+      _channel.invokeMethod(
+          'setPlaybackMode', (Playback()..mode = mode).writeToBuffer());
     }
   }
 
@@ -329,21 +345,24 @@ class BeatScratchPlugin {
   }
 
   /// Pushes or updates the [Part].
-  static void _pushPart(Part part, String methodName, {bool includeMelodies = false}) async {
-    if(!includeMelodies) {
-      part = part.bsRebuild((it) { it.melodies.clear(); });
+  static void _pushPart(Part part, String methodName,
+      {bool includeMelodies = false}) async {
+    if (!includeMelodies) {
+      part = part.bsRebuild((it) {
+        it.melodies.clear();
+      });
     }
 
-    if(kIsWeb) {
-      context.callMethod(methodName, [ part.protoJsify() ]);
+    if (kIsWeb) {
+      context.callMethod(methodName, [part.protoJsify()]);
     } else {
       _channel.invokeMethod(methodName, part.bsCopy().writeToBuffer());
     }
   }
 
   static void setCurrentSection(Section section) async {
-    if(kIsWeb) {
-      context.callMethod('setCurrentSection', [ section?.id ]);
+    if (kIsWeb) {
+      context.callMethod('setCurrentSection', [section?.id]);
     } else {
       _channel.invokeMethod('setCurrentSection', section?.id);
     }
@@ -351,15 +370,15 @@ class BeatScratchPlugin {
 
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
-    if(kIsWeb) {
-      context.callMethod('setKeyboardPart', [ part?.id ]);
+    if (kIsWeb) {
+      context.callMethod('setKeyboardPart', [part?.id]);
     } else {
       _channel.invokeMethod('setKeyboardPart', part?.id);
     }
   }
 
   static void deletePart(Part part) async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('deletePart', [part.id]);
     } else {
       _channel.invokeMethod('deletePart', part.id);
@@ -367,17 +386,21 @@ class BeatScratchPlugin {
   }
 
   static void createMelody(Part part, Melody melody) async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('createMelody', [part.id, melody.protoJsify()]);
     } else {
       await _channel.invokeMethod('newMelody', melody.bsCopy().writeToBuffer());
-      _channel.invokeMethod('registerMelody',
-        (RegisterMelody()..melodyId=melody.id..partId=part.id).writeToBuffer());
+      _channel.invokeMethod(
+          'registerMelody',
+          (RegisterMelody()
+                ..melodyId = melody.id
+                ..partId = part.id)
+              .writeToBuffer());
     }
   }
 
   static void updateMelody(Melody melody) async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('updateMelody', [melody.protoJsify()]);
     } else {
       _channel.invokeMethod('updateMelody', melody.bsCopy().writeToBuffer());
@@ -385,7 +408,7 @@ class BeatScratchPlugin {
   }
 
   static void deleteMelody(Melody melody) async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('deleteMelody', [melody.id]);
     } else {
       _channel.invokeMethod('deleteMelody', melody.id);
@@ -398,8 +421,8 @@ class BeatScratchPlugin {
   /// This applies to notes played either with a physical MIDI controller on
   /// the native side or from [sendMIDI] in the plugin.
   static void setRecordingMelody(Melody melody) async {
-    if(kIsWeb) {
-      context.callMethod('setRecordingMelody', [ melody?.id ]);
+    if (kIsWeb) {
+      context.callMethod('setRecordingMelody', [melody?.id]);
     } else {
       _channel.invokeMethod('setRecordingMelody', melody?.id);
     }
@@ -407,7 +430,7 @@ class BeatScratchPlugin {
 
   /// Starts the playback thread
   static void play() async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('play', []);
     } else {
       _channel.invokeMethod('play');
@@ -417,7 +440,7 @@ class BeatScratchPlugin {
   }
 
   static void stop() async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('stop', []);
     } else {
       _channel.invokeMethod('stop');
@@ -425,6 +448,7 @@ class BeatScratchPlugin {
     _playing = false;
     onSynthesizerStatusChange();
   }
+
   static void pause() async {
     if (kIsWeb) {
       context.callMethod('pause', []);
@@ -432,7 +456,12 @@ class BeatScratchPlugin {
       _playbackForceDisabled = true;
       onSynthesizerStatusChange();
       Future.delayed(
-          Duration(milliseconds: (60000 / (_playbackPreRenderBeats * bpmMultiplier * unmultipliedBpm)).floor()), () {
+          Duration(
+              milliseconds: (60000 /
+                      (_playbackPreRenderBeats *
+                          bpmMultiplier *
+                          unmultipliedBpm))
+                  .floor()), () {
         _playbackForceDisabled = false;
         onSynthesizerStatusChange();
       });
@@ -445,7 +474,7 @@ class BeatScratchPlugin {
 
   static void setBeat(int beat) async {
     currentBeat.value = beat;
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('setBeat', [beat]);
     } else {
       _channel.invokeMethod('setBeat', beat);
@@ -460,7 +489,7 @@ class BeatScratchPlugin {
   /// tap on [tickBeat] to signify that the current beat is 0
   static void countIn(int countInBeat) async {
     print("Invoked countIn");
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('countIn', [countInBeat]);
     } else {
       _channel.invokeMethod('countIn', countInBeat);
@@ -468,7 +497,7 @@ class BeatScratchPlugin {
   }
 
   static void tickBeat() async {
-    if(kIsWeb) {
+    if (kIsWeb) {
       context.callMethod('tickBeat', []);
     } else {
       _channel.invokeMethod('tickBeat');
@@ -497,7 +526,7 @@ class BeatScratchPlugin {
 
   static void sendMIDI(List<int> bytes) async {
 //    print("invoking sendMIDI");
-    if(kIsWeb) {
+    if (kIsWeb) {
 //      print("invoking sendMIDI as JavaScript with context $context");
       context.callMethod('sendMIDI', bytes);
     } else {
@@ -506,7 +535,8 @@ class BeatScratchPlugin {
     }
   }
 
-  static Future<String> getScoreId() async => _channel.invokeMethod<String>("getScoreId");
+  static Future<String> getScoreId() async =>
+      _channel.invokeMethod<String>("getScoreId");
 
   static Future<Melody> get recordedMelody async {
     final Uint8List rawData = await _channel.invokeMethod('getRecordedMelody');
@@ -517,12 +547,13 @@ class BeatScratchPlugin {
   static updateSynthesizerConfig(MidiSynthesizer synthesizer) async {
     if (supportsSynthesizerConfig) {
 //    print("invoking sendMIDI");
-      if(kIsWeb) {
+      if (kIsWeb) {
 //      print("invoking sendMIDI as JavaScript with context $context");
         context.callMethod('updateSynthesizerConfig', synthesizer.protoJsify());
       } else {
 //      print("invoking sendMIDI through Platform Channel $_channel");
-        _channel.invokeMethod('updateSynthesizerConfig', synthesizer.bsCopy().writeToBuffer());
+        _channel.invokeMethod(
+            'updateSynthesizerConfig', synthesizer.bsCopy().writeToBuffer());
       }
     }
   }

@@ -19,7 +19,9 @@ void main() {
 
   test('pushScore', () async {
     Score score = defaultScore();
-    await BeatScratchPlugin.createScore(score);
-    expect(await BeatScratchPlugin.getScoreId(), '42');
+    BeatScratchPlugin.createScore(score);
+    Future.delayed(Duration(seconds: 3), () async {
+      expect(await BeatScratchPlugin.getScoreId(), '42');
+    });
   });
 }

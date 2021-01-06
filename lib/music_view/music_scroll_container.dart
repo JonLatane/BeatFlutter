@@ -39,7 +39,8 @@ class MusicScrollContainer extends StatefulWidget {
   final bool isTwoFingerScaling;
   final BSNotifier scrollToCurrentBeat, centerCurrentSection, scrollToPart;
   final bool autoScroll, autoFocus, renderPartNames, isPreview;
-  final ValueNotifier<Iterable<int>> keyboardNotesNotifier, colorboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> keyboardNotesNotifier,
+      colorboardNotesNotifier;
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final ValueNotifier<Part> tappedPart;
   final ValueNotifier<Offset> requestedScrollOffsetForScale;
@@ -77,14 +78,16 @@ class MusicScrollContainer extends StatefulWidget {
       this.isTwoFingerScaling,
       this.scrollToCurrentBeat,
       this.centerCurrentSection,
-      this.autoScroll, this.autoFocus,
+      this.autoScroll,
+      this.autoFocus,
       this.renderPartNames,
       this.isPreview,
       this.notifyXScaleUpdate,
       this.notifyYScaleUpdate,
       this.xScaleNotifier,
       this.yScaleNotifier,
-      this.verticalScrollNotifier, this.scrollToPart})
+      this.verticalScrollNotifier,
+      this.scrollToPart})
       : super(key: key);
 
   @override
@@ -93,7 +96,8 @@ class MusicScrollContainer extends StatefulWidget {
 
 Rect melodyRendererVisibleRect = Rect.zero;
 
-class _MusicScrollContainerState extends State<MusicScrollContainer> with TickerProviderStateMixin {
+class _MusicScrollContainerState extends State<MusicScrollContainer>
+    with TickerProviderStateMixin {
   ScrollController verticalController;
 
   AnimationController animationController;
@@ -116,6 +120,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   double _prevBeat;
   String _prevSectionOrder;
   String _prevSectionId;
+  // ignore: unused_field
   String _prevPartId;
   Rect visibleRect = Rect.zero;
 
@@ -130,33 +135,44 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
 
-  double get targetXScale => widget.notifyXScaleUpdate.value?.newScale ?? widget.targetXScale;
+  double get targetXScale =>
+      widget.notifyXScaleUpdate.value?.newScale ?? widget.targetXScale;
 
   double get targetBeatWidth => unscaledStandardBeatWidth * targetXScale;
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
-  double get toolbarHeight => widget.musicViewMode == MusicViewMode.score ? 0 : 48;
+  double get toolbarHeight =>
+      widget.musicViewMode == MusicViewMode.score ? 0 : 48;
 
   double get renderAreaHeight => widget.height - toolbarHeight;
 
-  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score || xScale < 2 * MusicScrollContainer.minScale ?
-  30 : 0;
+  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
+          xScale < 2 * MusicScrollContainer.minScale
+      ? 30
+      : 0;
 
   double get overallCanvasHeight =>
-      (widget.staves.length * MusicSystemPainter.staffHeight * yScale) + sectionsHeight;
+      (widget.staves.length * MusicSystemPainter.staffHeight * yScale) +
+      sectionsHeight;
 
   double get maxCanvasHeight =>
-      max(renderAreaHeight, widget.staves.length * MusicSystemPainter.staffHeight * MusicScrollContainer.maxScale) +
+      max(
+          renderAreaHeight,
+          widget.staves.length *
+              MusicSystemPainter.staffHeight *
+              MusicScrollContainer.maxScale) +
       sectionsHeight;
 
   double get overallCanvasWidth =>
-      (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) * targetBeatWidth; // + 20 * xScale; // + 1 for clefs
+      (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
+      targetBeatWidth; // + 20 * xScale; // + 1 for clefs
   double get maxCanvasWidth =>
       (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
       unscaledStandardBeatWidth *
       MusicScrollContainer.maxScale; // + 20 * xScale; // + 1 for clefs
-  double get targetClefWidth => MusicSystemPainter.extraBeatsSpaceForClefs * targetBeatWidth;
+  double get targetClefWidth =>
+      MusicSystemPainter.extraBeatsSpaceForClefs * targetBeatWidth;
 
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
 
@@ -164,11 +180,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   double get visibleAreaForSection => visibleWidth - targetClefWidth;
 
-  double get marginBeatsForBeat => max(0, visibleWidth - 2 * targetClefWidth - targetBeatWidth) / targetBeatWidth;
+  double get marginBeatsForBeat =>
+      max(0, visibleWidth - 2 * targetClefWidth - targetBeatWidth) /
+      targetBeatWidth;
 
-  double get marginBeatsForSection => max(0, visibleWidth - targetClefWidth - sectionWidth) / targetBeatWidth;
+  double get marginBeatsForSection =>
+      max(0, visibleWidth - targetClefWidth - sectionWidth) / targetBeatWidth;
 
-  Rect get myVisibleRect => (widget.previewMode) ? visibleRect : melodyRendererVisibleRect;
+  Rect get myVisibleRect =>
+      (widget.previewMode) ? visibleRect : melodyRendererVisibleRect;
 
   set myVisibleRect(value) {
     if (widget.previewMode) {
@@ -183,7 +203,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     super.initState();
     timeScrollController = ScrollController();
     verticalController = ScrollController();
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
+    animationController = AnimationController(
+        vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
     colorGuideOpacityNotifier = ValueNotifier(0);
     notationOpacityNotifier = ValueNotifier(0);
@@ -200,11 +221,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
     // scrollToCurrentBeat
     timeScrollController.addListener(_timeScrollListener);
     verticalController.addListener(_verticalScrollListener);
-    xScaleUpdateListener = _scaleUpdateListener(widget.notifyXScaleUpdate, (update) {
+    xScaleUpdateListener =
+        _scaleUpdateListener(widget.notifyXScaleUpdate, (update) {
       widget.xScaleNotifier.value = update.newScale;
       scrollToFocusedBeat(instant: widget.isTwoFingerScaling);
     });
-    yScaleUpdateListener = _scaleUpdateListener(widget.notifyYScaleUpdate, (update) {
+    yScaleUpdateListener =
+        _scaleUpdateListener(widget.notifyYScaleUpdate, (update) {
       widget.yScaleNotifier.value = update.newScale;
     });
     widget.notifyXScaleUpdate.addListener(xScaleUpdateListener);
@@ -221,19 +244,23 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   _timeScrollListener() {
     _lastScrollEventSeen = DateTime.now();
     double maxScrollExtent = widget.focusedBeat.value != null
-      ? maxCanvasWidth : max(10, overallCanvasWidth - 200);
+        ? maxCanvasWidth
+        : max(10, overallCanvasWidth - 200);
     if (timeScrollController.offset > maxScrollExtent) {
-      if (timeScrollController.offset > maxScrollExtent + 50) {
-        timeScrollController.animateTo(maxScrollExtent, duration: animationDuration, curve: Curves.ease);
+      if (timeScrollController.offset > maxScrollExtent + 10) {
+        timeScrollController.animateTo(maxScrollExtent,
+            duration: animationDuration, curve: Curves.ease);
       } else {
         timeScrollController.jumpTo(maxScrollExtent);
       }
     }
     Future.delayed(Duration(milliseconds: _autoScrollDelayDuration + 50), () {
       if (_autoScrollDelayDuration <
-              DateTime.now().millisecondsSinceEpoch - _lastScrollEventSeen.millisecondsSinceEpoch &&
+              DateTime.now().millisecondsSinceEpoch -
+                  _lastScrollEventSeen.millisecondsSinceEpoch &&
           _autoScrollDelayDuration <
-              DateTime.now().millisecondsSinceEpoch - _lastScrollStopEventTime.millisecondsSinceEpoch) {
+              DateTime.now().millisecondsSinceEpoch -
+                  _lastScrollStopEventTime.millisecondsSinceEpoch) {
         print('scroll is stopped');
         _lastScrollStopEventTime = DateTime.now();
         _onScrollStopped();
@@ -243,10 +270,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 
   _verticalScrollListener() {
     widget.verticalScrollNotifier.value = verticalController.offset;
-    double maxScrollExtent = widget.focusedBeat.value != null ? maxCanvasHeight : max(10, overallCanvasHeight - 200);
+    double maxScrollExtent = widget.focusedBeat.value != null
+        ? maxCanvasHeight
+        : max(10, overallCanvasHeight - 200);
     if (verticalController.offset > maxScrollExtent) {
       if (timeScrollController.offset > maxScrollExtent + 50) {
-        verticalController.animateTo(maxScrollExtent, duration: animationDuration, curve: Curves.ease);
+        verticalController.animateTo(maxScrollExtent,
+            duration: animationDuration, curve: Curves.ease);
       } else {
         verticalController.jumpTo(maxScrollExtent);
       }
@@ -256,16 +286,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   _onScrollStopped() {
     if (widget.autoScroll &&
         !widget.isTwoFingerScaling &&
-        (widget.musicViewMode != MusicViewMode.score || !BeatScratchPlugin.playing)) {
+        (widget.musicViewMode != MusicViewMode.score ||
+            !BeatScratchPlugin.playing)) {
       _constrainToSectionBounds();
     }
   }
 
-  VoidCallback _scaleUpdateListener(ValueNotifier<ScaleUpdate> notifier, Function(ScaleUpdate) handler) {
+  VoidCallback _scaleUpdateListener(
+      ValueNotifier<ScaleUpdate> notifier, Function(ScaleUpdate) handler) {
     return () {
       final value = notifier.value;
       if (value != null) {
-        print("ScaleUpdate: ${value.oldScale.toStringAsFixed(4)} -> ${value.newScale.toStringAsFixed(4)}");
+        print(
+            "ScaleUpdate: ${value.oldScale.toStringAsFixed(4)} -> ${value.newScale.toStringAsFixed(4)}");
         handler(value);
         notifier.value = null;
       }
@@ -314,8 +347,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
         scrollToFocusedBeat(instant: true);
       } /*else if (widget.focusedBeat.value != null) {
         // scrollToFocusedBeat();
-      }*/ else if (widget.autoScroll) {
-        if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds > 1000) {
+      }*/
+      else if (widget.autoScroll) {
+        if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds >
+            1000) {
           if (_prevViewMode == MusicViewMode.score &&
               widget.musicViewMode != MusicViewMode.score &&
               _prevBeat > widget.currentSection.beatCount - 2) {
@@ -323,20 +358,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
               scrollToCurrentBeat();
               _lastAutoScrollTime = DateTime.now();
             });
-          } else if (_prevSectionId != null && _prevSectionId != widget.currentSection.id) {
+          } else if (_prevSectionId != null &&
+              _prevSectionId != widget.currentSection.id) {
             scrollToCurrentBeat();
             _lastAutoScrollTime = DateTime.now();
-          } else if (_prevSectionOrder != null && _prevSectionOrder != sectionOrder) {
+          } else if (_prevSectionOrder != null &&
+              _prevSectionOrder != sectionOrder) {
             Future.delayed(animationDuration, () {
               scrollToCurrentBeat();
               _lastAutoScrollTime = DateTime.now();
             });
           } else if (BeatScratchPlugin.playing &&
               _hasBuilt &&
-              sectionWidth > visibleWidth - targetClefWidth &&
+              sectionWidth > visibleAreaForSection &&
               _prevBeat != currentBeat &&
-              (currentBeat - firstBeatOfSection) % widget.currentSection.meter.defaultBeatsPerMeasure == 0 &&
-              !isBeatOnScreen(currentBeat + widget.currentSection.meter.defaultBeatsPerMeasure)) {
+              (currentBeat - firstBeatOfSection) %
+                      widget.currentSection.meter.defaultBeatsPerMeasure ==
+                  0 &&
+              !isBeatOnScreen(currentBeat +
+                  widget.currentSection.meter.defaultBeatsPerMeasure)) {
             scrollToBeat(
               currentBeat,
             );
@@ -418,23 +458,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   }) {
     if (instant) {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: Duration(milliseconds: 0), curve: Curves.linear);
+          beatAnimationDuration: Duration(milliseconds: 0),
+          curve: Curves.linear);
     } else {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: Duration(milliseconds: 200), curve: Curves.linear);
+          beatAnimationDuration: Duration(milliseconds: 200),
+          curve: Curves.linear);
     }
     // if (_prevXScale != null && _prevXScale.notRoughlyEquals(widget.xScale)) {
     //   _lastScaleTime = DateTime.now();
     // }
   }
 
-
-
   double _animationPos(double currentBeat) {
-    print("_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+    print(
+        "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
     final beatWidth = targetBeatWidth;
     double animationPos = (currentBeat) * beatWidth;
-    animationPos = min(animationPos, overallCanvasWidth - myVisibleRect.width + 0.62 * targetBeatWidth);
+    animationPos = min(animationPos,
+        overallCanvasWidth - myVisibleRect.width + 0.62 * targetBeatWidth);
     // if (widget.musicViewMode != MusicViewMode.score) {
     //   if (sectionCanBeCentered) {
     //     double start = (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) * beatWidth;
@@ -451,47 +493,60 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   bool isBeatOnScreen(double beat) {
     double animationPos = _animationPos(currentBeat);
     double currentPos = timeScrollController.position.pixels;
-    return animationPos >= currentPos && animationPos < currentPos + visibleRect.width - targetClefWidth;
+    return animationPos >= currentPos &&
+        animationPos < currentPos + visibleRect.width - targetClefWidth;
   }
 
   void scrollToBeat(double currentBeat,
-      {Duration beatAnimationDuration = animationDuration, Curve curve = Curves.linear}) {
+      {Duration beatAnimationDuration = animationDuration,
+      Curve curve = Curves.linear}) {
     double animationPos = _animationPos(currentBeat);
-    print("scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
+    print(
+        "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
     // final pixels = timeScrollController.position.pixels;
     // final offset = timeScrollController.offset;
-    if (_hasBuilt && animationPos.notRoughlyEquals(timeScrollController.offset)) {
+    if (_hasBuilt &&
+        animationPos.notRoughlyEquals(timeScrollController.offset)) {
       try {
         animate() {
           if (beatAnimationDuration.inMilliseconds > 0) {
-            timeScrollController.animateTo(animationPos, duration: beatAnimationDuration, curve: curve);
+            timeScrollController.animateTo(animationPos,
+                duration: beatAnimationDuration, curve: curve);
           } else {
             timeScrollController.jumpTo(animationPos);
           }
         }
+
         animate();
       } catch (e) {}
     }
   }
 
-
   void scrollToPart() {
     print("scrollToPart");
     if (widget.autoFocus) {
-      verticalController.animateTo(0, duration: animationDuration, curve: Curves.ease);
+      verticalController.animateTo(0,
+          duration: animationDuration, curve: Curves.ease);
     } else {
       if (verticalController.offset > maxVerticalPosition) {
         scrollToBottomMostPart();
       }
     }
   }
+
   void scrollToBottomMostPart() {
-    verticalController.animateTo(maxVerticalPosition, duration: animationDuration, curve: Curves.ease);
+    verticalController.animateTo(maxVerticalPosition,
+        duration: animationDuration, curve: Curves.ease);
   }
 
-  bool get sectionCanBeCentered => sectionWidth + targetClefWidth <= visibleWidth;
+  bool get sectionCanBeCentered =>
+      sectionWidth + targetClefWidth <= visibleWidth;
   int get staffCount => stavesNotifier.value.length;
-  double get maxVerticalPosition => max(0, (staffCount)* MusicSystemPainter.staffHeight * yScale - widget.height + 100);
+  double get maxVerticalPosition => max(
+      0,
+      (staffCount) * MusicSystemPainter.staffHeight * yScale -
+          widget.height +
+          100);
   void scrollToCurrentBeat() {
     if (widget.autoFocus) {
       scrollToPart();
@@ -502,48 +557,57 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
       _constrainToSectionBounds();
     } else {
       scrollToBeat(widget.autoScroll
-        ? min(currentBeat, rightMostBeatConstrainedToSection)
-        : currentBeat);
+          ? min(currentBeat, rightMostBeatConstrainedToSection)
+          : currentBeat);
     }
     // if (widget.autoScroll && !widget.isTwoFingerScaling && sectionCanBeCentered) {
     //   Future.delayed(animationDuration, _constrainToSectionBounds);
     // }
   }
-  double get rightMostBeatConstrainedToSection => firstBeatOfSection + 2.62 + (sectionWidth / targetBeatWidth) - (myVisibleRect.width / targetBeatWidth);
+
+  double get rightMostBeatConstrainedToSection =>
+      firstBeatOfSection +
+      2.62 +
+      (sectionWidth / targetBeatWidth) -
+      (myVisibleRect.width / targetBeatWidth);
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
     print("_constrainToSectionBounds");
-    // if (widget.musicViewMode != MusicViewMode.score) {
-    //TODO restrict the user to their current section more properly
     double position = timeScrollController.position.pixels;
     double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
     double visibleWidth = myVisibleRect.width;
     if (sectionCanBeCentered) {
       scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
     } else {
-      double sectionStart = (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) * targetBeatWidth;
+      double sectionStart =
+          (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) *
+              targetBeatWidth;
       final allowedMargin = visibleWidth * 0.2;
       if (position < sectionStart - allowedMargin) {
         scrollToBeat(firstBeatOfSection);
-      } else if (position + visibleWidth > sectionStart + sectionWidth + allowedMargin) {
+      } else if (position + visibleWidth >
+          sectionStart + sectionWidth + allowedMargin) {
         scrollToBeat(rightMostBeatConstrainedToSection);
       }
     }
-    // }
   }
 
-  double get firstBeatOfSection => widget.score.firstBeatOfSection(widget.currentSection).toDouble();
+  double get firstBeatOfSection =>
+      widget.score.firstBeatOfSection(widget.currentSection).toDouble();
 
   double get currentBeat {
     return BeatScratchPlugin.currentBeat.value + firstBeatOfSection;
   }
 
   void _animateStaffAndPartPositions() {
-    var removedOffsets = staffOffsets.value.keys.where((id) => !widget.staves.any((staff) => staff.id == id));
+    var removedOffsets = staffOffsets.value.keys
+        .where((id) => !widget.staves.any((staff) => staff.id == id));
     removedOffsets.forEach((removedStaffId) {
       Animation staffAnimation;
-      staffAnimation = Tween<double>(begin: staffOffsets.value[removedStaffId], end: 0)
-          .animate(CurvedAnimation(parent: animationController, curve: Curves.ease))
+      staffAnimation = Tween<double>(
+              begin: staffOffsets.value[removedStaffId], end: 0)
+          .animate(
+              CurvedAnimation(parent: animationController, curve: Curves.ease))
             ..addListener(() {
               staffOffsets.value[removedStaffId] = staffAnimation.value;
               // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
@@ -551,11 +615,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
             });
     });
     widget.staves.asMap().forEach((staffIndex, staff) {
-      double staffPosition = staffIndex * MusicSystemPainter.staffHeight * yScale;
-      double initialStaffPosition = staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight);
+      double staffPosition =
+          staffIndex * MusicSystemPainter.staffHeight * yScale;
+      double initialStaffPosition =
+          staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight);
       Animation staffAnimation;
-      staffAnimation = Tween<double>(begin: initialStaffPosition, end: staffPosition)
-          .animate(CurvedAnimation(parent: animationController, curve: Curves.ease))
+      staffAnimation = Tween<double>(
+              begin: initialStaffPosition, end: staffPosition)
+          .animate(
+              CurvedAnimation(parent: animationController, curve: Curves.ease))
             ..addListener(() {
               staffOffsets.value[staff.id] = staffAnimation.value;
               // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
@@ -563,15 +631,18 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
             });
       staff.getParts(widget.score, widget.staves).forEach((part) {
         double partPosition = staffPosition;
-        double initialPartPosition = partTopOffsets.value.putIfAbsent(part.id, () => overallCanvasHeight);
+        double initialPartPosition = partTopOffsets.value
+            .putIfAbsent(part.id, () => overallCanvasHeight);
         Animation partAnimation;
-        partAnimation = Tween<double>(begin: initialPartPosition, end: partPosition)
-            .animate(CurvedAnimation(parent: animationController, curve: Curves.ease))
-              ..addListener(() {
-                partTopOffsets.value[part.id] = partAnimation.value;
-                // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-                partTopOffsets.notifyListeners();
-              });
+        partAnimation =
+            Tween<double>(begin: initialPartPosition, end: partPosition)
+                .animate(CurvedAnimation(
+                    parent: animationController, curve: Curves.ease))
+                  ..addListener(() {
+                    partTopOffsets.value[part.id] = partAnimation.value;
+                    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+                    partTopOffsets.notifyListeners();
+                  });
       });
       stavesNotifier.value = widget.staves;
       colorboardPart.value = widget.colorboardPart;
@@ -580,30 +651,38 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
   }
 
   void _animateOpacitiesAndScale() {
-    double colorGuideOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 0.5 : 0;
-    double colorblockOpacityValue = (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
-    double notationOpacityValue = (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
-    double sectionScaleValue =  sectionsHeight != 0 ? 1 : 0;
+    double colorGuideOpacityValue =
+        (widget.renderingMode == RenderingMode.colorblock) ? 0.5 : 0;
+    double colorblockOpacityValue =
+        (widget.renderingMode == RenderingMode.colorblock) ? 1 : 0;
+    double notationOpacityValue =
+        (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
+    double sectionScaleValue = sectionsHeight != 0 ? 1 : 0;
     Animation animation1;
-    animation1 =
-        Tween<double>(begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue).animate(animationController)
+    animation1 = Tween<double>(
+            begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
+        .animate(animationController)
           ..addListener(() {
             colorblockOpacityNotifier.value = animation1.value;
           });
     Animation animation2;
-    animation2 =
-        Tween<double>(begin: notationOpacityNotifier.value, end: notationOpacityValue).animate(animationController)
+    animation2 = Tween<double>(
+            begin: notationOpacityNotifier.value, end: notationOpacityValue)
+        .animate(animationController)
           ..addListener(() {
             notationOpacityNotifier.value = animation2.value;
           });
     Animation animation3;
-    animation3 = Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue).animate(animationController)
-      ..addListener(() {
-        sectionScaleNotifier.value = animation3.value;
-      });
+    animation3 =
+        Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
+            .animate(animationController)
+              ..addListener(() {
+                sectionScaleNotifier.value = animation3.value;
+              });
     Animation animation4;
-    animation4 =
-        Tween<double>(begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue).animate(animationController)
+    animation4 = Tween<double>(
+            begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue)
+        .animate(animationController)
           ..addListener(() {
             colorGuideOpacityNotifier.value = animation4.value;
           });
@@ -611,7 +690,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer> with Ticker
 }
 
 extension CloseComparison on double {
-  bool roughlyEquals(double x, {double precision = 0.005}) => (this - x).abs() < precision;
+  bool roughlyEquals(double x, {double precision = 0.005}) =>
+      (this - x).abs() < precision;
 
-  bool notRoughlyEquals(double x, {double precision = 0.005}) => !roughlyEquals(x, precision: precision);
+  bool notRoughlyEquals(double x, {double precision = 0.005}) =>
+      !roughlyEquals(x, precision: precision);
 }

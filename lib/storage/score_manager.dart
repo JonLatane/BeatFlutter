@@ -4,11 +4,8 @@ import 'dart:io';
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 
-import '../util/fake_js.dart' if (dart.library.js) 'dart:js';
-
 import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/foundation.dart';
-import 'package:protobuf/protobuf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +14,6 @@ import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
 import '../util/proto_utils.dart';
 import 'url_conversions.dart';
-
 
 /// ScoreManager gonna be funky if [BeatScratchPlugin.supportsStorage]
 /// isn't true (i.e. for the web). You still have JSON serialization
@@ -31,16 +27,20 @@ class ScoreManager {
   Directory _scoresDirectory;
   SharedPreferences _prefs;
 
-  String get currentScoreName => _prefs?.getString('currentScoreName') ?? "Untitled Score";
+  String get currentScoreName =>
+      _prefs?.getString('currentScoreName') ?? "Untitled Score";
 
-  set currentScoreName(String value) => _prefs?.setString("currentScoreName", value);
+  set currentScoreName(String value) =>
+      _prefs?.setString("currentScoreName", value);
 
-  File get _currentScoreFile => File("${_scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
+  File get _currentScoreFile => File(
+      "${_scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
     if (_scoresDirectory != null) {
       List<FileSystemEntity> result = _scoresDirectory?.listSync();
-      result.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      result.sort(
+          (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       return result;
     }
     return [];
@@ -56,7 +56,8 @@ class ScoreManager {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       final scoresPath = "${documentsDirectory.path}/Scores";
 
-      Directory _oldScoresDirectory = Directory("${documentsDirectory.path}/scores}");
+      Directory _oldScoresDirectory =
+          Directory("${documentsDirectory.path}/scores}");
       if (_oldScoresDirectory.existsSync()) {
         _oldScoresDirectory.renameSync(scoresPath);
       }
@@ -79,7 +80,8 @@ class ScoreManager {
   }
 
   _saveCurrentScore(File scoreFile, Score score) async {
-    if (scoreFile.scoreName != WEB_SCORE && scoreFile.scoreName != PASTED_SCORE) {
+    if (scoreFile.scoreName != WEB_SCORE &&
+        scoreFile.scoreName != PASTED_SCORE) {
       print("Updating score name");
       score.name = scoreFile.scoreName;
     }
@@ -125,10 +127,11 @@ class ScoreManager {
       } else {
         suggestedScoreName += newScoreNameSuffix;
       }
-      if(currentScoreToSave != null) {
+      if (currentScoreToSave != null) {
         saveCurrentScore(currentScoreToSave);
       }
-      openScoreWithFilename(score, newScoreDefaultFilename); // side-effect: updates this.score
+      openScoreWithFilename(
+          score, newScoreDefaultFilename); // side-effect: updates this.score
       _lastSuggestedScoreName = suggestedScoreName;
       onSuccess?.call(suggestedScoreName);
     } catch (any) {
@@ -153,7 +156,7 @@ class ScoreManager {
   }
 
   loadPastebinScoreIntoUI(String pastebinCode,
-    {String newScoreDefaultFilename = PASTED_SCORE,
+      {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
       Score currentScoreToSave,
       VoidCallback onFail,
@@ -182,7 +185,7 @@ class ScoreManager {
         suggestedScoreName += newScoreNameSuffix;
       }
       if (BeatScratchPlugin.supportsStorage) {
-        if(currentScoreToSave != null) {
+        if (currentScoreToSave != null) {
           saveCurrentScore(currentScoreToSave);
         }
         openScoreWithFilename(score, newScoreDefaultFilename);
@@ -212,7 +215,8 @@ class ScoreManager {
 
   Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);
 
-  static Future<Score> loadScore(File file) async => Score.fromBuffer(file.readAsBytesSync());
+  static Future<Score> loadScore(File file) async =>
+      Score.fromBuffer(file.readAsBytesSync());
 }
 
 extension ScoreName on FileSystemEntity {

@@ -6,8 +6,8 @@ import 'package:unification/unification.dart';
 import '../util/music_theory.dart';
 import '../colors.dart';
 
-
 extension _HarmonyHighlight on Color {
+  // ignore: unused_element
   Color withHighlight({bool isPlaying, bool isSelected, bool isFaded}) {
     int alpha = 187;
     if (isPlaying) {
@@ -70,7 +70,8 @@ class HarmonyBeatRenderer {
   Meter get meter => section?.meter;
   int beatPosition = 0;
 
-  List<int> get subdivisionRange => rangeList(beatPosition * harmony.subdivisionsPerBeat,
+  List<int> get subdivisionRange => rangeList(
+      beatPosition * harmony.subdivisionsPerBeat,
       min(harmony.length, (beatPosition + 1) * harmony.subdivisionsPerBeat));
 
   Paint paint = Paint();
@@ -82,36 +83,47 @@ class HarmonyBeatRenderer {
   draw(Canvas canvas) {
 //  canvas.getClipBounds(overallBounds)
     double overallWidth = overallBounds.right - overallBounds.left;
-    bounds = Rect.fromLTRB(overallBounds.left, overallBounds.top, overallBounds.right, overallBounds.bottom);
+    bounds = Rect.fromLTRB(overallBounds.left, overallBounds.top,
+        overallBounds.right, overallBounds.bottom);
 
     paint.color = Color(0xFFFFFFFF);
     canvas.drawRect(bounds, paint);
-      var elementCount = subdivisionRange.length;
-      subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
-        bounds = Rect.fromLTRB(overallBounds.left + overallWidth * elementIndex / elementCount, overallBounds.top,
-          overallBounds.left + overallWidth * (elementIndex + 1) / elementCount, overallBounds.bottom);
+    var elementCount = subdivisionRange.length;
+    subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
+      bounds = Rect.fromLTRB(
+          overallBounds.left + overallWidth * elementIndex / elementCount,
+          overallBounds.top,
+          overallBounds.left + overallWidth * (elementIndex + 1) / elementCount,
+          overallBounds.bottom);
 //        print("Drawing beat $beatPosition subdivision $elementIndex onto $bounds");
-        bool isPlaying = false;
-        /*section == BeatClockPaletteConsumer.section &&
+
+      // ignore: unused_local_variable
+      bool isPlaying = false;
+      /*section == BeatClockPaletteConsumer.section &&
   viewModel.paletteViewModel.playbackTick?.convertPatternIndex(
   from = BeatClockPaletteConsumer.ticksPerBeat,
   to = harmony
   ) == elementPosition*/
-        bool isSelected = false; //viewModel?.selectedHarmonyElements?.contains(elementPosition) ?: false
-        bool isFaded = false; //!isSelected && viewModel?.selectedHarmonyElements != null
+      // ignore: unused_local_variable
+      bool isSelected =
+          false; //viewModel?.selectedHarmonyElements?.contains(elementPosition) ?: false
+      // ignore: unused_local_variable
+      bool isFaded =
+          false; //!isSelected && viewModel?.selectedHarmonyElements != null
 
-        Chord chord = harmony.changeBefore(elementPosition);
+      Chord chord = harmony.changeBefore(elementPosition);
 
-        if(chord.chroma == 2047) {
-          paint.color = chromaticSteps[elementPosition % chromaticSteps.length].withAlpha(127);
-        } else {
-          paint.color = chord.uiColor;
-        }
+      if (chord.chroma == 2047) {
+        paint.color = chromaticSteps[elementPosition % chromaticSteps.length]
+            .withAlpha(127);
+      } else {
+        paint.color = chord.uiColor;
+      }
 
-        canvas.drawRect(bounds, paint);
+      canvas.drawRect(bounds, paint);
 
-        _drawRhythm(canvas, elementIndex);
-      });
+      _drawRhythm(canvas, elementIndex);
+    });
 //    bounds.apply {
 //      left = overallBounds.right
 //      right = overallBounds.right
@@ -138,15 +150,22 @@ class HarmonyBeatRenderer {
       }
     }
     double rightOffset = 1;
-    if (elementIndex % harmony.subdivisionsPerBeat == harmony.subdivisionsPerBeat - 1) {
+    if (elementIndex % harmony.subdivisionsPerBeat ==
+        harmony.subdivisionsPerBeat - 1) {
       leftOffset = 3;
-      if ((beatPosition) % meter.defaultBeatsPerMeasure == meter.defaultBeatsPerMeasure - 1) {
+      if ((beatPosition) % meter.defaultBeatsPerMeasure ==
+          meter.defaultBeatsPerMeasure - 1) {
         leftOffset = 6;
       }
     }
 
     canvas.drawRect(
-        Rect.fromLTRB(bounds.left + leftOffset, bounds.top, bounds.left + leftOffset, bounds.bottom), paint);
-    canvas.drawRect(Rect.fromLTRB(bounds.right - rightOffset, bounds.top, bounds.right, bounds.bottom), paint);
+        Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
+            bounds.left + leftOffset, bounds.bottom),
+        paint);
+    canvas.drawRect(
+        Rect.fromLTRB(bounds.right - rightOffset, bounds.top, bounds.right,
+            bounds.bottom),
+        paint);
   }
 }

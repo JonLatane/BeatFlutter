@@ -1,4 +1,5 @@
 import 'package:dart_midi/dart_midi.dart';
+// ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:unification/unification.dart';
 
@@ -6,41 +7,46 @@ import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
 extension MidiEventFilters on Iterable<MidiEvent> {
-  bool hasNoteOnEvent(int midiNote) =>
-    any((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  bool hasNoteOffEvent(int midiNote) =>
-    any((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  Iterable<MidiEvent> withoutNoteOnEvents(int midiNote) =>
-    where((it) => !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  Iterable<MidiEvent> withoutNoteOffEvents(int midiNote) =>
-    where((it) => !(it is NoteOffEvent) || (it as NoteOffEvent).noteNumber != midiNote);
+  bool hasNoteOnEvent(int midiNote) => any((it) =>
+      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  bool hasNoteOffEvent(int midiNote) => any((it) =>
+      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOnEvents(int midiNote) => where((it) =>
+      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOffEvents(int midiNote) => where((it) =>
+      !(it is NoteOffEvent) || (it as NoteOffEvent).noteNumber != midiNote);
 }
 
 extension MidiChangeTheory on MidiChange {
   Iterable<MidiEvent> get midiEvents {
     final args = ArgumentList((data ?? []).toList());
     try {
-      return midiEventsCache.putIfAbsent(args,
-          () => _midiEvents.toList());
+      return midiEventsCache.putIfAbsent(args, () => _midiEvents.toList());
     } catch (e) {
       print("midiEvents fail; args=${args.arguments}: $e");
       return _midiEvents;
     }
   }
+
   Iterable<MidiEvent> get _midiEvents {
-    if(data == null || data.isEmpty) {
+    if (data == null || data.isEmpty) {
       return [];
     }
     var chunkedData = data.chunked(3);
     // Parser expects some dumb time bytes... we don't need em of course
-    var fakeTrackData = chunkedData.expand((eventBytes) => [0,].followedBy(eventBytes));
-    var result =  _parser.parseTrack(fakeTrackData.toList());
+    var fakeTrackData = chunkedData.expand((eventBytes) => [
+          0,
+        ].followedBy(eventBytes));
+    var result = _parser.parseTrack(fakeTrackData.toList());
     return result;
   }
+
   set midiEvents(Iterable<MidiEvent> value) {
 //    print("setting midiEvents to ${value}; data=$data");
     ByteWriter writer = ByteWriter();
-    value.forEach((event) { event.writeEvent(writer); });
+    value.forEach((event) {
+      event.writeEvent(writer);
+    });
     data = writer.buffer;
 //    print("done setting midiEvents; data1=${writer.buffer}");
 //    print("done setting midiEvents; data=$data");
@@ -48,17 +54,18 @@ extension MidiChangeTheory on MidiChange {
 
   static final Map<ArgumentList, Iterable<MidiEvent>> midiEventsCache = Map();
   Iterable<NoteOnEvent> get noteOns => midiEvents
-    .where((event) => event is NoteOnEvent)
-    .map((event) => event as NoteOnEvent);
+      .where((event) => event is NoteOnEvent)
+      .map((event) => event as NoteOnEvent);
   Iterable<NoteOffEvent> get noteOffs => midiEvents
-    .where((event) => event is NoteOffEvent)
-    .map((event) => event as NoteOffEvent);
+      .where((event) => event is NoteOffEvent)
+      .map((event) => event as NoteOffEvent);
 }
 
 final MidiParser _parser = MidiParser();
 
 extension MidiMelodies on Melody {
-  setMidiDataFromSimpleMelody(Map<int, Iterable<int>> simpleData, {int simpleVelocity = 127}) {
+  setMidiDataFromSimpleMelody(Map<int, Iterable<int>> simpleData,
+      {int simpleVelocity = 127}) {
     Map<int, MidiChange> convertedData = Map();
     List<MapEntry<int, Iterable<int>>> sortedData = simpleData.entries.toList()
       ..sort((e1, e2) => e1.key.compareTo(e2.key));
@@ -67,11 +74,10 @@ extension MidiMelodies on Melody {
       int key = entry.key;
       Iterable<int> tones = entry.value;
       List<MidiEvent> events = [];
-      if(prevTones == null) {
+      if (prevTones == null) {
         prevTones = sortedData.last.value;
       }
-      events.addAll(prevTones.map((tone) =>
-      NoteOffEvent()
+      events.addAll(prevTones.map((tone) => NoteOffEvent()
         ..noteNumber = tone + 60
         ..velocity = 127
         ..channel = 0));
@@ -218,7 +224,6 @@ const List<String> midiInstruments = [
   "Gunshot",
 ];
 
-
 const List<String> midiDrumEffects = [
   "Acoustic Bass Drum",
   "Bass Drum 1",
@@ -268,33 +273,35 @@ const List<String> midiDrumEffects = [
   "Mute Triangle",
   "Open Triangle",
   "Shaker",
-  ];
+];
 
 class Base24Conversion {
   static final Map<int, List<int>> map = {
-    1 : [0],
-    2 : [0,12],
-    3 : [0,8,16],
-    4 : [0,6,12,18],
-    5 : [0,5,10,14,19],
-    6 : [0,4,8,12,16,20],
-    7 : [0,3,7,10,14,17,21],
-    8 : [0,3,6,9,12,15,18,21],
-    9 : [0,3,5, 8,11,13, 16,19,21],
-    10:  [0,2,5,7,10,12,14,17,19,22],
-    11:  [0,2,4,7,9,11,13,15,17,19,22],
-    12:  [0,2,4,6,8,10,12,14,16,18,20,22],
-    13:  range(0,23).toList().listDiff([2,4,6,8,10,12,14,16,18,20,22]),
-    14:  range(0,23).toList().listDiff([2,4,7,9,11,13,15,17,19,22]),
-    15:  range(0,23).toList().listDiff([2,5,7,10,12,14,17,19,22]),
-    16:  range(0,23).toList().listDiff([3,5, 8,11,13, 16,19,21]),
-    17:  range(0,23).toList().listDiff([3,6,9,12,15,18,21]),
-    18:  range(0,23).toList().listDiff([3,7,10,14,17,21]),
-    19:  range(0,23).toList().listDiff([4,8,12,16,20]),
-    20:  range(0,23).toList().listDiff([5,10,14,19]),
-    21:  range(0,23).toList().listDiff([6,12,18]),
-    22:  range(0,23).toList().listDiff([8, 16]),
-    23:  range(0,23).toList().listDiff([12]),
-    24:  range(0,23).toList()
+    1: [0],
+    2: [0, 12],
+    3: [0, 8, 16],
+    4: [0, 6, 12, 18],
+    5: [0, 5, 10, 14, 19],
+    6: [0, 4, 8, 12, 16, 20],
+    7: [0, 3, 7, 10, 14, 17, 21],
+    8: [0, 3, 6, 9, 12, 15, 18, 21],
+    9: [0, 3, 5, 8, 11, 13, 16, 19, 21],
+    10: [0, 2, 5, 7, 10, 12, 14, 17, 19, 22],
+    11: [0, 2, 4, 7, 9, 11, 13, 15, 17, 19, 22],
+    12: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+    13: range(0, 23)
+        .toList()
+        .listDiff([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]),
+    14: range(0, 23).toList().listDiff([2, 4, 7, 9, 11, 13, 15, 17, 19, 22]),
+    15: range(0, 23).toList().listDiff([2, 5, 7, 10, 12, 14, 17, 19, 22]),
+    16: range(0, 23).toList().listDiff([3, 5, 8, 11, 13, 16, 19, 21]),
+    17: range(0, 23).toList().listDiff([3, 6, 9, 12, 15, 18, 21]),
+    18: range(0, 23).toList().listDiff([3, 7, 10, 14, 17, 21]),
+    19: range(0, 23).toList().listDiff([4, 8, 12, 16, 20]),
+    20: range(0, 23).toList().listDiff([5, 10, 14, 19]),
+    21: range(0, 23).toList().listDiff([6, 12, 18]),
+    22: range(0, 23).toList().listDiff([8, 16]),
+    23: range(0, 23).toList().listDiff([12]),
+    24: range(0, 23).toList()
   };
 }

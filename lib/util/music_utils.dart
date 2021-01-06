@@ -1,6 +1,6 @@
 import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
 import 'package:dart_midi/dart_midi.dart';
-import 'package:unification/unification.dart';
+//ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
 
 import '../generated/protos/music.pb.dart';
@@ -18,7 +18,7 @@ extension ScoreReKey on Score {
 
         sections.forEach((section) {
           section.melodies.forEach((melodyReference) {
-            if(melodyReference.melodyId == oldMelodyId) {
+            if (melodyReference.melodyId == oldMelodyId) {
               melodyReference.melodyId = newMelodyId;
             }
           });
@@ -37,7 +37,8 @@ extension ScoreReKey on Score {
 extension DeleteNotes on Melody {
   deleteMidiNote(int midiNote, int subdivision) {
     // First delete the NoteOnEvent here
-    midiData.data[subdivision].midiEvents = midiData.data[subdivision].midiEvents.withoutNoteOnEvents(midiNote);
+    midiData.data[subdivision].midiEvents =
+        midiData.data[subdivision].midiEvents.withoutNoteOnEvents(midiNote);
 
     // Find the NoteOff that corresponds and delete it
     int s = subdivision;
@@ -64,7 +65,9 @@ extension DeleteNotes on Melody {
     do {
       var midiChange = midiData.data[subdivision];
       if (midiChange != null) {
-        midiChange.noteOns.forEach((it) { deleteMidiNote(it.noteNumber, subdivision); });
+        midiChange.noteOns.forEach((it) {
+          deleteMidiNote(it.noteNumber, subdivision);
+        });
       }
       subdivision = (subdivision + 1) % length;
     } while (subdivision != (startSubdivision + subdivisionsPerBeat) % length);
@@ -74,16 +77,16 @@ extension DeleteNotes on Melody {
 extension SeparateNoteOnAndOff on Melody {
   bool separateNoteOnAndOffs() {
     bool madeChanges = false;
-    if(type == MelodyType.midi && false) {
+    if (type == MelodyType.midi && false) {
       midiData.data.keys.forEach((index) {
-        MidiChange midiChange =  midiData.data[index];
+        MidiChange midiChange = midiData.data[index];
         int nextIndex = (index < midiData.data.length - 1) ? index + 1 : 0;
-        MidiChange nextMidiChange =  midiData.data[nextIndex] ?? MidiChange();
+        MidiChange nextMidiChange = midiData.data[nextIndex] ?? MidiChange();
 
         ByteWriter writer = ByteWriter();
         ByteWriter nextWriter = ByteWriter();
 
-        List<int> noteOns = List();
+        List<int> noteOns = [];
 
         midiChange.midiEvents.forEach((midiEvent) {
           if (midiEvent is NoteOnEvent) {

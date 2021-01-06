@@ -3,23 +3,20 @@ import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
 import 'package:dart_midi/dart_midi.dart';
 // ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
-
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
 // ignore: implementation_imports
 import 'package:dart_midi/src/byte_reader.dart';
-import '../ui_models.dart';
 import '../util/music_theory.dart';
 import '../util/midi_theory.dart';
-import '../util/util.dart';
-import '../widget/my_buttons.dart';
 
 extension ScoreMidiExport on Score {
   MidiFile exportMidi(BSExport export) {
     if (parts.isEmpty || sections.isEmpty) return null;
-    final List<MidiEvent> track = parts.where((p)=> export.includesPart(p)).map<MidiEvent>((part) => (ProgramChangeMidiEvent()
-      ..channel = part.instrument.midiChannel
-      ..programNumber = part.instrument.midiInstrument)).toList();
+    final List<MidiEvent> track = parts
+        .where((p) => export.includesPart(p))
+        .map<MidiEvent>((part) => (ProgramChangeMidiEvent()
+          ..channel = part.instrument.midiChannel
+          ..programNumber = part.instrument.midiInstrument))
+        .toList();
 
     int currentTick = 0;
     sections.where((s) => export.includesSection(s)).forEach((section) {
@@ -44,27 +41,37 @@ extension ScoreMidiExport on Score {
 }
 
 extension SectionMidiExport on Section {
-  exportMidi(Score score, int startTick, BSExport export, List<MidiEvent> track) {
+  exportMidi(
+      Score score, int startTick, BSExport export, List<MidiEvent> track) {
     track.add(SetTempoEvent()
-      ..microsecondsPerBeat = ((60000000 / tempo.bpm) / export.tempoMultiplier).round()
+      ..microsecondsPerBeat =
+          ((60000000 / tempo.bpm) / export.tempoMultiplier).round()
       ..deltaTime = startTick);
     score.parts.asMap().forEach((index, part) {
-      melodies.where((r) => r.isEnabled && part.melodies.any((m) => m.id == r.melodyId)).forEach((ref) {
+      melodies
+          .where((r) =>
+              r.isEnabled && part.melodies.any((m) => m.id == r.melodyId))
+          .forEach((ref) {
         final melody = score.melodyReferencedBy(ref);
         if (melody.type == MelodyType.midi) {
           int startBeat = 0;
           while (startBeat < beatCount) {
             melody.midiData.data.forEach((subdivision, midiChange) {
               final events = midiChange.midiEvents.map((e) => e.copyOfEvent());
-              final absoluteBeat = (subdivision.toDouble() / melody.subdivisionsPerBeat).floor();
+              final absoluteBeat =
+                  (subdivision.toDouble() / melody.subdivisionsPerBeat).floor();
               final convertedTickOfBeat =
-              Base24Conversion.map[melody.subdivisionsPerBeat][subdivision % melody.subdivisionsPerBeat];
+                  Base24Conversion.map[melody.subdivisionsPerBeat]
+                      [subdivision % melody.subdivisionsPerBeat];
               final absoluteTick = 24 * startBeat +
-                startTick +
-                24 * absoluteBeat + convertedTickOfBeat;
+                  startTick +
+                  24 * absoluteBeat +
+                  convertedTickOfBeat;
               events.map((midiEvent) {
-                if (midiEvent is NoteOnEvent) midiEvent.channel = part.instrument.midiChannel;
-                if (midiEvent is NoteOffEvent) midiEvent.channel = part.instrument.midiChannel;
+                if (midiEvent is NoteOnEvent)
+                  midiEvent.channel = part.instrument.midiChannel;
+                if (midiEvent is NoteOffEvent)
+                  midiEvent.channel = part.instrument.midiChannel;
                 return midiEvent..deltaTime = absoluteTick;
               }).forEach((midiEvent) {
                 track.add(midiEvent);
@@ -79,17 +86,15 @@ extension SectionMidiExport on Section {
   }
 }
 
-
 final ByteWriter _w = ByteWriter()
   ..writeVarInt(0)
   ..writeUInt8(0x80)
   ..writeUInt8(0x00)
   ..writeUInt8(0x01);
 
-final MidiParser _parser = MidiParser()
-  ..readEvent(ByteReader(_w.buffer));
+final MidiParser _parser = MidiParser()..readEvent(ByteReader(_w.buffer));
 
-extension <T extends MidiEvent> on T {
+extension<T extends MidiEvent> on T {
   T copyOfEvent() {
     ByteWriter w = ByteWriter()..writeVarInt(0);
     writeEvent(w);

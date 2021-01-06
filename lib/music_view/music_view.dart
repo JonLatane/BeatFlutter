@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/music_view/part_melody_browser.dart';
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +31,8 @@ class MusicView extends StatefulWidget {
   final Function(RenderingMode) requestRenderingMode;
   final Score score;
   final Section currentSection;
-  final ValueNotifier<Iterable<int>> colorboardNotesNotifier, keyboardNotesNotifier;
+  final ValueNotifier<Iterable<int>> colorboardNotesNotifier,
+      keyboardNotesNotifier;
   final Melody melody;
   final Part part;
   final Color sectionColor;
@@ -63,6 +63,7 @@ class MusicView extends StatefulWidget {
   final bool showViewOptions;
   final bool renderPartNames;
   final bool showBeatCounts;
+  final BSNotifier scrollToCurrentBeat;
 
   MusicView(
       {this.selectBeat,
@@ -108,7 +109,8 @@ class MusicView extends StatefulWidget {
       this.showViewOptions = false,
       this.backgroundColor = Colors.white,
       this.showBeatCounts,
-      this.createMelody})
+      this.createMelody,
+      this.scrollToCurrentBeat})
       : super(key: key);
 
   @override
@@ -128,20 +130,24 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   // Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
-  Offset _offset = Offset.zero;
-  Offset _startFocalPoint = Offset.zero;
-  double _startHorizontalScale = 1.0;
-  double _startVerticalScale = 1.0;
+  // Offset _offset = Offset.zero;
+  // Offset _startFocalPoint = Offset.zero;
+  double _startScale = 1.0;
+  // double _startHorizontalScale = 1.0;
+  // double _startVerticalScale = 1.0;
   bool _hasSwipedClosed = false;
 
-  ValueNotifier<double> xScaleNotifier, yScaleNotifier, verticalScrollingPosition;
+  ValueNotifier<double> xScaleNotifier,
+      yScaleNotifier,
+      verticalScrollingPosition;
 
   /// Always immediately updated; the return values of [xScale] and [yScale].
   double _targetedXScale, _targetedYScale;
 
   /// Used to maintain a locking mechanism as we animate from [_xScale] to [_targetedXScale] in the setter for [xScale].
   DateTime _xScaleLock, _yScaleLock;
-  List<AnimationController> _xScaleAnimationControllers, _yScaleAnimationControllers;
+  List<AnimationController> _xScaleAnimationControllers,
+      _yScaleAnimationControllers;
 
   /// Used to notify the [MusicScrollContainer] as we animate [_xScale] to [_targetedXScale] in the setter for [xScale].
   BSValueNotifier<ScaleUpdate> _xScaleUpdate, _yScaleUpdate;
@@ -149,10 +155,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   Map<MusicViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
 
-  BSNotifier scrollToCurrentBeat, centerCurrentSection, scrollToPart;
+  BSNotifier centerCurrentSection, scrollToPart;
 
-  static const double maxScaleDiscrepancy = 1.5;
-  static const double minScaleDiscrepancy = 1 / maxScaleDiscrepancy;
+  // static const double maxScaleDiscrepancy = 1.5;
+  // static const double minScaleDiscrepancy = 1 / maxScaleDiscrepancy;
 
   ValueNotifier<int> highlightedBeat;
   DateTime focusedBeatUpdated = DateTime(0);
@@ -166,17 +172,21 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   String _lastIgnoreId;
   bool _ignoreNextTap = false;
 
+  // ignore: unused_field
   MusicViewMode _previousMusicViewMode;
+  // ignore: unused_field
   SplitMode _previousSplitMode;
   bool _aligned;
   bool _partAligned;
 
-  AnimationController animationController() => AnimationController(vsync: this, duration: Duration(milliseconds: 200));
+  AnimationController animationController() =>
+      AnimationController(vsync: this, duration: Duration(milliseconds: 200));
 
   SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
 
   set currentSwipeTutorial(SwipeTutorial value) {
-    if (value == null || _swipeTutorialsSeen[widget.musicViewMode].contains(value)) {
+    if (value == null ||
+        _swipeTutorialsSeen[widget.musicViewMode].contains(value)) {
       _currentSwipeTutorial = null;
       return;
     }
@@ -211,15 +221,16 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       Animation animation;
       // print("animating xScale to $value");
       // print("Tween params: begin: $currentValue, end: $value");
-      animation = Tween<double>(begin: currentValue(), end: value()).animate(scaleAnimationController)
-        ..addListener(() {
-          // print("Tween scale: ${animation.value}");
-          if (!_disposed) {
-            setState(() {
-              applyAnimatedValue(animation.value);
+      animation = Tween<double>(begin: currentValue(), end: value())
+          .animate(scaleAnimationController)
+            ..addListener(() {
+              // print("Tween scale: ${animation.value}");
+              if (!_disposed) {
+                setState(() {
+                  applyAnimatedValue(animation.value);
+                });
+              }
             });
-          }
-        });
       scaleAnimationController.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           Future.delayed(animationDuration, () {
@@ -234,14 +245,22 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   static const focusTimeout = 2500;
 
-  _updateFocusedBeatValue({int value, bool withDelayClear = true, bool force = false}) {
+  _updateFocusedBeatValue(
+      {int value, bool withDelayClear = true, bool force = false}) {
     if (value == null) {
       value = getBeat(
-        Offset(
-          melodyRendererVisibleRect.width / (context.isLandscape && widget.splitMode == SplitMode.half ? 4 : 2), 0),
-        targeted: false);
+          Offset(
+              melodyRendererVisibleRect.width /
+                  (context.isLandscape && widget.splitMode == SplitMode.half
+                      ? 4
+                      : 2),
+              0),
+          targeted: false);
     }
-    if (force || focusedBeat.value == null || DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+    if (force ||
+        focusedBeat.value == null ||
+        DateTime.now().difference(focusedBeatUpdated).inMilliseconds >
+            focusTimeout) {
       focusedBeat.value = value;
 
       focusedBeatUpdated = DateTime.now();
@@ -249,7 +268,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       if (withDelayClear) {
         delayClear() {
           Future.delayed(Duration(milliseconds: focusTimeout), () {
-            if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds > focusTimeout) {
+            if (DateTime.now().difference(focusedBeatUpdated).inMilliseconds >
+                focusTimeout) {
               // print("Cleared focusedBeat");
               focusedBeat.value = null;
             } else {
@@ -257,6 +277,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             }
           });
         }
+
         delayClear();
       }
       // print("Set focusedBeat to ${focusedBeat.value}");
@@ -306,7 +327,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       notifyUpdate(ScaleUpdate(currentValue(), value()));
     }
 
-    if (getLockTime() == null || DateTime.now().difference(getLockTime()).inMilliseconds > 500) {
+    if (getLockTime() == null ||
+        DateTime.now().difference(getLockTime()).inMilliseconds > 500) {
       if (lock()) {
         // print("unlocked");
         startAnimation();
@@ -400,13 +422,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     verticalScrollingPosition = new ValueNotifier(0);
     requestedScrollOffsetForScale = ValueNotifier(null);
     _swipeTutorialsSeen = {
-      MusicViewMode.melody: List(),
-      MusicViewMode.part: List(),
-      MusicViewMode.section: List(),
+      MusicViewMode.melody: [],
+      MusicViewMode.part: [],
+      MusicViewMode.section: [],
     };
     _xScaleAnimationControllers = [];
     _yScaleAnimationControllers = [];
-    scrollToCurrentBeat = BSNotifier();
     centerCurrentSection = BSNotifier();
     _xScaleUpdate = BSValueNotifier(null);
     _yScaleUpdate = BSValueNotifier(null);
@@ -424,7 +445,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     yScaleNotifier = ValueNotifier(null);
   }
 
-  double toolbarHeight(BuildContext context) => context.isLandscapePhone ? 42 : 48;
+  double toolbarHeight(BuildContext context) =>
+      context.isLandscapePhone ? 42 : 48;
 
   @override
   void dispose() {
@@ -438,7 +460,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     _xScaleAnimationControllers.clear();
     _yScaleAnimationControllers.clear();
     highlightedBeat.dispose();
-    scrollToCurrentBeat.dispose();
     centerCurrentSection.dispose();
     super.dispose();
   }
@@ -453,7 +474,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   bool get ignoreDragEvents => _ignoreDragEvents;
 
-  bool get editingMelody => widget.editingMelody && widget.currentSection.referenceTo(widget.melody).isEnabled;
+  bool get editingMelody =>
+      widget.editingMelody &&
+      widget.currentSection.referenceTo(widget.melody).isEnabled;
 
   set ignoreDragEvents(value) {
     _ignoreDragEvents = value;
@@ -480,7 +503,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       _targetedXScale = _xScale;
       _targetedYScale = _yScale;
     }
-    if (_xScale.notRoughlyEquals(_targetedXScale) || _yScale.notRoughlyEquals(_targetedYScale)) {
+    if (_xScale.notRoughlyEquals(_targetedXScale) ||
+        _yScale.notRoughlyEquals(_targetedYScale)) {
       xScale = xScale;
       yScale = yScale;
     }
@@ -505,11 +529,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     if (!editingMelody || !BeatScratchPlugin.playing) {
       highlightedBeat.value = null;
     }
-    currentSwipeTutorial = _swipeTutorialsSeen.keys.contains(widget.musicViewMode) && widget.melodyViewSizeFactor > 0
-        ? widget.splitMode == SplitMode.half
-            ? SwipeTutorial.closeExpand
-            : SwipeTutorial.collapse
-        : null;
+    currentSwipeTutorial =
+        _swipeTutorialsSeen.keys.contains(widget.musicViewMode) &&
+                widget.melodyViewSizeFactor > 0
+            ? widget.splitMode == SplitMode.half
+                ? SwipeTutorial.closeExpand
+                : SwipeTutorial.collapse
+            : null;
     final sensitivity = 10;
     return Column(
       key: ValueKey("music-view-$widget.score.id"),
@@ -522,7 +548,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 : (widget.musicViewMode == MusicViewMode.melody)
                     ? Colors.white
                     : (widget.musicViewMode == MusicViewMode.part)
-                        ? ((widget.part != null && widget.part.instrument.type == InstrumentType.drum)
+                        ? ((widget.part != null &&
+                                widget.part.instrument.type ==
+                                    InstrumentType.drum)
                             ? Colors.brown
                             : Colors.grey)
                         : Colors.black,
@@ -533,17 +561,19 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       padding: EdgeInsets.only(left: 5),
                       child: AnimatedOpacity(
                         duration: animationDuration,
-                        opacity:
-                            (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none)
-                                ? 1
-                                : 0,
+                        opacity: (widget.musicViewMode != MusicViewMode.score &&
+                                widget.musicViewMode != MusicViewMode.none)
+                            ? 1
+                            : 0,
                         child: AnimatedContainer(
                             duration: animationDuration,
-                            width: (widget.musicViewMode != MusicViewMode.score &&
+                            width: (widget.musicViewMode !=
+                                        MusicViewMode.score &&
                                     widget.musicViewMode != MusicViewMode.none)
                                 ? 36
                                 : 0,
-                            height: (widget.musicViewMode != MusicViewMode.score &&
+                            height: (widget.musicViewMode !=
+                                        MusicViewMode.score &&
                                     widget.musicViewMode != MusicViewMode.none)
                                 ? 36
                                 : 0,
@@ -556,73 +586,96 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                       children: [
                                         AnimatedOpacity(
                                             duration: animationDuration,
-                                            opacity: widget.splitMode == SplitMode.half ? 1 : 0,
-                                            child: Image.asset("assets/split_full.png")),
+                                            opacity: widget.splitMode ==
+                                                    SplitMode.half
+                                                ? 1
+                                                : 0,
+                                            child: Image.asset(
+                                                "assets/split_full.png")),
                                         AnimatedOpacity(
                                             duration: animationDuration,
-                                            opacity: widget.splitMode != SplitMode.half && context.isPortrait ? 1 : 0,
-                                            child: Image.asset("assets/split_horizontal.png")),
+                                            opacity: widget.splitMode !=
+                                                        SplitMode.half &&
+                                                    context.isPortrait
+                                                ? 1
+                                                : 0,
+                                            child: Image.asset(
+                                                "assets/split_horizontal.png")),
                                         AnimatedOpacity(
                                             duration: animationDuration,
-                                            opacity: widget.splitMode != SplitMode.half && context.isLandscape ? 1 : 0,
-                                            child: Image.asset("assets/split_vertical.png")),
+                                            opacity: widget.splitMode !=
+                                                        SplitMode.half &&
+                                                    context.isLandscape
+                                                ? 1
+                                                : 0,
+                                            child: Image.asset(
+                                                "assets/split_vertical.png")),
                                       ],
                                     )))),
                       )),
                 Expanded(
                     child: GestureDetector(
-                        onVerticalDragUpdate: context.isPortrait ? (details) {
-                          if (ignoreDragEvents) return;
-                          if (details.delta.dy > sensitivity) {
-                            // Down swipe
-                            if (widget.splitMode == SplitMode.half) {
-                              _hasSwipedClosed = true;
-                              widget.closeMelodyView();
-                            } else {
-                              widget.toggleSplitMode();
-                            }
-                            ignoreDragEvents = true;
-                          } else if (details.delta.dy < -sensitivity) {
-                            // Up swipe
-                            if (widget.splitMode == SplitMode.half) {
-                              widget.toggleSplitMode();
-                            }
-                            ignoreDragEvents = true;
-                          }
-                        } : null,
-                        onHorizontalDragUpdate: context.isLandscape ? (details) {
-                          if (ignoreDragEvents) return;
-                          if (details.delta.dx > sensitivity) {
-                            // Right swipe
-                            if (widget.splitMode == SplitMode.half) {
-                              _hasSwipedClosed = true;
-                              widget.closeMelodyView();
-                            } else {
-                              widget.toggleSplitMode();
-                            }
-                            ignoreDragEvents = true;
-                          } else if (details.delta.dx < -sensitivity) {
-                            // Left swipe
-                            if (widget.splitMode == SplitMode.half) {
-                              widget.toggleSplitMode();
-                            }
-                            ignoreDragEvents = true;
-                          }
-                        } : null,
+                        onVerticalDragUpdate: context.isPortrait
+                            ? (details) {
+                                if (ignoreDragEvents) return;
+                                if (details.delta.dy > sensitivity) {
+                                  // Down swipe
+                                  if (widget.splitMode == SplitMode.half) {
+                                    _hasSwipedClosed = true;
+                                    widget.closeMelodyView();
+                                  } else {
+                                    widget.toggleSplitMode();
+                                  }
+                                  ignoreDragEvents = true;
+                                } else if (details.delta.dy < -sensitivity) {
+                                  // Up swipe
+                                  if (widget.splitMode == SplitMode.half) {
+                                    widget.toggleSplitMode();
+                                  }
+                                  ignoreDragEvents = true;
+                                }
+                              }
+                            : null,
+                        onHorizontalDragUpdate: context.isLandscape
+                            ? (details) {
+                                if (ignoreDragEvents) return;
+                                if (details.delta.dx > sensitivity) {
+                                  // Right swipe
+                                  if (widget.splitMode == SplitMode.half) {
+                                    _hasSwipedClosed = true;
+                                    widget.closeMelodyView();
+                                  } else {
+                                    widget.toggleSplitMode();
+                                  }
+                                  ignoreDragEvents = true;
+                                } else if (details.delta.dx < -sensitivity) {
+                                  // Left swipe
+                                  if (widget.splitMode == SplitMode.half) {
+                                    widget.toggleSplitMode();
+                                  }
+                                  ignoreDragEvents = true;
+                                }
+                              }
+                            : null,
                         child: Stack(
                           children: [
                             Column(children: [
                               AnimatedContainer(
                                   duration: animationDuration,
-                                  height: (widget.musicViewMode == MusicViewMode.section) ? toolbarHeight(context) : 0,
+                                  height: (widget.musicViewMode ==
+                                          MusicViewMode.section)
+                                      ? toolbarHeight(context)
+                                      : 0,
                                   child: SectionToolbar(
                                     currentSection: widget.currentSection,
                                     sectionColor: widget.sectionColor,
                                     musicViewMode: widget.musicViewMode,
                                     setSectionName: widget.setSectionName,
                                     deleteSection: widget.deleteSection,
-                                    canDeleteSection: widget.score.sections.length > 1,
-                                    cloneCurrentSection: widget.cloneCurrentSection,
+                                    canDeleteSection:
+                                        widget.score.sections.length > 1,
+                                    cloneCurrentSection:
+                                        widget.cloneCurrentSection,
                                     editingSection: isEditingSection,
                                     setEditingSection: (value) {
                                       setState(() {
@@ -632,46 +685,60 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                   )),
                               AnimatedContainer(
                                   duration: animationDuration,
-                                  height: (widget.musicViewMode == MusicViewMode.part) ? toolbarHeight(context) : 0,
+                                  height: (widget.musicViewMode ==
+                                          MusicViewMode.part)
+                                      ? toolbarHeight(context)
+                                      : 0,
                                   child: PartToolbar(
                                       enableColorboard: widget.enableColorboard,
                                       part: widget.part,
                                       setKeyboardPart: widget.setKeyboardPart,
                                       configuringPart: isConfiguringPart,
-                                      browsingPartMelodies: isBrowsingPartMelodies,
+                                      browsingPartMelodies:
+                                          isBrowsingPartMelodies,
                                       toggleConfiguringPart: () {
                                         setState(() {
-                                          isConfiguringPart = !isConfiguringPart;
-                                          if (isConfiguringPart && !context.isTablet) {
+                                          isConfiguringPart =
+                                              !isConfiguringPart;
+                                          if (isConfiguringPart &&
+                                              !context.isTablet) {
                                             makeFullSize();
                                           }
                                         });
                                       },
                                       toggleBrowsingPartMelodies: () {
                                         setState(() {
-                                          isBrowsingPartMelodies = !isBrowsingPartMelodies;
+                                          isBrowsingPartMelodies =
+                                              !isBrowsingPartMelodies;
                                           // if (isConfiguringPart && !context.isTablet) {
                                           //   makeFullSize();
                                           // }
                                         });
                                       },
-                                      setColorboardPart: widget.setColorboardPart,
+                                      setColorboardPart:
+                                          widget.setColorboardPart,
                                       colorboardPart: widget.colorboardPart,
                                       keyboardPart: widget.keyboardPart,
                                       deletePart: widget.deletePart,
                                       sectionColor: widget.sectionColor)),
                               AnimatedContainer(
                                   duration: animationDuration,
-                                  height: (widget.musicViewMode == MusicViewMode.melody) ? toolbarHeight(context) : 0,
+                                  height: (widget.musicViewMode ==
+                                          MusicViewMode.melody)
+                                      ? toolbarHeight(context)
+                                      : 0,
                                   child: MelodyToolbar(
                                     melody: widget.melody,
                                     musicViewMode: widget.musicViewMode,
                                     currentSection: widget.currentSection,
-                                    toggleMelodyReference: widget.toggleMelodyReference,
-                                    setReferenceVolume: widget.setReferenceVolume,
+                                    toggleMelodyReference:
+                                        widget.toggleMelodyReference,
+                                    setReferenceVolume:
+                                        widget.setReferenceVolume,
                                     editingMelody: editingMelody,
                                     sectionColor: widget.sectionColor,
-                                    toggleEditingMelody: widget.toggleEditingMelody,
+                                    toggleEditingMelody:
+                                        widget.toggleEditingMelody,
                                     setMelodyName: widget.setMelodyName,
                                     deleteMelody: widget.deleteMelody,
                                   )),
@@ -681,16 +748,23 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                               child: Align(
                                   alignment: Alignment.center,
                                   child: AnimatedOpacity(
-                                    opacity: currentSwipeTutorial == null || MyPlatform.isMacOS || MyPlatform.isWeb
+                                    opacity: currentSwipeTutorial == null ||
+                                            MyPlatform.isMacOS ||
+                                            MyPlatform.isWeb
                                         ? 0
                                         : 0.8,
                                     duration: animationDuration,
                                     child: AnimatedContainer(
-                                        height: currentSwipeTutorial == null || _hasSwipedClosed ? 0 : 36,
+                                        height: currentSwipeTutorial == null ||
+                                                _hasSwipedClosed
+                                            ? 0
+                                            : 36,
                                         duration: animationDuration,
-                                        padding: EdgeInsets.symmetric(horizontal: 10),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(5),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
                                           color: Colors.white,
                                         ),
                                         width: 150,
@@ -698,7 +772,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                           Expanded(child: SizedBox()),
                                           Text(
                                             currentSwipeTutorial.tutorialText(
-                                                widget.splitMode, widget.musicViewMode, context),
+                                                widget.splitMode,
+                                                widget.musicViewMode,
+                                                context),
                                             style: TextStyle(fontSize: 11),
                                             overflow: TextOverflow.fade,
                                             maxLines: 2,
@@ -727,14 +803,20 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           ),
           AnimatedOpacity(
             duration: animationDuration,
-            opacity: widget.musicViewMode == MusicViewMode.part && isBrowsingPartMelodies ? 1 : 0,
+            opacity: widget.musicViewMode == MusicViewMode.part &&
+                    isBrowsingPartMelodies
+                ? 1
+                : 0,
             child: AnimatedContainer(
-                color: widget.part != null && widget.part.instrument.type == InstrumentType.drum
+                color: widget.part != null &&
+                        widget.part.instrument.type == InstrumentType.drum
                     ? Colors.brown
                     : Colors.grey,
                 duration: animationDuration,
-                height:
-                    (widget.musicViewMode == MusicViewMode.part && isBrowsingPartMelodies) ? toolbarHeight(context) : 0,
+                height: (widget.musicViewMode == MusicViewMode.part &&
+                        isBrowsingPartMelodies)
+                    ? toolbarHeight(context)
+                    : 0,
                 child: PartMelodyBrowser(
                   sectionColor: widget.sectionColor,
                   score: widget.score,
@@ -748,21 +830,27 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           ),
           AnimatedContainer(
               duration: animationDuration,
-              color: widget.part != null && widget.part.instrument.type == InstrumentType.drum
+              color: widget.part != null &&
+                      widget.part.instrument.type == InstrumentType.drum
                   ? Colors.brown
                   : Colors.grey,
-              height: (widget.musicViewMode == MusicViewMode.part && isConfiguringPart)
+              height: (widget.musicViewMode == MusicViewMode.part &&
+                      isConfiguringPart)
                   ? min(280, max(110, widget.height))
                   : 0,
               child: PartConfiguration(
                   part: widget.part,
                   superSetState: widget.superSetState,
                   availableHeight: widget.height,
-                  visible: (widget.musicViewMode == MusicViewMode.part && isConfiguringPart))),
+                  visible: (widget.musicViewMode == MusicViewMode.part &&
+                      isConfiguringPart))),
           AnimatedContainer(
               color: Colors.white,
               duration: animationDuration,
-              height: (widget.musicViewMode == MusicViewMode.melody && editingMelody) ? toolbarHeight(context) : 0,
+              height: (widget.musicViewMode == MusicViewMode.melody &&
+                      editingMelody)
+                  ? toolbarHeight(context)
+                  : 0,
               child: MelodyEditingToolbar(
                 editingMelody: editingMelody,
                 sectionColor: widget.sectionColor,
@@ -775,7 +863,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           AnimatedContainer(
               color: widget.sectionColor,
               duration: animationDuration,
-              height: (widget.musicViewMode == MusicViewMode.section && isEditingSection) ? toolbarHeight(context) : 0,
+              height: (widget.musicViewMode == MusicViewMode.section &&
+                      isEditingSection)
+                  ? toolbarHeight(context)
+                  : 0,
               child: SectionEditingToolbar(
                 sectionColor: widget.sectionColor,
                 score: widget.score,
@@ -811,7 +902,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   getBeat(Offset position, {bool targeted = true}) {
-    int beat = ((position.dx + melodyRendererVisibleRect.left - 2 * unscaledStandardBeatWidth * xScale) /
+    int beat = ((position.dx +
+                melodyRendererVisibleRect.left -
+                2 * unscaledStandardBeatWidth * xScale) /
             (unscaledStandardBeatWidth * (targeted ? xScale : _xScale)))
         .floor();
     // print("beat=$beat");
@@ -828,12 +921,15 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   /// In View Mode this is the Keyboard Part. In Edit Mode it's the Part that's focused, or the Part of the Melody
   /// that's focused, or the Keyboard Part if only a Section is focused.
   Part mainPart() {
-    Part mainPart = widget.part; // default for Part view mode is pass it through
+    Part mainPart =
+        widget.part; // default for Part view mode is pass it through
     if (widget.musicViewMode == MusicViewMode.score) {
       mainPart = widget.keyboardPart;
     } else if (widget.musicViewMode == MusicViewMode.melody) {
-      mainPart = widget.score.parts
-          .firstWhere((part) => part.melodies.any((melody) => melody.id == widget.melody.id), orElse: () => null);
+      mainPart = widget.score.parts.firstWhere(
+          (part) =>
+              part.melodies.any((melody) => melody.id == widget.melody.id),
+          orElse: () => null);
     }
     return mainPart;
   }
@@ -870,52 +966,69 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 //        staves.add(DrumStaff());
 //      }
     } else {
-      staves = widget.score.parts.map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part)).toList(growable: false);
+      staves = widget.score.parts
+          .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part))
+          .toList(growable: false);
     }
     var width = MediaQuery.of(context).size.width;
-    if (context.isLandscape && widget.musicViewMode != MusicViewMode.score && widget.splitMode == SplitMode.half) {
+    if (context.isLandscape &&
+        widget.musicViewMode != MusicViewMode.score &&
+        widget.splitMode == SplitMode.half) {
       width = width / 2;
     }
 
-    bool focusedPartIsNotFirst = mainPart != null && widget.score.parts.indexWhere((it) => it.id == mainPart.id) != 0;
+    bool focusedPartIsNotFirst = mainPart != null &&
+        widget.score.parts.indexWhere((it) => it.id == mainPart.id) != 0;
     bool focusedMelodyIsNotFirst = widget.melody != null &&
-        widget.score.parts.indexWhere((p) => p.melodies.any((m) => m.id == widget.melody.id)) != 0;
+        widget.score.parts.indexWhere(
+                (p) => p.melodies.any((m) => m.id == widget.melody.id)) !=
+            0;
     bool showAutoFocusButton = (widget.musicViewMode == MusicViewMode.part ||
             widget.musicViewMode == MusicViewMode.melody ||
-      widget.musicViewMode == MusicViewMode.score) &&
-        (focusedPartIsNotFirst || focusedMelodyIsNotFirst) && widget.showViewOptions;
+            widget.musicViewMode == MusicViewMode.score) &&
+        (focusedPartIsNotFirst || focusedMelodyIsNotFirst) &&
+        widget.showViewOptions;
     bool showExpandPartButton = /*xScale == alignedScale &&*/
-      xScale != partAlignedScale &&
-      (widget.musicViewMode == MusicViewMode.part ||
-        widget.musicViewMode == MusicViewMode.score ||
-        widget.musicViewMode == MusicViewMode.melody);
-    bool isPartOrMelodyView =
-        widget.musicViewMode == MusicViewMode.part || widget.musicViewMode == MusicViewMode.melody;
+        xScale != partAlignedScale &&
+            (widget.musicViewMode == MusicViewMode.part ||
+                widget.musicViewMode == MusicViewMode.score ||
+                widget.musicViewMode == MusicViewMode.melody);
+    bool isPartOrMelodyView = widget.musicViewMode == MusicViewMode.part ||
+        widget.musicViewMode == MusicViewMode.melody;
     return Container(
-        color: widget.backgroundColor.withOpacity(widget.backgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
+        color: widget.backgroundColor.withOpacity(
+            widget.backgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
         child: GestureDetector(
             onTapDown: (details) {
               int beat = getBeat(details.localPosition);
-              print("onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
-              if (details.localPosition.dx > width - 104 && details.localPosition.dy > widget.height - 104) {
+              print(
+                  "onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
+              if (details.localPosition.dx > width - 104 &&
+                  details.localPosition.dy > widget.height - 104) {
                 return;
               }
               if (widget.showViewOptions) {
-                if (details.localPosition.dx > width - 52 && details.localPosition.dy > widget.height - 156) {
+                if (details.localPosition.dx > width - 52 &&
+                    details.localPosition.dy > widget.height - 156) {
                   return;
                 }
-                if (details.localPosition.dx > width - 156 && details.localPosition.dy > widget.height - 52) {
+                if (details.localPosition.dx > width - 156 &&
+                    details.localPosition.dy > widget.height - 52) {
                   return;
                 }
               }
 
               tappedBeat.value = beat;
-              double absoluteY = verticalScrollingPosition.value + details.localPosition.dy;
+              double absoluteY =
+                  verticalScrollingPosition.value + details.localPosition.dy;
               absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
-              if (widget.musicViewMode == MusicViewMode.score || xScale < minScale * 2) {
+              if (widget.musicViewMode == MusicViewMode.score ||
+                  xScale < minScale * 2) {
                 absoluteY -= MusicSystemPainter.calculateSectionHeight(yScale);
               }
-              int partIndex = (absoluteY / (yScale * MusicSystemPainter.staffHeight)).floor();
+              int partIndex =
+                  (absoluteY / (yScale * MusicSystemPainter.staffHeight))
+                      .floor();
               print("partIndex=$partIndex");
               print("mainPart=${mainPart?.midiName}");
               if (!autoFocus ||
@@ -928,13 +1041,16 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 final parts = widget.score.parts;
                 tappedPart.value = parts[min(parts.length - 1, partIndex)];
               } else {
-                print("using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
+                print(
+                    "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
                 if (partIndex == 0 || widget.score.parts.length == 1) {
                   print("using autofocus1");
                   tappedPart.value = mainPart ?? widget.score.parts.first;
                 } else {
                   print("using autofocus2");
-                  final parts = widget.score.parts.where((p) => p.id != mainPart?.id).toList(growable: false);
+                  final parts = widget.score.parts
+                      .where((p) => p.id != mainPart?.id)
+                      .toList(growable: false);
                   if (parts.isEmpty) return;
                   tappedPart.value = parts[min(parts.length - 1, --partIndex)];
                 }
@@ -949,12 +1065,17 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 return;
               }
               int beat = tappedBeat.value;
-              print("onTapUp: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
-              if (BeatScratchPlugin.playing && editingMelody && highlightedBeat.value != beat) {
+              print(
+                  "onTapUp: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
+              if (BeatScratchPlugin.playing &&
+                  editingMelody &&
+                  highlightedBeat.value != beat) {
                 setState(() {
                   highlightedBeat.value = beat;
                 });
-              } else if (BeatScratchPlugin.playing && editingMelody && highlightedBeat.value == beat) {
+              } else if (BeatScratchPlugin.playing &&
+                  editingMelody &&
+                  highlightedBeat.value == beat) {
                 setState(() {
                   highlightedBeat.value = null;
                 });
@@ -963,7 +1084,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               }
             },
             onLongPress: () {
-              if (widget.score.parts.isEmpty || tappedPart.value == null || tappedBeat.value == null) return;
+              if (widget.score.parts.isEmpty ||
+                  tappedPart.value == null ||
+                  tappedBeat.value == null) return;
               final part = tappedPart.value;
               if (part == null) return;
               if (widget.musicViewMode == MusicViewMode.score) {
@@ -994,8 +1117,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   focusedBeat.value = beat;
                   tappedBeat.value = null;
                   tappedPart.value = null;
-                  _startHorizontalScale = xScale;
-                  _startVerticalScale = yScale;
+                  _startScale = xScale;
+                  // _startVerticalScale = yScale;
                 }),
             onScaleUpdate: (ScaleUpdateDetails details) {
               if (_ignoreNextScale) {
@@ -1007,7 +1130,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   focusedBeat.value = beat;
                 }
                 if (details.scale > 0) {
-                  final target = _startHorizontalScale * details.scale;
+                  final target = _startScale * details.scale;
                   rawXScale = target;
                   rawYScale = target;
                 }
@@ -1055,7 +1178,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 targetXScale: xScale,
                 targetYScale: yScale,
                 isTwoFingerScaling: _isTwoFingerScaling,
-                scrollToCurrentBeat: scrollToCurrentBeat,
+                scrollToCurrentBeat: widget.scrollToCurrentBeat,
                 scrollToPart: scrollToPart,
                 centerCurrentSection: centerCurrentSection,
                 autoScroll: autoScroll,
@@ -1092,7 +1215,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       minimizeButton(visible: xScale != minScale),
                       SizedBox(height: 2),
                     ]),
-                    if (xScale != alignedScale || xScale != partAlignedScale) SizedBox(width: 2),
+                    if (xScale != alignedScale || xScale != partAlignedScale)
+                      SizedBox(width: 2),
                     Column(children: [
                       Expanded(child: SizedBox()),
                       autoScrollButton(visible: widget.showViewOptions),
@@ -1110,62 +1234,62 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   Widget autoFocusButton(bool visible) {
     return MusicActionButton(
-      child: Stack(children: [
-        Transform.translate(
-          offset: Offset(0, -8),
-          child: Text("Auto",
-            maxLines: 1,
-            overflow: TextOverflow.fade,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: autoFocus ? Colors.white : Colors.grey))),
-        Transform.translate(
-          offset: Offset(-6, 3),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: !autoFocus ? 1 : 0,
-            child: Icon(Icons.arrow_upward_sharp, color: Colors.grey),
-          ),
-        ),
-        Transform.translate(
-          offset: Offset(6, 9),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: !autoFocus ? 1 : 0,
-            child: Icon(
-              Icons.arrow_downward_sharp,
-              color: Colors.grey,
+        child: Stack(children: [
+          Transform.translate(
+              offset: Offset(0, -8),
+              child: Text("Auto",
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: autoFocus ? Colors.white : Colors.grey))),
+          Transform.translate(
+            offset: Offset(-6, 3),
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: !autoFocus ? 1 : 0,
+              child: Icon(Icons.arrow_upward_sharp, color: Colors.grey),
             ),
           ),
-        ),
-        Transform.translate(
-          offset: Offset(-6, 3),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: autoFocus ? 1 : 0,
-            child: Icon(Icons.arrow_upward_sharp, color: widget.sectionColor),
-          ),
-        ),
-        Transform.translate(
-          offset: Offset(6, 9),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: autoFocus ? 1 : 0,
-            child: Icon(
-              Icons.arrow_downward_sharp,
-              color: Colors.white,
+          Transform.translate(
+            offset: Offset(6, 9),
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: !autoFocus ? 1 : 0,
+              child: Icon(
+                Icons.arrow_downward_sharp,
+                color: Colors.grey,
+              ),
             ),
           ),
-        ),
-      ]),
-      visible: visible,
-      width: visible? 48 : 0,
-      onPressed: () {
-        setState(() {
-          autoFocus = !autoFocus;
+          Transform.translate(
+            offset: Offset(-6, 3),
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: autoFocus ? 1 : 0,
+              child: Icon(Icons.arrow_upward_sharp, color: widget.sectionColor),
+            ),
+          ),
+          Transform.translate(
+            offset: Offset(6, 9),
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: autoFocus ? 1 : 0,
+              child: Icon(
+                Icons.arrow_downward_sharp,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ]),
+        visible: visible,
+        width: visible ? 48 : 0,
+        onPressed: () {
+          setState(() {
+            autoFocus = !autoFocus;
+          });
         });
-      });
   }
 
   Widget zoomButton() {
@@ -1176,23 +1300,33 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             child: Container(
               // color: Colors.black12,
               width: 48,
-              height: 48, child: Align(
+              height: 48,
+              child: Align(
                 alignment: Alignment.center,
                 child: Stack(children: [
                   Transform.translate(
-                          offset: Offset(-5, 5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_out, color: Colors.black54))),
+                      offset: Offset(-5, 5),
+                      child: Transform.scale(
+                          scale: 1,
+                          child: Icon(Icons.zoom_out, color: Colors.black54))),
                   Transform.translate(
-                          offset: Offset(5, -5), child: Transform.scale(scale: 1, child: Icon(Icons.zoom_in, color: Colors.black54))),
+                      offset: Offset(5, -5),
+                      child: Transform.scale(
+                          scale: 1,
+                          child: Icon(Icons.zoom_in, color: Colors.black54))),
                   Transform.translate(
-                        offset: Offset(2, 20),
-                        child: Text("${(xScale * 100).toStringAsFixed(0)}%",
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: Colors.black87)),
-                      ),
+                    offset: Offset(2, 20),
+                    child: Text("${(xScale * 100).toStringAsFixed(0)}%",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                            color: Colors.black87)),
+                  ),
                 ]),
               ),
             ),
-          musicActionButtonStyle: true,
-          musicActionButtonColor: zoomButtonColor,
+            musicActionButtonStyle: true,
+            musicActionButtonColor: zoomButtonColor,
             collapsing: true,
             onPointerUpCallback: () {
               ignoreNextTap = true;
@@ -1235,27 +1369,29 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           Icon(Icons.my_location, color: widget.sectionColor),
         ]),
         onPressed: () {
-          scrollToCurrentBeat();
+          widget.scrollToCurrentBeat();
         });
   }
 
-  Color get zoomButtonColor => (widget.keyboardPart.isDrum ? Colors.brown : Colors.grey).withOpacity(0.26);
+  Color get zoomButtonColor =>
+      (widget.keyboardPart.isDrum ? Colors.brown : Colors.grey)
+          .withOpacity(0.26);
 
   Widget expandPartButton({@required bool visible}) {
     return MusicActionButton(
       child: Stack(children: [
         Transform.translate(
-          offset: Offset(7, 3),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: true ? 1 : 0,
-            child: Icon(Icons.expand, color: Colors.white, size: 22),
-          )),
+            offset: Offset(7, 3),
+            child: AnimatedOpacity(
+              duration: animationDuration,
+              opacity: 1,
+              child: Icon(Icons.expand, color: Colors.white, size: 22),
+            )),
         Transform.translate(
           offset: Offset(-7, -3),
           child: AnimatedOpacity(
             duration: animationDuration,
-            opacity: true ? 1 : 0,
+            opacity: 1,
             child: Icon(Icons.zoom_in, color: Colors.black, size: 22),
           ),
         ),
@@ -1269,12 +1405,16 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           partAlignVertically();
           _lineUpAfterSizeChange();
         });
-      },);
+      },
+    );
   }
 
   Widget expandButton({@required bool visible}) {
     return MusicActionButton(
-      child: Icon(Icons.expand, color: Colors.white,),
+      child: Icon(
+        Icons.expand,
+        color: Colors.white,
+      ),
       visible: visible,
       color: zoomButtonColor,
       onPressed: () {
@@ -1285,12 +1425,16 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           alignVertically();
           _lineUpAfterSizeChange();
         });
-      },);
+      },
+    );
   }
 
   Widget minimizeButton({@required bool visible}) {
     return MusicActionButton(
-      child: Icon(FontAwesomeIcons.compressArrowsAlt, color: Colors.black,),
+      child: Icon(
+        FontAwesomeIcons.compressArrowsAlt,
+        color: Colors.black,
+      ),
       visible: visible,
       color: zoomButtonColor,
       onPressed: () {
@@ -1302,22 +1446,25 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           yScale = minScale;
           _lineUpAfterSizeChange();
         });
-      },);
+      },
+    );
   }
 
   _preButtonScale() {
     if (widget.musicViewMode != MusicViewMode.score) {
-      _updateFocusedBeatValue(value: widget.score.firstBeatOfSection(widget.currentSection)
-        + BeatScratchPlugin.currentBeat.value);
+      _updateFocusedBeatValue(
+          value: widget.score.firstBeatOfSection(widget.currentSection) +
+              BeatScratchPlugin.currentBeat.value);
     }
   }
 
   _lineUpAfterSizeChange() {
     scrollToPart();
-    if(widget.musicViewMode != MusicViewMode.score) {
-      Future.delayed(Duration(milliseconds: animationDuration.inMilliseconds + 100), () {
+    if (widget.musicViewMode != MusicViewMode.score) {
+      Future.delayed(
+          Duration(milliseconds: animationDuration.inMilliseconds + 100), () {
         setState(() {
-            scrollToCurrentBeat();
+          widget.scrollToCurrentBeat();
         });
       });
     }
@@ -1327,14 +1474,14 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     return MusicActionButton(
       child: Stack(children: [
         Transform.translate(
-          offset: Offset(0, -8),
-          child: Text("Auto",
-            maxLines: 1,
-            overflow: TextOverflow.fade,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: autoScroll ? Colors.white : Colors.grey))),
+            offset: Offset(0, -8),
+            child: Text("Auto",
+                maxLines: 1,
+                overflow: TextOverflow.fade,
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: autoScroll ? Colors.white : Colors.grey))),
         Transform.translate(
           offset: Offset(0, 6),
           child: AnimatedOpacity(
@@ -1358,7 +1505,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         setState(() {
           autoScroll = !autoScroll;
         });
-      },);
+      },
+    );
   }
 
   Widget colorblockButton({@required bool visible}) {
@@ -1374,21 +1522,23 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           ),
         ),
         AnimatedOpacity(
-          duration: animationDuration,
-          opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
-          child: Image.asset(
-            'assets/colorboard_vertical.png',
-            width: 20,
-            height: 20,
-          ))
+            duration: animationDuration,
+            opacity: widget.renderingMode == RenderingMode.colorblock ? 0 : 1,
+            child: Image.asset(
+              'assets/colorboard_vertical.png',
+              width: 20,
+              height: 20,
+            ))
       ]),
       visible: visible,
       width: visible ? 48 : 0,
       onPressed: () {
-        widget.requestRenderingMode(widget.renderingMode == RenderingMode.colorblock
-          ? RenderingMode.notation
-          : RenderingMode.colorblock);
-      },);
+        widget.requestRenderingMode(
+            widget.renderingMode == RenderingMode.colorblock
+                ? RenderingMode.notation
+                : RenderingMode.colorblock);
+      },
+    );
   }
 
   alignVertically() {
@@ -1404,16 +1554,18 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   double get alignedScale {
-    final result = min(maxScale, max(minScale, alignedStaffHeight / MusicSystemPainter.staffHeight));
-    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale){
+    final result = min(maxScale,
+        max(minScale, alignedStaffHeight / MusicSystemPainter.staffHeight));
+    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale) {
       return min(maxScale, max(minScale, result * 0.93));
     }
     return result;
   }
 
-  double get partAlignedScale  {
-    final result = min(maxScale, max(minScale, partAlignedStaffHeight / MusicSystemPainter.staffHeight));
-    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale){
+  double get partAlignedScale {
+    final result = min(maxScale,
+        max(minScale, partAlignedStaffHeight / MusicSystemPainter.staffHeight));
+    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale) {
       return min(maxScale, max(minScale, result * 0.93));
     }
     return result;
@@ -1422,7 +1574,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   // double get toolbarHeight => widget.musicViewMode == MusicViewMode.score ||widget.musicViewMode == MusicViewMode.none
   double get removedHeight => context.isLandscapePhone
       ? _removedHeightLandscapePhone
-      : (widget.musicViewMode == MusicViewMode.score || widget.musicViewMode == MusicViewMode.none)
+      : (widget.musicViewMode == MusicViewMode.score ||
+              widget.musicViewMode == MusicViewMode.none)
           ? 32
           : editingMelody || isEditingSection || isBrowsingPartMelodies
               ? 100
@@ -1431,7 +1584,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   : 50;
 
   double get _removedHeightLandscapePhone =>
-      widget.musicViewMode == MusicViewMode.score || widget.musicViewMode == MusicViewMode.none
+      widget.musicViewMode == MusicViewMode.score ||
+              widget.musicViewMode == MusicViewMode.none
           ? -23
           : editingMelody || isEditingSection || isBrowsingPartMelodies
               ? 40
@@ -1439,7 +1593,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   ? 300
                   : 0;
 
-  double get alignedStaffHeight => (widget.height - removedHeight) / widget.score.parts.length;
+  double get alignedStaffHeight =>
+      (widget.height - removedHeight) / widget.score.parts.length;
 
   double get partAlignedStaffHeight => (widget.height - removedHeight) / 1.62;
 }
@@ -1447,7 +1602,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 enum SwipeTutorial { collapse, closeExpand }
 
 extension TutorialText on SwipeTutorial {
-  String tutorialText(SplitMode splitMode, MusicViewMode musicViewMode, BuildContext context) {
+  String tutorialText(
+      SplitMode splitMode, MusicViewMode musicViewMode, BuildContext context) {
     return splitMode == SplitMode.full
         ? "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to view Layers/close ${musicViewMode.toString().substring(14).capitalize()}"
         : "Swipe ${context.isPortrait ? "⬇️" : "➡️"}️ to close,\n" +

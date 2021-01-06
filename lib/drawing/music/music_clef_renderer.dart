@@ -1,14 +1,14 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/drawing/melody/base_melody_renderer.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'base_music_renderer.dart';
+import '../../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
 
 import '../canvas_tone_drawer.dart';
-import 'melody_staff_lines_renderer.dart';
+import 'music_staff_lines_renderer.dart';
 
-class MelodyClefRenderer extends BaseMelodyRenderer {
+class MelodyClefRenderer extends BaseMusicRenderer {
   @override
   bool showSteps = true;
 

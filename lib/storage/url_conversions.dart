@@ -2,16 +2,16 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:base_x/base_x.dart';
-import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
-import 'package:unification/unification.dart';
 import 'package:http/http.dart' as http;
 
 import '../generated/protos/music.pb.dart';
-import '../util/util.dart';
 
-var _base58 = BaseXCodec('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-final urlPrefix = MyPlatform.isDebug ? "http://localhost:8000/app-staging/" : "https://beatscratch.io/app/";
+var _base58 = BaseXCodec(
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+final urlPrefix = MyPlatform.isDebug
+    ? "http://localhost:8000/app-staging/"
+    : "https://beatscratch.io/app/";
 
 extension URLConversions on Score {
   String convertToUrl() {
@@ -30,9 +30,9 @@ extension URLConversions on Score {
         },
         body: jsonEncode(<String, dynamic>{
           'expiration': 31536000,
-          'sections': [{
-            'contents': convertToUrl()
-          }],
+          'sections': [
+            {'contents': convertToUrl()}
+          ],
         }),
       );
       String pasteeeShortcode = jsonDecode(response.body)['id'];
@@ -60,13 +60,7 @@ Score scoreFromUrlHashValue(String urlString) {
   } catch (any) {
     try {
       score = Score.fromBuffer(BZip2Decoder().decodeBytes(dataBytes));
-    } catch (any) {
-    }
+    } catch (any) {}
   }
   return score;
 }
-
-Future<Score> scoreFromShortUrl() {
-
-}
-

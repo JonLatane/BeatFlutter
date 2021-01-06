@@ -9,7 +9,7 @@ import '../canvas_tone_drawer.dart';
 import '../../util/music_theory.dart';
 import '../../util/music_notation_theory.dart';
 
-class BaseMelodyRenderer extends ColorGuide {
+class BaseMusicRenderer extends ColorGuide {
   @override final bool renderVertically = true;
   @override final double normalizedDevicePitch = 0;
   Rect overallBounds;
