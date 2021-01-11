@@ -28,11 +28,13 @@ import 'util/music_theory.dart';
 import 'util/util.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
+  static final bool enableUniverse = MyPlatform.isDebug && false;
   final Score score;
   final Section currentSection;
   final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
+  final VoidCallback universeMode;
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
   final VoidCallback togglePlaying;
@@ -64,6 +66,7 @@ class BeatScratchToolbar extends StatefulWidget {
       {Key key,
       @required this.interactionMode,
       @required this.viewMode,
+      @required this.universeMode,
       @required this.editMode,
       @required this.toggleViewOptions,
       @required this.sectionColor,
@@ -203,13 +206,12 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.interactionMode == InteractionMode.view ||
-        widget.verticalSections) {
+    if (!widget.interactionMode.isEdit || widget.verticalSections) {
       sectionOrPlayController.reverse();
     } else {
       sectionOrPlayController.forward();
     }
-    if (widget.interactionMode == InteractionMode.view) {
+    if (!widget.interactionMode.isEdit) {
       editController.reverse();
     } else {
       editController.forward();
@@ -291,18 +293,27 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           Future.microtask(() async {
                             widget.score.name =
                                 widget.scoreManager.currentScoreName;
-                            final urlString =
+                            widget.messagesUI.sendMessage(
+                                message:
+                                    "Generating short URL via https://paste.ee...",
+                                andSetState: true);
+                            final String urlString =
                                 (await widget.score.convertToShortUrl()) ??
                                     widget.score.convertToUrl();
                             if (!urlString.contains("#/s/")) {
                               widget.messagesUI.sendMessage(
                                   message:
-                                      "Failed to shorten URL via https://paste.ee! Copied long-form Score Link.",
+                                      "Failed to shorten URL via https://paste.ee! Creating long-form Score Link...",
+                                  andSetState: true,
                                   isError: true,
                                   color: chromaticSteps[5]);
                             }
                             String pastebinCode = urlString.split('/').last;
                             Clipboard.setData(ClipboardData(text: urlString));
+                            widget.messagesUI.sendMessage(
+                              message: "Copied Score Link: $urlString",
+                              andSetState: true,
+                            );
                             if (MyPlatform.isWeb) {
                               widget.routeToCurrentScore(pastebinCode);
                             }
@@ -500,7 +511,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
           if (!widget.rightHalfOnly)
             Expanded(
                 child: MyFlatButton(
-                    onPressed: (widget.interactionMode == InteractionMode.view)
+                    onPressed: (!widget.interactionMode.isEdit)
                         ? (BeatScratchPlugin.supportsPlayback
                             ? () {
                                 widget.togglePlaying();
@@ -528,22 +539,20 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                         color: widget.sectionColor)),
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity: widget.interactionMode ==
-                                                InteractionMode.view &&
+                                    opacity: !widget.interactionMode.isEdit &&
                                             !BeatScratchPlugin.playing
                                         ? 1
                                         : 0,
                                     child: Icon(Icons.play_arrow,
-                                        color: (widget.interactionMode ==
-                                                    InteractionMode.view &&
-                                                !BeatScratchPlugin
-                                                    .supportsPlayback)
-                                            ? Colors.grey
-                                            : widget.sectionColor)),
+                                        color:
+                                            (!widget.interactionMode.isEdit &&
+                                                    !BeatScratchPlugin
+                                                        .supportsPlayback)
+                                                ? Colors.grey
+                                                : widget.sectionColor)),
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity: widget.interactionMode ==
-                                                InteractionMode.view &&
+                                    opacity: !widget.interactionMode.isEdit &&
                                             BeatScratchPlugin.playing
                                         ? 1
                                         : 0,
@@ -554,6 +563,22 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                 //   : Icons.menu,
                               ],
                             ))))),
+          if (!widget.leftHalfOnly && BeatScratchToolbar.enableUniverse)
+            Expanded(
+                child: AnimatedContainer(
+                    duration: animationDuration,
+                    color: (widget.interactionMode == InteractionMode.universe)
+                        ? widget.sectionColor
+                        : Colors.transparent,
+                    child: MyFlatButton(
+                        onPressed: widget.universeMode,
+                        onLongPress: widget.universeMode,
+                        padding: EdgeInsets.all(0.0),
+                        child: Icon(FontAwesomeIcons.globe,
+                            color: (widget.interactionMode ==
+                                    InteractionMode.universe)
+                                ? Colors.white
+                                : widget.sectionColor)))),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(
@@ -577,7 +602,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
             Expanded(
                 child: AnimatedContainer(
                     duration: animationDuration,
-                    color: (widget.interactionMode == InteractionMode.edit)
+                    color: (widget.interactionMode.isEdit)
                         ? hasMelody
                             ? melodyColor
                             : hasPart
@@ -624,9 +649,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                             AnimatedOpacity(
                                                               duration:
                                                                   animationDuration,
-                                                              opacity: widget.interactionMode ==
-                                                                          InteractionMode
-                                                                              .view ||
+                                                              opacity: !widget
+                                                                          .interactionMode
+                                                                          .isEdit ||
                                                                       !widget
                                                                           .isMelodyViewOpen
                                                                   ? 1
@@ -634,9 +659,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                               child: Icon(
                                                                   Icons.edit,
                                                                   color: (widget
-                                                                              .interactionMode ==
-                                                                          InteractionMode
-                                                                              .edit)
+                                                                          .interactionMode
+                                                                          .isEdit)
                                                                       ? hasMelody
                                                                           ? Colors
                                                                               .black
@@ -648,9 +672,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                             AnimatedOpacity(
                                                               duration:
                                                                   animationDuration,
-                                                              opacity: widget.interactionMode ==
-                                                                          InteractionMode
-                                                                              .edit &&
+                                                              opacity: widget
+                                                                          .interactionMode
+                                                                          .isEdit &&
                                                                       widget
                                                                           .isMelodyViewOpen
                                                                   ? 1
@@ -658,9 +682,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                               child: Icon(
                                                                   Icons.close,
                                                                   color: (widget
-                                                                              .interactionMode ==
-                                                                          InteractionMode
-                                                                              .edit)
+                                                                          .interactionMode
+                                                                          .isEdit)
                                                                       ? hasMelody
                                                                           ? Colors
                                                                               .black
@@ -674,7 +697,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                       )),
                                                 ))))),
                             Transform.translate(
-                              offset: Offset(0, 10),
+                              offset: Offset(0, 8),
                               child: AnimatedOpacity(
                                   duration: animationDuration,
                                   opacity: widget.interactionMode ==
@@ -688,7 +711,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                         children: [
                                           Expanded(child: SizedBox()),
                                           Container(
-                                            width: widget.vertical ? 44 : 80,
+                                            width: widget.vertical ? 44 : 60,
                                             child: Text(
                                                 widget.openMelody != null
                                                     ? widget.openMelody
@@ -697,18 +720,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                         ? widget
                                                             .openPart.midiName
                                                         : widget.isMelodyViewOpen ||
-                                                                (widget.prevPart == null &&
+                                                                (widget.prevPart ==
+                                                                        null &&
                                                                     widget.prevMelody ==
                                                                         null)
                                                             ? widget
-                                                                        .currentSection
-                                                                        .name
-                                                                        ?.isNotEmpty ??
-                                                                    false
-                                                                ? widget
-                                                                    .currentSection
-                                                                    .name
-                                                                : "Section ${widget.currentSection.id.substring(0, 5)}"
+                                                                .currentSection
+                                                                .canonicalName
                                                             : widget.prevMelody !=
                                                                     null
                                                                 ? widget
@@ -735,7 +753,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                 null
                                                         ? FontWeight.w500
                                                         : widget.openPart != null ||
-                                                                widget.prevPart != null
+                                                                widget.prevPart !=
+                                                                    null
                                                             ? FontWeight.w800
                                                             : FontWeight.w200)),
                                           ),

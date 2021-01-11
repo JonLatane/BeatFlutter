@@ -1,4 +1,3 @@
-
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -21,10 +20,17 @@ class ScorePreview extends StatefulWidget {
   final double width;
   final double height;
   final double scale;
-  final BSNotifier notifyUpdate;
+  final BSMethod notifyUpdate;
 
-  const ScorePreview(this.score, {Key key, this.width = 300, this.height = 100, this.scale = 0.15,
-    this.musicViewMode = MusicViewMode.score, this.renderPartNames = true, this.renderSections = true,
+  const ScorePreview(
+    this.score, {
+    Key key,
+    this.width = 300,
+    this.height = 100,
+    this.scale = 0.15,
+    this.musicViewMode = MusicViewMode.score,
+    this.renderPartNames = true,
+    this.renderSections = true,
     this.notifyUpdate,
   }) : super(key: key);
 
@@ -33,29 +39,34 @@ class ScorePreview extends StatefulWidget {
 }
 
 enum _Thumbnail { a, b }
+
 class _ScorePreviewState extends State<ScorePreview> {
   String _oldScoreId;
   _Thumbnail currentThumbnail;
   Uint8List thumbnailA, thumbnailB;
 
-  Uint8List get currentThumbnailData => currentThumbnail == _Thumbnail.a ? thumbnailA : thumbnailB;
+  Uint8List get currentThumbnailData =>
+      currentThumbnail == _Thumbnail.a ? thumbnailA : thumbnailB;
   set currentThumbnailData(Uint8List value) => currentThumbnail == _Thumbnail.a
-    ? thumbnailA = value : thumbnailB = value;
-  Uint8List get otherThumbnailData => currentThumbnail == _Thumbnail.b ? thumbnailA : thumbnailB;
+      ? thumbnailA = value
+      : thumbnailB = value;
+  Uint8List get otherThumbnailData =>
+      currentThumbnail == _Thumbnail.b ? thumbnailA : thumbnailB;
   set otherThumbnailData(Uint8List value) => currentThumbnail == _Thumbnail.b
-    ? thumbnailA = value : thumbnailB = value;
+      ? thumbnailA = value
+      : thumbnailB = value;
 
   MusicSystemPainter get painter {
     final parts = widget.score.parts;
     final staves = parts.map((part) => PartStaff(part)).toList(growable: false);
     final partTopOffsets = Map<String, double>.fromIterable(parts.asMap().keys,
-      key: (index) => parts[index].id,
-      value: (index) => index * widget.scale * MusicSystemPainter.staffHeight
-    );
+        key: (index) => parts[index].id,
+        value: (index) =>
+            index * widget.scale * MusicSystemPainter.staffHeight);
     final staffOffsets = Map<String, double>.fromIterable(staves.asMap().keys,
-      key: (index) => staves[index].id,
-      value: (index) => index * widget.scale * MusicSystemPainter.staffHeight
-    );
+        key: (index) => staves[index].id,
+        value: (index) =>
+            index * widget.scale * MusicSystemPainter.staffHeight);
     return MusicSystemPainter(
       sectionScaleNotifier: ValueNotifier(widget.renderSections ? 1 : 0),
       score: widget.score,
@@ -84,7 +95,11 @@ class _ScorePreviewState extends State<ScorePreview> {
       isPreview: true,
     );
   }
-  double get maxWidth => (MusicSystemPainter.extraBeatsSpaceForClefs + widget.score.beatCount) * unscaledStandardBeatWidth * widget.scale;
+
+  double get maxWidth =>
+      (MusicSystemPainter.extraBeatsSpaceForClefs + widget.score.beatCount) *
+      unscaledStandardBeatWidth *
+      widget.scale;
   double get actualWidth => min(maxWidth, widget.width);
   static const double _overSampleScale = 4;
   Future<ui.Image> get renderedScoreImage async {
@@ -95,24 +110,35 @@ class _ScorePreviewState extends State<ScorePreview> {
     // with the our newly created @canvas
     final recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(recorder);
-    var size = Size(actualWidth * _overSampleScale, widget.height * _overSampleScale);
+    var size =
+        Size(actualWidth * _overSampleScale, widget.height * _overSampleScale);
     final painter = this.painter;
     canvas.save();
     canvas.scale(_overSampleScale);
     painter.paint(canvas, size);
     canvas.restore();
-    final data = recorder.endRecording()
-      .toImage(size.width.floor(), size.height.floor());
+    final data = recorder
+        .endRecording()
+        .toImage(size.width.floor(), size.height.floor());
     return data;
   }
 
   Future<Uint8List> get renderedScoreImageData async {
     final image = await renderedScoreImage;
-    return Uint8List.sublistView(await image.toByteData(format: ui.ImageByteFormat.png));
+    return Uint8List.sublistView(
+        await image.toByteData(format: ui.ImageByteFormat.png));
   }
 
-  double get thumbnailAOpacity => thumbnailA != null ? currentThumbnail == _Thumbnail.a ? 1 : 0 : 0;
-  double get thumbnailBOpacity => thumbnailB != null ? currentThumbnail == _Thumbnail.b ? 1 : 0 : 0;
+  double get thumbnailAOpacity => thumbnailA != null
+      ? currentThumbnail == _Thumbnail.a
+          ? 1
+          : 0
+      : 0;
+  double get thumbnailBOpacity => thumbnailB != null
+      ? currentThumbnail == _Thumbnail.b
+          ? 1
+          : 0
+      : 0;
 
   double renderableWidth;
   bool disposed = false;
@@ -142,13 +168,20 @@ class _ScorePreviewState extends State<ScorePreview> {
       width: renderableWidth,
       height: widget.height,
       child: Stack(children: [
-        AnimatedOpacity(opacity: thumbnailAOpacity, duration: animationDuration, child: thumbnailA == null ? SizedBox() : Image.memory(thumbnailA)),
-        AnimatedOpacity(opacity: thumbnailBOpacity, duration: animationDuration, child: thumbnailB == null ? SizedBox() : Image.memory(thumbnailB))
+        AnimatedOpacity(
+            opacity: thumbnailAOpacity,
+            duration: animationDuration,
+            child: thumbnailA == null ? SizedBox() : Image.memory(thumbnailA)),
+        AnimatedOpacity(
+            opacity: thumbnailBOpacity,
+            duration: animationDuration,
+            child: thumbnailB == null ? SizedBox() : Image.memory(thumbnailB))
       ]),
     );
   }
 
-  _switchThumbnails() => currentThumbnail = currentThumbnail == _Thumbnail.a ? _Thumbnail.b : _Thumbnail.a;
+  _switchThumbnails() => currentThumbnail =
+      currentThumbnail == _Thumbnail.a ? _Thumbnail.b : _Thumbnail.a;
 
   _updateScoreImage() {
     Future.delayed(animationDuration, () async {

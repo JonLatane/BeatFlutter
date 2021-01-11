@@ -63,7 +63,7 @@ class MusicView extends StatefulWidget {
   final bool showViewOptions;
   final bool renderPartNames;
   final bool showBeatCounts;
-  final BSNotifier scrollToCurrentBeat;
+  final BSMethod scrollToCurrentBeat;
 
   MusicView(
       {this.selectBeat,
@@ -150,12 +150,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       _yScaleAnimationControllers;
 
   /// Used to notify the [MusicScrollContainer] as we animate [_xScale] to [_targetedXScale] in the setter for [xScale].
-  BSValueNotifier<ScaleUpdate> _xScaleUpdate, _yScaleUpdate;
+  BSValueMethod<ScaleUpdate> _xScaleUpdate, _yScaleUpdate;
 
   Map<MusicViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
 
-  BSNotifier centerCurrentSection, scrollToPart;
+  BSMethod centerCurrentSection, scrollToPart;
 
   // static const double maxScaleDiscrepancy = 1.5;
   // static const double minScaleDiscrepancy = 1 / maxScaleDiscrepancy;
@@ -294,7 +294,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     @required double Function() currentValue,
     @required Function(double) applyAnimatedValue,
     @required List<AnimationController> controllers,
-    @required BSValueNotifier<ScaleUpdate> notifyUpdate,
+    @required BSValueMethod<ScaleUpdate> notifyUpdate,
   }) {
     if (value() == currentValue()) {
       return;
@@ -428,11 +428,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     };
     _xScaleAnimationControllers = [];
     _yScaleAnimationControllers = [];
-    centerCurrentSection = BSNotifier();
-    _xScaleUpdate = BSValueNotifier(null);
-    _yScaleUpdate = BSValueNotifier(null);
-    centerCurrentSection = BSNotifier();
-    scrollToPart = BSNotifier();
+    centerCurrentSection = BSMethod();
+    _xScaleUpdate = BSValueMethod(null);
+    _yScaleUpdate = BSValueMethod(null);
+    centerCurrentSection = BSMethod();
+    scrollToPart = BSMethod();
 
     isConfiguringPart = false;
     isBrowsingPartMelodies = false;

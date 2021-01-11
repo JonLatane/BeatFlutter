@@ -502,13 +502,13 @@ class __ScoreState extends State<_Score> {
   DateTime lastFileLastModified;
 
   Score _previewScore;
-  BSNotifier notifyUpdate;
+  BSMethod notifyUpdate;
 
   @override
   initState() {
     super.initState();
     _confirmingDelete = false;
-    notifyUpdate = BSNotifier();
+    notifyUpdate = BSMethod();
   }
 
   @override

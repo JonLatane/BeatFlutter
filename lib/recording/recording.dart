@@ -20,7 +20,7 @@ class RecordedSegmentQueue {
   static Melody get recordingMelody => getRecordingMelody?.call();
   // static set recordingMelody(Melody melody) => updateRecordingMelody(melody);
   static final Queue<RecordedSegment> segments = ListQueue<RecordedSegment>();
-  static final BSValueNotifier<bool> enabled = BSValueNotifier(false)
+  static final BSValueMethod<bool> enabled = BSValueMethod(false)
     ..addListener(() {
       if (!enabled.value) {
         segments.clear();

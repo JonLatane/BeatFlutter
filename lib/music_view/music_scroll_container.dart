@@ -37,7 +37,7 @@ class MusicScrollContainer extends StatefulWidget {
   final bool previewMode;
   final bool isCurrentScore;
   final bool isTwoFingerScaling;
-  final BSNotifier scrollToCurrentBeat, centerCurrentSection, scrollToPart;
+  final BSMethod scrollToCurrentBeat, centerCurrentSection, scrollToPart;
   final bool autoScroll, autoFocus, renderPartNames, isPreview;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier,
       colorboardNotesNotifier;

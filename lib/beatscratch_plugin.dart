@@ -429,13 +429,17 @@ class BeatScratchPlugin {
   }
 
   /// Starts the playback thread
-  static void play() async {
+  static void play() {
+    _playing = true;
+    _play();
+  }
+
+  static void _play() async {
     if (kIsWeb) {
       context.callMethod('play', []);
     } else {
       _channel.invokeMethod('play');
     }
-    _playing = true;
     onSynthesizerStatusChange();
   }
 
@@ -449,7 +453,12 @@ class BeatScratchPlugin {
     onSynthesizerStatusChange();
   }
 
-  static void pause() async {
+  static void pause() {
+    _playing = false;
+    _pause();
+  }
+
+  static void _pause() async {
     if (kIsWeb) {
       context.callMethod('pause', []);
       // Disable the playback button for 2 beats.
@@ -468,7 +477,6 @@ class BeatScratchPlugin {
     } else {
       _channel.invokeMethod('pause');
     }
-    _playing = false;
     onSynthesizerStatusChange();
   }
 

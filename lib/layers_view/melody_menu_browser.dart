@@ -75,7 +75,7 @@ final _manager = ScoreManager();
 class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
   Score selectedScore;
   Part selectedPart;
-  BSNotifier updatedMenu;
+  BSMethod updatedMenu;
   String selectedSamples;
   Iterable<String> get sampleLists =>
       (widget.part?.isDrum == true ? _sampleDrumMelodies : _sampleMelodies)
@@ -112,7 +112,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
   @override
   initState() {
     super.initState();
-    updatedMenu = new BSNotifier();
+    updatedMenu = new BSMethod();
   }
 
   @override

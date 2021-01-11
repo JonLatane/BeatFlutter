@@ -17,7 +17,6 @@ import '../widget/my_platform.dart';
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;
   final Color sectionColor;
-  final Function(VoidCallback) setState;
   final VoidCallback close;
   final bool enableColorboard;
   final Function(bool) setColorboardEnabled;
@@ -28,7 +27,6 @@ class MidiSettings extends StatefulWidget {
       {Key key,
       this.scrollDirection = Axis.horizontal,
       this.sectionColor,
-      this.setState,
       this.close,
       this.enableColorboard,
       this.setColorboardEnabled,
@@ -55,7 +53,8 @@ _launchAndroidApp(BuildContext context, String packageName) async {
   AppAvailability.launchApp(packageName).then((_) {
     print("App $packageName launched!");
   }).catchError((err) {
-    ScaffoldMessenger.of(context)
+    Scaffold.of(context)
+        // ignore: deprecated_member_use
         .showSnackBar(SnackBar(content: Text("App $packageName not found!")));
     print(err);
   });

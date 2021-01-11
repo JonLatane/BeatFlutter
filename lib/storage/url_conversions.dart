@@ -9,7 +9,7 @@ import '../generated/protos/music.pb.dart';
 
 var _base58 = BaseXCodec(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-final urlPrefix = MyPlatform.isDebug
+final urlPrefix = MyPlatform.isDebug && false
     ? "http://localhost:8000/app-staging/"
     : "https://beatscratch.io/app/";
 

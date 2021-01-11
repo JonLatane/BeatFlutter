@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/universe_view/universe_view_ui.dart';
+
 import 'recording/recording.dart';
 import 'package:fluro/fluro.dart' as Fluro;
 import 'package:flutter/foundation.dart';
@@ -497,8 +499,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _viewMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
+    universeViewUI.visible = false;
     setState(() {
       interactionMode = InteractionMode.view;
+      editingMelody = false;
+      if (!_scalableUI) {
+        showViewOptions = false;
+        _showTapInBar = false;
+      }
+      musicViewMode = MusicViewMode.score;
+      selectedMelody = null;
+      _showMusicView();
+    });
+  }
+
+  _universeMode() {
+    BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
+    setState(() {
+      interactionMode = InteractionMode.universe;
+      universeViewUI.visible = true;
       editingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
@@ -516,6 +535,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _editMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
+      universeViewUI.visible = false;
       if (interactionMode == InteractionMode.edit) {
         if (selectedMelody != null) {
           _prevSelectedMelody = selectedMelody;
@@ -738,14 +758,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   AnimationController loadingAnimationController;
   ExportUI exportUI;
   MessagesUI messagesUI;
-  BSNotifier scrollToCurrentBeat;
+  UniverseViewUI universeViewUI;
+  BSMethod scrollToCurrentBeat;
 
   @override
   void initState() {
     super.initState();
     messagesUI = MessagesUI(setState);
+    universeViewUI = UniverseViewUI(setState);
     exportUI = ExportUI()..messagesUI = messagesUI;
-    scrollToCurrentBeat = BSNotifier();
+    scrollToCurrentBeat = BSMethod();
     BeatScratchPlugin.setupWebStuff();
     showBeatCounts = false;
     score = widget.initialScore;
@@ -998,6 +1020,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       context: context,
                       setState: setState,
                       currentSection: currentSection),
+                  universeViewUI.build(
+                      context: context, sectionColor: sectionColor),
                   _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [
@@ -1654,6 +1678,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             MyPlatform.isWeb ? score.name : _scoreManager.currentScoreName,
         sectionColor: sectionColor,
         viewMode: _viewMode,
+        universeMode: _universeMode,
         editMode: _editMode,
         toggleViewOptions: _toggleViewOptions,
         interactionMode: interactionMode,
@@ -1861,10 +1886,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -
-        downloadLinksHeight +
-        8 -
+        universeViewUI.height(context) -
+        downloadLinksHeight -
         _topNotchPaddingReal -
-        _bottomTapInBarHeight;
+        _bottomTapInBarHeight +
+        8;
     double layersWidth = data.size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
