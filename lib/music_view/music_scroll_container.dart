@@ -142,11 +142,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
-  double get toolbarHeight =>
-      widget.musicViewMode == MusicViewMode.score ? 0 : 48;
-
-  double get renderAreaHeight => widget.height - toolbarHeight;
-
   double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
           xScale < 2 * MusicScrollContainer.minScale
       ? 30
@@ -158,7 +153,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get maxCanvasHeight =>
       max(
-          renderAreaHeight,
+          widget.height,
           widget.staves.length *
               MusicSystemPainter.staffHeight *
               MusicScrollContainer.maxScale) +
@@ -245,7 +240,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _lastScrollEventSeen = DateTime.now();
     double maxScrollExtent = widget.focusedBeat.value != null
         ? maxCanvasWidth
-        : max(10, overallCanvasWidth - 200);
+        : max(10, overallCanvasWidth - widget.width + 150);
     if (timeScrollController.offset > maxScrollExtent) {
       if (timeScrollController.offset > maxScrollExtent + 10) {
         timeScrollController.animateTo(maxScrollExtent,
@@ -272,7 +267,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     widget.verticalScrollNotifier.value = verticalController.offset;
     double maxScrollExtent = widget.focusedBeat.value != null
         ? maxCanvasHeight
-        : max(10, overallCanvasHeight - 200);
+        : max(10, overallCanvasHeight - widget.height);
     if (verticalController.offset > maxScrollExtent) {
       if (timeScrollController.offset > maxScrollExtent + 50) {
         verticalController.animateTo(maxScrollExtent,
@@ -573,22 +568,26 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
     print("_constrainToSectionBounds");
-    double position = timeScrollController.position.pixels;
-    double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
-    double visibleWidth = myVisibleRect.width;
-    if (sectionCanBeCentered) {
-      scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
-    } else {
-      double sectionStart =
-          (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) *
-              targetBeatWidth;
-      final allowedMargin = visibleWidth * 0.2;
-      if (position < sectionStart - allowedMargin) {
-        scrollToBeat(firstBeatOfSection);
-      } else if (position + visibleWidth >
-          sectionStart + sectionWidth + allowedMargin) {
-        scrollToBeat(rightMostBeatConstrainedToSection);
+    try {
+      double position = timeScrollController.position.pixels;
+      double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
+      double visibleWidth = myVisibleRect.width;
+      if (sectionCanBeCentered) {
+        scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
+      } else {
+        double sectionStart =
+            (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) *
+                targetBeatWidth;
+        final allowedMargin = visibleWidth * 0.2;
+        if (position < sectionStart - allowedMargin) {
+          scrollToBeat(firstBeatOfSection);
+        } else if (position + visibleWidth >
+            sectionStart + sectionWidth + allowedMargin) {
+          scrollToBeat(rightMostBeatConstrainedToSection);
+        }
       }
+    } catch (e) {
+      print(e);
     }
   }
 

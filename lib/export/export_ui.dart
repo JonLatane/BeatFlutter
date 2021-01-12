@@ -64,6 +64,7 @@ class ExportUI {
               color: chromaticSteps[5],
               child: Row(children: [
                 exportIcon(size: 20),
+                SizedBox(width: 3),
                 Text("Exporting MIDI data...")
               ]),
             ),
@@ -79,10 +80,12 @@ class ExportUI {
                     children: [
                       Transform.translate(
                           offset: Offset(1, 1.5),
-                          child: exportIcon(size: 30, color: Colors.white)),
+                          child: exportIcon(
+                              size: MyPlatform.isAndroid ? 24 : 30,
+                              color: Colors.white)),
                       SizedBox(width: 5),
                       Transform.translate(
-                          offset: Offset(0, 3),
+                          offset: Offset(0, MyPlatform.isAndroid ? 0 : 3),
                           child: Text("Export",
                               style: TextStyle(
                                   fontSize: 20,

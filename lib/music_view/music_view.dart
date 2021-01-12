@@ -43,7 +43,7 @@ class MusicView extends StatefulWidget {
   final Function(Part, double) setPartVolume;
   final Function(Melody, String) setMelodyName;
   final Function(Section, String) setSectionName;
-  final bool editingMelody;
+  final bool recordingMelody;
   final Function(Part) setKeyboardPart, setColorboardPart;
   final Part keyboardPart, colorboardPart;
   final Function(Part) deletePart;
@@ -84,7 +84,7 @@ class MusicView extends StatefulWidget {
       this.toggleMelodyReference,
       this.setReferenceVolume,
       this.setPartVolume,
-      this.editingMelody,
+      this.recordingMelody,
       this.toggleEditingMelody,
       this.setMelodyName,
       this.setSectionName,
@@ -435,8 +435,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     scrollToPart = BSMethod();
 
     isConfiguringPart = false;
-    isBrowsingPartMelodies = false;
-    isEditingSection = false;
+    isBrowsingPartMelodies = true;
+    isEditingSection = true;
     autoScroll = true;
     autoFocus = true;
     _aligned = true;
@@ -447,6 +447,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   double toolbarHeight(BuildContext context) =>
       context.isLandscapePhone ? 42 : 48;
+
+  double get partConfigHeight => min(280, max(110, widget.height));
 
   @override
   void dispose() {
@@ -474,8 +476,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   bool get ignoreDragEvents => _ignoreDragEvents;
 
-  bool get editingMelody =>
-      widget.editingMelody &&
+  bool get recordingMelody =>
+      widget.recordingMelody &&
       widget.currentSection.referenceTo(widget.melody).isEnabled;
 
   set ignoreDragEvents(value) {
@@ -526,7 +528,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     if (widget.musicViewMode != MusicViewMode.section) {
       // isEditingSection = false;
     }
-    if (!editingMelody || !BeatScratchPlugin.playing) {
+    if (!recordingMelody || !BeatScratchPlugin.playing) {
       highlightedBeat.value = null;
     }
     currentSwipeTutorial =
@@ -537,345 +539,363 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 : SwipeTutorial.collapse
             : null;
     final sensitivity = 10;
-    return Column(
-      key: ValueKey("music-view-$widget.score.id"),
-      children: [
-        Column(children: [
-          AnimatedContainer(
-            duration: animationDuration,
-            color: (widget.musicViewMode == MusicViewMode.section)
-                ? widget.sectionColor
-                : (widget.musicViewMode == MusicViewMode.melody)
-                    ? Colors.white
-                    : (widget.musicViewMode == MusicViewMode.part)
-                        ? ((widget.part != null &&
-                                widget.part.instrument.type ==
-                                    InstrumentType.drum)
-                            ? Colors.brown
-                            : Colors.grey)
-                        : Colors.black,
-            child: Row(
-              children: <Widget>[
-                if (MyPlatform.isMacOS || MyPlatform.isWeb)
-                  Padding(
-                      padding: EdgeInsets.only(left: 5),
-                      child: AnimatedOpacity(
-                        duration: animationDuration,
-                        opacity: (widget.musicViewMode != MusicViewMode.score &&
-                                widget.musicViewMode != MusicViewMode.none)
-                            ? 1
-                            : 0,
-                        child: AnimatedContainer(
-                            duration: animationDuration,
-                            width: (widget.musicViewMode !=
-                                        MusicViewMode.score &&
-                                    widget.musicViewMode != MusicViewMode.none)
-                                ? 36
-                                : 0,
-                            height: (widget.musicViewMode !=
-                                        MusicViewMode.score &&
-                                    widget.musicViewMode != MusicViewMode.none)
-                                ? 36
-                                : 0,
-                            child: MyRaisedButton(
-                                onPressed: widget.toggleSplitMode,
-                                padding: EdgeInsets.all(7),
-                                child: Transform.scale(
-                                    scale: 0.8,
-                                    child: Stack(
-                                      children: [
-                                        AnimatedOpacity(
-                                            duration: animationDuration,
-                                            opacity: widget.splitMode ==
-                                                    SplitMode.half
-                                                ? 1
-                                                : 0,
-                                            child: Image.asset(
-                                                "assets/split_full.png")),
-                                        AnimatedOpacity(
-                                            duration: animationDuration,
-                                            opacity: widget.splitMode !=
-                                                        SplitMode.half &&
-                                                    context.isPortrait
-                                                ? 1
-                                                : 0,
-                                            child: Image.asset(
-                                                "assets/split_horizontal.png")),
-                                        AnimatedOpacity(
-                                            duration: animationDuration,
-                                            opacity: widget.splitMode !=
-                                                        SplitMode.half &&
-                                                    context.isLandscape
-                                                ? 1
-                                                : 0,
-                                            child: Image.asset(
-                                                "assets/split_vertical.png")),
-                                      ],
-                                    )))),
-                      )),
-                Expanded(
-                    child: GestureDetector(
-                        onVerticalDragUpdate: context.isPortrait
-                            ? (details) {
-                                if (ignoreDragEvents) return;
-                                if (details.delta.dy > sensitivity) {
-                                  // Down swipe
-                                  if (widget.splitMode == SplitMode.half) {
-                                    _hasSwipedClosed = true;
-                                    widget.closeMelodyView();
-                                  } else {
-                                    widget.toggleSplitMode();
+    return Stack(children: [
+      Column(
+        key: ValueKey("music-view-$widget.score.id"),
+        children: [
+          Column(children: [
+            AnimatedContainer(
+              duration: animationDuration,
+              color: (widget.musicViewMode == MusicViewMode.section)
+                  ? widget.sectionColor
+                  : (widget.musicViewMode == MusicViewMode.melody)
+                      ? Colors.white
+                      : (widget.musicViewMode == MusicViewMode.part)
+                          ? ((widget.part != null &&
+                                  widget.part.instrument.type ==
+                                      InstrumentType.drum)
+                              ? Colors.brown
+                              : Colors.grey)
+                          : Colors.black,
+              child: Row(
+                children: <Widget>[
+                  if (MyPlatform.isMacOS || MyPlatform.isWeb)
+                    Padding(
+                        padding: EdgeInsets.only(left: 5),
+                        child: AnimatedOpacity(
+                          duration: animationDuration,
+                          opacity: (widget.musicViewMode !=
+                                      MusicViewMode.score &&
+                                  widget.musicViewMode != MusicViewMode.none)
+                              ? 1
+                              : 0,
+                          child: AnimatedContainer(
+                              duration: animationDuration,
+                              width: (widget.musicViewMode !=
+                                          MusicViewMode.score &&
+                                      widget.musicViewMode !=
+                                          MusicViewMode.none)
+                                  ? 36
+                                  : 0,
+                              height: (widget.musicViewMode !=
+                                          MusicViewMode.score &&
+                                      widget.musicViewMode !=
+                                          MusicViewMode.none)
+                                  ? 36
+                                  : 0,
+                              child: MyRaisedButton(
+                                  onPressed: widget.toggleSplitMode,
+                                  padding: EdgeInsets.all(7),
+                                  child: Transform.scale(
+                                      scale: 0.8,
+                                      child: Stack(
+                                        children: [
+                                          AnimatedOpacity(
+                                              duration: animationDuration,
+                                              opacity: widget.splitMode ==
+                                                      SplitMode.half
+                                                  ? 1
+                                                  : 0,
+                                              child: Image.asset(
+                                                  "assets/split_full.png")),
+                                          AnimatedOpacity(
+                                              duration: animationDuration,
+                                              opacity: widget.splitMode !=
+                                                          SplitMode.half &&
+                                                      context.isPortrait
+                                                  ? 1
+                                                  : 0,
+                                              child: Image.asset(
+                                                  "assets/split_horizontal.png")),
+                                          AnimatedOpacity(
+                                              duration: animationDuration,
+                                              opacity: widget.splitMode !=
+                                                          SplitMode.half &&
+                                                      context.isLandscape
+                                                  ? 1
+                                                  : 0,
+                                              child: Image.asset(
+                                                  "assets/split_vertical.png")),
+                                        ],
+                                      )))),
+                        )),
+                  Expanded(
+                      child: GestureDetector(
+                          onVerticalDragUpdate: context.isPortrait
+                              ? (details) {
+                                  if (ignoreDragEvents) return;
+                                  if (details.delta.dy > sensitivity) {
+                                    // Down swipe
+                                    if (widget.splitMode == SplitMode.half) {
+                                      _hasSwipedClosed = true;
+                                      widget.closeMelodyView();
+                                    } else {
+                                      widget.toggleSplitMode();
+                                    }
+                                    ignoreDragEvents = true;
+                                  } else if (details.delta.dy < -sensitivity) {
+                                    // Up swipe
+                                    if (widget.splitMode == SplitMode.half) {
+                                      widget.toggleSplitMode();
+                                    }
+                                    ignoreDragEvents = true;
                                   }
-                                  ignoreDragEvents = true;
-                                } else if (details.delta.dy < -sensitivity) {
-                                  // Up swipe
-                                  if (widget.splitMode == SplitMode.half) {
-                                    widget.toggleSplitMode();
-                                  }
-                                  ignoreDragEvents = true;
                                 }
-                              }
-                            : null,
-                        onHorizontalDragUpdate: context.isLandscape
-                            ? (details) {
-                                if (ignoreDragEvents) return;
-                                if (details.delta.dx > sensitivity) {
-                                  // Right swipe
-                                  if (widget.splitMode == SplitMode.half) {
-                                    _hasSwipedClosed = true;
-                                    widget.closeMelodyView();
-                                  } else {
-                                    widget.toggleSplitMode();
+                              : null,
+                          onHorizontalDragUpdate: context.isLandscape
+                              ? (details) {
+                                  if (ignoreDragEvents) return;
+                                  if (details.delta.dx > sensitivity) {
+                                    // Right swipe
+                                    if (widget.splitMode == SplitMode.half) {
+                                      _hasSwipedClosed = true;
+                                      widget.closeMelodyView();
+                                    } else {
+                                      widget.toggleSplitMode();
+                                    }
+                                    ignoreDragEvents = true;
+                                  } else if (details.delta.dx < -sensitivity) {
+                                    // Left swipe
+                                    if (widget.splitMode == SplitMode.half) {
+                                      widget.toggleSplitMode();
+                                    }
+                                    ignoreDragEvents = true;
                                   }
-                                  ignoreDragEvents = true;
-                                } else if (details.delta.dx < -sensitivity) {
-                                  // Left swipe
-                                  if (widget.splitMode == SplitMode.half) {
-                                    widget.toggleSplitMode();
-                                  }
-                                  ignoreDragEvents = true;
                                 }
-                              }
-                            : null,
-                        child: Stack(
-                          children: [
-                            Column(children: [
-                              AnimatedContainer(
-                                  duration: animationDuration,
-                                  height: (widget.musicViewMode ==
-                                          MusicViewMode.section)
-                                      ? toolbarHeight(context)
-                                      : 0,
-                                  child: SectionToolbar(
-                                    currentSection: widget.currentSection,
-                                    sectionColor: widget.sectionColor,
-                                    musicViewMode: widget.musicViewMode,
-                                    setSectionName: widget.setSectionName,
-                                    deleteSection: widget.deleteSection,
-                                    canDeleteSection:
-                                        widget.score.sections.length > 1,
-                                    cloneCurrentSection:
-                                        widget.cloneCurrentSection,
-                                    editingSection: isEditingSection,
-                                    setEditingSection: (value) {
-                                      setState(() {
-                                        isEditingSection = value;
-                                      });
-                                    },
-                                  )),
-                              AnimatedContainer(
-                                  duration: animationDuration,
-                                  height: (widget.musicViewMode ==
-                                          MusicViewMode.part)
-                                      ? toolbarHeight(context)
-                                      : 0,
-                                  child: PartToolbar(
-                                      enableColorboard: widget.enableColorboard,
-                                      part: widget.part,
-                                      setKeyboardPart: widget.setKeyboardPart,
-                                      configuringPart: isConfiguringPart,
-                                      browsingPartMelodies:
-                                          isBrowsingPartMelodies,
-                                      toggleConfiguringPart: () {
-                                        setState(() {
-                                          isConfiguringPart =
-                                              !isConfiguringPart;
-                                          if (isConfiguringPart &&
-                                              !context.isTablet) {
-                                            makeFullSize();
-                                          }
-                                        });
-                                      },
-                                      toggleBrowsingPartMelodies: () {
-                                        setState(() {
-                                          isBrowsingPartMelodies =
-                                              !isBrowsingPartMelodies;
-                                          // if (isConfiguringPart && !context.isTablet) {
-                                          //   makeFullSize();
-                                          // }
-                                        });
-                                      },
-                                      setColorboardPart:
-                                          widget.setColorboardPart,
-                                      colorboardPart: widget.colorboardPart,
-                                      keyboardPart: widget.keyboardPart,
-                                      deletePart: widget.deletePart,
-                                      sectionColor: widget.sectionColor)),
-                              AnimatedContainer(
-                                  duration: animationDuration,
-                                  height: (widget.musicViewMode ==
-                                          MusicViewMode.melody)
-                                      ? toolbarHeight(context)
-                                      : 0,
-                                  child: MelodyToolbar(
-                                    melody: widget.melody,
-                                    musicViewMode: widget.musicViewMode,
-                                    currentSection: widget.currentSection,
-                                    toggleMelodyReference:
-                                        widget.toggleMelodyReference,
-                                    setReferenceVolume:
-                                        widget.setReferenceVolume,
-                                    editingMelody: editingMelody,
-                                    sectionColor: widget.sectionColor,
-                                    toggleEditingMelody:
-                                        widget.toggleEditingMelody,
-                                    setMelodyName: widget.setMelodyName,
-                                    deleteMelody: widget.deleteMelody,
-                                  )),
-                            ]),
-                            Transform.translate(
-                              offset: Offset(0, 2),
-                              child: Align(
-                                  alignment: Alignment.center,
-                                  child: AnimatedOpacity(
-                                    opacity: currentSwipeTutorial == null ||
-                                            MyPlatform.isMacOS ||
-                                            MyPlatform.isWeb
-                                        ? 0
-                                        : 0.8,
+                              : null,
+                          child: Stack(
+                            children: [
+                              Column(children: [
+                                AnimatedContainer(
                                     duration: animationDuration,
-                                    child: AnimatedContainer(
-                                        height: currentSwipeTutorial == null ||
-                                                _hasSwipedClosed
-                                            ? 0
-                                            : 36,
-                                        duration: animationDuration,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          color: Colors.white,
-                                        ),
-                                        width: 150,
-                                        child: Column(children: [
-                                          Expanded(child: SizedBox()),
-                                          Text(
-                                            currentSwipeTutorial.tutorialText(
-                                                widget.splitMode,
-                                                widget.musicViewMode,
-                                                context),
-                                            style: TextStyle(fontSize: 11),
-                                            overflow: TextOverflow.fade,
-                                            maxLines: 2,
-                                            textAlign: TextAlign.center,
+                                    height: (widget.musicViewMode ==
+                                            MusicViewMode.section)
+                                        ? toolbarHeight(context)
+                                        : 0,
+                                    child: SectionToolbar(
+                                      currentSection: widget.currentSection,
+                                      sectionColor: widget.sectionColor,
+                                      musicViewMode: widget.musicViewMode,
+                                      setSectionName: widget.setSectionName,
+                                      deleteSection: widget.deleteSection,
+                                      canDeleteSection:
+                                          widget.score.sections.length > 1,
+                                      cloneCurrentSection:
+                                          widget.cloneCurrentSection,
+                                      editingSection: isEditingSection,
+                                      setEditingSection: (value) {
+                                        setState(() {
+                                          isEditingSection = value;
+                                        });
+                                      },
+                                    )),
+                                AnimatedContainer(
+                                    duration: animationDuration,
+                                    height: (widget.musicViewMode ==
+                                            MusicViewMode.part)
+                                        ? toolbarHeight(context)
+                                        : 0,
+                                    child: PartToolbar(
+                                        enableColorboard:
+                                            widget.enableColorboard,
+                                        part: widget.part,
+                                        setKeyboardPart: widget.setKeyboardPart,
+                                        configuringPart: isConfiguringPart,
+                                        browsingPartMelodies:
+                                            isBrowsingPartMelodies,
+                                        toggleConfiguringPart: () {
+                                          setState(() {
+                                            isConfiguringPart =
+                                                !isConfiguringPart;
+                                            if (isConfiguringPart &&
+                                                !context.isTablet) {
+                                              makeFullSize();
+                                            }
+                                          });
+                                        },
+                                        toggleBrowsingPartMelodies: () {
+                                          setState(() {
+                                            isBrowsingPartMelodies =
+                                                !isBrowsingPartMelodies;
+                                            // if (isConfiguringPart && !context.isTablet) {
+                                            //   makeFullSize();
+                                            // }
+                                          });
+                                        },
+                                        setColorboardPart:
+                                            widget.setColorboardPart,
+                                        colorboardPart: widget.colorboardPart,
+                                        keyboardPart: widget.keyboardPart,
+                                        deletePart: widget.deletePart,
+                                        sectionColor: widget.sectionColor)),
+                                AnimatedContainer(
+                                    duration: animationDuration,
+                                    height: (widget.musicViewMode ==
+                                            MusicViewMode.melody)
+                                        ? toolbarHeight(context)
+                                        : 0,
+                                    child: MelodyToolbar(
+                                      melody: widget.melody,
+                                      musicViewMode: widget.musicViewMode,
+                                      currentSection: widget.currentSection,
+                                      toggleMelodyReference:
+                                          widget.toggleMelodyReference,
+                                      setReferenceVolume:
+                                          widget.setReferenceVolume,
+                                      editingMelody: recordingMelody,
+                                      sectionColor: widget.sectionColor,
+                                      toggleEditingMelody:
+                                          widget.toggleEditingMelody,
+                                      setMelodyName: widget.setMelodyName,
+                                      deleteMelody: widget.deleteMelody,
+                                    )),
+                              ]),
+                              Transform.translate(
+                                offset: Offset(0, 2),
+                                child: Align(
+                                    alignment: Alignment.center,
+                                    child: AnimatedOpacity(
+                                      opacity: currentSwipeTutorial == null ||
+                                              MyPlatform.isMacOS ||
+                                              MyPlatform.isWeb
+                                          ? 0
+                                          : 0.8,
+                                      duration: animationDuration,
+                                      child: AnimatedContainer(
+                                          height:
+                                              currentSwipeTutorial == null ||
+                                                      _hasSwipedClosed
+                                                  ? 0
+                                                  : 36,
+                                          duration: animationDuration,
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                            color: Colors.white,
                                           ),
-                                          Expanded(child: SizedBox()),
-                                        ])),
-                                  )),
-                            )
-                          ],
-                        ))),
-                // Padding(
-                //     padding: EdgeInsets.only(right: 5),
-                //     child: AnimatedOpacity(
-                //       duration: animationDuration,
-                //       opacity: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 1 : 0,
-                //       child: AnimatedContainer(
-                //           duration: animationDuration,
-                //           width: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 36 : 0,
-                //           height: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 36 : 0,
-                //           child: MyRaisedButton(
-                //               onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: widget.previewMode ? SizedBox() : Icon(Icons.close))),
-                //     ))
-              ],
+                                          width: 150,
+                                          child: Column(children: [
+                                            Expanded(child: SizedBox()),
+                                            Text(
+                                              currentSwipeTutorial.tutorialText(
+                                                  widget.splitMode,
+                                                  widget.musicViewMode,
+                                                  context),
+                                              style: TextStyle(fontSize: 11),
+                                              overflow: TextOverflow.fade,
+                                              maxLines: 2,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Expanded(child: SizedBox()),
+                                          ])),
+                                    )),
+                              )
+                            ],
+                          ))),
+                  // Padding(
+                  //     padding: EdgeInsets.only(right: 5),
+                  //     child: AnimatedOpacity(
+                  //       duration: animationDuration,
+                  //       opacity: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 1 : 0,
+                  //       child: AnimatedContainer(
+                  //           duration: animationDuration,
+                  //           width: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 36 : 0,
+                  //           height: (widget.musicViewMode != MusicViewMode.score && widget.musicViewMode != MusicViewMode.none) ? 36 : 0,
+                  //           child: MyRaisedButton(
+                  //               onPressed: widget.closeMelodyView, padding: EdgeInsets.all(0), child: widget.previewMode ? SizedBox() : Icon(Icons.close))),
+                  //     ))
+                ],
+              ),
             ),
-          ),
-          AnimatedOpacity(
-            duration: animationDuration,
-            opacity: widget.musicViewMode == MusicViewMode.part &&
-                    isBrowsingPartMelodies
-                ? 1
-                : 0,
-            child: AnimatedContainer(
+            AnimatedOpacity(
+              duration: animationDuration,
+              opacity: widget.musicViewMode == MusicViewMode.part &&
+                      isBrowsingPartMelodies
+                  ? 1
+                  : 0,
+              child: AnimatedContainer(
+                  color: widget.part != null &&
+                          widget.part.instrument.type == InstrumentType.drum
+                      ? Colors.brown
+                      : Colors.grey,
+                  duration: animationDuration,
+                  height: (widget.musicViewMode == MusicViewMode.part &&
+                          isBrowsingPartMelodies)
+                      ? toolbarHeight(context)
+                      : 0,
+                  child: PartMelodyBrowser(
+                    sectionColor: widget.sectionColor,
+                    score: widget.score,
+                    currentSection: widget.currentSection,
+                    part: widget.part,
+                    browsingMelodies: isBrowsingPartMelodies,
+                    selectOrDeselectMelody: widget.selectOrDeselectMelody,
+                    createMelody: widget.createMelody,
+                    toggleMelodyReference: widget.toggleMelodyReference,
+                  )),
+            ),
+            AnimatedContainer(
+                duration: animationDuration,
                 color: widget.part != null &&
                         widget.part.instrument.type == InstrumentType.drum
                     ? Colors.brown
                     : Colors.grey,
-                duration: animationDuration,
                 height: (widget.musicViewMode == MusicViewMode.part &&
-                        isBrowsingPartMelodies)
+                        isConfiguringPart)
+                    ? partConfigHeight
+                    : 0,
+                child: PartConfiguration(
+                    part: widget.part,
+                    superSetState: widget.superSetState,
+                    availableHeight: widget.height,
+                    visible: (widget.musicViewMode == MusicViewMode.part &&
+                        isConfiguringPart))),
+            AnimatedContainer(
+                color: Colors.white,
+                duration: animationDuration,
+                height: (widget.musicViewMode == MusicViewMode.melody)
                     ? toolbarHeight(context)
                     : 0,
-                child: PartMelodyBrowser(
+                child: MelodyEditingToolbar(
+                  visible: widget.musicViewMode == MusicViewMode.melody,
+                  recordingMelody: recordingMelody,
+                  sectionColor: widget.sectionColor,
+                  score: widget.score,
+                  melodyId: widget.melody?.id,
+                  currentSection: widget.currentSection,
+                  highlightedBeat: highlightedBeat,
+                  setReferenceVolume: widget.setReferenceVolume,
+                )),
+            AnimatedContainer(
+                color: widget.sectionColor,
+                duration: animationDuration,
+                height: (widget.musicViewMode == MusicViewMode.section &&
+                        isEditingSection)
+                    ? toolbarHeight(context)
+                    : 0,
+                child: SectionEditingToolbar(
                   sectionColor: widget.sectionColor,
                   score: widget.score,
                   currentSection: widget.currentSection,
-                  part: widget.part,
-                  browsingMelodies: isBrowsingPartMelodies,
-                  selectOrDeselectMelody: widget.selectOrDeselectMelody,
-                  createMelody: widget.createMelody,
-                  toggleMelodyReference: widget.toggleMelodyReference,
                 )),
-          ),
-          AnimatedContainer(
-              duration: animationDuration,
-              color: widget.part != null &&
-                      widget.part.instrument.type == InstrumentType.drum
-                  ? Colors.brown
-                  : Colors.grey,
-              height: (widget.musicViewMode == MusicViewMode.part &&
-                      isConfiguringPart)
-                  ? min(280, max(110, widget.height))
-                  : 0,
-              child: PartConfiguration(
-                  part: widget.part,
-                  superSetState: widget.superSetState,
-                  availableHeight: widget.height,
-                  visible: (widget.musicViewMode == MusicViewMode.part &&
-                      isConfiguringPart))),
-          AnimatedContainer(
-              color: Colors.white,
-              duration: animationDuration,
-              height: (widget.musicViewMode == MusicViewMode.melody &&
-                      editingMelody)
-                  ? toolbarHeight(context)
-                  : 0,
-              child: MelodyEditingToolbar(
-                editingMelody: editingMelody,
-                sectionColor: widget.sectionColor,
-                score: widget.score,
-                melodyId: widget.melody?.id,
-                currentSection: widget.currentSection,
-                highlightedBeat: highlightedBeat,
-                setReferenceVolume: widget.setReferenceVolume,
-              )),
-          AnimatedContainer(
-              color: widget.sectionColor,
-              duration: animationDuration,
-              height: (widget.musicViewMode == MusicViewMode.section &&
-                      isEditingSection)
-                  ? toolbarHeight(context)
-                  : 0,
-              child: SectionEditingToolbar(
-                sectionColor: widget.sectionColor,
-                score: widget.score,
-                currentSection: widget.currentSection,
-              )),
-        ]),
-        Expanded(child: _mainMelody(context))
-      ],
-    );
+          ]),
+          Expanded(child: _mainMelody(context))
+        ],
+      ),
+      if (MyPlatform.isDebug)
+        Container(
+          width: 50,
+          height: widget.height,
+          decoration: BoxDecoration(
+              color: Colors.black12,
+              border: Border.all(
+                color: Colors.red[500],
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+        )
+    ]);
   }
 
   set ignoreNextTap(bool value) {
@@ -1068,13 +1088,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               print(
                   "onTapUp: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
               if (BeatScratchPlugin.playing &&
-                  editingMelody &&
+                  recordingMelody &&
                   highlightedBeat.value != beat) {
                 setState(() {
                   highlightedBeat.value = beat;
                 });
               } else if (BeatScratchPlugin.playing &&
-                  editingMelody &&
+                  recordingMelody &&
                   highlightedBeat.value == beat) {
                 setState(() {
                   highlightedBeat.value = null;
@@ -1165,7 +1185,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 focusedPart: mainPart,
                 keyboardPart: widget.keyboardPart,
                 colorboardPart: widget.colorboardPart,
-                height: widget.height,
+                height: widget.height - removedHeight,
                 width: width,
                 previewMode: widget.isPreview,
                 isCurrentScore: widget.isCurrentScore,
@@ -1553,50 +1573,39 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     yScale = scale;
   }
 
+  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
+          xScale < 2 * MusicScrollContainer.minScale
+      ? 30
+      : 0;
+
   double get alignedScale {
-    final result = min(maxScale,
-        max(minScale, alignedStaffHeight / MusicSystemPainter.staffHeight));
-    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale) {
-      return min(maxScale, max(minScale, result * 0.93));
+    double result = alignedStaffHeight / MusicSystemPainter.staffHeight;
+    if (sectionsHeight != 0) {
+      result *= (widget.height - 0) / (widget.height + sectionsHeight);
     }
-    return result;
+    return min(maxScale, max(minScale, result));
   }
 
   double get partAlignedScale {
-    final result = min(maxScale,
-        max(minScale, partAlignedStaffHeight / MusicSystemPainter.staffHeight));
-    if (widget.musicViewMode != MusicViewMode.score && result < 2 * minScale) {
-      return min(maxScale, max(minScale, result * 0.93));
+    double result = partAlignedStaffHeight / MusicSystemPainter.staffHeight;
+    if (sectionsHeight != 0) {
+      result *= (widget.height - 0) / (widget.height + sectionsHeight);
     }
-    return result;
+    return min(maxScale, max(minScale, result));
   }
 
   // double get toolbarHeight => widget.musicViewMode == MusicViewMode.score ||widget.musicViewMode == MusicViewMode.none
-  double get removedHeight => context.isLandscapePhone
-      ? _removedHeightLandscapePhone
-      : (widget.musicViewMode == MusicViewMode.score ||
-              widget.musicViewMode == MusicViewMode.none)
-          ? 32
-          : editingMelody || isEditingSection || isBrowsingPartMelodies
-              ? 100
-              : isConfiguringPart
-                  ? 300
-                  : 50;
-
-  double get _removedHeightLandscapePhone =>
-      widget.musicViewMode == MusicViewMode.score ||
-              widget.musicViewMode == MusicViewMode.none
-          ? -23
-          : editingMelody || isEditingSection || isBrowsingPartMelodies
-              ? 40
-              : isConfiguringPart
-                  ? 300
-                  : 0;
+  double get removedHeight => (widget.musicViewMode == MusicViewMode.score ||
+          widget.musicViewMode == MusicViewMode.none)
+      ? 0
+      : widget.musicViewMode == MusicViewMode.part && isConfiguringPart
+          ? 2 * toolbarHeight(context) + partConfigHeight
+          : 2 * toolbarHeight(context);
 
   double get alignedStaffHeight =>
       (widget.height - removedHeight) / widget.score.parts.length;
 
-  double get partAlignedStaffHeight => (widget.height - removedHeight) / 1.62;
+  double get partAlignedStaffHeight => (widget.height - removedHeight) / 1.38;
 }
 
 enum SwipeTutorial { collapse, closeExpand }

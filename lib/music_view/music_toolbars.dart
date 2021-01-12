@@ -128,17 +128,20 @@ class MelodyToolbarState extends State<MelodyToolbar> {
             child: AnimatedOpacity(
                 duration: animationDuration,
                 opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
-                child: Stack(children: [
+                child:
+                    /*Stack(children: [
                   Align(
                       alignment: Alignment.bottomRight,
-                      child: Icon(Icons.fiber_manual_record,
-                          color: chromaticSteps[7])),
+                      child: */
+                    Icon(Icons.fiber_manual_record,
+                        color: chromaticSteps[
+                            7])), /*,
                   Align(
                       alignment: Alignment.topLeft,
                       child: Icon(
                         Icons.edit,
                       ))
-                ])),
+                ])),*/
           )),
       AnimatedOpacity(
         opacity: (showVolume) ? 1 : 0,
@@ -406,7 +409,7 @@ class PartToolbarState extends State<PartToolbar> {
                     ])))),
         AnimatedContainer(
             duration: animationDuration,
-            width: (/*melodyEnabled && */ !isConfirmingDelete) ? 40 : 0,
+            width: (/*melodyEnabled && */ !isConfirmingDelete) ? 0 : 0,
             height: 36,
             padding: EdgeInsets.only(right: 5),
             child: MyRaisedButton(
@@ -421,7 +424,7 @@ class PartToolbarState extends State<PartToolbar> {
               padding: EdgeInsets.all(0),
               child: AnimatedOpacity(
                   duration: animationDuration,
-                  opacity: (widget.part != null && !isConfirmingDelete) ? 1 : 0,
+                  opacity: (widget.part != null && !isConfirmingDelete) ? 0 : 0,
                   child: Stack(children: [
                     Align(
                         alignment: Alignment.topLeft,
@@ -583,7 +586,7 @@ class SectionToolbarState extends State<SectionToolbar> {
                   : Text(""))),
       AnimatedContainer(
           duration: animationDuration,
-          width: isConfirmingDelete ? 0 : 41,
+          width: isConfirmingDelete ? 0 : 0,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: MyRaisedButton(
@@ -594,7 +597,7 @@ class SectionToolbarState extends State<SectionToolbar> {
                 opacity: widget.musicViewMode != MusicViewMode.section ||
                         isConfirmingDelete
                     ? 0
-                    : 1,
+                    : 0,
                 child: Icon(Icons.edit)),
             onPressed: () {
               widget.setEditingSection(!widget.editingSection);

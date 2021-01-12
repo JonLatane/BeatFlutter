@@ -183,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   RenderingMode renderingMode = RenderingMode.notation;
 
-  bool _editingMelody = false;
+  bool _recordingMelody = false;
   bool _softKeyboardVisible = false;
 
   double get bottomKeyboardPadding => context.isLandscapePhone
@@ -192,10 +192,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 40
       : 65;
 
-  bool get editingMelody => _editingMelody;
+  bool get recordingMelody => _recordingMelody;
 
-  set editingMelody(value) {
-    _editingMelody = value;
+  set recordingMelody(value) {
+    _recordingMelody = value;
     if (value) {
       BeatScratchPlugin.setRecordingMelody(selectedMelody);
       _showMusicView();
@@ -216,10 +216,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.currentBeat.value =
         min(section.beatCount - 1, BeatScratchPlugin.currentBeat.value);
     _currentSection = section;
-    if (editingMelody &&
+    if (recordingMelody &&
         section.referenceTo(selectedMelody).playbackType ==
             MelodyReference_PlaybackType.disabled) {
-      editingMelody = false;
+      recordingMelody = false;
     }
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: sectionColor,
@@ -320,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _prevSelectedPart = selectedPart;
       }
       selectedMelody = null;
-      editingMelody = false;
+      recordingMelody = false;
       selectedPart = null;
       musicViewMode = MusicViewMode.none;
     });
@@ -370,7 +370,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         keyboardPart = part;
       }
     } else {
-      editingMelody = false;
+      recordingMelody = false;
     }
   }
 
@@ -407,14 +407,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         selectedMelody = melody;
         _prevSelectedMelody = melody;
         _prevSelectedPart = null;
-        if (editingMelody) {
+        if (recordingMelody) {
           BeatScratchPlugin.setRecordingMelody(melody);
         }
         musicViewMode = MusicViewMode.melody;
         _showMusicView();
       } else {
         selectedMelody = null;
-        editingMelody = false;
+        recordingMelody = false;
         if (hideMusicOnDeselect) {
           _hideMusicView();
         } else {
@@ -433,7 +433,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         selectedPart = part;
         _prevSelectedPart = part;
         _prevSelectedMelody = null;
-        editingMelody = false;
+        recordingMelody = false;
         musicViewMode = MusicViewMode.part;
         _showMusicView();
       } else {
@@ -464,7 +464,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (selectedMelody != null &&
             ref != null &&
             ref.melodyId == selectedMelody.id) {
-          editingMelody = false;
+          recordingMelody = false;
         }
       });
     }
@@ -502,7 +502,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     universeViewUI.visible = false;
     setState(() {
       interactionMode = InteractionMode.view;
-      editingMelody = false;
+      recordingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
         _showTapInBar = false;
@@ -518,7 +518,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       interactionMode = InteractionMode.universe;
       universeViewUI.visible = true;
-      editingMelody = false;
+      recordingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
         _showTapInBar = false;
@@ -618,7 +618,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _selectSection(Section section) {
     setState(() {
       if (currentSection == section) {
-        editingMelody = false;
+        recordingMelody = false;
         if (musicViewMode != MusicViewMode.section) {
           musicViewMode = MusicViewMode.section;
           _prevSelectedMelody = null;
@@ -879,7 +879,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
     };
     RecordedSegmentQueue.getRecordingMelody = () =>
-        musicViewMode == MusicViewMode.melody && editingMelody
+        musicViewMode == MusicViewMode.melody && recordingMelody
             ? selectedMelody
             : null;
     RecordedSegmentQueue.updateRecordingMelody =
@@ -1366,7 +1366,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               child: Row(children: [
                 if (withIcon)
                   Icon(
-                      editingMelody
+                      recordingMelody
                           ? Icons.fiber_manual_record
                           : Icons.play_arrow,
                       color: Colors.grey),
@@ -1375,7 +1375,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   Expanded(
                     child: Text(
                         BeatScratchPlugin.supportsPlayback
-                            ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "here or with damper/pitch wheel" : "here"} to ${editingMelody ? "record" : "play"}"
+                            ? "Tap in ${(!MyPlatform.isWeb && BeatScratchPlugin.connectedControllers.isNotEmpty) ? "here or with damper/pitch wheel" : "here"} to ${recordingMelody ? "record" : "play"}"
                             : "Playback not supported",
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1391,19 +1391,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               opacity: isDisplayed && BeatScratchPlugin.playing ? 1 : 0,
               child: Row(children: [
                 Icon(
-                    editingMelody
+                    recordingMelody
                         ? Icons.fiber_manual_record
                         : Icons.play_arrow,
-                    color:
-                        editingMelody ? chromaticSteps[7] : chromaticSteps[0]),
+                    color: recordingMelody
+                        ? chromaticSteps[7]
+                        : chromaticSteps[0]),
                 if (withText) SizedBox(width: 5),
                 if (withText)
                   Text(
-                      editingMelody && BeatScratchPlugin.supportsRecording
+                      recordingMelody && BeatScratchPlugin.supportsRecording
                           ? "Recording"
-                          : !editingMelody && BeatScratchPlugin.supportsPlayback
+                          : !recordingMelody &&
+                                  BeatScratchPlugin.supportsPlayback
                               ? "Playing"
-                              : "${editingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
+                              : "${recordingMelody ? "Recording" : "Playback"} doesn't actually work yet...",
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.w100))
               ]))
@@ -1778,7 +1780,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
       vertical: vertical,
-      editingMelody: editingMelody,
+      recordingMelody: recordingMelody,
       enableColorboard: enableColorboard,
       toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
       toggleKeyboardConfiguration: keyboardPart != null
@@ -1869,11 +1871,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  double beatScratchToolbarHeight(BuildContext context) =>
+      context.isLandscapePhone ? 0 : 48;
+  double beatScratchToolbarWidth(BuildContext context) =>
+      context.isLandscapePhone ? 48 : 0;
   Widget _layersAndMusicView(BuildContext context) {
     var data = MediaQuery.of(context);
     double height = data.size.height -
         data.padding.top -
-        kToolbarHeight -
+        // kToolbarHeight -
         _secondToolbarHeight -
         _midiSettingsHeight -
         _scorePickerHeight -
@@ -1889,13 +1895,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         universeViewUI.height(context) -
         downloadLinksHeight -
         _topNotchPaddingReal -
-        _bottomTapInBarHeight +
-        8;
+        _bottomTapInBarHeight -
+        beatScratchToolbarHeight(context);
     double layersWidth = data.size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
         _rightNotchPadding -
-        _landscapeTapInBarWidth;
+        _landscapeTapInBarWidth -
+        beatScratchToolbarWidth(context);
 //    if (musicViewMode == MusicViewMode.score || musicViewMode == MusicViewMode.none) {
 //      height += 36;
 //    }
@@ -2028,7 +2035,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       selectedPart: selectedPart,
       toggleEditingMelody: () {
         setState(() {
-          editingMelody = !editingMelody;
+          recordingMelody = !recordingMelody;
         });
       },
       toggleMelodyReference: _toggleReferenceDisabled,
@@ -2038,7 +2045,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setKeyboardPart: _setKeyboardPart,
       colorboardPart: colorboardPart,
       keyboardPart: keyboardPart,
-      editingMelody: editingMelody,
+      editingMelody: recordingMelody,
       hideMelodyView: _hideMusicView,
       availableWidth: availableWidth,
       height: availableHeight,
@@ -2069,10 +2076,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       closeMelodyView: _hideMusicView,
       toggleMelodyReference: _toggleReferenceDisabled,
       setReferenceVolume: _setReferenceVolume,
-      editingMelody: editingMelody,
+      recordingMelody: recordingMelody,
       toggleEditingMelody: () {
         setState(() {
-          editingMelody = !editingMelody;
+          recordingMelody = !recordingMelody;
         });
       },
       setPartVolume: _setPartVolume,
@@ -2219,7 +2226,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
             Future.delayed(slowAnimationDuration, () {
               setState(() {
-                editingMelody = true;
+                recordingMelody = true;
               });
             });
           });

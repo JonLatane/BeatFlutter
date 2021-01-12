@@ -16,28 +16,33 @@ class MelodyEditingToolbar extends StatefulWidget {
   final Score score;
   final Color sectionColor;
   final Section currentSection;
-  final bool editingMelody;
+  final bool recordingMelody;
+  final bool visible;
   final ValueNotifier<int> highlightedBeat;
   final Function(MelodyReference, double) setReferenceVolume;
 
-  Melody get melody => score.parts.expand((p) => p.melodies).firstWhere((m) => m.id == melodyId, orElse: () => null);
+  Melody get melody => score.parts
+      .expand((p) => p.melodies)
+      .firstWhere((m) => m.id == melodyId, orElse: () => null);
 
   const MelodyEditingToolbar(
       {Key key,
-      this.melodyId,
-      this.sectionColor,
-      this.score,
-      this.currentSection,
-      this.editingMelody,
-      this.highlightedBeat,
-      this.setReferenceVolume})
+      @required this.melodyId,
+      @required this.sectionColor,
+      @required this.score,
+      @required this.currentSection,
+      @required this.highlightedBeat,
+      @required this.setReferenceVolume,
+      @required this.recordingMelody,
+      @required this.visible})
       : super(key: key);
 
   @override
   _MelodyEditingToolbarState createState() => _MelodyEditingToolbarState();
 }
 
-class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with TickerProviderStateMixin {
+class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
+    with TickerProviderStateMixin {
   AnimationController animationController;
   Color recordingAnimationColor;
   Animation<Color> recordingAnimation;
@@ -45,12 +50,14 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
   bool showDataCleared = false;
   bool animationStarted = false;
 
-  int get firstBeatOfSection => widget.score.firstBeatOfSection(widget.currentSection);
+  int get firstBeatOfSection =>
+      widget.score.firstBeatOfSection(widget.currentSection);
 
   @override
   void initState() {
     super.initState();
-    animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    animationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     recordingAnimation = ColorTween(
       begin: Colors.grey,
       end: chromaticSteps[7],
@@ -70,15 +77,17 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    if (!animationStarted && widget.editingMelody && BeatScratchPlugin.playing) {
+    if (!animationStarted &&
+        widget.recordingMelody &&
+        BeatScratchPlugin.playing) {
       animationController.repeat(reverse: true);
       animationStarted = true;
-    } else if (widget.editingMelody || !BeatScratchPlugin.playing) {
+    } else if (widget.recordingMelody || !BeatScratchPlugin.playing) {
       animationController.stop(canceled: false);
       animationStarted = false;
     }
     Color recordingColor;
-    if (widget.editingMelody && BeatScratchPlugin.playing) {
+    if (widget.recordingMelody && BeatScratchPlugin.playing) {
       recordingColor = recordingAnimationColor;
     } else {
       recordingColor = Colors.grey;
@@ -87,7 +96,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
     if (widget.melody != null) {
       beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
     }
-    bool hasHighlightedBeat = widget.highlightedBeat.value != null && BeatScratchPlugin.playing && widget.editingMelody;
+    bool hasHighlightedBeat = widget.highlightedBeat.value != null &&
+        BeatScratchPlugin.playing &&
+        widget.recordingMelody;
     final melodyReference = widget.currentSection.referenceTo(widget.melody);
     return Row(children: [
       SizedBox(width: 5),
@@ -113,7 +124,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
                 }
               }
             : null,
-        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5), child: BeatsBadge(beats: beats)),
+        child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+            child: BeatsBadge(beats: beats)),
 //        valueWidth: 100,
 //        value: "$beats beat${beats == 1 ? "" : "s"}",
       ),
@@ -124,7 +137,8 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
             ? () {
                 if ((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
                   widget.melody?.subdivisionsPerBeat -= 1;
-                  widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+                  widget.melody.length =
+                      beats * widget.melody.subdivisionsPerBeat;
                   clearMutableCachesForMelody(widget.melody.id);
                   BeatScratchPlugin.onSynthesizerStatusChange();
                   clearMutableCachesForMelody(widget.melody.id);
@@ -136,7 +150,8 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
             ? () {
                 if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
                   widget.melody?.subdivisionsPerBeat += 1;
-                  widget.melody.length = beats * widget.melody.subdivisionsPerBeat;
+                  widget.melody.length =
+                      beats * widget.melody.subdivisionsPerBeat;
                   clearMutableCachesForMelody(widget.melody.id);
                   BeatScratchPlugin.onSynthesizerStatusChange();
                   clearMutableCachesForMelody(widget.melody.id);
@@ -155,14 +170,15 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
       Expanded(
           child: AnimatedOpacity(
         duration: animationDuration,
-        opacity: widget.melody != null && widget.editingMelody ? 1 : 0,
+        opacity: widget.melody != null && widget.visible ? 1 : 0,
         child: MySlider(
             value: melodyReference?.volume ?? 0,
             activeColor: widget.sectionColor,
-            onChanged: (widget.melody != null && widget.editingMelody)
+            onChanged: (widget.melody != null && widget.visible)
                 ? (value) {
                     widget.setReferenceVolume(melodyReference, value);
-                  } : null),
+                  }
+                : null),
       )),
       AnimatedContainer(
           duration: animationDuration,
@@ -177,20 +193,26 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
                     offset: Offset(0, -7),
                     child: Align(
                         alignment: Alignment.center,
-                        child:
-                            Text("Hold", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                        child: Text("Hold",
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(fontSize: 10)))),
                 Transform.translate(
                     offset: Offset(0, 0),
                     child: Align(
                         alignment: Alignment.center,
-                        child:
-                            Text("to", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                        child: Text("to",
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(fontSize: 10)))),
                 Transform.translate(
                     offset: Offset(0, 7),
                     child: Align(
                         alignment: Alignment.center,
                         child: Text("clear",
-                            maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(fontSize: 10)))),
               ]))),
       AnimatedContainer(
           duration: animationDuration,
@@ -206,7 +228,10 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
                 // Transform.translate(offset: Offset(0, 7), child:
                 Align(
                     alignment: Alignment.center,
-                    child: Text("Cleared", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))
+                    child: Text("Cleared",
+                        maxLines: 1,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(fontSize: 10)))
                 // ),
               ]))),
       AnimatedContainer(
@@ -248,19 +273,23 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
               },
               child: AnimatedOpacity(
                   duration: animationDuration,
-                  opacity: widget.editingMelody ? 1 : 0,
+                  opacity: widget.visible ? 1 : 0,
                   child: Stack(
                     children: [
-                      Align(alignment: Alignment.center, child: Icon(Icons.delete_sweep, color: Colors.white)),
+                      Align(
+                          alignment: Alignment.center,
+                          child: Icon(Icons.delete_sweep, color: Colors.white)),
                       Align(
                           alignment: Alignment.bottomRight,
                           child: Padding(
-                              padding: const EdgeInsets.only(right: 1, bottom: 0),
+                              padding:
+                                  const EdgeInsets.only(right: 1, bottom: 0),
                               child: Transform.translate(
                                 offset: Offset(0, 2),
                                 child: Text(
                                   "All",
-                                  style: TextStyle(fontSize: 10, color: Colors.white),
+                                  style: TextStyle(
+                                      fontSize: 10, color: Colors.white),
                                 ),
                               )))
                     ],
@@ -310,13 +339,15 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
               },
               child: AnimatedOpacity(
                   duration: animationDuration,
-                  opacity: widget.editingMelody ? 1 : 0,
+                  opacity: widget.visible ? 1 : 0,
                   child: Stack(
                     children: [
                       Align(
                           alignment: Alignment.center,
-                          child:
-                              Icon(Icons.delete_sweep, color: hasHighlightedBeat ? widget.sectionColor : Colors.white)),
+                          child: Icon(Icons.delete_sweep,
+                              color: hasHighlightedBeat
+                                  ? widget.sectionColor
+                                  : Colors.white)),
                       Align(
                           alignment: Alignment.bottomRight,
                           child: Padding(
@@ -327,7 +358,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
                                   "Beat",
                                   style: TextStyle(
                                       fontSize: 10,
-                                      color: hasHighlightedBeat ? widget.sectionColor : Colors.white,
+                                      color: hasHighlightedBeat
+                                          ? widget.sectionColor
+                                          : Colors.white,
                                       fontWeight: FontWeight.w400),
                                 )),
                           ))
@@ -336,10 +369,15 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar> with Ticker
       SizedBox(width: 7),
       Column(children: [
         SizedBox(height: 1),
-        Transform.translate(offset: Offset(0, 5), child: Icon(Icons.fiber_manual_record, color: recordingColor)),
+        Transform.translate(
+            offset: Offset(0, 5),
+            child: Icon(Icons.fiber_manual_record, color: recordingColor)),
         Text('Recording',
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10, color: recordingColor)),
+            style: TextStyle(
+                fontWeight: FontWeight.w100,
+                fontSize: 10,
+                color: recordingColor)),
       ]),
       SizedBox(width: 7),
     ]);

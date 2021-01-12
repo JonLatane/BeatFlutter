@@ -456,6 +456,7 @@ class BeatScratchPlugin {
   static void pause() {
     _playing = false;
     _pause();
+    onSynthesizerStatusChange();
   }
 
   static void _pause() async {

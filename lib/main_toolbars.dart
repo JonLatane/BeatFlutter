@@ -808,7 +808,7 @@ class SecondToolbar extends StatelessWidget {
   final VoidCallback toggleTempoConfiguration;
   final VoidCallback tempoLongPress;
   final VoidCallback rewind;
-  final bool editingMelody;
+  final bool recordingMelody;
   final bool showKeyboard;
   final bool showKeyboardConfiguration;
   final bool showColorboard;
@@ -821,28 +821,28 @@ class SecondToolbar extends StatelessWidget {
   final bool vertical;
   final bool visible;
 
-  const SecondToolbar(
-      {Key key,
-      this.toggleKeyboard,
-      this.toggleColorboard,
-      this.showKeyboard,
-      this.showColorboard,
-      this.interactionMode,
-      this.showViewOptions,
-      this.showKeyboardConfiguration,
-      this.showColorboardConfiguration,
-      this.toggleKeyboardConfiguration,
-      this.toggleColorboardConfiguration,
-      this.sectionColor,
-      this.enableColorboard,
-      this.editingMelody,
-      this.toggleTempoConfiguration,
-      this.showTempoConfiguration,
-      this.vertical,
-      this.visible,
-      this.tempoLongPress,
-      this.rewind})
-      : super(key: key);
+  const SecondToolbar({
+    Key key,
+    this.toggleKeyboard,
+    this.toggleColorboard,
+    this.showKeyboard,
+    this.showColorboard,
+    this.interactionMode,
+    this.showViewOptions,
+    this.showKeyboardConfiguration,
+    this.showColorboardConfiguration,
+    this.toggleKeyboardConfiguration,
+    this.toggleColorboardConfiguration,
+    this.sectionColor,
+    this.enableColorboard,
+    this.recordingMelody,
+    this.toggleTempoConfiguration,
+    this.showTempoConfiguration,
+    this.vertical,
+    this.visible,
+    this.tempoLongPress,
+    this.rewind,
+  }) : super(key: key);
 
   Widget columnOrRow(BuildContext context, {List<Widget> children}) {
     if (vertical) {
@@ -895,14 +895,27 @@ class SecondToolbar extends StatelessWidget {
                     createPlayIcon(Icons.play_arrow,
                         visible: editMode &&
                             !BeatScratchPlugin.playing &&
-                            !editingMelody),
+                            !recordingMelody),
                     createPlayIcon(Icons.pause,
                         visible: editMode && BeatScratchPlugin.playing),
                     createPlayIcon(Icons.fiber_manual_record,
                         visible: editMode &&
                             !BeatScratchPlugin.playing &&
-                            editingMelody,
+                            recordingMelody,
                         color: chromaticSteps[7]),
+                    AnimatedOpacity(
+                        opacity: editMode &&
+                                BeatScratchPlugin.playing &&
+                                recordingMelody
+                            ? 0.6
+                            : 0,
+                        duration: animationDuration,
+                        child: Transform.translate(
+                            offset: Offset(12, 6),
+                            child: Transform.scale(
+                                scale: 0.5,
+                                child: Icon(Icons.fiber_manual_record,
+                                    color: chromaticSteps[7], size: 32)))),
                   ]),
                   onPressed: BeatScratchPlugin.supportsPlayback
                       ? () {
