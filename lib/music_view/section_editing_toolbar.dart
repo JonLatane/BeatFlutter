@@ -7,6 +7,7 @@ import '../ui_models.dart';
 import '../widget/beats_badge.dart';
 import '../util/music_theory.dart';
 import '../widget/incrementable_value.dart';
+import '../colors.dart';
 
 class SectionEditingToolbar extends StatefulWidget {
   final Score score;
@@ -118,7 +119,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
     NoteName key = widget.currentSection.harmony.data[0].rootNote;
     int keyIndex = keys.indexOf(key);
     return Row(children: [
-      SizedBox(width: 5),
+      SizedBox(width: 1),
       IncrementableValue(
         collapsing: true,
         onDecrement: (widget.currentSection.beatCount > 1)
@@ -148,7 +149,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
             padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
             child: BeatsBadge(beats: widget.currentSection.beatCount)),
       ),
-      SizedBox(width: 5),
+      SizedBox(width: 2),
       IncrementableValue(
         collapsing: true,
         onDecrement: (widget.currentSection.tempo.bpm > 21)
@@ -171,7 +172,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
             : null,
         child: Container(
             width: 36,
-            padding: EdgeInsets.only(top: 7, bottom: 5),
+            padding: EdgeInsets.only(top: 0, bottom: 5),
             child: Stack(children: [
               Align(
                 alignment: Alignment.center,
@@ -188,11 +189,13 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
                     offset: Offset(0, -7),
                     child: Text(
                         widget.currentSection.tempo.bpm.toStringAsFixed(0),
-                        style: TextStyle(fontWeight: FontWeight.w700))),
+                        style: TextStyle(
+                            color: widget.sectionColor.textColor(),
+                            fontWeight: FontWeight.w700))),
               )
             ])),
       ),
-      SizedBox(width: 5),
+      SizedBox(width: 2),
       IncrementableValue(
         collapsing: true,
         onDecrement: () {
@@ -211,17 +214,23 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
           widget.currentSection.color = IntervalColor.values[valueIndex];
           BeatScratchPlugin.onSynthesizerStatusChange();
         },
-        child: Center(
+        child: Container(
             child: Container(
                 width: 32,
                 height: 32,
                 padding: EdgeInsets.zero,
                 decoration: BoxDecoration(
-                    border: Border.all(), color: widget.sectionColor),
-                child: Icon(Icons.palette, color: Color(0xFF212121)))),
+                    border: Border.all(
+                      color: widget.sectionColor.textColor(),
+                    ),
+                    color: widget.sectionColor),
+                child: Icon(
+                  Icons.palette,
+                  color: widget.sectionColor.textColor(),
+                ))),
       ),
       Expanded(
-        child: SizedBox(width: 5),
+        child: SizedBox(width: 2),
       ),
       IncrementableValue(
         collapsing: true,
@@ -258,7 +267,9 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
                           widget.currentSection.meter.defaultBeatsPerMeasure
                               .toString(),
                           style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w900)))),
+                              color: widget.sectionColor.textColor(),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900)))),
               Align(
                   alignment: Alignment.center,
                   child: Transform.translate(
@@ -266,11 +277,13 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
                       child: Text(
                         "4",
                         style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w900),
+                            color: widget.sectionColor.textColor(),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900),
                       )))
             ])),
       ),
-      SizedBox(width: 5),
+      SizedBox(width: 2),
       IncrementableValue(
         collapsing: true,
         onDecrement: () {
@@ -307,7 +320,9 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
                     offset: Offset(-1.5, -2),
                     child: Text(key.simpleString,
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w200))))),
+                            color: widget.sectionColor.textColor(),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w200))))),
       ),
 //      IncrementableValue(
 //        onDecrement: null,
@@ -315,7 +330,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
 //        child: Padding(padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
 //          child:BeatsBadge(beats: widget.currentSection.harmony.subdivisionsPerBeat, isPerBeat: true,)),
 //      ),
-      SizedBox(width: 5),
+      SizedBox(width: 1),
     ]);
   }
 }

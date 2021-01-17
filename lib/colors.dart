@@ -80,3 +80,18 @@ extension IntervalColors on IntervalColor {
     return Colors.white;
   }
 }
+
+extension BSColors on Color {
+  static final Map<Color, double> _luminanceCache = {};
+  Color withAlpha(int alpha) => Color.fromARGB(alpha, red, green, blue);
+
+  /// With [this] as the background color, computes the appropriate text color.
+  Color textColor({Color subBackgroundColor}) {
+    double luminance =
+        BSColors._luminanceCache.putIfAbsent(this, () => computeLuminance());
+    if (luminance > 0.5) {
+      return Colors.black;
+    }
+    return Colors.white;
+  }
+}

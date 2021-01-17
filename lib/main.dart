@@ -2248,11 +2248,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           offset: Offset(0, 1.5),
                           child: Icon(Icons.settings, color: Colors.white)),
                       SizedBox(width: 3),
-                      Text("MIDI Settings",
+                      Text("Settings",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
-                              fontWeight: FontWeight.w600)),
+                              fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ))),

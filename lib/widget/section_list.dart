@@ -10,6 +10,7 @@ import '../ui_models.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
+import '../colors.dart';
 import 'beats_badge.dart';
 import 'my_buttons.dart';
 
@@ -50,7 +51,9 @@ class _SectionListState extends State<SectionList> {
     int beatCount = widget.score.beatCount;
     return (widget.scrollDirection == Axis.horizontal)
         ? Row(children: [
-            Expanded(child: Padding(padding: EdgeInsets.all(2), child: getList(context))),
+            Expanded(
+                child: Padding(
+                    padding: EdgeInsets.all(2), child: getList(context))),
             AnimatedContainer(
                 duration: animationDuration,
                 width: beatsBadgeWidth(beatCount) + 5,
@@ -74,8 +77,8 @@ class _SectionListState extends State<SectionList> {
                       ? () {
                           print("inserting section");
                           widget.insertSection(defaultSection()
-                            ..tempo = (Tempo()..bpm = widget.currentSection.tempo.bpm)
-                          );
+                            ..tempo = (Tempo()
+                              ..bpm = widget.currentSection.tempo.bpm));
                         }
                       : null,
                 ))
@@ -92,7 +95,8 @@ class _SectionListState extends State<SectionList> {
 //            width: widget.showSectionBeatCounts ? beatsBadgeWidth(beatCount) : 0,
                         height: 36,
                         child: MyFlatButton(
-                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 5),
                             onPressed: widget.toggleShowSectionBeatCounts,
                             child: Row(children: [
                               Expanded(child: SizedBox()),
@@ -107,7 +111,8 @@ class _SectionListState extends State<SectionList> {
                                 "beat${beatCount == 1 ? "" : "s"}",
                                 maxLines: 1,
                                 overflow: TextOverflow.fade,
-                                style: TextStyle(fontWeight: FontWeight.w100, fontSize: 8),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w100, fontSize: 8),
                               ),
                               Expanded(child: SizedBox()),
                             ])),
@@ -130,7 +135,9 @@ class _SectionListState extends State<SectionList> {
                         onPressed: widget.score.sections.length < 100
                             ? () {
                                 print("inserting section");
-                                widget.insertSection(defaultSection()..tempo = (Tempo()..bpm = widget.currentSection.tempo.bpm));
+                                widget.insertSection(defaultSection()
+                                  ..tempo = (Tempo()
+                                    ..bpm = widget.currentSection.tempo.bpm));
                               }
                             : null,
                       )))
@@ -142,31 +149,38 @@ class _SectionListState extends State<SectionList> {
 
   _animateToNewlySelectedSection() {
     try {
-      if (_previousSection != null && _previousSection.id != widget.currentSection.id) {
+      if (_previousSection != null &&
+          _previousSection.id != widget.currentSection.id) {
         _animateToCurrentSection();
       }
-    } catch(any) {
-
-    }
+    } catch (any) {}
     _previousSection = widget.currentSection;
   }
 
   _animateToCurrentSection() {
     int index = widget.score.sections.indexOf(widget.currentSection);
     if (widget.scrollDirection == Axis.horizontal) {
-      double marginSections = context.isTablet ? 2.62 : context.isLandscapePhone ? 1.38 : .38;
+      double marginSections = context.isTablet
+          ? 2.62
+          : context.isLandscapePhone
+              ? 1.38
+              : .38;
       double position = _Section.width * (index - marginSections);
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
-      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+      _scrollController.animateTo(position,
+          duration: animationDuration, curve: Curves.easeInOut);
     } else {
-      double marginSections = context.isTablet || context.isPortraitPhone ? 3.62 : 1.62;
+      double marginSections =
+          context.isTablet || context.isPortraitPhone ? 3.62 : 1.62;
       double position = _Section.height * (index - marginSections);
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
-      _scrollController.animateTo(position, duration: animationDuration, curve: Curves.easeInOut);
+      _scrollController.animateTo(position,
+          duration: animationDuration, curve: Curves.easeInOut);
     }
   }
+
   Widget getList(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Section>(
       scrollDirection: widget.scrollDirection,
@@ -209,7 +223,9 @@ class _SectionListState extends State<SectionList> {
                 return SizeFadeTransition(
                     sizeFraction: 0.7,
                     curve: Curves.easeInOut,
-                    axis: widget.scrollDirection == Axis.horizontal ? Axis.vertical : Axis.horizontal,
+                    axis: widget.scrollDirection == Axis.horizontal
+                        ? Axis.vertical
+                        : Axis.horizontal,
                     animation: animation,
                     child: tile);
               }
@@ -267,23 +283,35 @@ class _SectionState extends State<_Section> {
         duration: animationDuration,
         width: _Section.width,
         height: _Section.height,
-        color: (widget.currentSection == widget.section) ? widget.sectionColor : Colors.white,
+        color: (widget.currentSection == widget.section)
+            ? widget.sectionColor
+            : Colors.white,
         child: MyFlatButton(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Stack(children: [
             Row(children: [
               BeatsBadge(
-                  beats: widget.section.harmony.length ~/ widget.section.harmony.subdivisionsPerBeat,
+                  beats: widget.section.harmony.length ~/
+                      widget.section.harmony.subdivisionsPerBeat,
                   show: widget.showBeatCount),
               SizedBox(width: 3),
               Expanded(
                   child: Align(
-                alignment: widget.scrollDirection == Axis.horizontal ? Alignment.center : Alignment.centerLeft,
-                child: Text(widget.section.canonicalName,
+                alignment: widget.scrollDirection == Axis.horizontal
+                    ? Alignment.center
+                    : Alignment.centerLeft,
+                child: Text(
+                  widget.section.canonicalName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style:
-                      TextStyle(fontSize: 13, fontWeight: FontWeight.w100, color: hasName ? Colors.black : Colors.grey),
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w100,
+                      color: hasName
+                          ? (widget.currentSection == widget.section)
+                              ? widget.sectionColor.textColor()
+                              : Colors.black
+                          : Colors.grey),
                 ),
               )),
               Handle(

@@ -576,7 +576,10 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                             ScrollingMode.sideScroll)
                                         ? widget.sectionColor
                                         : null,
-                                    child: Text("Scroll"))),
+                                    child: Text("Scroll",
+                                        style: TextStyle(
+                                            color: widget.sectionColor
+                                                .textColor())))),
                             Expanded(
                                 child: MyRaisedButton(
                                     padding: EdgeInsets.all(0),

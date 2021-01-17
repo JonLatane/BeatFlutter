@@ -564,7 +564,9 @@ class SectionToolbarState extends State<SectionToolbar> {
               padding: EdgeInsets.only(left: 5),
               child: (widget.musicViewMode == MusicViewMode.section)
                   ? TextField(
-                      style: TextStyle(fontWeight: FontWeight.w100),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w100,
+                          color: widget.sectionColor.textColor()),
                       controller: nameController,
                       textCapitalization: TextCapitalization.words,
                       onChanged: (widget.musicViewMode == MusicViewMode.section)

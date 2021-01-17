@@ -3,7 +3,11 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/export/export.dart';
+import 'package:beatscratch_flutter_redux/music_preview/melody_preview.dart';
+import 'package:beatscratch_flutter_redux/music_view/music_scroll_container.dart';
+import 'package:beatscratch_flutter_redux/music_view/music_view.dart';
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
+import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +16,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
+import 'util/midi_theory.dart';
 import 'colors.dart';
 import 'generated/protos/music.pb.dart';
 import 'messages/messages_ui.dart';
@@ -535,17 +540,18 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                 child: Icon(Icons.settings))
                           ]),
                         ),
-                        MyPopupMenuItem(
-                          value: "tutorial",
-                          enabled: false,
-                          child: Row(children: [
-                            Expanded(child: Text('Help/Tutorial')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.help))
-                          ]),
-                        ),
+                        if (MyPlatform.isDebug)
+                          MyPopupMenuItem(
+                            value: "tutorial",
+                            enabled: false,
+                            child: Row(children: [
+                              Expanded(child: Text('Help/Tutorial')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.help))
+                            ]),
+                          ),
                         MyPopupMenuItem(
                           value: "feedback",
                           enabled: true,
@@ -578,7 +584,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                 child: Icon(FontAwesomeIcons.github))
                           ]),
                         ),
-
                         MyPopupMenuItem(
                           value: "about",
                           enabled: true,
@@ -663,7 +668,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         child: Icon(FontAwesomeIcons.globe,
                             color: (widget.interactionMode ==
                                     InteractionMode.universe)
-                                ? Colors.white
+                                ? widget.sectionColor.textColor()
                                 : widget.sectionColor)))),
           if (!widget.leftHalfOnly)
             Expanded(
@@ -682,7 +687,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         child: Icon(Icons.remove_red_eye,
                             color:
                                 (widget.interactionMode == InteractionMode.view)
-                                    ? Colors.white
+                                    ? widget.sectionColor.textColor()
                                     : widget.sectionColor)))),
           if (!widget.leftHalfOnly)
             Expanded(
@@ -750,8 +755,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                       ? hasMelody
                                                                           ? Colors
                                                                               .black
-                                                                          : Colors
-                                                                              .white
+                                                                          : widget
+                                                                              .sectionColor
+                                                                              .textColor()
                                                                       : widget
                                                                           .sectionColor),
                                                             ),
@@ -773,8 +779,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                       ? hasMelody
                                                                           ? Colors
                                                                               .black
-                                                                          : Colors
-                                                                              .white
+                                                                          : widget
+                                                                              .sectionColor
+                                                                              .textColor()
                                                                       : widget
                                                                           .sectionColor),
                                                             ),
@@ -832,15 +839,15 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                     fontSize: 10,
                                                     color: hasMelody
                                                         ? Colors.black
-                                                        : Colors.white,
+                                                        : widget.sectionColor
+                                                            .textColor(),
                                                     fontWeight: widget.openMelody !=
                                                                 null ||
                                                             widget.prevMelody !=
                                                                 null
                                                         ? FontWeight.w500
                                                         : widget.openPart != null ||
-                                                                widget.prevPart !=
-                                                                    null
+                                                                widget.prevPart != null
                                                             ? FontWeight.w800
                                                             : FontWeight.w200)),
                                           ),
@@ -854,35 +861,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           ],
                         ))))
         ]));
-  }
-
-  showAbout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('About BeatScratch'),
-        content: Column(children: [
-          Padding(
-              padding: EdgeInsets.only(bottom: 5),
-              child: Text("Icons provided by:")),
-          Row(children: [
-            Image.asset(
-              "assets/piano.png",
-              width: 24,
-              height: 24,
-            ),
-            Text("Piano by André Luiz Gollo from the Noun Project")
-          ]),
-        ]),
-        actions: <Widget>[
-          MyFlatButton(
-            color: widget.sectionColor,
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 }
 

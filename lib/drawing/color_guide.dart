@@ -4,10 +4,6 @@ import '../colors.dart';
 import '../util/music_theory.dart';
 import 'canvas_tone_drawer.dart';
 
-extension WithAlpha on Color {
-  Color withAlpha(int alpha) => Color.fromARGB(alpha, red, green, blue);
-}
-
 class ColorGuide extends CanvasToneDrawer {
   int colorGuideAlpha;
   int drawPadding;

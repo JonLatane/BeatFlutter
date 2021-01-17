@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/ui_models.dart';
+import '../beatscratch_plugin.dart';
+import '../colors.dart';
+import '../generated/protos/protos.dart';
+import '../music_preview/melody_preview.dart';
+import '../ui_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_appavailability/flutter_appavailability.dart';
@@ -13,6 +15,9 @@ import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import '../generated/protos/protobeats_plugin.pb.dart';
 import '../widget/my_buttons.dart';
 import '../widget/my_platform.dart';
+import '../util/dummydata.dart';
+import '../util/midi_theory.dart';
+import '../util/util.dart';
 
 class MidiSettings extends StatefulWidget {
   final Axis scrollDirection;
@@ -144,8 +149,28 @@ class _MidiSettingsState extends State<MidiSettings> {
         BeatScratchPlugin.supportsSynthesizerConfig
             ? this.midiSynthesizers.toList()
             : [this.midiSynthesizers.toList().first];
-    List<dynamic> items = midiSynthesizers
+    List<dynamic> items = [
+      _Separator(text: "App Info", id: "app-settings"),
+      _SettingsTile(
+        id: "colors",
+        color: widget.sectionColor,
+        child: Column(
+          children: [
+            Expanded(child: SizedBox()),
+            Icon(Icons.palette,
+                size: 48, color: widget.sectionColor.textColor()),
+            SizedBox(height: 3),
+            Text("Colors...",
+                style: TextStyle(color: widget.sectionColor.textColor())),
+            Expanded(child: SizedBox()),
+          ],
+        ),
+        onPressed: () => showColors(context, widget.sectionColor),
+      ),
+      _Separator(text: "MIDI Devices", id: "midi-settings"),
+    ]
         .map((e) => e as dynamic)
+        .followedBy(midiSynthesizers)
         .followedBy(midiControllers)
         .toList();
     return ImplicitlyAnimatedList<dynamic>(
@@ -172,11 +197,13 @@ class _MidiSettingsState extends State<MidiSettings> {
             toggleKeyboardConfig: widget.toggleKeyboardConfig,
             toggleColorboardConfig: widget.toggleColorboardConfig,
           );
-        } else {
+        } else if (item is MidiSynthesizer) {
           tile = _MidiSynthesizer(
             scrollDirection: widget.scrollDirection,
-            midiSynthesizer: item as MidiSynthesizer,
+            midiSynthesizer: item,
           );
+        } else if (item is _SettingsTile || item is _Separator) {
+          tile = item;
         }
         tile = Padding(padding: EdgeInsets.all(5), child: tile);
         return SizeFadeTransition(
@@ -532,4 +559,192 @@ class __MidiSynthesizerState extends State<_MidiSynthesizer> {
         padding: EdgeInsets.all(5),
         child: framework);
   }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final String id;
+  final Widget child;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _SettingsTile({
+    Key key,
+    this.id,
+    this.child,
+    this.color,
+    this.onPressed,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    Widget wrapWithButton(widget) => onPressed != null
+        ? MyFlatButton(
+            padding: EdgeInsets.zero,
+            onPressed: onPressed,
+            child: widget,
+          )
+        : widget;
+    return AnimatedContainer(
+        duration: animationDuration,
+        width: 200,
+        height: 150,
+        color: color,
+        padding: EdgeInsets.all(5),
+        child: wrapWithButton(child));
+  }
+}
+
+class _Separator extends StatelessWidget {
+  final String text;
+  final String id;
+
+  const _Separator({
+    Key key,
+    this.text,
+    this.id,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+        duration: animationDuration,
+        width: 27,
+        height: 150,
+        decoration: BoxDecoration(
+            border: Border(
+          left: BorderSide(width: 2.0, color: Colors.grey),
+        )),
+        padding: EdgeInsets.only(left: 5, top: 5, bottom: 5),
+        child: RotatedBox(
+          child: Center(
+              child: Text(text,
+                  maxLines: 1,
+                  overflow: TextOverflow.fade,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300))),
+          quarterTurns: 3,
+        ));
+  }
+}
+
+showColors(BuildContext context, Color sectionColor) {
+  Widget colorRow(Color color, String name, String symbol) => Row(children: [
+        Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(border: Border.all(), color: color),
+            child: SizedBox()),
+        Expanded(child: SizedBox()),
+        Text(name, style: TextStyle(fontWeight: FontWeight.w200)),
+        Expanded(child: SizedBox()),
+        Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              border: Border.all(),
+            ),
+            child: Center(
+                child: Text(symbol,
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(fontSize: 10, fontWeight: FontWeight.w600)))),
+      ]);
+  Widget chromaticColumn(int note, Color color) => Container(
+      padding: EdgeInsets.symmetric(horizontal: 3),
+      child: Column(
+        children: [
+          MelodyPreview(
+              width: 36,
+              height: 48,
+              scale: 0.15,
+              section: defaultSection(),
+              part: Part()
+                ..id = uuid.v4()
+                ..instrument = (Instrument()..type = InstrumentType.harmonic),
+              melody: baseMelody()
+                ..instrumentType = InstrumentType.harmonic
+                ..subdivisionsPerBeat = 2
+                ..length = 64
+                ..setMidiDataFromSimpleMelody(Map.from({
+                  0: [note],
+                }))),
+          SizedBox(height: 5),
+          Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(border: Border.all(), color: color),
+              child: SizedBox()),
+        ],
+      ));
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Row(children: [
+        Text("Beat", style: TextStyle(fontWeight: FontWeight.w900)),
+        Text("Scratch", style: TextStyle(fontWeight: FontWeight.w100)),
+        SizedBox(width: 5),
+        Text('Colors')
+      ]),
+      content: Column(children: [
+        Expanded(
+            child: SingleChildScrollView(
+                child: Column(children: [
+          Padding(
+              padding: EdgeInsets.only(bottom: 5),
+              child: Text("Primary Colors",
+                  style: TextStyle(fontWeight: FontWeight.w700))),
+          colorRow(chromaticSteps[0], "Tonic", "I"),
+          colorRow(chromaticSteps[7], "Dominant", "V"),
+          Padding(
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: Text("Section/Intervalic Colors",
+                  style: TextStyle(fontWeight: FontWeight.w700))),
+          colorRow(chromaticSteps[4], "Major", "III"),
+          colorRow(chromaticSteps[3], "Minor", "♭III"),
+          colorRow(chromaticSteps[5], "Perfect/Subdominant", "IV"),
+          colorRow(chromaticSteps[8], "Augmented", "♯V/♭VI"),
+          colorRow(chromaticSteps[6], "Diminished", "♭V/♯IV"),
+          Padding(
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: Text("Other Colors",
+                  style: TextStyle(fontWeight: FontWeight.w700))),
+          colorRow(chromaticSteps[1], "m2/m9", "♭II"),
+          colorRow(chromaticSteps[2], "2/9/M2/M9", "II"),
+          colorRow(chromaticSteps[9], "6/M6", "VI"),
+          colorRow(chromaticSteps[10], "7/m7", "♭VII"),
+          colorRow(chromaticSteps[11], "M7", "VII"),
+        ]))),
+        Padding(
+            padding: EdgeInsets.symmetric(vertical: 5),
+            child: Text("Chromatic Scale",
+                style: TextStyle(fontWeight: FontWeight.w700))),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              chromaticColumn(0, chromaticSteps[0]),
+              chromaticColumn(1, chromaticSteps[1]),
+              chromaticColumn(2, chromaticSteps[2]),
+              chromaticColumn(3, chromaticSteps[3]),
+              chromaticColumn(4, chromaticSteps[4]),
+              chromaticColumn(5, chromaticSteps[5]),
+              chromaticColumn(6, chromaticSteps[6]),
+              chromaticColumn(7, chromaticSteps[7]),
+              chromaticColumn(8, chromaticSteps[8]),
+              chromaticColumn(9, chromaticSteps[9]),
+              chromaticColumn(10, chromaticSteps[10]),
+              chromaticColumn(11, chromaticSteps[11]),
+            ],
+          ),
+        )
+      ]),
+      actions: <Widget>[
+        MyFlatButton(
+          color: sectionColor,
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

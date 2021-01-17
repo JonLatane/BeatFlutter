@@ -1235,10 +1235,13 @@ class __MelodyReferenceState extends State<_MelodyReference>
                             },
                             child: Align(
                                 alignment: Alignment.center,
-                                child: Icon((reference.playbackType ==
-                                        MelodyReference_PlaybackType.disabled)
-                                    ? Icons.not_interested
-                                    : Icons.volume_up)),
+                                child: Icon(
+                                    (reference.playbackType ==
+                                            MelodyReference_PlaybackType
+                                                .disabled)
+                                        ? Icons.not_interested
+                                        : Icons.volume_up,
+                                    color: widget.sectionColor.textColor())),
                           ),
                         ),
                       ),
