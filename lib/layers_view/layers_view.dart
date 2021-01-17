@@ -145,6 +145,7 @@ class _LayersViewState extends State<LayersView> {
                             if (widget.keyboardPart == null) {
                               widget.setKeyboardPart(part);
                             }
+                            widget.selectPart(part);
                           });
                         });
                       }
@@ -202,6 +203,7 @@ class _LayersViewState extends State<LayersView> {
                         if (widget.colorboardPart == null) {
                           widget.setColorboardPart(part);
                         }
+                        widget.selectPart(part);
                       });
                     });
                   }

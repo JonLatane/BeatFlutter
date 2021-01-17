@@ -228,6 +228,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     widget.notifyXScaleUpdate.addListener(xScaleUpdateListener);
     widget.notifyYScaleUpdate.addListener(yScaleUpdateListener);
     widget.scrollToPart.addListener(scrollToPart);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollToCurrentBeat();
+    });
   }
 
   DateTime _lastScrollEventSeen = DateTime(0);
@@ -363,7 +366,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               scrollToCurrentBeat();
               _lastAutoScrollTime = DateTime.now();
             });
-          } else if (BeatScratchPlugin.playing &&
+          } else if ((BeatScratchPlugin.playing ||
+                  (currentBeat == 0 &&
+                      widget.currentSection.id ==
+                          widget.score.sections.first.id)) &&
               _hasBuilt &&
               sectionWidth > visibleAreaForSection &&
               _prevBeat != currentBeat &&

@@ -36,7 +36,7 @@ class MusicView extends StatefulWidget {
   final Melody melody;
   final Part part;
   final Color sectionColor;
-  final VoidCallback toggleSplitMode, closeMelodyView, toggleEditingMelody;
+  final VoidCallback toggleSplitMode, closeMelodyView, toggleRecording;
   final Function(VoidCallback) superSetState;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
@@ -49,12 +49,12 @@ class MusicView extends StatefulWidget {
   final Function(Part) deletePart;
   final Function(Melody) deleteMelody;
   final Function(Section) deleteSection;
-  final double height;
+  final double width, height;
   final bool enableColorboard;
   final Function(int) selectBeat;
   final Function(Part) selectOrDeselectPart;
   final Function(Melody) selectOrDeselectMelody;
-  final Function(Part, Melody) createMelody;
+  final Function(Part, Melody, bool) createMelody;
   final Function cloneCurrentSection;
   final double initialScale;
   final bool isPreview;
@@ -85,7 +85,7 @@ class MusicView extends StatefulWidget {
       this.setReferenceVolume,
       this.setPartVolume,
       this.recordingMelody,
-      this.toggleEditingMelody,
+      this.toggleRecording,
       this.setMelodyName,
       this.setSectionName,
       this.setKeyboardPart,
@@ -99,6 +99,7 @@ class MusicView extends StatefulWidget {
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
       this.height,
+      this.width,
       this.enableColorboard,
       this.initialScale,
       this.isPreview = false,
@@ -744,10 +745,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                           widget.setReferenceVolume,
                                       editingMelody: recordingMelody,
                                       sectionColor: widget.sectionColor,
-                                      toggleEditingMelody:
-                                          widget.toggleEditingMelody,
+                                      toggleRecording: widget.toggleRecording,
                                       setMelodyName: widget.setMelodyName,
                                       deleteMelody: widget.deleteMelody,
+                                      backToPart: () =>
+                                          widget.selectOrDeselectPart(
+                                              widget.keyboardPart),
                                     )),
                               ]),
                               Transform.translate(
@@ -884,8 +887,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           Expanded(child: _mainMelody(context))
         ],
       ),
-      if (MyPlatform.isDebug)
-        Container(
+      if (MyPlatform.isDebug && false)
+        IgnorePointer(
+            child: Container(
           width: 50,
           height: widget.height,
           decoration: BoxDecoration(
@@ -894,7 +898,19 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 color: Colors.red[500],
               ),
               borderRadius: BorderRadius.all(Radius.circular(5))),
-        )
+        )),
+      if (MyPlatform.isDebug && false)
+        IgnorePointer(
+            child: Container(
+          width: widget.width,
+          height: 50,
+          decoration: BoxDecoration(
+              color: Colors.black12,
+              border: Border.all(
+                color: Colors.blue[500],
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+        ))
     ]);
   }
 
@@ -990,12 +1006,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part))
           .toList(growable: false);
     }
-    var width = MediaQuery.of(context).size.width;
-    if (context.isLandscape &&
-        widget.musicViewMode != MusicViewMode.score &&
-        widget.splitMode == SplitMode.half) {
-      width = width / 2;
-    }
 
     bool focusedPartIsNotFirst = mainPart != null &&
         widget.score.parts.indexWhere((it) => it.id == mainPart.id) != 0;
@@ -1015,70 +1025,96 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 widget.musicViewMode == MusicViewMode.melody);
     bool isPartOrMelodyView = widget.musicViewMode == MusicViewMode.part ||
         widget.musicViewMode == MusicViewMode.melody;
+    onLongPress() {
+      if (widget.score.parts.isEmpty ||
+          tappedPart.value == null ||
+          tappedBeat.value == null) return;
+      final part = tappedPart.value;
+      if (part == null) return;
+      if (widget.musicViewMode == MusicViewMode.score) {
+        widget.setKeyboardPart(part);
+      } else {
+        if (isPartOrMelodyView) {
+          widget.selectOrDeselectPart(part);
+        } else if (widget.musicViewMode == MusicViewMode.section) {
+          widget.selectOrDeselectPart(part);
+        }
+      }
+      if (autoFocus) {
+        scrollToPart();
+      }
+      final beat = tappedBeat.value;
+      if (!BeatScratchPlugin.playing && beat != null) {
+        selectBeat(beat);
+      }
+    }
+
+    pointerDown(Offset localPosition) {
+      int beat = getBeat(localPosition);
+      print(
+          "pointerDown: ${localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
+      if (localPosition.dx > widget.width - 104 &&
+          localPosition.dy > widget.height - 104) {
+        return;
+      }
+      if (widget.showViewOptions) {
+        if (localPosition.dx > widget.width - 52 &&
+            localPosition.dy > widget.height - 156) {
+          return;
+        }
+        if (localPosition.dx > widget.width - 156 &&
+            localPosition.dy > widget.height - 52) {
+          return;
+        }
+      }
+
+      tappedBeat.value = beat;
+      double absoluteY = verticalScrollingPosition.value + localPosition.dy;
+      absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
+      if (widget.musicViewMode == MusicViewMode.score ||
+          xScale < minScale * 2) {
+        absoluteY -= MusicSystemPainter.calculateSectionHeight(yScale);
+      }
+      int partIndex =
+          (absoluteY / (yScale * MusicSystemPainter.staffHeight)).floor();
+      print("partIndex=$partIndex");
+      print("mainPart=${mainPart?.midiName}");
+      if (!autoFocus ||
+              widget.musicViewMode ==
+                  MusicViewMode
+                      .section /*||
+                  (widget.musicViewMode == MusicViewMode.score && widget.)*/
+          ) {
+        print("not using autofocus");
+        final parts = widget.score.parts;
+        tappedPart.value = parts[min(parts.length - 1, partIndex)];
+      } else {
+        print(
+            "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
+        if (partIndex == 0 || widget.score.parts.length == 1) {
+          print("using autofocus1");
+          tappedPart.value = mainPart ?? widget.score.parts.first;
+        } else {
+          print("using autofocus2");
+          final parts = widget.score.parts
+              .where((p) => p.id != mainPart?.id)
+              .toList(growable: false);
+          if (parts.isEmpty) return;
+          tappedPart.value = parts[min(parts.length - 1, --partIndex)];
+        }
+      }
+      Future.delayed(Duration(milliseconds: 800), () {
+        tappedBeat.value = null;
+        tappedPart.value = null;
+      });
+    }
+
     return Container(
         color: widget.backgroundColor.withOpacity(
             widget.backgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
         child: GestureDetector(
             onTapDown: (details) {
-              int beat = getBeat(details.localPosition);
-              print(
-                  "onTapDown: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$_targetedXScale");
-              if (details.localPosition.dx > width - 104 &&
-                  details.localPosition.dy > widget.height - 104) {
-                return;
-              }
-              if (widget.showViewOptions) {
-                if (details.localPosition.dx > width - 52 &&
-                    details.localPosition.dy > widget.height - 156) {
-                  return;
-                }
-                if (details.localPosition.dx > width - 156 &&
-                    details.localPosition.dy > widget.height - 52) {
-                  return;
-                }
-              }
-
-              tappedBeat.value = beat;
-              double absoluteY =
-                  verticalScrollingPosition.value + details.localPosition.dy;
-              absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
-              if (widget.musicViewMode == MusicViewMode.score ||
-                  xScale < minScale * 2) {
-                absoluteY -= MusicSystemPainter.calculateSectionHeight(yScale);
-              }
-              int partIndex =
-                  (absoluteY / (yScale * MusicSystemPainter.staffHeight))
-                      .floor();
-              print("partIndex=$partIndex");
-              print("mainPart=${mainPart?.midiName}");
-              if (!autoFocus ||
-                      widget.musicViewMode ==
-                          MusicViewMode
-                              .section /*||
-                  (widget.musicViewMode == MusicViewMode.score && widget.)*/
-                  ) {
-                print("not using autofocus");
-                final parts = widget.score.parts;
-                tappedPart.value = parts[min(parts.length - 1, partIndex)];
-              } else {
-                print(
-                    "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
-                if (partIndex == 0 || widget.score.parts.length == 1) {
-                  print("using autofocus1");
-                  tappedPart.value = mainPart ?? widget.score.parts.first;
-                } else {
-                  print("using autofocus2");
-                  final parts = widget.score.parts
-                      .where((p) => p.id != mainPart?.id)
-                      .toList(growable: false);
-                  if (parts.isEmpty) return;
-                  tappedPart.value = parts[min(parts.length - 1, --partIndex)];
-                }
-              }
-              Future.delayed(Duration(milliseconds: 800), () {
-                tappedBeat.value = null;
-                tappedPart.value = null;
-              });
+              pointerDown(details.localPosition);
             },
             onTapUp: (details) {
               if (ignoreNextTap || tappedBeat.value == null) {
@@ -1103,28 +1139,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 selectBeat(beat);
               }
             },
-            onLongPress: () {
-              if (widget.score.parts.isEmpty ||
-                  tappedPart.value == null ||
-                  tappedBeat.value == null) return;
-              final part = tappedPart.value;
-              if (part == null) return;
-              if (widget.musicViewMode == MusicViewMode.score) {
-                widget.setKeyboardPart(part);
-              } else {
-                if (isPartOrMelodyView) {
-                  widget.selectOrDeselectPart(part);
-                } else if (widget.musicViewMode == MusicViewMode.section) {
-                  widget.selectOrDeselectPart(part);
-                }
-              }
-              if (autoFocus) {
-                scrollToPart();
-              }
-              final beat = tappedBeat.value;
-              if (!BeatScratchPlugin.playing && beat != null) {
-                selectBeat(beat);
-              }
+            onLongPress: onLongPress,
+            onForcePressStart: (details) {
+              pointerDown(details.localPosition);
+              onLongPress();
             },
             onScaleStart: (details) => setState(() {
                   if (_ignoreNextScale) {
@@ -1186,7 +1204,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 keyboardPart: widget.keyboardPart,
                 colorboardPart: widget.colorboardPart,
                 height: widget.height - removedHeight,
-                width: width,
+                width: widget.width,
                 previewMode: widget.isPreview,
                 isCurrentScore: widget.isCurrentScore,
                 highlightedBeat: highlightedBeat,

@@ -1,4 +1,5 @@
 // import 'export_models.dart';
+import 'package:beatscratch_flutter_redux/widget/my_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -14,11 +15,13 @@ class UniverseViewUI {
   UniverseViewUI(this.setAppState);
   double height(BuildContext context) => !visible
       ? 0
-      : MediaQuery.of(context).size.height > 600
-          ? 300
-          : MediaQuery.of(context).size.height > 500
-              ? 220
-              : 150;
+      : MediaQuery.of(context).size.height > 800
+          ? 400
+          : MediaQuery.of(context).size.height > 600
+              ? 300
+              : MediaQuery.of(context).size.height > 500
+                  ? 220
+                  : 150;
 
   Widget build({@required BuildContext context, @required Color sectionColor}) {
     return AnimatedContainer(
@@ -33,16 +36,24 @@ class UniverseViewUI {
                     offset: Offset(0, 1.5),
                     child: Icon(FontAwesomeIcons.globe, color: Colors.white)),
                 SizedBox(width: 3),
-                Text("BeatScratch",
+                Text("Beat",
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800)),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900)),
+                Text("Scratch",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w100)),
+                SizedBox(width: 5),
                 Text("Universe",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.w200)),
+                        fontWeight: FontWeight.w500)),
+                Expanded(child: SizedBox()),
+                // MyPopupMenuButton(itemBuilder: itemBuilder)
               ],
             ),
             Expanded(child: Container(color: Colors.black12, child: SizedBox()))

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
@@ -19,7 +18,6 @@ import '../util/music_theory.dart';
 import 'export_manager.dart';
 import 'export_models.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker_cross/file_picker_cross.dart';
 
 class ExportUI {
   static final double _baseHeight = 220;
@@ -35,8 +33,6 @@ class ExportUI {
   bool visible = false;
   bool exporting = false;
   final BSExport export = BSExport(score: defaultScore());
-  FilePickerCross midiFile =
-      FilePickerCross(Uint8List(0), fileExtension: 'midi');
   ExportManager exportManager = ExportManager();
   MessagesUI messagesUI;
 
@@ -440,31 +436,4 @@ class ExportUI {
         child: AnimatedContainer(
             duration: animationDuration, height: baseHeight, child: row));
   }
-
-  chooseExportFile(
-      {@required BuildContext context,
-      @required Function(VoidCallback) setState}) async {
-    // String exportPath = await midiFile.exportToStorage();
-// show a dialog to open a file
-    midiFile = await FilePickerCross.importFromStorage(
-        type: FileTypeCross.custom,
-        // Available: `any`, `audio`, `image`, `video`, `custom`. Note: not available using FDE
-        fileExtension:
-            '.midi, .mid' // Only if FileTypeCross.custom . May be any file extension like `.dot`, `.ppt,.pptx,.odp`
-        );
-  }
-// setState(() {
-//   filePickerCross = filePicker;
-//   filePickerCross.saveToPath(path: filePickerCross.fileName);
-//   FilePickerCross.quota().then((value) {
-//     setState(() => quota = value);
-//   });
-//   lastFiles.add(filePickerCross.fileName);
-//   try {
-//     _fileString = filePickerCross.toString();
-//   } catch (e) {
-//     _fileString = 'Not a text file. Showing base64.\n\n' +
-//       filePickerCross.toBase64();
-//   }
-// });
 }

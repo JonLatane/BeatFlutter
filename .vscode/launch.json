@@ -4,8 +4,9 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
       {
-          "name": "BeatFlutter",
+          "name": "BeatScratch",
           "program": "lib/main.dart",
           "request": "launch",
           "type": "dart"
@@ -14,6 +15,12 @@
             "name": "Current Device",
             "request": "launch",
             "type": "dart"
+        },
+        {
+            "name": "macOS",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos"
         },
         {
             "name": "Android",

@@ -63,9 +63,7 @@ ScoreManager _scoreManager = ScoreManager();
 String webScoreName = "Empty Web Score";
 var baseHandler = Fluro.Handler(
     handlerFunc: (BuildContext context, Map<String, dynamic> params) {
-  return MyHomePage(
-      title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
-      initialScore: defaultScore());
+  return MyHomePage(title: 'BeatScratch', initialScore: defaultScore());
   // return UsersScreen(params["scoreData"][0]);
 });
 var scoreRouteHandler = Fluro.Handler(
@@ -79,16 +77,14 @@ var scoreRouteHandler = Fluro.Handler(
     score = defaultScore();
   }
 
-  return MyHomePage(
-      title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
-      initialScore: score);
+  return MyHomePage(title: 'BeatScratch', initialScore: score);
   // return UsersScreen(params["scoreData"][0]);
 });
 var pastebinRouteHandler = Fluro.Handler(
     handlerFunc: (BuildContext context, Map<String, dynamic> params) {
   String pastebinCode = params["pasteBinData"][0];
   return MyHomePage(
-    title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
+    title: 'BeatScratch',
     initialScore: defaultScore(),
     pastebinCode: pastebinCode,
   );
@@ -112,12 +108,9 @@ class MyApp extends StatelessWidget {
 //    debugPaintSizeEnabled = true;
     return MaterialApp(
       key: Key(MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch'),
-      title: MyPlatform.isAndroid ? 'BeatFlutter' : 'BeatScratch',
-      onGenerateTitle: (context) => MyPlatform.isWeb
-          ? "BeatScratch: $webScoreName"
-          : MyPlatform.isAndroid
-              ? 'BeatFlutter'
-              : 'BeatScratch',
+      title: 'BeatScratch',
+      onGenerateTitle: (context) =>
+          MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch',
       theme: ThemeData(
           // This is the theme of your application.
           //
@@ -132,7 +125,7 @@ class MyApp extends StatelessWidget {
           platform: TargetPlatform.iOS,
           fontFamily: 'VulfSans'),
       onGenerateRoute: router.generator,
-      home: MyHomePage(title: 'BeatFlutter', initialScore: defaultScore()),
+      home: MyHomePage(title: 'BeatScratch', initialScore: defaultScore()),
     );
   }
 }
@@ -158,11 +151,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set splitMode(SplitMode value) {
     _splitMode = value;
-    if (_melodyViewSizeFactor != 0) {
+    if (_musicViewSizeFactor != 0) {
       if (value == SplitMode.half && interactionMode == InteractionMode.edit) {
-        _melodyViewSizeFactor = 0.5;
+        _musicViewSizeFactor = 0.5;
       } else {
-        _melodyViewSizeFactor = 1;
+        _musicViewSizeFactor = 1;
       }
     }
   }
@@ -287,14 +280,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   ValueNotifier<Iterable<int>> keyboardNotesNotifier;
 
-  bool get melodyViewVisible => _melodyViewSizeFactor > 0;
+  bool get melodyViewVisible => _musicViewSizeFactor > 0;
 
-  double _melodyViewSizeFactor = 1.0;
+  double _musicViewSizeFactor = 1.0;
 
-  bool showWebWarning = kIsWeb || kDebugMode;
+  bool showWebWarning = false; //kIsWeb || kDebugMode;
 
   double get webWarningHeight => showWebWarning ? 60 : 0;
-  bool showDownloadLinks = false;
+  bool showDownloadLinks = kIsWeb;
 
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
@@ -303,18 +296,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _showMusicView() {
     if (interactionMode == InteractionMode.edit) {
       if (splitMode == SplitMode.half) {
-        _melodyViewSizeFactor = 0.5;
+        _musicViewSizeFactor = 0.5;
       } else {
-        _melodyViewSizeFactor = 1;
+        _musicViewSizeFactor = 1;
       }
     } else {
-      _melodyViewSizeFactor = 1;
+      _musicViewSizeFactor = 1;
     }
   }
 
   _hideMusicView() {
     setState(() {
-      _melodyViewSizeFactor = 0;
+      _musicViewSizeFactor = 0;
       _prevSelectedMelody = selectedMelody;
       if (_prevSelectedMelody == null) {
         _prevSelectedPart = selectedPart;
@@ -398,8 +391,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   List<SectionList> _sectionLists = [];
 
-  Color get sectionColor => sectionColors[
-      score.sections.indexOf(currentSection) % sectionColors.length];
+  Color get sectionColor => currentSection.color.color;
 
   _selectOrDeselectMelody(Melody melody, {bool hideMusicOnDeselect: true}) {
     setState(() {
@@ -583,9 +575,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _toggleViewOptions() {
     setState(() {
       showViewOptions = !showViewOptions;
-      if (!showViewOptions) {
-        _showTapInBar = false;
-      }
+      // if (!showViewOptions) {
+      //   _showTapInBar = false;
+      // }
     });
   }
 
@@ -785,6 +777,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             : MusicViewMode.section;
         selectedMelody = null;
         selectedPart = null;
+        _prevSelectedMelody = null;
+        _prevSelectedPart = null;
         keyboardPart = scoreToOpen.parts.first;
         colorboardPart = scoreToOpen.parts.firstWhere(
             (Part p) => p.instrument.type != InstrumentType.drum,
@@ -916,7 +910,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             context: context,
             builder: (context) => new AlertDialog(
               title: new Text('Are you sure?'),
-              content: new Text('Do you want to exit BeatFlutter?'),
+              content: new Text('Do you want to exit BeatScratch?'),
               actions: <Widget>[
                 MyFlatButton(
                   onPressed: () => Navigator.of(context).pop(false),
@@ -935,7 +929,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   bool _goBack() {
-    if (interactionMode == InteractionMode.edit && _melodyViewSizeFactor > 0) {
+    if (interactionMode == InteractionMode.edit && _musicViewSizeFactor > 0) {
       setState(() {
         _hideMusicView();
       });
@@ -1248,22 +1242,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: Row(children: [
                   MyFlatButton(
                       onPressed: () {
-//                _launchURL("https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
                         launchURL(
-                            "https://play.google.com/apps/testing/io.beatscratch.beatscratch_flutter_redux");
+                            "https://apps.apple.com/us/app/beatscratch/id1509788448");
                       },
                       padding: EdgeInsets.all(0),
-                      child:
-                          Image.asset("assets/play_en_badge_web_generic.png")),
-                  Transform.translate(
-                      offset: Offset(-5, 0),
-                      child: MyFlatButton(
-                          onPressed: () {
-                            launchURL(
-                                "https://testflight.apple.com/join/dXJr9JJs");
-                          },
-                          padding: EdgeInsets.all(0),
-                          child: Image.asset("assets/testflight-badge.png"))),
+                      child: Image.asset("assets/app_store.png",
+                          width: 120, height: 40, fit: BoxFit.fitHeight)),
+                  SizedBox(width: 3),
+                  MyFlatButton(
+                      onPressed: () {
+                        launchURL(
+                            "https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
+                      },
+                      padding: EdgeInsets.all(0),
+                      child: Image.asset("assets/play_en_badge_web_generic.png",
+                          width: 140, height: 60, fit: BoxFit.fitHeight)),
+                  SizedBox(width: 5),
                   Container(
                       width: 120,
                       height: 40,
@@ -1295,7 +1289,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                             fontWeight: FontWeight.w400))))
                           ]))),
                   Padding(
-                      padding: EdgeInsets.only(right: 5, left: 5),
+                      padding: EdgeInsets.only(right: 5, left: 3),
                       child: MyRaisedButton(
                           padding: _bannerPadding,
                           onPressed: () {
@@ -1773,9 +1767,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         openPart: selectedPart,
         prevMelody: _prevSelectedMelody,
         prevPart: _prevSelectedPart,
-        isMelodyViewOpen: _melodyViewSizeFactor != 0,
+        isMelodyViewOpen: _musicViewSizeFactor != 0,
         leftHalfOnly: leftHalfOnly,
         rightHalfOnly: rightHalfOnly,
+        showDownloads: showDownloadLinks,
+        toggleShowDownloads: () => setState(() {
+          showDownloadLinks = !showDownloadLinks;
+        }),
       );
 
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
@@ -1845,7 +1843,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       scrollDirection: scrollDirection,
       currentSection: currentSection,
       selectSection: _selectSection,
-      insertSection: _insertSection,
+      insertSection: (s) => _insertSection(s, withNewColor: true),
       showSectionBeatCounts: showBeatCounts,
       toggleShowSectionBeatCounts: () {
         setState(() {
@@ -1877,7 +1875,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       context.isLandscapePhone ? 48 : 0;
   Widget _layersAndMusicView(BuildContext context) {
     var data = MediaQuery.of(context);
-    double height = data.size.height -
+    double fullHeight = data.size.height -
         data.padding.top -
         // kToolbarHeight -
         _secondToolbarHeight -
@@ -1897,20 +1895,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
         beatScratchToolbarHeight(context);
-    double layersWidth = data.size.width -
+    double fullWidth = data.size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
         _rightNotchPadding -
         _landscapeTapInBarWidth -
-        beatScratchToolbarWidth(context);
-//    if (musicViewMode == MusicViewMode.score || musicViewMode == MusicViewMode.none) {
-//      height += 36;
-//    }
-    final landscapeLayersWidth = (layersWidth -
-            _landscapePhoneSecondToolbarWidth -
-            _landscapePhoneBeatscratchToolbarWidth) *
-        (1 - _melodyViewSizeFactor);
-    final portraitMelodyHeight = height * _melodyViewSizeFactor;
+        _landscapePhoneSecondToolbarWidth -
+        _landscapePhoneBeatscratchToolbarWidth;
+
+    final landscapeLayersWidth = fullWidth * (1 - _musicViewSizeFactor);
+    final portraitMelodyHeight = fullHeight * _musicViewSizeFactor;
 
     Widget layersView(context, width, height,
         {bool bottomShadow = false, bool rightShadow = false}) {
@@ -1990,16 +1984,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           ? Column(children: [
               Expanded(
                 child: layersView(
-                    context, layersWidth, height * (1 - _melodyViewSizeFactor),
+                    context, fullWidth, fullHeight * (1 - _musicViewSizeFactor),
                     bottomShadow: true),
               ),
               AnimatedContainer(
                 curve: Curves.linear,
                 duration: slowAnimationDuration,
                 padding:
-                    EdgeInsets.only(top: (_melodyViewSizeFactor == 1) ? 0 : 5),
+                    EdgeInsets.only(top: (_musicViewSizeFactor == 1) ? 0 : 5),
                 height: portraitMelodyHeight,
-                child: _musicView(context, height * _melodyViewSizeFactor),
+                child: _musicView(
+                  context,
+                  fullWidth,
+                  fullHeight * _musicViewSizeFactor,
+                ),
               )
             ])
           : Row(children: [
@@ -2007,15 +2005,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 curve: Curves.easeInOut,
                 duration: slowAnimationDuration,
                 width: landscapeLayersWidth,
-                child:
-                    layersView(context, layersWidth, height, rightShadow: true),
+                child: layersView(context, fullWidth, fullHeight,
+                    rightShadow: true),
               ),
               Expanded(
                   child: AnimatedContainer(
                       duration: animationDuration,
                       padding: EdgeInsets.only(
-                          left: (_melodyViewSizeFactor == 1) ? 0 : 5),
-                      child: _musicView(context, height)))
+                          left: (_musicViewSizeFactor == 1) ? 0 : 5),
+                      child: _musicView(context,
+                          fullWidth * _musicViewSizeFactor, fullHeight)))
             ])
     ]);
   }
@@ -2056,12 +2055,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  MusicView _musicView(BuildContext context, double height) {
+  MusicView _musicView(BuildContext context, double width, double height) {
     return MusicView(
       key: ValueKey("main-melody-view"),
       enableColorboard: enableColorboard,
       superSetState: setState,
-      melodyViewSizeFactor: _melodyViewSizeFactor,
+      melodyViewSizeFactor: _musicViewSizeFactor,
       musicViewMode: musicViewMode,
       score: score,
       currentSection: currentSection,
@@ -2077,7 +2076,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       toggleMelodyReference: _toggleReferenceDisabled,
       setReferenceVolume: _setReferenceVolume,
       recordingMelody: recordingMelody,
-      toggleEditingMelody: () {
+      toggleRecording: () {
         setState(() {
           recordingMelody = !recordingMelody;
         });
@@ -2090,58 +2089,42 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       colorboardPart: colorboardPart,
       keyboardPart: keyboardPart,
       height: height,
+      width: width,
       scrollToCurrentBeat: scrollToCurrentBeat,
       deletePart: (part) {
         setState(() {
-          if (part == this.selectedPart) {
-            int index = this.score.parts.indexOf(part);
-            if (index > 0) {
-              index = index - 1;
-            } else {
-              index = index + 1;
-            }
-            if (index < this.score.parts.length) {
-              this.selectedPart = this.score.parts[index];
-            } else {
-              this.selectedPart = null;
-              this.musicViewMode = MusicViewMode.section;
-            }
-          }
+          _selectSection(currentSection);
+          score.parts.remove(part);
           if (part == this.keyboardPart) {
-            this.keyboardPart = null;
+            this.keyboardPart = score.parts.first;
           }
           if (part == this.colorboardPart) {
             this.colorboardPart = null;
           }
-          score.parts.remove(part);
-
+          score.sections.forEach((section) {
+            section.melodies.removeWhere(
+                (ref) => part.melodies.any((m) => m.id == ref.melodyId));
+          });
+          selectedPart = null;
+          _prevSelectedPart = null;
           BeatScratchPlugin.deletePart(part);
         });
       },
       deleteMelody: (melody) {
-        BeatScratchPlugin.deleteMelody(melody);
         setState(() {
-          if (melody == this.selectedMelody) {
-            Part part = this.score.parts.firstWhere(
-                (part) => part.melodies.any((m) => m.id == melody.id));
-            int index = part.melodies.indexWhere((m) => m.id == melody.id);
-            if (index > 0) {
-              index = index - 1;
-            } else {
-              index = index + 1;
-            }
-            if (index < part.melodies.length) {
-              this.selectedMelody = part.melodies[index];
-            } else {
-              this.selectedMelody = null;
-              this._selectOrDeselectPart(part);
-            }
-          }
-          score.parts.forEach((part) {
-            part.melodies.removeWhere((m) => m.id == melody.id);
-          });
-          score.sections.forEach((section) {
-            section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
+          Part part = this.score.parts.firstWhere(
+              (part) => part.melodies.any((m) => m.id == melody.id));
+          _selectOrDeselectPart(part);
+        });
+        Future.delayed(slowAnimationDuration, () {
+          setState(() {
+            BeatScratchPlugin.deleteMelody(melody);
+            score.parts.forEach((part) {
+              part.melodies.removeWhere((m) => m.id == melody.id);
+            });
+            score.sections.forEach((section) {
+              section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
+            });
           });
         });
       },
@@ -2214,28 +2197,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _selectOrDeselectMelody(melody);
       },
       showBeatCounts: showBeatCounts,
-      createMelody: (part, newMelody) {
+      createMelody: (part, newMelody, andRecord) {
         setState(() {
           //final newMelody = defaultMelody(sectionBeats: currentSection.beatCount);
           part.melodies.insert(0, newMelody);
           BeatScratchPlugin.createMelody(part, newMelody);
-          // final reference = currentSection.referenceTo(newMelody)
-          //   ..playbackType = MelodyReference_PlaybackType.playback_indefinitely;
+          final reference = currentSection.referenceTo(newMelody);
+          _toggleReferenceDisabled(reference);
           BeatScratchPlugin.updateSections(score);
           Future.delayed(slowAnimationDuration, () {
+            if (andRecord) {
+              recordingMelody = true;
+            }
             _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
-            Future.delayed(slowAnimationDuration, () {
-              setState(() {
-                recordingMelody = true;
-              });
-            });
           });
         });
       },
     );
   }
 
-  _insertSection(Section newSection) {
+  _insertSection(Section newSection, {bool withNewColor = false}) {
+    if (withNewColor) {
+      newSection.color = IntervalColor.values[
+          (IntervalColor.values.indexOf(currentSection.color) + 1) %
+              IntervalColor.values.length];
+    }
     int currentSectionIndex = score.sections.indexOf(currentSection);
     score.sections.insert(currentSectionIndex + 1, newSection);
     BeatScratchPlugin.updateSections(score);

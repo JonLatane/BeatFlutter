@@ -12,9 +12,10 @@
       android:required="false"/>
     <application
         android:name=".MainApplication"
-        android:label="BeatFlutter"
-        android:icon="@drawable/ic_launcher"
-        android:allowBackup="true"
+        android:label="BeatScratch"
+        android:icon="@mipmap/launcher"
+        android:roundIcon="@mipmap/launcher_round"
+      android:allowBackup="true"
       android:fullBackupContent="@xml/backup_descriptor">
         <activity
             android:name=".MainActivity"

@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/music.proto
 //
-// @dart = 2.3
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 // ignore_for_file: UNDEFINED_SHOWN_NAME
@@ -124,6 +124,27 @@ class MelodyInterpretationType extends $pb.ProtobufEnum {
   const MelodyInterpretationType._($core.int v, $core.String n) : super(v, n);
 }
 
+class IntervalColor extends $pb.ProtobufEnum {
+  static const IntervalColor major = IntervalColor._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'major');
+  static const IntervalColor minor = IntervalColor._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'minor');
+  static const IntervalColor perfect = IntervalColor._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'perfect');
+  static const IntervalColor augmented = IntervalColor._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'augmented');
+  static const IntervalColor diminished = IntervalColor._(4, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'diminished');
+
+  static const $core.List<IntervalColor> values = <IntervalColor> [
+    major,
+    minor,
+    perfect,
+    augmented,
+    diminished,
+  ];
+
+  static final $core.Map<$core.int, IntervalColor> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static IntervalColor valueOf($core.int value) => _byValue[value];
+
+  const IntervalColor._($core.int v, $core.String n) : super(v, n);
+}
+
 class Tempo_Transition extends $pb.ProtobufEnum {
   static const Tempo_Transition a_tempo = Tempo_Transition._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'a_tempo');
   static const Tempo_Transition linear = Tempo_Transition._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'linear');
@@ -152,26 +173,5 @@ class MelodyReference_PlaybackType extends $pb.ProtobufEnum {
   static MelodyReference_PlaybackType valueOf($core.int value) => _byValue[value];
 
   const MelodyReference_PlaybackType._($core.int v, $core.String n) : super(v, n);
-}
-
-class Section_Color extends $pb.ProtobufEnum {
-  static const Section_Color major = Section_Color._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'major');
-  static const Section_Color minor = Section_Color._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'minor');
-  static const Section_Color dominant = Section_Color._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'dominant');
-  static const Section_Color augmented = Section_Color._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'augmented');
-  static const Section_Color diminished = Section_Color._(4, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'diminished');
-
-  static const $core.List<Section_Color> values = <Section_Color> [
-    major,
-    minor,
-    dominant,
-    augmented,
-    diminished,
-  ];
-
-  static final $core.Map<$core.int, Section_Color> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static Section_Color valueOf($core.int value) => _byValue[value];
-
-  const Section_Color._($core.int v, $core.String n) : super(v, n);
 }
 

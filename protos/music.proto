@@ -248,15 +248,17 @@ message Section {
   Meter meter = 4;
   Tempo tempo = 5;
   NoteName key = 6;
+  sint32 transpose = 7;
+  IntervalColor color = 8;
   repeated MelodyReference melodies = 100;
+}
 
-  enum Color {
-    major = 0;
-    minor = 1;
-    dominant = 2;
-    augmented = 3;
-    diminished = 4;
-  }
+enum IntervalColor {
+  major = 0;
+  minor = 1;
+  perfect = 2;
+  augmented = 3;
+  diminished = 4;
 }
 
 message Score {

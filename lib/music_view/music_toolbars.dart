@@ -15,7 +15,7 @@ class MelodyToolbar extends StatefulWidget {
   final Color sectionColor;
   final Function(MelodyReference) toggleMelodyReference;
   final Function(MelodyReference, double) setReferenceVolume;
-  final VoidCallback toggleEditingMelody;
+  final VoidCallback toggleRecording, backToPart;
   final Function(Melody, String) setMelodyName;
   final Function(Melody) deleteMelody;
 
@@ -27,7 +27,8 @@ class MelodyToolbar extends StatefulWidget {
       this.setReferenceVolume,
       this.editingMelody,
       this.sectionColor,
-      this.toggleEditingMelody,
+      this.toggleRecording,
+      this.backToPart,
       this.setMelodyName,
       this.musicViewMode,
       this.deleteMelody})
@@ -121,7 +122,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                 : null,
             onPressed: (melodyEnabled)
                 ? () {
-                    widget.toggleEditingMelody();
+                    widget.toggleRecording();
                   }
                 : null,
             padding: EdgeInsets.all(0),

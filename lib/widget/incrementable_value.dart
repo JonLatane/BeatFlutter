@@ -89,6 +89,80 @@ class _IncrementableValueState extends State<IncrementableValue> {
     bool showButtons = !widget.collapsing ||
         DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
     double buttonWidth = showButtons ? 28 : 0;
+
+    onPointerDown(event) {
+      widget.onPointerDownCallback?.call();
+      incrementStartPos = event.position;
+      incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
+      lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+      vibrate();
+      if (widget.collapsing) {
+        checkCanCollapse() {
+          if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs >
+              _msDelay) {
+            if (!_disposed) {
+              setState(() {});
+            }
+          } else {
+            Future.delayed(const Duration(seconds: 1), checkCanCollapse);
+          }
+        }
+
+        setState(() {});
+        checkCanCollapse();
+      }
+    }
+
+    ;
+    onPointerMove(event) {
+      lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+      Offset difference = event.position - incrementStartPos;
+      int eventTime = DateTime.now().millisecondsSinceEpoch;
+      if (difference.distanceSquared < widget.incrementDistance ||
+          eventTime - incrementStartTimeMs <
+              widget.incrementTimingDifferenceMs) {
+        return; // Hasn't moved far enough/had enough time to increment again.
+      }
+      bool isUp = false;
+      bool isDown = false;
+      double direction = difference.direction;
+      if (direction >= -0.75 * pi && direction < 0.25 * pi) {
+        isUp = true;
+      } else if (direction >= 0.25 * pi) {
+        isDown = true;
+      } else if (direction < -0.75 * pi) {
+        isDown = true;
+      }
+//          print("direction=$direction | isUp=$isUp | isDown=$isDown");
+      if (isUp && widget.onIncrement != null) {
+        vibrate();
+        incrementStartPos = event.position;
+        incrementStartTimeMs = eventTime;
+        // print("increment");
+        widget.onIncrement();
+      } else if (isDown && widget.onDecrement != null) {
+        vibrate();
+        incrementStartPos = event.position;
+        incrementStartTimeMs = eventTime;
+        widget.onDecrement();
+      }
+    }
+
+    ;
+    onPointerUp(event) {
+      lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+      incrementStartPos = null;
+      widget.onPointerUpCallback?.call();
+    }
+
+    ;
+    onPointerCancel(event) {
+      lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
+      incrementStartPos = null;
+    }
+
+    ;
+
     Widget bgListener = AnimatedContainer(
         duration: animationDuration,
         width: widget.valueWidth + 2 * buttonWidth,
@@ -99,13 +173,10 @@ class _IncrementableValueState extends State<IncrementableValue> {
               color: Colors.transparent,
               padding: EdgeInsets.zero,
               child: SizedBox()),
-          onPointerDown: (_) {
-            widget.onPointerDownCallback?.call();
-          },
-          onPointerUp: (_) {
-            widget.onPointerUpCallback?.call();
-          },
-          onPointerMove: (_) {},
+          onPointerDown: onPointerDown,
+          onPointerMove: onPointerMove,
+          onPointerUp: onPointerUp,
+          onPointerCancel: onPointerCancel,
         ));
     return Stack(
       children: [
@@ -122,7 +193,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
         //   Column(children: [Expanded(child: SizedBox())])
         // )),]),
         Listener(
-          child: Row(children: [
+          child: Container(
+              child: Row(children: [
             AnimatedContainer(
                 width: buttonWidth,
                 padding: EdgeInsets.only(left: showButtons ? 3 : 0),
@@ -142,7 +214,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       : null,
                   padding: EdgeInsets.all(0),
                 )),
-            widget.child ??
+            Container(child: widget.child) ??
                 Container(
                     width: widget.valueWidth,
                     child: MyRaisedButton(
@@ -172,71 +244,11 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       : null,
                   padding: EdgeInsets.all(0),
                 )),
-          ]),
-          onPointerDown: (event) {
-            widget.onPointerDownCallback?.call();
-            incrementStartPos = event.position;
-            incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
-            lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-            vibrate();
-            if (widget.collapsing) {
-              checkCanCollapse() {
-                if (DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs >
-                    _msDelay) {
-                  if (!_disposed) {
-                    setState(() {});
-                  }
-                } else {
-                  Future.delayed(const Duration(seconds: 1), checkCanCollapse);
-                }
-              }
-
-              setState(() {});
-              checkCanCollapse();
-            }
-          },
-          onPointerMove: (event) {
-            lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-            Offset difference = event.position - incrementStartPos;
-            int eventTime = DateTime.now().millisecondsSinceEpoch;
-            if (difference.distanceSquared < widget.incrementDistance ||
-                eventTime - incrementStartTimeMs <
-                    widget.incrementTimingDifferenceMs) {
-              return; // Hasn't moved far enough/had enough time to increment again.
-            }
-            bool isUp = false;
-            bool isDown = false;
-            double direction = difference.direction;
-            if (direction >= -0.75 * pi && direction < 0.25 * pi) {
-              isUp = true;
-            } else if (direction >= 0.25 * pi) {
-              isDown = true;
-            } else if (direction < -0.75 * pi) {
-              isDown = true;
-            }
-//          print("direction=$direction | isUp=$isUp | isDown=$isDown");
-            if (isUp && widget.onIncrement != null) {
-              vibrate();
-              incrementStartPos = event.position;
-              incrementStartTimeMs = eventTime;
-              // print("increment");
-              widget.onIncrement();
-            } else if (isDown && widget.onDecrement != null) {
-              vibrate();
-              incrementStartPos = event.position;
-              incrementStartTimeMs = eventTime;
-              widget.onDecrement();
-            }
-          },
-          onPointerUp: (event) {
-            lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-            incrementStartPos = null;
-            widget.onPointerUpCallback?.call();
-          },
-          onPointerCancel: (event) {
-            lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
-            incrementStartPos = null;
-          },
+          ])),
+          onPointerDown: onPointerDown,
+          onPointerMove: onPointerMove,
+          onPointerUp: onPointerUp,
+          onPointerCancel: onPointerCancel,
         ),
       ],
     );

@@ -20,7 +20,7 @@ class PartMelodyBrowser extends StatefulWidget {
   final bool browsingMelodies;
   final Function(Melody) selectOrDeselectMelody;
   final Function(MelodyReference) toggleMelodyReference;
-  final Function(Part, Melody) createMelody;
+  final Function(Part, Melody, bool) createMelody;
 
   const PartMelodyBrowser(
       {Key key,
@@ -38,7 +38,8 @@ class PartMelodyBrowser extends StatefulWidget {
   _PartMelodyBrowserState createState() => _PartMelodyBrowserState();
 }
 
-class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProviderStateMixin {
+class _PartMelodyBrowserState extends State<PartMelodyBrowser>
+    with TickerProviderStateMixin {
   ScrollController _scrollController;
 
   @override
@@ -66,7 +67,12 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                 padding: EdgeInsets.zero,
                 onLongPress: null,
                 onPressed: () {
-                  widget.createMelody(widget.part, defaultMelody(sectionBeats: widget.currentSection.beatCount)..instrumentType=widget.part.instrument.type);
+                  widget.createMelody(
+                      widget.part,
+                      defaultMelody(
+                          sectionBeats: widget.currentSection.beatCount)
+                        ..instrumentType = widget.part.instrument.type,
+                      true);
                 },
                 child: AnimatedOpacity(
                     duration: animationDuration,
@@ -75,16 +81,21 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                       children: [
                         Align(
                             alignment: Alignment.center,
-                            child: Icon(Icons.fiber_manual_record, color: chromaticSteps[7])),
+                            child: Icon(Icons.fiber_manual_record,
+                                color: chromaticSteps[7])),
                         Align(
                             alignment: Alignment.bottomCenter,
                             child: Padding(
-                              padding: const EdgeInsets.only(right: 1, bottom: 0),
+                              padding:
+                                  const EdgeInsets.only(right: 1, bottom: 0),
                               child: Transform.translate(
                                   offset: Offset(0, 0),
                                   child: Text(
                                     "Record",
-                                    style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w400),
                                   )),
                             ))
                       ],
@@ -103,7 +114,9 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
             currentSection: widget.currentSection,
             child: Stack(
               children: [
-                Align(alignment: Alignment.center, child: Icon(Icons.folder_open, color: Colors.white)),
+                Align(
+                    alignment: Alignment.center,
+                    child: Icon(Icons.folder_open, color: Colors.white)),
                 Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
@@ -112,16 +125,18 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                           offset: Offset(0, 0),
                           child: Text(
                             "Import",
-                            style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w400),
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400),
                           )),
                     ))
               ],
             ),
             onMelodySelected: (melody) {
-              widget.createMelody(widget.part, melody);
+              widget.createMelody(widget.part, melody, false);
             },
-          )
-          ,
+          ),
         ),
       ),
       SizedBox(width: 5),
@@ -164,14 +179,18 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                     padding: EdgeInsets.only(left: 3),
                     child: Container(
                       decoration: BoxDecoration(
-                          gradient: MelodyPreview.generateVolumeDecoration(reference, widget.currentSection,
-                              isSelectedMelody: false, bgColor: melodyColor, sectionColor: widget.sectionColor)),
+                          gradient: MelodyPreview.generateVolumeDecoration(
+                              reference, widget.currentSection,
+                              isSelectedMelody: false,
+                              bgColor: melodyColor,
+                              sectionColor: widget.sectionColor)),
                       child: MyFlatButton(
                           onPressed: () {
                             widget.selectOrDeselectMelody(melody);
                           },
                           onLongPress: () {
-                            final reference = widget.currentSection.referenceTo(melody);
+                            final reference =
+                                widget.currentSection.referenceTo(melody);
                             widget.toggleMelodyReference(reference);
                           },
                           child: Text(melody.canonicalName,
@@ -180,7 +199,9 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: melody.canonicalName == melody.name ? Colors.black : Colors.grey,
+                                color: melody.canonicalName == melody.name
+                                    ? Colors.black
+                                    : Colors.grey,
                               ))),
                     )),
                 IgnorePointer(
@@ -207,7 +228,11 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser> with TickerProvid
               ],
             ));
         return SizeFadeTransition(
-            sizeFraction: 0.7, curve: Curves.easeInOut, axis: Axis.horizontal, animation: animation, child: tile);
+            sizeFraction: 0.7,
+            curve: Curves.easeInOut,
+            axis: Axis.horizontal,
+            animation: animation,
+            child: tile);
       },
     );
   }

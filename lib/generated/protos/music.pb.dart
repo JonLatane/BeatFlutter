@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/music.proto
 //
-// @dart = 2.3
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -21,7 +21,19 @@ class NoteName extends $pb.GeneratedMessage {
   ;
 
   NoteName._() : super();
-  factory NoteName() => create();
+  factory NoteName({
+    NoteLetter noteLetter,
+    NoteSign noteSign,
+  }) {
+    final _result = create();
+    if (noteLetter != null) {
+      _result.noteLetter = noteLetter;
+    }
+    if (noteSign != null) {
+      _result.noteSign = noteSign;
+    }
+    return _result;
+  }
   factory NoteName.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory NoteName.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -71,7 +83,23 @@ class Chord extends $pb.GeneratedMessage {
   ;
 
   Chord._() : super();
-  factory Chord() => create();
+  factory Chord({
+    NoteName rootNote,
+    NoteName bassNote,
+    $core.int chroma,
+  }) {
+    final _result = create();
+    if (rootNote != null) {
+      _result.rootNote = rootNote;
+    }
+    if (bassNote != null) {
+      _result.bassNote = bassNote;
+    }
+    if (chroma != null) {
+      _result.chroma = chroma;
+    }
+    return _result;
+  }
   factory Chord.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Chord.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -133,7 +161,19 @@ class Tempo extends $pb.GeneratedMessage {
   ;
 
   Tempo._() : super();
-  factory Tempo() => create();
+  factory Tempo({
+    $core.double bpm,
+    Tempo_Transition transition,
+  }) {
+    final _result = create();
+    if (bpm != null) {
+      _result.bpm = bpm;
+    }
+    if (transition != null) {
+      _result.transition = transition;
+    }
+    return _result;
+  }
   factory Tempo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Tempo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -181,7 +221,15 @@ class Meter extends $pb.GeneratedMessage {
   ;
 
   Meter._() : super();
-  factory Meter() => create();
+  factory Meter({
+    $core.int defaultBeatsPerMeasure,
+  }) {
+    final _result = create();
+    if (defaultBeatsPerMeasure != null) {
+      _result.defaultBeatsPerMeasure = defaultBeatsPerMeasure;
+    }
+    return _result;
+  }
   factory Meter.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Meter.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -223,7 +271,27 @@ class Harmony extends $pb.GeneratedMessage {
   ;
 
   Harmony._() : super();
-  factory Harmony() => create();
+  factory Harmony({
+    $core.String id,
+    $core.int subdivisionsPerBeat,
+    $core.int length,
+    $core.Map<$core.int, Chord> data,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (subdivisionsPerBeat != null) {
+      _result.subdivisionsPerBeat = subdivisionsPerBeat;
+    }
+    if (length != null) {
+      _result.length = length;
+    }
+    if (data != null) {
+      _result.data.addAll(data);
+    }
+    return _result;
+  }
   factory Harmony.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Harmony.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -300,7 +368,43 @@ class Melody extends $pb.GeneratedMessage {
   ;
 
   Melody._() : super();
-  factory Melody() => create();
+  factory Melody({
+    $core.String id,
+    $core.String name,
+    $core.int subdivisionsPerBeat,
+    $core.int length,
+    MelodyType type,
+    InstrumentType instrumentType,
+    MelodyInterpretationType interpretationType,
+    MidiData midiData,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    if (subdivisionsPerBeat != null) {
+      _result.subdivisionsPerBeat = subdivisionsPerBeat;
+    }
+    if (length != null) {
+      _result.length = length;
+    }
+    if (type != null) {
+      _result.type = type;
+    }
+    if (instrumentType != null) {
+      _result.instrumentType = instrumentType;
+    }
+    if (interpretationType != null) {
+      _result.interpretationType = interpretationType;
+    }
+    if (midiData != null) {
+      _result.midiData = midiData;
+    }
+    return _result;
+  }
   factory Melody.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Melody.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -407,7 +511,15 @@ class MidiData extends $pb.GeneratedMessage {
   ;
 
   MidiData._() : super();
-  factory MidiData() => create();
+  factory MidiData({
+    $core.Map<$core.int, MidiChange> data,
+  }) {
+    final _result = create();
+    if (data != null) {
+      _result.data.addAll(data);
+    }
+    return _result;
+  }
   factory MidiData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -441,7 +553,19 @@ class MelodicAttack extends $pb.GeneratedMessage {
   ;
 
   MelodicAttack._() : super();
-  factory MelodicAttack() => create();
+  factory MelodicAttack({
+    $core.Iterable<$core.int> tones,
+    $core.double velocity,
+  }) {
+    final _result = create();
+    if (tones != null) {
+      _result.tones.addAll(tones);
+    }
+    if (velocity != null) {
+      _result.velocity = velocity;
+    }
+    return _result;
+  }
   factory MelodicAttack.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MelodicAttack.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -483,7 +607,15 @@ class MidiChange extends $pb.GeneratedMessage {
   ;
 
   MidiChange._() : super();
-  factory MidiChange() => create();
+  factory MidiChange({
+    $core.List<$core.int> data,
+  }) {
+    final _result = create();
+    if (data != null) {
+      _result.data = data;
+    }
+    return _result;
+  }
   factory MidiChange.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiChange.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -529,7 +661,43 @@ class Instrument extends $pb.GeneratedMessage {
   ;
 
   Instrument._() : super();
-  factory Instrument() => create();
+  factory Instrument({
+    $core.String name,
+    InstrumentType type,
+    $core.double volume,
+    $core.int midiChannel,
+    $core.int midiInstrument,
+    $core.int midiGm2Msb,
+    $core.int midiGm2Lsb,
+    SoundFonts soundFonts,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (type != null) {
+      _result.type = type;
+    }
+    if (volume != null) {
+      _result.volume = volume;
+    }
+    if (midiChannel != null) {
+      _result.midiChannel = midiChannel;
+    }
+    if (midiInstrument != null) {
+      _result.midiInstrument = midiInstrument;
+    }
+    if (midiGm2Msb != null) {
+      _result.midiGm2Msb = midiGm2Msb;
+    }
+    if (midiGm2Lsb != null) {
+      _result.midiGm2Lsb = midiGm2Lsb;
+    }
+    if (soundFonts != null) {
+      _result.soundFonts = soundFonts;
+    }
+    return _result;
+  }
   factory Instrument.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Instrument.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -633,7 +801,15 @@ class SoundFonts extends $pb.GeneratedMessage {
   ;
 
   SoundFonts._() : super();
-  factory SoundFonts() => create();
+  factory SoundFonts({
+    $core.Iterable<SoundFont> soundFonts,
+  }) {
+    final _result = create();
+    if (soundFonts != null) {
+      _result.soundFonts.addAll(soundFonts);
+    }
+    return _result;
+  }
   factory SoundFonts.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SoundFonts.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -667,7 +843,19 @@ class SoundFont extends $pb.GeneratedMessage {
   ;
 
   SoundFont._() : super();
-  factory SoundFont() => create();
+  factory SoundFont({
+    $core.String name,
+    $core.Iterable<KeySwitch> keySwitches,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (keySwitches != null) {
+      _result.keySwitches.addAll(keySwitches);
+    }
+    return _result;
+  }
   factory SoundFont.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SoundFont.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -709,7 +897,15 @@ class KeySwitch extends $pb.GeneratedMessage {
   ;
 
   KeySwitch._() : super();
-  factory KeySwitch() => create();
+  factory KeySwitch({
+    $core.String label,
+  }) {
+    final _result = create();
+    if (label != null) {
+      _result.label = label;
+    }
+    return _result;
+  }
   factory KeySwitch.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory KeySwitch.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -750,7 +946,23 @@ class Part extends $pb.GeneratedMessage {
   ;
 
   Part._() : super();
-  factory Part() => create();
+  factory Part({
+    $core.String id,
+    Instrument instrument,
+    $core.Iterable<Melody> melodies,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (instrument != null) {
+      _result.instrument = instrument;
+    }
+    if (melodies != null) {
+      _result.melodies.addAll(melodies);
+    }
+    return _result;
+  }
   factory Part.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Part.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -805,7 +1017,23 @@ class MelodyReference extends $pb.GeneratedMessage {
   ;
 
   MelodyReference._() : super();
-  factory MelodyReference() => create();
+  factory MelodyReference({
+    $core.String melodyId,
+    MelodyReference_PlaybackType playbackType,
+    $core.double volume,
+  }) {
+    final _result = create();
+    if (melodyId != null) {
+      _result.melodyId = melodyId;
+    }
+    if (playbackType != null) {
+      _result.playbackType = playbackType;
+    }
+    if (volume != null) {
+      _result.volume = volume;
+    }
+    return _result;
+  }
   factory MelodyReference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MelodyReference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -863,12 +1091,54 @@ class Section extends $pb.GeneratedMessage {
     ..aOM<Meter>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'meter', subBuilder: Meter.create)
     ..aOM<Tempo>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tempo', subBuilder: Tempo.create)
     ..aOM<NoteName>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key', subBuilder: NoteName.create)
+    ..a<$core.int>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'transpose', $pb.PbFieldType.OS3)
+    ..e<IntervalColor>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'color', $pb.PbFieldType.OE, defaultOrMaker: IntervalColor.major, valueOf: IntervalColor.valueOf, enumValues: IntervalColor.values)
     ..pc<MelodyReference>(100, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'melodies', $pb.PbFieldType.PM, subBuilder: MelodyReference.create)
     ..hasRequiredFields = false
   ;
 
   Section._() : super();
-  factory Section() => create();
+  factory Section({
+    $core.String id,
+    $core.String name,
+    Harmony harmony,
+    Meter meter,
+    Tempo tempo,
+    NoteName key,
+    $core.int transpose,
+    IntervalColor color,
+    $core.Iterable<MelodyReference> melodies,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    if (harmony != null) {
+      _result.harmony = harmony;
+    }
+    if (meter != null) {
+      _result.meter = meter;
+    }
+    if (tempo != null) {
+      _result.tempo = tempo;
+    }
+    if (key != null) {
+      _result.key = key;
+    }
+    if (transpose != null) {
+      _result.transpose = transpose;
+    }
+    if (color != null) {
+      _result.color = color;
+    }
+    if (melodies != null) {
+      _result.melodies.addAll(melodies);
+    }
+    return _result;
+  }
   factory Section.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Section.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -952,8 +1222,26 @@ class Section extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   NoteName ensureKey() => $_ensure(5);
 
+  @$pb.TagNumber(7)
+  $core.int get transpose => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set transpose($core.int v) { $_setSignedInt32(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasTranspose() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearTranspose() => clearField(7);
+
+  @$pb.TagNumber(8)
+  IntervalColor get color => $_getN(7);
+  @$pb.TagNumber(8)
+  set color(IntervalColor v) { setField(8, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasColor() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearColor() => clearField(8);
+
   @$pb.TagNumber(100)
-  $core.List<MelodyReference> get melodies => $_getList(6);
+  $core.List<MelodyReference> get melodies => $_getList(8);
 }
 
 class Score extends $pb.GeneratedMessage {
@@ -966,7 +1254,27 @@ class Score extends $pb.GeneratedMessage {
   ;
 
   Score._() : super();
-  factory Score() => create();
+  factory Score({
+    $core.String id,
+    $core.String name,
+    $core.Iterable<Part> parts,
+    $core.Iterable<Section> sections,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    if (parts != null) {
+      _result.parts.addAll(parts);
+    }
+    if (sections != null) {
+      _result.sections.addAll(sections);
+    }
+    return _result;
+  }
   factory Score.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Score.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(

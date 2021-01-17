@@ -50,6 +50,7 @@ class BeatScratchPlugin {
           break;
         case "notifyPaused":
           _notifyPaused();
+          onSynthesizerStatusChange();
           return Future.value(null);
           break;
         case "notifyCountInInitiated":

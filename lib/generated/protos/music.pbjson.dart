@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/music.proto
 //
-// @dart = 2.3
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 const NoteLetter$json = const {
@@ -62,6 +62,17 @@ const MelodyInterpretationType$json = const {
     const {'1': 'relative_to_a', '2': 11},
     const {'1': 'relative_to_a_sharp', '2': 12},
     const {'1': 'relative_to_b', '2': 13},
+  ],
+};
+
+const IntervalColor$json = const {
+  '1': 'IntervalColor',
+  '2': const [
+    const {'1': 'major', '2': 0},
+    const {'1': 'minor', '2': 1},
+    const {'1': 'perfect', '2': 2},
+    const {'1': 'augmented', '2': 3},
+    const {'1': 'diminished', '2': 4},
   ],
 };
 
@@ -247,19 +258,9 @@ const Section$json = const {
     const {'1': 'meter', '3': 4, '4': 1, '5': 11, '6': '.Meter', '10': 'meter'},
     const {'1': 'tempo', '3': 5, '4': 1, '5': 11, '6': '.Tempo', '10': 'tempo'},
     const {'1': 'key', '3': 6, '4': 1, '5': 11, '6': '.NoteName', '10': 'key'},
+    const {'1': 'transpose', '3': 7, '4': 1, '5': 17, '10': 'transpose'},
+    const {'1': 'color', '3': 8, '4': 1, '5': 14, '6': '.IntervalColor', '10': 'color'},
     const {'1': 'melodies', '3': 100, '4': 3, '5': 11, '6': '.MelodyReference', '10': 'melodies'},
-  ],
-  '4': const [Section_Color$json],
-};
-
-const Section_Color$json = const {
-  '1': 'Color',
-  '2': const [
-    const {'1': 'major', '2': 0},
-    const {'1': 'minor', '2': 1},
-    const {'1': 'dominant', '2': 2},
-    const {'1': 'augmented', '2': 3},
-    const {'1': 'diminished', '2': 4},
   ],
 };
 

@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/protobeats_plugin.proto
 //
-// @dart = 2.3
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -23,7 +23,23 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
   ;
 
   MidiSynthesizer._() : super();
-  factory MidiSynthesizer() => create();
+  factory MidiSynthesizer({
+    $core.String id,
+    $core.String name,
+    $core.bool enabled,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    if (enabled != null) {
+      _result.enabled = enabled;
+    }
+    return _result;
+  }
   factory MidiSynthesizer.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiSynthesizer.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -82,7 +98,23 @@ class MidiController extends $pb.GeneratedMessage {
   ;
 
   MidiController._() : super();
-  factory MidiController() => create();
+  factory MidiController({
+    $core.String id,
+    $core.String name,
+    $core.bool enabled,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    if (enabled != null) {
+      _result.enabled = enabled;
+    }
+    return _result;
+  }
   factory MidiController.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiController.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -140,7 +172,19 @@ class MidiDevices extends $pb.GeneratedMessage {
   ;
 
   MidiDevices._() : super();
-  factory MidiDevices() => create();
+  factory MidiDevices({
+    $core.Iterable<MidiSynthesizer> synthesizers,
+    $core.Iterable<MidiController> controllers,
+  }) {
+    final _result = create();
+    if (synthesizers != null) {
+      _result.synthesizers.addAll(synthesizers);
+    }
+    if (controllers != null) {
+      _result.controllers.addAll(controllers);
+    }
+    return _result;
+  }
   factory MidiDevices.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiDevices.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -179,7 +223,27 @@ class SynthesizerApp extends $pb.GeneratedMessage {
   ;
 
   SynthesizerApp._() : super();
-  factory SynthesizerApp() => create();
+  factory SynthesizerApp({
+    $core.String name,
+    $core.bool installed,
+    $core.String storeLink,
+    $core.String launchLink,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (installed != null) {
+      _result.installed = installed;
+    }
+    if (storeLink != null) {
+      _result.storeLink = storeLink;
+    }
+    if (launchLink != null) {
+      _result.launchLink = launchLink;
+    }
+    return _result;
+  }
   factory SynthesizerApp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory SynthesizerApp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -248,7 +312,27 @@ class ControllerApp extends $pb.GeneratedMessage {
   ;
 
   ControllerApp._() : super();
-  factory ControllerApp() => create();
+  factory ControllerApp({
+    $core.String name,
+    $core.bool installed,
+    $core.String storeLink,
+    $core.String launchLink,
+  }) {
+    final _result = create();
+    if (name != null) {
+      _result.name = name;
+    }
+    if (installed != null) {
+      _result.installed = installed;
+    }
+    if (storeLink != null) {
+      _result.storeLink = storeLink;
+    }
+    if (launchLink != null) {
+      _result.launchLink = launchLink;
+    }
+    return _result;
+  }
   factory ControllerApp.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory ControllerApp.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -315,7 +399,19 @@ class MidiApps extends $pb.GeneratedMessage {
   ;
 
   MidiApps._() : super();
-  factory MidiApps() => create();
+  factory MidiApps({
+    $core.Iterable<SynthesizerApp> synthesizers,
+    $core.Iterable<ControllerApp> controllers,
+  }) {
+    final _result = create();
+    if (synthesizers != null) {
+      _result.synthesizers.addAll(synthesizers);
+    }
+    if (controllers != null) {
+      _result.controllers.addAll(controllers);
+    }
+    return _result;
+  }
   factory MidiApps.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiApps.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -351,7 +447,15 @@ class MidiNotes extends $pb.GeneratedMessage {
   ;
 
   MidiNotes._() : super();
-  factory MidiNotes() => create();
+  factory MidiNotes({
+    $core.Iterable<$core.int> midiNotes,
+  }) {
+    final _result = create();
+    if (midiNotes != null) {
+      _result.midiNotes.addAll(midiNotes);
+    }
+    return _result;
+  }
   factory MidiNotes.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory MidiNotes.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -385,7 +489,19 @@ class RegisterMelody extends $pb.GeneratedMessage {
   ;
 
   RegisterMelody._() : super();
-  factory RegisterMelody() => create();
+  factory RegisterMelody({
+    $core.String melodyId,
+    $core.String partId,
+  }) {
+    final _result = create();
+    if (melodyId != null) {
+      _result.melodyId = melodyId;
+    }
+    if (partId != null) {
+      _result.partId = partId;
+    }
+    return _result;
+  }
   factory RegisterMelody.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory RegisterMelody.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -433,7 +549,15 @@ class Playback extends $pb.GeneratedMessage {
   ;
 
   Playback._() : super();
-  factory Playback() => create();
+  factory Playback({
+    Playback_Mode mode,
+  }) {
+    final _result = create();
+    if (mode != null) {
+      _result.mode = mode;
+    }
+    return _result;
+  }
   factory Playback.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Playback.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -473,7 +597,19 @@ class RecordedSegment_RecordedBeat extends $pb.GeneratedMessage {
   ;
 
   RecordedSegment_RecordedBeat._() : super();
-  factory RecordedSegment_RecordedBeat() => create();
+  factory RecordedSegment_RecordedBeat({
+    $fixnum.Int64 timestamp,
+    $core.int beat,
+  }) {
+    final _result = create();
+    if (timestamp != null) {
+      _result.timestamp = timestamp;
+    }
+    if (beat != null) {
+      _result.beat = beat;
+    }
+    return _result;
+  }
   factory RecordedSegment_RecordedBeat.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory RecordedSegment_RecordedBeat.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -522,7 +658,19 @@ class RecordedSegment_RecordedData extends $pb.GeneratedMessage {
   ;
 
   RecordedSegment_RecordedData._() : super();
-  factory RecordedSegment_RecordedData() => create();
+  factory RecordedSegment_RecordedData({
+    $fixnum.Int64 timestamp,
+    $core.List<$core.int> midiData,
+  }) {
+    final _result = create();
+    if (timestamp != null) {
+      _result.timestamp = timestamp;
+    }
+    if (midiData != null) {
+      _result.midiData = midiData;
+    }
+    return _result;
+  }
   factory RecordedSegment_RecordedData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory RecordedSegment_RecordedData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(
@@ -571,7 +719,19 @@ class RecordedSegment extends $pb.GeneratedMessage {
   ;
 
   RecordedSegment._() : super();
-  factory RecordedSegment() => create();
+  factory RecordedSegment({
+    $core.Iterable<RecordedSegment_RecordedBeat> beats,
+    $core.Iterable<RecordedSegment_RecordedData> recordedData,
+  }) {
+    final _result = create();
+    if (beats != null) {
+      _result.beats.addAll(beats);
+    }
+    if (recordedData != null) {
+      _result.recordedData.addAll(recordedData);
+    }
+    return _result;
+  }
   factory RecordedSegment.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory RecordedSegment.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   @$core.Deprecated(

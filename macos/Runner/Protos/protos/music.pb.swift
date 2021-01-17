@@ -353,6 +353,58 @@ extension MelodyInterpretationType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+enum IntervalColor: SwiftProtobuf.Enum {
+  typealias RawValue = Int
+  case major // = 0
+  case minor // = 1
+  case perfect // = 2
+  case augmented // = 3
+  case diminished // = 4
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .major
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .major
+    case 1: self = .minor
+    case 2: self = .perfect
+    case 3: self = .augmented
+    case 4: self = .diminished
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .major: return 0
+    case .minor: return 1
+    case .perfect: return 2
+    case .augmented: return 3
+    case .diminished: return 4
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension IntervalColor: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static var allCases: [IntervalColor] = [
+    .major,
+    .minor,
+    .perfect,
+    .augmented,
+    .diminished,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 /// Describes notes as pitch classes (i.e. without octave)
 struct NoteName {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -837,46 +889,13 @@ struct Section {
   /// Clears the value of `key`. Subsequent reads from it will return its default value.
   mutating func clearKey() {self._key = nil}
 
+  var transpose: Int32 = 0
+
+  var color: IntervalColor = .major
+
   var melodies: [MelodyReference] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum Color: SwiftProtobuf.Enum {
-    typealias RawValue = Int
-    case major // = 0
-    case minor // = 1
-    case dominant // = 2
-    case augmented // = 3
-    case diminished // = 4
-    case UNRECOGNIZED(Int)
-
-    init() {
-      self = .major
-    }
-
-    init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .major
-      case 1: self = .minor
-      case 2: self = .dominant
-      case 3: self = .augmented
-      case 4: self = .diminished
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    var rawValue: Int {
-      switch self {
-      case .major: return 0
-      case .minor: return 1
-      case .dominant: return 2
-      case .augmented: return 3
-      case .diminished: return 4
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-  }
 
   init() {}
 
@@ -885,21 +904,6 @@ struct Section {
   fileprivate var _tempo: Tempo? = nil
   fileprivate var _key: NoteName? = nil
 }
-
-#if swift(>=4.2)
-
-extension Section.Color: CaseIterable {
-  // The compiler won't synthesize support with the UNRECOGNIZED case.
-  static var allCases: [Section.Color] = [
-    .major,
-    .minor,
-    .dominant,
-    .augmented,
-    .diminished,
-  ]
-}
-
-#endif  // swift(>=4.2)
 
 struct Score {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -973,6 +977,16 @@ extension MelodyInterpretationType: SwiftProtobuf._ProtoNameProviding {
     11: .same(proto: "relative_to_a"),
     12: .same(proto: "relative_to_a_sharp"),
     13: .same(proto: "relative_to_b"),
+  ]
+}
+
+extension IntervalColor: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "major"),
+    1: .same(proto: "minor"),
+    2: .same(proto: "perfect"),
+    3: .same(proto: "augmented"),
+    4: .same(proto: "diminished"),
   ]
 }
 
@@ -1649,6 +1663,8 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     4: .same(proto: "meter"),
     5: .same(proto: "tempo"),
     6: .same(proto: "key"),
+    7: .same(proto: "transpose"),
+    8: .same(proto: "color"),
     100: .same(proto: "melodies"),
   ]
 
@@ -1664,6 +1680,8 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
       case 4: try { try decoder.decodeSingularMessageField(value: &self._meter) }()
       case 5: try { try decoder.decodeSingularMessageField(value: &self._tempo) }()
       case 6: try { try decoder.decodeSingularMessageField(value: &self._key) }()
+      case 7: try { try decoder.decodeSingularSInt32Field(value: &self.transpose) }()
+      case 8: try { try decoder.decodeSingularEnumField(value: &self.color) }()
       case 100: try { try decoder.decodeRepeatedMessageField(value: &self.melodies) }()
       default: break
       }
@@ -1689,6 +1707,12 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     if let v = self._key {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     }
+    if self.transpose != 0 {
+      try visitor.visitSingularSInt32Field(value: self.transpose, fieldNumber: 7)
+    }
+    if self.color != .major {
+      try visitor.visitSingularEnumField(value: self.color, fieldNumber: 8)
+    }
     if !self.melodies.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.melodies, fieldNumber: 100)
     }
@@ -1702,20 +1726,12 @@ extension Section: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     if lhs._meter != rhs._meter {return false}
     if lhs._tempo != rhs._tempo {return false}
     if lhs._key != rhs._key {return false}
+    if lhs.transpose != rhs.transpose {return false}
+    if lhs.color != rhs.color {return false}
     if lhs.melodies != rhs.melodies {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
-}
-
-extension Section.Color: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "major"),
-    1: .same(proto: "minor"),
-    2: .same(proto: "dominant"),
-    3: .same(proto: "augmented"),
-    4: .same(proto: "diminished"),
-  ]
 }
 
 extension Score: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

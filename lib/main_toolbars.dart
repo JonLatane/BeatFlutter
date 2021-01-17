@@ -7,9 +7,6 @@ import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-//import 'package:file_picker/file_picker.dart';
-//import 'package:file_picker_cross/file_picker_cross.dart';
-//import 'package:file_chooser/file_chooser.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -26,9 +23,10 @@ import 'ui_models.dart';
 import 'storage/url_conversions.dart';
 import 'util/music_theory.dart';
 import 'util/util.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
-  static final bool enableUniverse = MyPlatform.isDebug && false;
+  static final bool enableUniverse = MyPlatform.isDebug;
   final Score score;
   final Section currentSection;
   final ScoreManager scoreManager;
@@ -61,6 +59,8 @@ class BeatScratchToolbar extends StatefulWidget {
   final bool leftHalfOnly;
   final bool rightHalfOnly;
   final MessagesUI messagesUI;
+  final bool showDownloads;
+  final VoidCallback toggleShowDownloads;
 
   const BeatScratchToolbar(
       {Key key,
@@ -95,7 +95,9 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.currentSection,
       @required this.leftHalfOnly,
       @required this.rightHalfOnly,
-      this.messagesUI})
+      this.messagesUI,
+      this.showDownloads,
+      this.toggleShowDownloads})
       : super(key: key);
 
   @override
@@ -118,6 +120,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
   Animation<double> editScale;
   AnimationController editRotationOnlyController;
   Animation<double> editRotationOnlyRotation;
+  PackageInfo packageInfo;
 
   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
   bool get hasPart =>
@@ -147,6 +150,15 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
       begin: 0,
       end: 2 * pi,
     ).animate(editController);
+
+    Future.microtask(() async {
+      print("getting PackageInfo");
+      final info = await PackageInfo.fromPlatform();
+      print("got PackageInfo!!!!");
+      setState(() {
+        packageInfo = info;
+      });
+    });
 
     editTranslation = Tween<double>(
       begin: 0,
@@ -280,9 +292,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         case "midiSettings":
                           widget.showMidiInputSettings();
                           break;
-                        case "about":
-                          showAbout(context);
-                          break;
                         case "showBeatCounts":
                           widget.toggleShowBeatCounts();
                           break;
@@ -331,6 +340,12 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           launchURL(
                               "https://github.com/falrm/falrm.github.io/issues");
                           break;
+                        case "about":
+                          launchURL("https://beatscratch.io/about.html");
+                          break;
+                        case "downloadNative":
+                          widget.toggleShowDownloads();
+                          break;
                       }
                       //setState(() {});
                     },
@@ -339,70 +354,127 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         MyPopupMenuItem(
                           value: null,
                           child: Column(children: [
-                            Text('This is pre-release software.',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w900, fontSize: 12)),
-                            Container(height: 5),
-                            Text(
-                                'Sign-in and file storage features are coming. Have fun fiddling around for now.',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w100, fontSize: 10)),
+                            Row(children: [
+                              Text('Beat',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 26)),
+                              Text('Scratch',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 26)),
+                              Expanded(
+                                child: SizedBox(),
+                              ),
+                              if (packageInfo?.version != null)
+                                Text('v${packageInfo?.version}',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 10)),
+                              if (packageInfo?.version != null)
+                                SizedBox(width: 3),
+                              if (packageInfo?.version != null)
+                                Text('(${packageInfo?.buildNumber})',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w100,
+                                        fontSize: 10)),
+                              if (packageInfo?.version == null)
+                                Text('(build ${packageInfo?.buildNumber})',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w100,
+                                        fontSize: 10)),
+                            ]),
+                            if (MyPlatform.isWeb)
+                              Text('Web Preview',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 12)),
+                            if (MyPlatform.isWeb)
+                              Text(
+                                  'Native app strongly recommended for performance and features like recording, file storage, and MIDI export.',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12)),
                           ]),
                           enabled: false,
                         ),
-                        MyPopupMenuItem(
-                          value: null,
-                          child: Column(children: [
-                            Text(widget.currentScoreName,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 18)),
-                          ]),
-                          enabled: false,
-                        ),
-                        MyPopupMenuItem(
-                          value: "create",
-                          child: Row(children: [
-                            Expanded(child: Text('Create Score...')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.add))
-                          ]),
-                          enabled: BeatScratchPlugin.supportsStorage,
-                        ),
-                        MyPopupMenuItem(
-                          value: "open",
-                          child: Row(children: [
-                            Expanded(child: Text('Open Score...')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.folder_open))
-                          ]),
-                          enabled: BeatScratchPlugin.supportsStorage,
-                        ),
-                        MyPopupMenuItem(
-                          value: "duplicate",
-                          child: Row(children: [
-                            Expanded(child: Text('Duplicate Score...')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.control_point_duplicate))
-                          ]),
-                          enabled: BeatScratchPlugin.supportsStorage,
-                        ),
-                        MyPopupMenuItem(
-                          value: "save",
-                          child: Row(children: [
-                            Expanded(child: Text('Save Score')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.save))
-                          ]),
-                          enabled: BeatScratchPlugin.supportsStorage,
-                        ),
+                        if (MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "downloadNative",
+                            child: Row(children: [
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(widget.showDownloads
+                                      ? Icons.close
+                                      : Icons.download_rounded)),
+                              Expanded(child: SizedBox()),
+                              Text(widget.showDownloads
+                                  ? 'Hide Download Links'
+                                  : 'Download Native App'),
+                              Expanded(child: SizedBox()),
+                            ]),
+                            enabled: MyPlatform.isWeb,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: null,
+                            child: Column(children: [
+                              Text(widget.currentScoreName,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18)),
+                            ]),
+                            enabled: false,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "create",
+                            child: Row(children: [
+                              Expanded(child: Text('Create Score...')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.add))
+                            ]),
+                            enabled: BeatScratchPlugin.supportsStorage,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "open",
+                            child: Row(children: [
+                              Expanded(child: Text('Open Score...')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.folder_open))
+                            ]),
+                            enabled: BeatScratchPlugin.supportsStorage,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "duplicate",
+                            child: Row(children: [
+                              Expanded(child: Text('Duplicate Score...')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.control_point_duplicate))
+                            ]),
+                            enabled: BeatScratchPlugin.supportsStorage,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "save",
+                            child: Row(children: [
+                              Expanded(child: Text('Save Score')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.save))
+                            ]),
+                            enabled: BeatScratchPlugin.supportsStorage,
+                          ),
                         MyPopupMenuItem(
                           value: "copyScore",
                           child: Row(children: [
@@ -417,28 +489,30 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           ]),
                           enabled: true,
                         ),
-                        MyPopupMenuItem(
-                          value: "pasteScore",
-                          child: Row(children: [
-                            Expanded(child: Text('Paste Score Link')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.content_paste))
-                          ]),
-                          enabled: BeatScratchPlugin.supportsStorage,
-                        ),
-                        MyPopupMenuItem(
-                          value: "export",
-                          enabled: MyPlatform.isNative,
-                          child: Row(children: [
-                            Expanded(child: Text('Export...')),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: ExportUI.exportIcon())
-                          ]),
-                        ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "pasteScore",
+                            child: Row(children: [
+                              Expanded(child: Text('Paste Score Link')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: Icon(Icons.content_paste))
+                            ]),
+                            enabled: BeatScratchPlugin.supportsStorage,
+                          ),
+                        if (!MyPlatform.isWeb)
+                          MyPopupMenuItem(
+                            value: "export",
+                            enabled: MyPlatform.isNative,
+                            child: Row(children: [
+                              Expanded(child: Text('Export...')),
+                              Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 2, horizontal: 5),
+                                  child: ExportUI.exportIcon())
+                            ]),
+                          ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
 //                          value: "showBeatCounts",
 //                          child: Row(children: [
@@ -502,6 +576,18 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
                                 child: Icon(FontAwesomeIcons.github))
+                          ]),
+                        ),
+
+                        MyPopupMenuItem(
+                          value: "about",
+                          enabled: true,
+                          child: Row(children: [
+                            Expanded(child: Text('About BeatScratch')),
+                            Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 2, horizontal: 5),
+                                child: Icon(Icons.info_outline))
                           ]),
                         ),
                       ];

@@ -79,6 +79,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   AnimationController animationController() =>
       AnimationController(vsync: this, duration: Duration(milliseconds: 250));
   double _halfStepWidthInPx = 35;
+  bool usePressure = true;
 
   double get halfStepWidthInPx => _halfStepWidthInPx;
 
@@ -350,7 +351,14 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
               tone = diatonicTone(left);
             }
             try {
-              BeatScratchPlugin.playNote(tone, 127, widget.part);
+              int velocity = usePressure
+                  ? 30 +
+                      (97 *
+                              (event.pressure - event.pressureMin) /
+                              (event.pressureMax - event.pressureMin))
+                          .round()
+                  : 127;
+              BeatScratchPlugin.playNote(tone, velocity, widget.part);
             } catch (t) {}
             _pointerIdsToTones[event.pointer] = tone;
             print("pressed tone $tone");
@@ -551,60 +559,92 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                           Expanded(child: SizedBox()),
                         ])),
                     Expanded(
-                        flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: MyRaisedButton(
-                            padding: EdgeInsets.all(0),
-                            onPressed: () {
-                              setState(() {
-                                scrollingMode = ScrollingMode.sideScroll;
-                              });
-                            },
-                            color: (scrollingMode == ScrollingMode.sideScroll)
-                                ? widget.sectionColor
-                                : null,
-                            child: Text("Scroll"))),
-                    Expanded(
-                        flex: context.isTabletOrLandscapey ? 3 : 2,
-                        child: MyRaisedButton(
-                            padding: EdgeInsets.all(0),
-                            onPressed:
-                                false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
-                                    ?
-                                    //ignore: dead_code
-                                    () {
-                                        setState(() {
-                                          switch (scrollingMode) {
-                                            case ScrollingMode.sideScroll:
-                                              scrollingMode =
-                                                  ScrollingMode.roll;
-                                              break;
-                                            case ScrollingMode.pitch:
-                                              scrollingMode =
-                                                  ScrollingMode.roll;
-                                              break;
-                                            case ScrollingMode.roll:
+                        flex: context.isTabletOrLandscapey ? 6 : 4,
+                        child: Column(children: [
+                          Expanded(child: SizedBox()),
+                          Row(children: [
+                            Expanded(
+                                child: MyRaisedButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: () {
+                                      setState(() {
+                                        scrollingMode =
+                                            ScrollingMode.sideScroll;
+                                      });
+                                    },
+                                    color: (scrollingMode ==
+                                            ScrollingMode.sideScroll)
+                                        ? widget.sectionColor
+                                        : null,
+                                    child: Text("Scroll"))),
+                            Expanded(
+                                child: MyRaisedButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed:
+                                        false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
+                                            ?
+                                            //ignore: dead_code
+                                            () {
+                                                setState(() {
+                                                  switch (scrollingMode) {
+                                                    case ScrollingMode
+                                                        .sideScroll:
+                                                      scrollingMode =
+                                                          ScrollingMode.roll;
+                                                      break;
+                                                    case ScrollingMode.pitch:
+                                                      scrollingMode =
+                                                          ScrollingMode.roll;
+                                                      break;
+                                                    case ScrollingMode.roll:
 //                                  scrollingMode = ScrollingMode.pitch;
-                                              break;
-                                          }
-                                        });
-                                      }
-                                    : null,
-                            color: (scrollingMode == ScrollingMode.sideScroll)
-                                ? null
-                                : widget.sectionColor,
-                            child: Row(children: [
-                              Expanded(child: SizedBox()),
+                                                      break;
+                                                  }
+                                                });
+                                              }
+                                            : null,
+                                    color: (scrollingMode ==
+                                            ScrollingMode.sideScroll)
+                                        ? null
+                                        : widget.sectionColor,
+                                    child: Row(children: [
+                                      Expanded(child: SizedBox()),
 //                            Text("+"),
-                              Text((scrollingMode == ScrollingMode.pitch)
-                                  ? "Tilt"
-                                  : (scrollingMode == ScrollingMode.roll)
-                                      ? "Roll"
-                                      : (scrollingMode ==
-                                              ScrollingMode.sideScroll)
-                                          ? "Roll"
-                                          : "Wat"),
-                              Expanded(child: SizedBox()),
-                            ]))),
+                                      Text((scrollingMode ==
+                                              ScrollingMode.pitch)
+                                          ? "Tilt"
+                                          : (scrollingMode ==
+                                                  ScrollingMode.roll)
+                                              ? "Roll"
+                                              : (scrollingMode ==
+                                                      ScrollingMode.sideScroll)
+                                                  ? "Roll"
+                                                  : "Wat"),
+                                      Expanded(child: SizedBox()),
+                                    ]))),
+                          ]),
+                          if (MyPlatform.isIOS || true)
+                            Row(
+                              children: [
+                                Expanded(child: SizedBox()),
+                                Container(
+                                    height: 20,
+                                    child: Switch(
+                                      activeColor: Colors.white,
+                                      value: usePressure,
+                                      onChanged: (v) => setState(() {
+                                        usePressure = v;
+                                      }),
+                                    )),
+                                Text("3D Touch",
+                                    style: TextStyle(
+                                        color: Colors.white.withOpacity(
+                                            usePressure ? 1 : 0.5))),
+                                Expanded(child: SizedBox()),
+                              ],
+                            ),
+                          Expanded(child: SizedBox()),
+                        ])),
                     SizedBox(width: 5),
                     Column(children: [
                       Expanded(child: SizedBox()),
