@@ -24,7 +24,11 @@ var chromaticSteps = [
   Color(0xFFFFB259), // "M7"
 ];
 
-const melodyColor = Color(0xFFDDDDDD);
+var subBackgroundColor = Color(0xFF212121);
+var musicBackgroundColor = Color(0xFF424242);
+var musicForegroundColor = Colors.white;
+
+var melodyColor = Color(0xFFDDDDDD);
 
 enum ChordColor { dominant, major, minor, augmented, diminished, tonic, none }
 enum SectionColor { major, minor, perfect, augmented, diminished }
@@ -85,10 +89,11 @@ extension BSColors on Color {
   static final Map<Color, double> _luminanceCache = {};
   Color withAlpha(int alpha) => Color.fromARGB(alpha, red, green, blue);
 
+  double get luminance =>
+      BSColors._luminanceCache.putIfAbsent(this, () => computeLuminance());
+
   /// With [this] as the background color, computes the appropriate text color.
   Color textColor({Color subBackgroundColor}) {
-    double luminance =
-        BSColors._luminanceCache.putIfAbsent(this, () => computeLuminance());
     if (luminance > 0.5) {
       return Colors.black;
     }

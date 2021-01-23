@@ -65,7 +65,8 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
   }
 
   _drawColorblockNotes({Canvas canvas, int elementPosition, double alpha}) {
-    alphaDrawerPaint.color = Color(0xFF212121).withAlpha((alpha * 255).toInt());
+    alphaDrawerPaint.color =
+        musicForegroundColor.withAlpha((alpha * 255).toInt());
 
     List<int> tones = melody.tonesAt(elementPosition % melody.length).toList();
     bool isNoteStart = false;
@@ -88,7 +89,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
               .withAlpha((alpha * 0.9 * 255).toInt());
         } else {
           alphaDrawerPaint.color =
-              Color(0xFF212121).withAlpha((alpha * 0.5 * 255).toInt());
+              musicForegroundColor.withAlpha((alpha * 0.5 * 255).toInt());
         }
         double top =
             bounds.height - bounds.height * (realTone - lowestPitch) / 88;
@@ -119,11 +120,11 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
               Paint()
                 ..strokeWidth = 1.2 * xScale
                 ..style = PaintingStyle.stroke
-                ..color =
-                    Colors.black.withOpacity(alphaDrawerPaint.color.opacity));
+                ..color = musicForegroundColor
+                    .withOpacity(alphaDrawerPaint.color.opacity));
         });
       }
     }
-    alphaDrawerPaint.color = Color(0xFF212121).withAlpha((alpha * 255).toInt());
+    // alphaDrawerPaint.color = Color(0xFF212121).withAlpha((alpha * 255).toInt());
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +114,7 @@ class MusicSystemPainter extends CustomPainter {
           xScaleNotifier,
           yScaleNotifier,
         ])) {
-    _tickPaint.color = Colors.black;
+    _tickPaint.color = musicForegroundColor;
     _tickPaint.strokeWidth = 2.0;
   }
 
@@ -215,9 +216,8 @@ class MusicSystemPainter extends CustomPainter {
                   fontFamily: "VulfSans",
                   fontSize: fontSize,
                   fontWeight: FontWeight.w100,
-                  color: renderingSection.name.isNotEmpty
-                      ? Colors.black
-                      : Colors.grey));
+                  color: musicForegroundColor.withOpacity(
+                      renderingSection.name.isNotEmpty ? 1 : 0.5)));
           TextPainter tp = TextPainter(
             text: span,
             strutStyle:
@@ -293,7 +293,7 @@ class MusicSystemPainter extends CustomPainter {
       canvas.drawRect(
           Rect.fromLTRB(left, visibleRect().top + sectionHeight,
               visibleRect().right, visibleRect().bottom),
-          Paint()..color = Colors.white);
+          Paint()..color = musicBackgroundColor);
       // canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
       //   Paint()..color=Colors.black12);
     }
@@ -443,7 +443,7 @@ class MusicSystemPainter extends CustomPainter {
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
         ..alphaDrawerPaint = (Paint()
-          ..color = Colors.black
+          ..color = musicForegroundColor
               .withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..draw(canvas);
@@ -464,7 +464,7 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = Colors.black
+          ..color = musicForegroundColor
               .withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..clefs = clefs
@@ -475,7 +475,7 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = Colors.black
+          ..color = musicForegroundColor
               .withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
         ..bounds = bounds
         ..draw(canvas);
@@ -509,9 +509,8 @@ class MusicSystemPainter extends CustomPainter {
               fontFamily: "VulfSans",
               fontSize: max(11, 20 * yScale),
               fontWeight: FontWeight.w800,
-              color: colorblockOpacityNotifier.value > 0.5
-                  ? Colors.black87
-                  : Colors.black));
+              color: musicForegroundColor.withOpacity(
+                  colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1)));
       TextPainter tp = new TextPainter(
         text: span,
         textAlign: TextAlign.left,
@@ -543,7 +542,7 @@ class MusicSystemPainter extends CustomPainter {
         melodyBounds,
         backgroundPaint ?? Paint()
           ..style = PaintingStyle.fill
-          ..color = Colors.black26);
+          ..color = musicForegroundColor.withOpacity(0.26));
     var staffParts = staff.getParts(score, staves.value);
     bool hasColorboardPart =
         staffParts.any((part) => part.id == colorboardPart.value?.id);

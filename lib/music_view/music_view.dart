@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/music_view/part_melody_browser.dart';
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:flutter/material.dart';
@@ -813,19 +814,34 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               ),
             ),
             AnimatedOpacity(
+                duration: animationDuration,
+                opacity: (widget.musicViewMode == MusicViewMode.melody) ? 1 : 0,
+                child: AnimatedContainer(
+                    color: Colors.white,
+                    duration: animationDuration,
+                    height: (widget.musicViewMode == MusicViewMode.melody)
+                        ? toolbarHeight(context)
+                        : 0,
+                    child: MelodyEditingToolbar(
+                      visible: widget.musicViewMode == MusicViewMode.melody,
+                      recordingMelody: recordingMelody,
+                      sectionColor: widget.sectionColor,
+                      score: widget.score,
+                      melodyId: widget.melody?.id,
+                      currentSection: widget.currentSection,
+                      highlightedBeat: highlightedBeat,
+                      setReferenceVolume: widget.setReferenceVolume,
+                    ))),
+            AnimatedOpacity(
               duration: animationDuration,
-              opacity: widget.musicViewMode == MusicViewMode.part &&
-                      isBrowsingPartMelodies
-                  ? 1
-                  : 0,
+              opacity: widget.musicViewMode == MusicViewMode.part ? 1 : 0,
               child: AnimatedContainer(
                   color: widget.part != null &&
                           widget.part.instrument.type == InstrumentType.drum
                       ? Colors.brown
                       : Colors.grey,
                   duration: animationDuration,
-                  height: (widget.musicViewMode == MusicViewMode.part &&
-                          isBrowsingPartMelodies)
+                  height: (widget.musicViewMode == MusicViewMode.part)
                       ? toolbarHeight(context)
                       : 0,
                   child: PartMelodyBrowser(
@@ -839,50 +855,44 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     toggleMelodyReference: widget.toggleMelodyReference,
                   )),
             ),
-            AnimatedContainer(
+            AnimatedOpacity(
                 duration: animationDuration,
-                color: widget.part != null &&
-                        widget.part.instrument.type == InstrumentType.drum
-                    ? Colors.brown
-                    : Colors.grey,
-                height: (widget.musicViewMode == MusicViewMode.part &&
+                opacity: (widget.musicViewMode == MusicViewMode.part &&
                         isConfiguringPart)
-                    ? partConfigHeight
+                    ? 1
                     : 0,
-                child: PartConfiguration(
-                    part: widget.part,
-                    superSetState: widget.superSetState,
-                    availableHeight: widget.height,
-                    visible: (widget.musicViewMode == MusicViewMode.part &&
-                        isConfiguringPart))),
-            AnimatedContainer(
-                color: Colors.white,
+                child: AnimatedContainer(
+                    duration: animationDuration,
+                    color: widget.part != null &&
+                            widget.part.instrument.type == InstrumentType.drum
+                        ? Colors.brown
+                        : Colors.grey,
+                    height: (widget.musicViewMode == MusicViewMode.part &&
+                            isConfiguringPart)
+                        ? partConfigHeight
+                        : 0,
+                    child: PartConfiguration(
+                        part: widget.part,
+                        superSetState: widget.superSetState,
+                        availableHeight: widget.height,
+                        visible: (widget.musicViewMode == MusicViewMode.part &&
+                            isConfiguringPart)))),
+            AnimatedOpacity(
                 duration: animationDuration,
-                height: (widget.musicViewMode == MusicViewMode.melody)
-                    ? toolbarHeight(context)
-                    : 0,
-                child: MelodyEditingToolbar(
-                  visible: widget.musicViewMode == MusicViewMode.melody,
-                  recordingMelody: recordingMelody,
-                  sectionColor: widget.sectionColor,
-                  score: widget.score,
-                  melodyId: widget.melody?.id,
-                  currentSection: widget.currentSection,
-                  highlightedBeat: highlightedBeat,
-                  setReferenceVolume: widget.setReferenceVolume,
-                )),
-            AnimatedContainer(
-                color: widget.sectionColor,
-                duration: animationDuration,
-                height: (widget.musicViewMode == MusicViewMode.section &&
-                        isEditingSection)
-                    ? toolbarHeight(context)
-                    : 0,
-                child: SectionEditingToolbar(
-                  sectionColor: widget.sectionColor,
-                  score: widget.score,
-                  currentSection: widget.currentSection,
-                )),
+                opacity:
+                    (widget.musicViewMode == MusicViewMode.section) ? 1 : 0,
+                child: AnimatedContainer(
+                    color: widget.sectionColor,
+                    duration: animationDuration,
+                    height: (widget.musicViewMode == MusicViewMode.section &&
+                            isEditingSection)
+                        ? toolbarHeight(context)
+                        : 0,
+                    child: SectionEditingToolbar(
+                      sectionColor: widget.sectionColor,
+                      score: widget.score,
+                      currentSection: widget.currentSection,
+                    ))),
           ]),
           Expanded(child: _mainMelody(context))
         ],
@@ -1110,8 +1120,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     }
 
     return Container(
-        color: widget.backgroundColor.withOpacity(
-            widget.backgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
+        color: musicBackgroundColor.withOpacity(
+            musicBackgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
         child: GestureDetector(
             onTapDown: (details) {
               pointerDown(details.localPosition);

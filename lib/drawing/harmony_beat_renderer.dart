@@ -141,7 +141,7 @@ class HarmonyBeatRenderer {
 //  }
 
   _drawRhythm(Canvas canvas, int elementIndex) {
-    paint.color = Color(0xFF424242);
+    // paint.color = Color(0xFF424242);
     double leftOffset = 1;
     if (elementIndex % harmony.subdivisionsPerBeat == 0) {
       leftOffset = 3;

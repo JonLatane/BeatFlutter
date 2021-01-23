@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,9 @@ class ScorePreview extends StatefulWidget {
 enum _Thumbnail { a, b }
 
 class _ScorePreviewState extends State<ScorePreview> {
-  String _oldScoreId;
+  bool hasBuilt;
+  String _prevScoreId;
+  Color _prevMusicForegroundColor;
   _Thumbnail currentThumbnail;
   Uint8List thumbnailA, thumbnailB;
 
@@ -148,6 +151,7 @@ class _ScorePreviewState extends State<ScorePreview> {
     currentThumbnail = _Thumbnail.a;
     widget.notifyUpdate?.addListener(_updateScoreImage);
     renderableWidth = actualWidth;
+    _prevMusicForegroundColor = musicForegroundColor;
   }
 
   @override
@@ -159,9 +163,11 @@ class _ScorePreviewState extends State<ScorePreview> {
 
   @override
   Widget build(BuildContext context) {
-    if (_oldScoreId != widget.score.id) {
+    if (_prevScoreId != widget.score.id ||
+        _prevMusicForegroundColor != musicForegroundColor) {
       _updateScoreImage();
-      _oldScoreId = widget.score.id;
+      _prevScoreId = widget.score.id;
+      _prevMusicForegroundColor = musicForegroundColor;
     }
     return AnimatedContainer(
       duration: animationDuration,

@@ -199,9 +199,10 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: melody.canonicalName == melody.name
-                                    ? Colors.black
-                                    : Colors.grey,
+                                color: melodyColor.textColor().withOpacity(
+                                    melody.canonicalName == melody.name
+                                        ? 1
+                                        : 0.5),
                               ))),
                     )),
                 IgnorePointer(

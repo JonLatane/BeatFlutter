@@ -6,6 +6,7 @@ import '../generated/protos/music.pb.dart';
 import 'score_preview.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
+import '../colors.dart';
 
 class MelodyPreview extends StatefulWidget {
   final Section section;
@@ -34,7 +35,10 @@ class MelodyPreview extends StatefulWidget {
       @required Color bgColor,
       @required Color sectionColor}) {
     if (reference.isEnabled) {
-      Color volumeColor = isSelectedMelody ? Colors.white : sectionColor;
+      Color volumeColor = isSelectedMelody
+          ? Colors.white
+          : sectionColor
+              .withOpacity(musicBackgroundColor.luminance > 0.5 ? 1 : 0.5);
       Color notVolumeColor =
           isSelectedMelody && reference.volume == 0.0 ? Colors.white : bgColor;
       return LinearGradient(

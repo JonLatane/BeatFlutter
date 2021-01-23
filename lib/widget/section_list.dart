@@ -285,7 +285,7 @@ class _SectionState extends State<_Section> {
         height: _Section.height,
         color: (widget.currentSection == widget.section)
             ? widget.sectionColor
-            : Colors.white,
+            : musicBackgroundColor,
         child: MyFlatButton(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Stack(children: [
@@ -310,7 +310,7 @@ class _SectionState extends State<_Section> {
                       color: hasName
                           ? (widget.currentSection == widget.section)
                               ? widget.sectionColor.textColor()
-                              : Colors.black
+                              : musicForegroundColor
                           : Colors.grey),
                 ),
               )),
@@ -321,6 +321,9 @@ class _SectionState extends State<_Section> {
                       padding: EdgeInsets.only(top: 2),
                       child: Icon(
                         Icons.reorder,
+                        color: (widget.currentSection == widget.section)
+                            ? widget.sectionColor.textColor()
+                            : musicForegroundColor,
                         size: 24,
                       )))
             ]),

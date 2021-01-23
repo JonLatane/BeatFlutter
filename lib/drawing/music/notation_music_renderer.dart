@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
 
@@ -68,7 +69,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
     canvas.save();
     canvas.translate(0, overallBounds.top);
     alphaDrawerPaint.color =
-        Colors.black.withAlpha((255 * notationAlpha).toInt());
+        musicForegroundColor.withAlpha((255 * notationAlpha).toInt());
     _drawNotationMelody(canvas);
     canvas.restore();
   }

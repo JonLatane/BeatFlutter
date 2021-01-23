@@ -226,438 +226,451 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     }
     previousScrollingMode = scrollingMode;
     double sensitivity = 7;
-    return Stack(children: [
-      CustomScrollView(
-          key: Key("keyboard-$physicalWidth"),
-          scrollDirection: Axis.horizontal,
-          slivers: [
-            CustomSliverToBoxAdapter(
-              setVisibleRect: (rect) {
-                _visibleRect = rect;
-                _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right,
-                    rect.bottom - touchScrollAreaHeight);
-                double newScrollPositionValue =
-                    rect.left / (physicalWidth - rect.width);
-                if (newScrollPositionValue.isFinite &&
-                    !newScrollPositionValue.isNaN) {
-                  scrollPositionNotifier.value =
-                      max(0.0, min(1.0, newScrollPositionValue));
+    return AnimatedContainer(
+        duration: animationDuration,
+        child: Stack(children: [
+          CustomScrollView(
+              key: Key("keyboard-$physicalWidth"),
+              scrollDirection: Axis.horizontal,
+              slivers: [
+                CustomSliverToBoxAdapter(
+                  setVisibleRect: (rect) {
+                    _visibleRect = rect;
+                    _visibleRect = Rect.fromLTRB(rect.left, rect.top,
+                        rect.right, rect.bottom - touchScrollAreaHeight);
+                    double newScrollPositionValue =
+                        rect.left / (physicalWidth - rect.width);
+                    if (newScrollPositionValue.isFinite &&
+                        !newScrollPositionValue.isNaN) {
+                      scrollPositionNotifier.value =
+                          max(0.0, min(1.0, newScrollPositionValue));
 //                        print("scrolled to ${scrollPositionNotifier.value} (really $newScrollPositionValue)");
-                }
-              },
-              child: Column(children: [
-                GestureDetector(
-                    onScaleStart: (details) => setState(() {
-                          _startHalfStepWidthInPx = halfStepWidthInPx;
-                        }),
-                    onScaleUpdate: (ScaleUpdateDetails details) => setState(() {
-                          if (details.scale > 0) {
-                            halfStepWidthInPx = max(
-                                minHalfStepWidthInPx,
-                                min(maxHalfStepWidthInPx,
-                                    _startHalfStepWidthInPx * details.scale));
+                    }
+                  },
+                  child: Column(children: [
+                    GestureDetector(
+                        onScaleStart: (details) => setState(() {
+                              _startHalfStepWidthInPx = halfStepWidthInPx;
+                            }),
+                        onScaleUpdate: (ScaleUpdateDetails details) =>
+                            setState(() {
+                              if (details.scale > 0) {
+                                halfStepWidthInPx = max(
+                                    minHalfStepWidthInPx,
+                                    min(
+                                        maxHalfStepWidthInPx,
+                                        _startHalfStepWidthInPx *
+                                            details.scale));
+                              }
+                            }),
+                        onVerticalDragUpdate: (details) {
+                          if (details.delta.dy > sensitivity) {
+                            // Down swipe
+                            print("Downswipe! details=$details");
+                            widget.closeKeyboard();
+                          } else if (details.delta.dy < -sensitivity) {
+                            // Up swipe
                           }
-                        }),
-                    onVerticalDragUpdate: (details) {
-                      if (details.delta.dy > sensitivity) {
-                        // Down swipe
-                        print("Downswipe! details=$details");
-                        widget.closeKeyboard();
-                      } else if (details.delta.dy < -sensitivity) {
-                        // Up swipe
-                      }
-                    },
-                    child: AnimatedContainer(
-                        duration: animationDuration,
-                        height: touchScrollAreaHeight,
-                        width: physicalWidth,
-                        color: widget.sectionColor,
-                        child: Align(
-                            alignment: Alignment.center,
-                            child: Container(
-                                height: 5,
-                                width: physicalWidth,
-                                color: Colors.black54)))),
-                CustomPaint(
-                  size: Size(physicalWidth.floor().toDouble(),
-                      widget.height - touchScrollAreaHeight),
-                  isComplex: true,
-                  willChange: true,
-                  painter: _KeyboardPainter(
-                      highestPitch: highestPitch,
-                      lowestPitch: lowestPitch,
-                      pressedNotesNotifier: widget.pressedNotesNotifier,
-                      scrollPositionNotifier: scrollPositionNotifier,
-                      halfStepsOnScreen: halfStepsOnScreen,
-                      visibleRect: () => _visibleRect),
-                ),
-              ]),
-            )
-          ]),
-//      Touch-handling area with the Listener
-      Column(children: [
-        IgnorePointer(
-          child: AnimatedContainer(
-              duration: animationDuration,
-              height: touchScrollAreaHeight,
-              child: AnimatedOpacity(
-                opacity: showScrollHint ? 0.7 : 0,
-                duration: animationDuration,
-                child: AnimatedContainer(
-                    height: 16,
-                    duration: animationDuration,
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: Colors.white,
+                        },
+                        child: AnimatedContainer(
+                            duration: animationDuration,
+                            height: touchScrollAreaHeight,
+                            width: physicalWidth,
+                            color: widget.sectionColor,
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: Container(
+                                    height: 5,
+                                    width: physicalWidth,
+                                    color: Colors.black54)))),
+                    CustomPaint(
+                      size: Size(physicalWidth.floor().toDouble(),
+                          widget.height - touchScrollAreaHeight),
+                      isComplex: true,
+                      willChange: true,
+                      painter: _KeyboardPainter(
+                          highestPitch: highestPitch,
+                          lowestPitch: lowestPitch,
+                          pressedNotesNotifier: widget.pressedNotesNotifier,
+                          scrollPositionNotifier: scrollPositionNotifier,
+                          halfStepsOnScreen: halfStepsOnScreen,
+                          visibleRect: () => _visibleRect),
                     ),
-                    width: 210,
-                    child: Column(children: [
-                      Expanded(child: SizedBox()),
-                      Row(children: [
-                        Icon(Icons.arrow_left),
-                        // Expanded(child: SizedBox()),
-                        Expanded(
-                            child: Text("Scroll | Swipe ⬇️ to Close",
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 11))),
-                        // Expanded(child: SizedBox()),
-                        Icon(Icons.arrow_right),
-                      ]),
-                      Expanded(child: SizedBox()),
-                    ])),
-              )),
-        ),
-        Expanded(
-            child: Listener(
-          child: Container(color: Colors.black12),
-          onPointerDown: (event) {
-            double left = scrollPositionNotifier.value *
-                    (physicalWidth - _visibleRect.width) +
-                event.position.dx;
-            left -= widget.leftMargin;
-            double dy = MediaQuery.of(context).size.height -
-                event.position.dy -
-                widget.distanceFromBottom;
-            double maxDy = widget.height - touchScrollAreaHeight;
-            int tone;
-            if (dy > maxDy / 2) {
-              // Black key area press
-              tone = (left / halfStepWidthInPx).floor() + lowestPitch;
-            } else {
-              // White key area press
-              tone = diatonicTone(left);
-            }
-            try {
-              int velocity = usePressure
-                  ? 30 +
-                      (97 *
-                              (event.pressure - event.pressureMin) /
-                              (event.pressureMax - event.pressureMin))
-                          .round()
-                  : 127;
-              BeatScratchPlugin.playNote(tone, velocity, widget.part);
-            } catch (t) {}
-            _pointerIdsToTones[event.pointer] = tone;
-            print("pressed tone $tone");
-            widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
-          },
-          onPointerMove: (event) {
-            double left = _visibleRect.left + event.position.dx;
-            left -= widget.leftMargin;
-            double dy = MediaQuery.of(context).size.height -
-                event.position.dy -
-                widget.distanceFromBottom;
-            double maxDy = widget.height - touchScrollAreaHeight;
-            int oldTone = _pointerIdsToTones[event.pointer];
-            int tone;
-            if (dy > maxDy / 2) {
-              // Black key area press
-              tone = (left / halfStepWidthInPx).floor() + lowestPitch;
-            } else {
-              // White key area press
-              tone = diatonicTone(left);
-            }
-            if (tone != oldTone) {
-              print("moving tone $oldTone to $tone");
-              try {
-                BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
-                _pointerIdsToTones[event.pointer] = tone;
-                widget.pressedNotesNotifier.value =
-                    _pointerIdsToTones.values.toSet();
-                BeatScratchPlugin.playNote(tone, 127, widget.part);
-              } catch (t) {
-                print(t);
-              }
-            }
-          },
-          onPointerUp: (event) {
-            int tone = _pointerIdsToTones.remove(event.pointer);
-            widget.pressedNotesNotifier.value =
-                _pointerIdsToTones.values.toSet();
-            try {
-              BeatScratchPlugin.stopNote(tone, 127, widget.part);
-            } catch (t) {}
-          },
-          onPointerCancel: (event) {
-            int tone = _pointerIdsToTones.remove(event.pointer);
-            widget.pressedNotesNotifier.value =
-                _pointerIdsToTones.values.toSet();
-            try {
-              BeatScratchPlugin.stopNote(tone, 127, widget.part);
-            } catch (t) {}
-          },
-        ))
-      ]),
-//    Configuration layer
-      Positioned(
-          top: touchScrollAreaHeight,
-          left: 0.1,
-          width: widget.width,
-          height: widget.height,
-          child: ClipRect(
-            child: BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: blurAnimation.value, sigmaY: blurAnimation.value),
-                child: Column(children: [
-                  IgnorePointer(
+                  ]),
+                )
+              ]),
+//      Touch-handling area with the Listener
+          Column(children: [
+            IgnorePointer(
+              child: AnimatedContainer(
+                  duration: animationDuration,
+                  height: touchScrollAreaHeight,
+                  child: AnimatedOpacity(
+                    opacity: showScrollHint ? 0.7 : 0,
+                    duration: animationDuration,
                     child: AnimatedContainer(
+                        height: 16,
                         duration: animationDuration,
-                        height: touchScrollAreaHeight,
-                        child: SizedBox(width: widget.width)),
-                  ),
-                  AnimatedContainer(
-                      duration: animationDuration,
-                      height: max(0, widget.height - touchScrollAreaHeight),
-                      color: Colors.transparent,
-                      child: widget.showConfiguration
-                          ? Row(children: [
-                              Expanded(
-                                  flex: 3,
-                                  child: Column(
-                                      children: [Expanded(child: SizedBox())])),
-                            ])
-                          : SizedBox())
-                ])),
-          )),
-      Column(children: [
-        IgnorePointer(
-          child: AnimatedContainer(
-              duration: animationDuration,
-              height: touchScrollAreaHeight,
-              child: SizedBox(width: widget.width)),
-        ),
-        AnimatedContainer(
-            duration: animationDuration,
-            height: max(0, widget.height - touchScrollAreaHeight),
-            color:
-                widget.showConfiguration ? Colors.black26 : Colors.transparent,
-            child: widget.showConfiguration
-                ? Row(children: [
-                    Expanded(
-                        flex: 3,
-                        child: Column(children: [
-                          Expanded(child: SizedBox()),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ?
-                                          //ignore: dead_code
-                                          () {
-                                              setState(() {
-                                                highestPitch++;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_upward))),
-                              Container(
-                                  width: 45,
-                                  child: MyRaisedButton(
-                                      onPressed: null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Text(
-                                          highestPitch
-                                              .naturalOrSharpNote.uiString,
-                                          style:
-                                              TextStyle(color: Colors.white)))),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ?
-                                          //ignore: dead_code
-                                          () {
-                                              setState(() {
-                                                highestPitch--;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_downward))),
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ?
-                                          //ignore: dead_code
-                                          () {
-                                              setState(() {
-                                                lowestPitch++;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_upward))),
-                              Container(
-                                  width: 45,
-                                  child: MyRaisedButton(
-                                      onPressed: null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Text(
-                                          lowestPitch
-                                              .naturalOrSharpNote.uiString,
-                                          style:
-                                              TextStyle(color: Colors.white)))),
-                              Container(
-                                  width: 25,
-                                  child: MyRaisedButton(
-                                      onPressed: false
-                                          ?
-                                          //ignore: dead_code
-                                          () {
-                                              setState(() {
-                                                lowestPitch--;
-                                              });
-                                            }
-                                          : null,
-                                      padding: EdgeInsets.all(0),
-                                      child: Icon(Icons.arrow_downward))),
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                            ],
-                          ),
-                          Expanded(child: SizedBox()),
-                        ])),
-                    Expanded(
-                        flex: context.isTabletOrLandscapey ? 6 : 4,
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: Colors.white,
+                        ),
+                        width: 210,
                         child: Column(children: [
                           Expanded(child: SizedBox()),
                           Row(children: [
+                            Icon(Icons.arrow_left),
+                            // Expanded(child: SizedBox()),
                             Expanded(
-                                child: MyRaisedButton(
-                                    padding: EdgeInsets.all(0),
-                                    onPressed: () {
-                                      setState(() {
-                                        scrollingMode =
-                                            ScrollingMode.sideScroll;
-                                      });
-                                    },
-                                    color: (scrollingMode ==
-                                            ScrollingMode.sideScroll)
-                                        ? widget.sectionColor
-                                        : null,
-                                    child: Text("Scroll",
-                                        style: TextStyle(
-                                            color: widget.sectionColor
-                                                .textColor())))),
-                            Expanded(
-                                child: MyRaisedButton(
-                                    padding: EdgeInsets.all(0),
-                                    onPressed:
-                                        false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
-                                            ?
-                                            //ignore: dead_code
-                                            () {
-                                                setState(() {
-                                                  switch (scrollingMode) {
-                                                    case ScrollingMode
-                                                        .sideScroll:
-                                                      scrollingMode =
-                                                          ScrollingMode.roll;
-                                                      break;
-                                                    case ScrollingMode.pitch:
-                                                      scrollingMode =
-                                                          ScrollingMode.roll;
-                                                      break;
-                                                    case ScrollingMode.roll:
-//                                  scrollingMode = ScrollingMode.pitch;
-                                                      break;
-                                                  }
-                                                });
-                                              }
-                                            : null,
-                                    color: (scrollingMode ==
-                                            ScrollingMode.sideScroll)
-                                        ? null
-                                        : widget.sectionColor,
-                                    child: Row(children: [
-                                      Expanded(child: SizedBox()),
-//                            Text("+"),
-                                      Text((scrollingMode ==
-                                              ScrollingMode.pitch)
-                                          ? "Tilt"
-                                          : (scrollingMode ==
-                                                  ScrollingMode.roll)
-                                              ? "Roll"
-                                              : (scrollingMode ==
-                                                      ScrollingMode.sideScroll)
-                                                  ? "Roll"
-                                                  : "Wat"),
-                                      Expanded(child: SizedBox()),
-                                    ]))),
+                                child: Text("Scroll | Swipe ⬇️ to Close",
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 11))),
+                            // Expanded(child: SizedBox()),
+                            Icon(Icons.arrow_right),
                           ]),
-                          if (MyPlatform.isIOS || true)
-                            Row(
-                              children: [
-                                Expanded(child: SizedBox()),
-                                Container(
-                                    height: 20,
-                                    child: Switch(
-                                      activeColor: Colors.white,
-                                      value: usePressure,
-                                      onChanged: (v) => setState(() {
-                                        usePressure = v;
-                                      }),
-                                    )),
-                                Text("3D Touch",
-                                    style: TextStyle(
-                                        color: Colors.white.withOpacity(
-                                            usePressure ? 1 : 0.5))),
-                                Expanded(child: SizedBox()),
-                              ],
-                            ),
                           Expanded(child: SizedBox()),
                         ])),
-                    SizedBox(width: 5),
-                    Column(children: [
-                      Expanded(child: SizedBox()),
-                      zoomButton(),
-                      Expanded(child: SizedBox()),
-                    ]),
-                  ])
-                : SizedBox())
-      ])
-    ]);
+                  )),
+            ),
+            Expanded(
+                child: Listener(
+              child: Container(color: Colors.black12),
+              onPointerDown: (event) {
+                double left = scrollPositionNotifier.value *
+                        (physicalWidth - _visibleRect.width) +
+                    event.position.dx;
+                left -= widget.leftMargin;
+                double dy = MediaQuery.of(context).size.height -
+                    event.position.dy -
+                    widget.distanceFromBottom;
+                double maxDy = widget.height - touchScrollAreaHeight;
+                int tone;
+                if (dy > maxDy / 2) {
+                  // Black key area press
+                  tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+                } else {
+                  // White key area press
+                  tone = diatonicTone(left);
+                }
+                try {
+                  int velocity = usePressure
+                      ? 30 +
+                          (97 *
+                                  (event.pressure - event.pressureMin) /
+                                  (event.pressureMax - event.pressureMin))
+                              .round()
+                      : 127;
+                  BeatScratchPlugin.playNote(tone, velocity, widget.part);
+                } catch (t) {}
+                _pointerIdsToTones[event.pointer] = tone;
+                print("pressed tone $tone");
+                widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
+              },
+              onPointerMove: (event) {
+                double left = _visibleRect.left + event.position.dx;
+                left -= widget.leftMargin;
+                double dy = MediaQuery.of(context).size.height -
+                    event.position.dy -
+                    widget.distanceFromBottom;
+                double maxDy = widget.height - touchScrollAreaHeight;
+                int oldTone = _pointerIdsToTones[event.pointer];
+                int tone;
+                if (dy > maxDy / 2) {
+                  // Black key area press
+                  tone = (left / halfStepWidthInPx).floor() + lowestPitch;
+                } else {
+                  // White key area press
+                  tone = diatonicTone(left);
+                }
+                if (tone != oldTone) {
+                  print("moving tone $oldTone to $tone");
+                  try {
+                    BeatScratchPlugin.stopNote(oldTone, 127, widget.part);
+                    _pointerIdsToTones[event.pointer] = tone;
+                    widget.pressedNotesNotifier.value =
+                        _pointerIdsToTones.values.toSet();
+                    BeatScratchPlugin.playNote(tone, 127, widget.part);
+                  } catch (t) {
+                    print(t);
+                  }
+                }
+              },
+              onPointerUp: (event) {
+                int tone = _pointerIdsToTones.remove(event.pointer);
+                widget.pressedNotesNotifier.value =
+                    _pointerIdsToTones.values.toSet();
+                try {
+                  BeatScratchPlugin.stopNote(tone, 127, widget.part);
+                } catch (t) {}
+              },
+              onPointerCancel: (event) {
+                int tone = _pointerIdsToTones.remove(event.pointer);
+                widget.pressedNotesNotifier.value =
+                    _pointerIdsToTones.values.toSet();
+                try {
+                  BeatScratchPlugin.stopNote(tone, 127, widget.part);
+                } catch (t) {}
+              },
+            ))
+          ]),
+//    Configuration layer
+          Positioned(
+              top: touchScrollAreaHeight,
+              left: 0.1,
+              width: widget.width,
+              height: widget.height,
+              child: ClipRect(
+                child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: blurAnimation.value,
+                        sigmaY: blurAnimation.value),
+                    child: Column(children: [
+                      IgnorePointer(
+                        child: AnimatedContainer(
+                            duration: animationDuration,
+                            height: touchScrollAreaHeight,
+                            child: SizedBox(width: widget.width)),
+                      ),
+                      AnimatedContainer(
+                          duration: animationDuration,
+                          height: max(0, widget.height - touchScrollAreaHeight),
+                          color: Colors.transparent,
+                          child: widget.showConfiguration
+                              ? Row(children: [
+                                  Expanded(
+                                      flex: 3,
+                                      child: Column(children: [
+                                        Expanded(child: SizedBox())
+                                      ])),
+                                ])
+                              : SizedBox())
+                    ])),
+              )),
+          Column(children: [
+            IgnorePointer(
+              child: AnimatedContainer(
+                  duration: animationDuration,
+                  height: touchScrollAreaHeight,
+                  child: SizedBox(width: widget.width)),
+            ),
+            AnimatedContainer(
+                duration: animationDuration,
+                height: max(0, widget.height - touchScrollAreaHeight),
+                color: widget.showConfiguration
+                    ? Colors.black26
+                    : Colors.transparent,
+                child: widget.showConfiguration
+                    ? Row(children: [
+                        Expanded(
+                            flex: 3,
+                            child: Column(children: [
+                              Expanded(child: SizedBox()),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: SizedBox(),
+                                  ),
+                                  Container(
+                                      width: 25,
+                                      child: MyRaisedButton(
+                                          onPressed: false
+                                              ?
+                                              //ignore: dead_code
+                                              () {
+                                                  setState(() {
+                                                    highestPitch++;
+                                                  });
+                                                }
+                                              : null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Icon(Icons.arrow_upward))),
+                                  Container(
+                                      width: 45,
+                                      child: MyRaisedButton(
+                                          onPressed: null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Text(
+                                              highestPitch
+                                                  .naturalOrSharpNote.uiString,
+                                              style: TextStyle(
+                                                  color: Colors.white)))),
+                                  Container(
+                                      width: 25,
+                                      child: MyRaisedButton(
+                                          onPressed: false
+                                              ?
+                                              //ignore: dead_code
+                                              () {
+                                                  setState(() {
+                                                    highestPitch--;
+                                                  });
+                                                }
+                                              : null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Icon(Icons.arrow_downward))),
+                                  Expanded(
+                                    child: SizedBox(),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: SizedBox(),
+                                  ),
+                                  Container(
+                                      width: 25,
+                                      child: MyRaisedButton(
+                                          onPressed: false
+                                              ?
+                                              //ignore: dead_code
+                                              () {
+                                                  setState(() {
+                                                    lowestPitch++;
+                                                  });
+                                                }
+                                              : null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Icon(Icons.arrow_upward))),
+                                  Container(
+                                      width: 45,
+                                      child: MyRaisedButton(
+                                          onPressed: null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Text(
+                                              lowestPitch
+                                                  .naturalOrSharpNote.uiString,
+                                              style: TextStyle(
+                                                  color: Colors.white)))),
+                                  Container(
+                                      width: 25,
+                                      child: MyRaisedButton(
+                                          onPressed: false
+                                              ?
+                                              //ignore: dead_code
+                                              () {
+                                                  setState(() {
+                                                    lowestPitch--;
+                                                  });
+                                                }
+                                              : null,
+                                          padding: EdgeInsets.all(0),
+                                          child: Icon(Icons.arrow_downward))),
+                                  Expanded(
+                                    child: SizedBox(),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: SizedBox()),
+                            ])),
+                        Expanded(
+                            flex: context.isTabletOrLandscapey ? 6 : 4,
+                            child: Column(children: [
+                              Expanded(child: SizedBox()),
+                              Row(children: [
+                                Expanded(
+                                    child: MyRaisedButton(
+                                        padding: EdgeInsets.all(0),
+                                        onPressed: () {
+                                          setState(() {
+                                            scrollingMode =
+                                                ScrollingMode.sideScroll;
+                                          });
+                                        },
+                                        color: (scrollingMode ==
+                                                ScrollingMode.sideScroll)
+                                            ? widget.sectionColor
+                                            : null,
+                                        child: Text("Scroll",
+                                            style: TextStyle(
+                                                color: widget.sectionColor
+                                                    .textColor())))),
+                                Expanded(
+                                    child: MyRaisedButton(
+                                        padding: EdgeInsets.all(0),
+                                        onPressed:
+                                            false //(MyPlatform.isAndroid || MyPlatform.isIOS || kDebugMode)
+                                                ?
+                                                //ignore: dead_code
+                                                () {
+                                                    setState(() {
+                                                      switch (scrollingMode) {
+                                                        case ScrollingMode
+                                                            .sideScroll:
+                                                          scrollingMode =
+                                                              ScrollingMode
+                                                                  .roll;
+                                                          break;
+                                                        case ScrollingMode
+                                                            .pitch:
+                                                          scrollingMode =
+                                                              ScrollingMode
+                                                                  .roll;
+                                                          break;
+                                                        case ScrollingMode.roll:
+//                                  scrollingMode = ScrollingMode.pitch;
+                                                          break;
+                                                      }
+                                                    });
+                                                  }
+                                                : null,
+                                        color: (scrollingMode ==
+                                                ScrollingMode.sideScroll)
+                                            ? null
+                                            : widget.sectionColor,
+                                        child: Row(children: [
+                                          Expanded(child: SizedBox()),
+//                            Text("+"),
+                                          Text((scrollingMode ==
+                                                  ScrollingMode.pitch)
+                                              ? "Tilt"
+                                              : (scrollingMode ==
+                                                      ScrollingMode.roll)
+                                                  ? "Roll"
+                                                  : (scrollingMode ==
+                                                          ScrollingMode
+                                                              .sideScroll)
+                                                      ? "Roll"
+                                                      : "Wat"),
+                                          Expanded(child: SizedBox()),
+                                        ]))),
+                              ]),
+                              if (MyPlatform.isIOS || true)
+                                Row(
+                                  children: [
+                                    Expanded(child: SizedBox()),
+                                    Container(
+                                        height: 20,
+                                        child: Switch(
+                                          activeColor: Colors.white,
+                                          value: usePressure,
+                                          onChanged: (v) => setState(() {
+                                            usePressure = v;
+                                          }),
+                                        )),
+                                    Text("3D Touch",
+                                        style: TextStyle(
+                                            color: Colors.white.withOpacity(
+                                                usePressure ? 1 : 0.5))),
+                                    Expanded(child: SizedBox()),
+                                  ],
+                                ),
+                              Expanded(child: SizedBox()),
+                            ])),
+                        SizedBox(width: 5),
+                        Column(children: [
+                          Expanded(child: SizedBox()),
+                          zoomButton(),
+                          Expanded(child: SizedBox()),
+                        ]),
+                      ])
+                    : SizedBox())
+          ])
+        ]),
+        color: musicBackgroundColor);
   }
 
   Container zoomButton() {
@@ -678,14 +691,18 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                       child: Transform.translate(
                           offset: Offset(-5, 5),
                           child: Transform.scale(
-                              scale: 1, child: Icon(Icons.zoom_out)))),
+                              scale: 1,
+                              child: Icon(Icons.zoom_out,
+                                  color: musicForegroundColor)))),
                   AnimatedOpacity(
                       opacity: 0.5,
                       duration: animationDuration,
                       child: Transform.translate(
                           offset: Offset(5, -5),
                           child: Transform.scale(
-                              scale: 1, child: Icon(Icons.zoom_in)))),
+                              scale: 1,
+                              child: Icon(Icons.zoom_in,
+                                  color: musicForegroundColor)))),
                   AnimatedOpacity(
                       opacity: 0.8,
                       duration: animationDuration,
@@ -694,7 +711,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         child: Text(
                             "${(1 + 99 * (halfStepWidthInPx - minHalfStepWidthInPx) / (maxHalfStepWidthInPx - minHalfStepWidthInPx)).toStringAsFixed(0)}%",
                             style: TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 12)),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12,
+                                color: musicForegroundColor)),
                       )),
                 ])),
           ),
@@ -868,7 +887,7 @@ class KeyboardRenderer extends CanvasToneDrawer {
         canvas.drawRect(
             toneBounds,
             Paint()
-              ..color = Colors.black.withAlpha(alpha)
+              ..color = musicForegroundColor.withAlpha(alpha)
               ..style = PaintingStyle.stroke
               ..strokeWidth = 1);
 //        print("drawing white key ${visiblePitch.tone}: ${visiblePitch.tone.naturalOrSharpNote}");
@@ -907,7 +926,7 @@ class KeyboardRenderer extends CanvasToneDrawer {
           case 6:
           case 8:
           case 10:
-            alphaDrawerPaint.color = Color(0xFF000000).withAlpha(alpha);
+            alphaDrawerPaint.color = musicForegroundColor.withAlpha(alpha);
 
             if (pressedNotes.contains(tone)) {
               alphaDrawerPaint.color =

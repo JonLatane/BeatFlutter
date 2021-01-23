@@ -6,6 +6,7 @@ import 'package:beatscratch_flutter_redux/export/export.dart';
 import 'package:beatscratch_flutter_redux/music_preview/melody_preview.dart';
 import 'package:beatscratch_flutter_redux/music_view/music_scroll_container.dart';
 import 'package:beatscratch_flutter_redux/music_view/music_view.dart';
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +33,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   static final bool enableUniverse = MyPlatform.isDebug;
+  final AppSettings appSettings;
   final Score score;
   final Section currentSection;
   final ScoreManager scoreManager;
@@ -69,6 +71,7 @@ class BeatScratchToolbar extends StatefulWidget {
 
   const BeatScratchToolbar(
       {Key key,
+      @required this.appSettings,
       @required this.interactionMode,
       @required this.viewMode,
       @required this.universeMode,
@@ -307,20 +310,25 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           Future.microtask(() async {
                             widget.score.name =
                                 widget.scoreManager.currentScoreName;
-                            widget.messagesUI.sendMessage(
-                                message:
-                                    "Generating short URL via https://paste.ee...",
-                                andSetState: true);
-                            final String urlString =
-                                (await widget.score.convertToShortUrl()) ??
-                                    widget.score.convertToUrl();
-                            if (!urlString.contains("#/s/")) {
+                            String urlString;
+                            if (widget.appSettings.integratePastee) {
                               widget.messagesUI.sendMessage(
                                   message:
-                                      "Failed to shorten URL via https://paste.ee! Creating long-form Score Link...",
-                                  andSetState: true,
-                                  isError: true,
-                                  color: chromaticSteps[5]);
+                                      "Generating short URL via https://paste.ee...",
+                                  andSetState: true);
+                              urlString =
+                                  (await widget.score.convertToShortUrl()) ??
+                                      widget.score.convertToUrl();
+                              if (!urlString.contains("#/s/")) {
+                                widget.messagesUI.sendMessage(
+                                    message:
+                                        "Failed to shorten URL via https://paste.ee! Creating long-form Score Link...",
+                                    andSetState: true,
+                                    isError: true,
+                                    color: chromaticSteps[5]);
+                              }
+                            } else {
+                              urlString = widget.score.convertToUrl();
                             }
                             String pastebinCode = urlString.split('/').last;
                             Clipboard.setData(ClipboardData(text: urlString));
@@ -752,14 +760,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                   color: (widget
                                                                           .interactionMode
                                                                           .isEdit)
-                                                                      ? hasMelody
+                                                                      ? hasPart
                                                                           ? Colors
-                                                                              .black
-                                                                          : widget
-                                                                              .sectionColor
-                                                                              .textColor()
-                                                                      : widget
-                                                                          .sectionColor),
+                                                                              .white
+                                                                          : hasMelody
+                                                                              ? Colors.black
+                                                                              : widget.sectionColor.textColor()
+                                                                      : widget.sectionColor),
                                                             ),
                                                             AnimatedOpacity(
                                                               duration:
@@ -776,14 +783,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                   color: (widget
                                                                           .interactionMode
                                                                           .isEdit)
-                                                                      ? hasMelody
+                                                                      ? hasPart
                                                                           ? Colors
-                                                                              .black
-                                                                          : widget
-                                                                              .sectionColor
-                                                                              .textColor()
-                                                                      : widget
-                                                                          .sectionColor),
+                                                                              .white
+                                                                          : hasMelody
+                                                                              ? Colors.black
+                                                                              : widget.sectionColor.textColor()
+                                                                      : widget.sectionColor),
                                                             ),
                                                           ],
                                                         ),
@@ -833,14 +839,19 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                                     : "Oops",
                                                 textAlign: TextAlign.center,
                                                 maxLines:
-                                                    widget.vertical ? 2 : 1,
+                                                    widget.vertical ? 2 : 2,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
+                                                    height: widget.vertical
+                                                        ? 1
+                                                        : 0.9,
                                                     fontSize: 10,
-                                                    color: hasMelody
-                                                        ? Colors.black
-                                                        : widget.sectionColor
-                                                            .textColor(),
+                                                    color: hasPart
+                                                        ? Colors.white
+                                                        : hasMelody
+                                                            ? Colors.black
+                                                            : widget.sectionColor
+                                                                .textColor(),
                                                     fontWeight: widget.openMelody !=
                                                                 null ||
                                                             widget.prevMelody !=

@@ -539,8 +539,8 @@ class __ScoreState extends State<_Score> {
       foregroundColor = Colors.white;
       backgroundColor = Colors.grey;
     } else {
-      foregroundColor = Colors.black87;
-      backgroundColor = Colors.white;
+      foregroundColor = musicForegroundColor;
+      backgroundColor = musicBackgroundColor;
     }
 
     Score previewScore = _previewScore;
@@ -603,7 +603,8 @@ class __ScoreState extends State<_Score> {
                                 children: [
                                   Expanded(
                                     child: Container(
-                                        color: Colors.white.withOpacity(0.3),
+                                        color: musicBackgroundColor
+                                            .withOpacity(0.3),
                                         child: SingleChildScrollView(
                                             child: ScorePreview(previewScore,
                                                 scale: 0.1,

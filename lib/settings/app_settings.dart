@@ -1,4 +1,7 @@
+import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
+import 'package:beatscratch_flutter_redux/colors.dart';
 import 'package:beatscratch_flutter_redux/widget/keyboard.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ui_models.dart';
@@ -11,6 +14,15 @@ class AppSettings {
 
   _initialize() async {
     _preferences = await SharedPreferences.getInstance();
+    updateColors();
+  }
+
+  updateColors() {
+    subBackgroundColor = darkMode ? Color(0xFF212121) : Color(0xFF424242);
+    musicBackgroundColor = darkMode ? Color(0xFF424242) : Colors.white;
+    musicForegroundColor = darkMode ? Colors.white : Colors.black;
+    melodyColor = darkMode ? Color(0xFF424242) : Color(0xFFDDDDDD);
+    BeatScratchPlugin.onSynthesizerStatusChange?.call();
   }
 
   String get currentScoreName =>
@@ -21,6 +33,12 @@ class AppSettings {
   bool get integratePastee => _preferences?.getBool('integratePastee') ?? true;
   set integratePastee(bool value) =>
       _preferences?.setBool("integratePastee", value);
+
+  bool get darkMode => _preferences?.getBool('darkMode') ?? false;
+  set darkMode(bool value) {
+    _preferences?.setBool("darkMode", value);
+    updateColors();
+  }
 
   RenderingMode get renderMode => RenderingMode.values.firstWhere(
       (m) => m.toString().endsWith(_preferences.getString('renderMode')),

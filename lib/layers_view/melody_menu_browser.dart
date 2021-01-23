@@ -119,7 +119,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
   Widget build(BuildContext context) {
     if (selectedScore == null) {}
     return new MyPopupMenuButton(
-        // color: widget.instrumentType.isDrum ? Colors.brown : Colors.grey,
+        color: musicBackgroundColor,
         padding: EdgeInsets.zero,
         tooltip: "Import Melody | ${widget.part?.midiName}",
         child: widget.child ??
@@ -231,13 +231,16 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
       value: "back",
       child: Container(
           child: Row(children: [
-        Icon(Icons.chevron_left),
+        Icon(Icons.chevron_left, color: musicForegroundColor),
         Expanded(
-            child: Text(selectedSamples != null
-                ? "Import"
-                : selectedPart != null && !selectedPart.isDrum
-                    ? "Parts"
-                    : "Import"))
+            child: Text(
+          selectedSamples != null
+              ? "Import"
+              : selectedPart != null && !selectedPart.isDrum
+                  ? "Parts"
+                  : "Import",
+          style: TextStyle(color: musicForegroundColor),
+        ))
       ])),
       enabled: true,
     );
@@ -247,10 +250,12 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
     return MyPopupMenuItem(
       value: score.id,
       child: Row(children: [
-        Expanded(child: Text(score.name)),
+        Expanded(
+            child: Text(score.name,
+                style: TextStyle(color: musicForegroundColor))),
         Padding(
             padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-            child: Icon(Icons.chevron_right))
+            child: Icon(Icons.chevron_right, color: musicForegroundColor))
       ]),
       enabled: true,
     );
@@ -263,7 +268,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           ? Colors.brown.withOpacity(widget.part?.isDrum == true ? 1 : 0.5)
           : widget.part?.isDrum == true || header
               ? Colors.grey
-              : Colors.black,
+              : musicForegroundColor,
     );
   }
 
@@ -274,7 +279,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
         Expanded(child: Text(part.midiName, style: instrumentStyle(part))),
         Padding(
             padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-            child: Icon(Icons.chevron_right))
+            child: Icon(Icons.chevron_right, color: musicForegroundColor))
       ]),
       enabled: part?.instrument?.type == widget.part?.instrument?.type,
     );
@@ -293,7 +298,9 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             SizedBox(width: 5),
             Expanded(
                 child: Opacity(
-                    opacity: isDuplicate ? 0.5 : 1, child: Text(melody.name))),
+                    opacity: isDuplicate ? 0.5 : 1,
+                    child: Text(melody.name,
+                        style: TextStyle(color: musicForegroundColor)))),
             SizedBox(width: 5),
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2),
@@ -312,7 +319,6 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                     child: Row(children: [
                       Stack(
                         children: [
-                          // Transform.scale(scale: 1.1, child: Icon(Icons.circle, color: Color(0xFF424242))),
                           Transform.translate(
                               offset: Offset(0, -0.5),
                               child: Transform.scale(
@@ -355,7 +361,6 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                     child: Row(children: [
                       Stack(
                         children: [
-                          // Transform.scale(scale: 1.1, child: Icon(Icons.circle, color: Color(0xFF424242))),
                           Transform.translate(
                               offset: Offset(0, -0.5),
                               child: Transform.scale(
@@ -408,11 +413,11 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
         children: [
           Row(children: [
             // Expanded(child: SizedBox()),
-            Text(sampleListName),
+            Text(sampleListName, style: TextStyle(color: musicForegroundColor)),
             Expanded(child: SizedBox()),
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                child: Icon(Icons.chevron_right))
+                child: Icon(Icons.chevron_right, color: musicForegroundColor))
           ]),
         ],
       ),
@@ -427,7 +432,9 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-              fontSize: 10) /*style: instrumentStyle(part, header: true)*/),
+              fontSize: 10,
+              color:
+                  musicForegroundColor) /*style: instrumentStyle(part, header: true)*/),
       Text(widget.part?.midiName ?? "",
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -444,7 +451,10 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           Row(children: [
             Expanded(child: SizedBox()),
             Text("Bundled Samples",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w200)),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w200,
+                    color: musicForegroundColor)),
             Expanded(child: SizedBox()),
             // Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.add))
           ]),
@@ -462,7 +472,10 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           Row(children: [
             Expanded(child: SizedBox()),
             Text("Saved Scores",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w200)),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w200,
+                    color: musicForegroundColor)),
             Expanded(child: SizedBox()),
             // Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.add))
           ]),
@@ -478,13 +491,12 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-              fontSize: 10) /*style: instrumentStyle(part, header: true)*/),
+          style: TextStyle(fontSize: 10, color: musicForegroundColor)),
       Text(selectedSamples,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle()),
+          style: TextStyle(color: musicForegroundColor)),
     );
   }
 
@@ -494,13 +506,12 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-              fontSize: 10) /*style: instrumentStyle(part, header: true)*/),
+          style: TextStyle(fontSize: 10, color: musicForegroundColor)),
       Text(selectedScore.name,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle()),
+          style: TextStyle(color: musicForegroundColor)),
     );
   }
 
@@ -510,7 +521,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10)),
+            style: TextStyle(fontSize: 10, color: musicForegroundColor)),
         Text(selectedPart.midiName,
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -558,7 +569,8 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
         children: [
           Row(children: [
             Expanded(child: SizedBox()),
-            Text("No $entityPluralName Here."),
+            Text("No $entityPluralName Here.",
+                style: TextStyle(color: musicForegroundColor)),
             Expanded(child: SizedBox()),
             // Padding(padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5), child: Icon(Icons.add))
           ]),

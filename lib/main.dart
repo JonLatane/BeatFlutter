@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_view_ui.dart';
 
 import 'recording/recording.dart';
@@ -60,6 +61,7 @@ const Map<int, Color> swatch = {
 };
 
 ScoreManager _scoreManager = ScoreManager();
+AppSettings _appSettings = AppSettings();
 String webScoreName = "Empty Web Score";
 var baseHandler = Fluro.Handler(
     handlerFunc: (BuildContext context, Map<String, dynamic> params) {
@@ -1090,7 +1092,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         onWillPop: _onWillPop,
         child: Scaffold(
             resizeToAvoidBottomPadding: false,
-            backgroundColor: Color(0xFF424242),
+            backgroundColor: subBackgroundColor,
             appBar: PreferredSize(
                 preferredSize: Size.fromHeight(0.0), // here the desired height
                 child: AppBar(
@@ -1543,7 +1545,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             : bottom
                 ? _bottomTapInBarHeight
                 : _tapInBarHeight,
-        color: Color(0xFF424242),
+        color: subBackgroundColor,
         child: vertical ? Column(children: contents) : Row(children: contents));
   }
 
@@ -1667,6 +1669,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
         score: score,
+        appSettings: _appSettings,
         messagesUI: messagesUI,
         currentSection: currentSection,
         scoreManager: _scoreManager,
@@ -2178,7 +2181,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         String prefix = match.group(1);
         prefix = prefix.trim();
         int number = int.tryParse(match.group(2)) ?? 1;
-        section.name = "$prefix ${number + 1}";
+        while (score.sections.any((s) => s.name == section.name)) {
+          section.name = "$prefix ${++number}";
+        }
         section.melodies.clear();
         section.melodies.addAll(currentSection.melodies.map((e) => e.bsCopy()));
         _insertSection(section);
@@ -2261,8 +2266,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             duration: animationDuration,
             height: visible ? max(0, _midiSettingsHeight - 26) : 0,
             width: MediaQuery.of(context).size.width,
-            color: Color(0xFF424242),
+            color: subBackgroundColor,
             child: MidiSettings(
+              appSettings: _appSettings,
               sectionColor: sectionColor,
               enableColorboard: enableColorboard,
               setColorboardEnabled: (value) {
@@ -2319,7 +2325,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         duration: animationDuration,
         height: _scorePickerHeight,
         width: MediaQuery.of(context).size.width,
-        color: Color(0xFF424242),
+        color: subBackgroundColor,
         child: ScorePicker(
             scoreManager: _scoreManager,
             mode: scorePickerMode,

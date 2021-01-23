@@ -771,9 +771,10 @@ class _MelodiesViewState extends State<_MelodiesView> {
               ),
             ),
             if (part.instrument.type == selectedMelody?.instrumentType)
-              buildAddFromTemplateButton(
-                  backgroundColor, textColor, selectedMelody.bsCopy(),
-                  icon: Icons.control_point_duplicate),
+              buildDuplicateButton(
+                backgroundColor,
+                textColor,
+              ),
             // if (part.instrument.type == InstrumentType.harmonic)
             //   buildAddFromTemplateButton(backgroundColor, textColor, odeToJoyA()),
             // if (part.instrument.type == InstrumentType.harmonic)
@@ -897,32 +898,10 @@ class _MelodiesViewState extends State<_MelodiesView> {
     });
   }
 
-  Widget buildAddFromTemplateButton(
-      Color backgroundColor, Color textColor, Melody newMelody,
-      {bool forceShowBeatCount = false, IconData icon = Icons.add}) {
-    bool melodyExists = newMelody.name.isNotEmpty &&
-        part.melodies.any((it) => it.name == newMelody.name);
-    if (icon == Icons.control_point_duplicate) {
-      newMelody.id = uuid.v4();
-    }
-    if (melodyExists && icon == Icons.add) {
-      return null;
-    } else if (melodyExists &&
-        newMelody.name.isNotEmpty &&
-        icon == Icons.control_point_duplicate) {
-      final match = RegExp(
-        r"^(.*?)(\d*)\s*$",
-      ).allMatches(newMelody.name).first;
-      String prefix = match.group(1);
-      prefix = prefix.trim();
-      int number = int.tryParse(match.group(2)) ?? 1;
-      int newNumber = number + 1;
-      newMelody.name = "$prefix $newNumber";
-      while (part.melodies.any((it) => it.name == newMelody.name)) {
-        newNumber += 1;
-        newMelody.name = "$prefix $newNumber";
-      }
-    }
+  Widget buildDuplicateButton(
+    Color backgroundColor,
+    Color textColor,
+  ) {
     return SliverAppBar(
       leading: Container(),
       backgroundColor: backgroundColor,
@@ -930,13 +909,35 @@ class _MelodiesViewState extends State<_MelodiesView> {
       pinned: false,
       expandedHeight: 50.0,
       flexibleSpace: MyFlatButton(
-          onPressed: () => createMelody(newMelody),
+          onPressed: () {
+            final melody = widget.selectedMelody.bsCopy()..id = uuid.v4();
+            bool melodyExists = melody.name.isNotEmpty &&
+                part.melodies.any((it) => it.name == melody.name);
+            if (melodyExists && melody.name.isNotEmpty) {
+              final expr = RegExp(
+                r"^(.*?)(\d*)\s*$",
+              );
+              final match = expr.allMatches(melody.name).first;
+              String prefix = match.group(1);
+              prefix = prefix.trim();
+              int number = int.tryParse(match.group(2)) ?? 1;
+              int newNumber = number + 1;
+              melody.name = "$prefix $newNumber";
+              while (part.melodies.any((it) {
+                return it.name == melody.name;
+              })) {
+                newNumber += 1;
+                melody.name = "$prefix $newNumber";
+              }
+            }
+            createMelody(melody);
+          },
           child: Stack(children: [
             Align(
                 alignment: Alignment.center,
                 child: Row(children: [
                   Icon(
-                    icon,
+                    Icons.control_point_duplicate,
                     color: textColor,
                   ),
                   if (true)
@@ -944,11 +945,11 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       child: Transform.translate(
                           offset: Offset(5, -1),
                           child: Text(
-                            newMelody.canonicalName,
+                            selectedMelody.canonicalName,
                             maxLines: 1,
                             overflow: TextOverflow.fade,
                             style: TextStyle(
-                                color: newMelody.name?.isNotEmpty ?? false
+                                color: selectedMelody.name?.isNotEmpty ?? false
                                     ? textColor
                                     : textColor.withOpacity(0.5),
                                 fontWeight: FontWeight.w300),
@@ -960,7 +961,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 child: Transform.translate(
                   offset: Offset(5, 0),
                   child: BeatsBadge(
-                    beats: newMelody.length ~/ newMelody.subdivisionsPerBeat,
+                    beats: selectedMelody.beatCount,
                     show: widget.showBeatCounts,
                   ),
                 )),
@@ -1088,18 +1089,20 @@ class __MelodyReferenceState extends State<_MelodyReference>
   Widget _buildChild(BuildContext context, ReorderableItemState state) {
     BoxDecoration decoration;
     Gradient gradient;
-    const Color bgColor = melodyColor;
-    const baseGradient = LinearGradient(
+    Color bgColor = melodyColor;
+    var baseGradient = LinearGradient(
       begin: Alignment.centerLeft,
       end: Alignment(1.0, 0.0),
       colors: [bgColor, bgColor],
       tileMode: TileMode.repeated, // repeats the gradient over the canvas
     );
-    const baseSelectedGradient = LinearGradient(
+    final baseSelectedColor = Color.alphaBlend(
+        widget.sectionColor.withOpacity(0.5), musicBackgroundColor);
+    final baseSelectedGradient = LinearGradient(
       begin: Alignment.centerLeft,
       end: Alignment(1.0, 0.0),
-      colors: [Colors.white, Colors.white], // red to yellow
-      tileMode: TileMode.repeated, // repeats the gradient over the canvas
+      colors: [baseSelectedColor, baseSelectedColor],
+      tileMode: TileMode.repeated,
     );
     if (widget.showMediumDetails) {
       gradient = isSelectedMelody ? baseSelectedGradient : baseGradient;
@@ -1223,7 +1226,7 @@ class __MelodyReferenceState extends State<_MelodyReference>
                           decoration: BoxDecoration(
                               color: (reference.playbackType ==
                                       MelodyReference_PlaybackType.disabled)
-                                  ? Color(0xFFDDDDDD)
+                                  ? Color(0x88DDDDDD)
                                   : widget.sectionColor,
                               borderRadius: BorderRadius.circular(15)),
                           width: 60,
@@ -1273,9 +1276,8 @@ class __MelodyReferenceState extends State<_MelodyReference>
                         BeatScratchPlugin.onSynthesizerStatusChange();
                       },
                       style: TextStyle(
-                          color: reference?.isEnabled == true
-                              ? Colors.black
-                              : Colors.grey),
+                          color: melodyColor.textColor().withOpacity(
+                              reference?.isEnabled == true ? 1 : 0.5)),
                       onTap: () {
                         if (!context.isTabletOrLandscapey) {
                           widget.hideMelodyView();
@@ -1295,9 +1297,8 @@ class __MelodyReferenceState extends State<_MelodyReference>
                           height: 24,
 //                          padding: EdgeInsets.only(right:0),
                           child: Icon(Icons.reorder,
-                              color: reference?.isEnabled == true
-                                  ? Colors.black
-                                  : Colors.grey)))
+                              color: melodyColor.textColor().withOpacity(
+                                  reference?.isEnabled == true ? 1 : 0.5))))
                 ])),
           ),
           Row(

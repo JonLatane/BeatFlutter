@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/protos.dart';
@@ -20,6 +22,7 @@ import '../util/midi_theory.dart';
 import '../util/util.dart';
 
 class MidiSettings extends StatefulWidget {
+  final AppSettings appSettings;
   final Axis scrollDirection;
   final Color sectionColor;
   final VoidCallback close;
@@ -30,6 +33,7 @@ class MidiSettings extends StatefulWidget {
 
   const MidiSettings(
       {Key key,
+      this.appSettings,
       this.scrollDirection = Axis.horizontal,
       this.sectionColor,
       this.close,
@@ -149,29 +153,100 @@ class _MidiSettingsState extends State<MidiSettings> {
         BeatScratchPlugin.supportsSynthesizerConfig
             ? this.midiSynthesizers.toList()
             : [this.midiSynthesizers.toList().first];
-    List<dynamic> items = [
-      _Separator(text: "App Info", id: "app-settings"),
+    List<dynamic> appSettings = [
+      _Separator(text: "App Settings", id: "app-settings"),
+      _SettingsTile(
+        id: "pasteeIntegration",
+        color: widget.appSettings.integratePastee
+            ? widget.sectionColor
+            : Colors.grey,
+        child: Container(
+          child: Column(
+            children: [
+              Expanded(child: SizedBox()),
+              SizedBox(height: 15),
+              Text("Paste.ee Integration",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: (widget.appSettings.integratePastee
+                              ? widget.sectionColor
+                              : Colors.grey)
+                          .textColor(),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+              SizedBox(height: 3),
+              Text(
+                  "Use https://paste.ee to shorten\nScore Links when copying them.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: (widget.appSettings.integratePastee
+                              ? widget.sectionColor
+                              : Colors.grey)
+                          .textColor(),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w100)),
+              Switch(
+                activeColor: Colors.white,
+                value: widget.appSettings.integratePastee,
+                onChanged: (v) => setState(() {
+                  widget.appSettings.integratePastee = v;
+                }),
+//                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 5),
+        ),
+      ),
+      _SettingsTile(
+        id: "darkMode",
+        color: musicBackgroundColor,
+        child: Container(
+          child: Column(
+            children: [
+              Expanded(child: SizedBox()),
+              SizedBox(height: 15),
+              Text("Dark Mode",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: musicBackgroundColor.textColor(),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+              Switch(
+                activeColor: Colors.white,
+                value: widget.appSettings.darkMode,
+                onChanged: (v) => widget.appSettings.darkMode = v,
+//                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 5),
+        ),
+      ),
       _SettingsTile(
         id: "colors",
-        color: widget.sectionColor,
+        color: Colors.grey,
         child: Column(
           children: [
             Expanded(child: SizedBox()),
-            Icon(Icons.palette,
-                size: 48, color: widget.sectionColor.textColor()),
+            Icon(Icons.palette, size: 48, color: Colors.grey.textColor()),
             SizedBox(height: 3),
-            Text("Colors...",
-                style: TextStyle(color: widget.sectionColor.textColor())),
+            Text("Color Info...",
+                style: TextStyle(color: Colors.grey.textColor())),
             Expanded(child: SizedBox()),
           ],
         ),
         onPressed: () => showColors(context, widget.sectionColor),
       ),
-      _Separator(text: "MIDI Devices", id: "midi-settings"),
+    ];
+    List<dynamic> items = <dynamic>[
+      _Separator(text: "MIDI Devices", id: "midi-settings")
     ]
-        .map((e) => e as dynamic)
         .followedBy(midiSynthesizers)
         .followedBy(midiControllers)
+        .followedBy(appSettings)
         .toList();
     return ImplicitlyAnimatedList<dynamic>(
       scrollDirection: widget.scrollDirection,
@@ -635,7 +710,9 @@ showColors(BuildContext context, Color sectionColor) {
             decoration: BoxDecoration(border: Border.all(), color: color),
             child: SizedBox()),
         Expanded(child: SizedBox()),
-        Text(name, style: TextStyle(fontWeight: FontWeight.w200)),
+        Text(name,
+            style: TextStyle(
+                color: musicForegroundColor, fontWeight: FontWeight.w200)),
         Expanded(child: SizedBox()),
         Container(
             width: 36,
@@ -646,8 +723,10 @@ showColors(BuildContext context, Color sectionColor) {
             child: Center(
                 child: Text(symbol,
                     textAlign: TextAlign.center,
-                    style:
-                        TextStyle(fontSize: 10, fontWeight: FontWeight.w600)))),
+                    style: TextStyle(
+                        color: musicForegroundColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600)))),
       ]);
   Widget chromaticColumn(int note, Color color) => Container(
       padding: EdgeInsets.symmetric(horizontal: 3),
@@ -679,11 +758,19 @@ showColors(BuildContext context, Color sectionColor) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
+      backgroundColor: musicBackgroundColor,
       title: Row(children: [
-        Text("Beat", style: TextStyle(fontWeight: FontWeight.w900)),
-        Text("Scratch", style: TextStyle(fontWeight: FontWeight.w100)),
+        Text("Beat",
+            style: TextStyle(
+                color: musicForegroundColor, fontWeight: FontWeight.w900)),
+        Text("Scratch",
+            style: TextStyle(
+                color: musicForegroundColor, fontWeight: FontWeight.w100)),
         SizedBox(width: 5),
-        Text('Colors')
+        Text('Colors',
+            style: TextStyle(
+              color: musicForegroundColor,
+            ))
       ]),
       content: Column(children: [
         Expanded(
@@ -692,13 +779,17 @@ showColors(BuildContext context, Color sectionColor) {
           Padding(
               padding: EdgeInsets.only(bottom: 5),
               child: Text("Primary Colors",
-                  style: TextStyle(fontWeight: FontWeight.w700))),
+                  style: TextStyle(
+                      color: musicForegroundColor,
+                      fontWeight: FontWeight.w700))),
           colorRow(chromaticSteps[0], "Tonic", "I"),
           colorRow(chromaticSteps[7], "Dominant", "V"),
           Padding(
               padding: EdgeInsets.symmetric(vertical: 5),
-              child: Text("Section/Intervalic Colors",
-                  style: TextStyle(fontWeight: FontWeight.w700))),
+              child: Text("Section/Interval Colors",
+                  style: TextStyle(
+                      color: musicForegroundColor,
+                      fontWeight: FontWeight.w700))),
           colorRow(chromaticSteps[4], "Major", "III"),
           colorRow(chromaticSteps[3], "Minor", "♭III"),
           colorRow(chromaticSteps[5], "Perfect/Subdominant", "IV"),
@@ -707,7 +798,9 @@ showColors(BuildContext context, Color sectionColor) {
           Padding(
               padding: EdgeInsets.symmetric(vertical: 5),
               child: Text("Other Colors",
-                  style: TextStyle(fontWeight: FontWeight.w700))),
+                  style: TextStyle(
+                      color: musicForegroundColor,
+                      fontWeight: FontWeight.w700))),
           colorRow(chromaticSteps[1], "m2/m9", "♭II"),
           colorRow(chromaticSteps[2], "2/9/M2/M9", "II"),
           colorRow(chromaticSteps[9], "6/M6", "VI"),
@@ -717,7 +810,8 @@ showColors(BuildContext context, Color sectionColor) {
         Padding(
             padding: EdgeInsets.symmetric(vertical: 5),
             child: Text("Chromatic Scale",
-                style: TextStyle(fontWeight: FontWeight.w700))),
+                style: TextStyle(
+                    color: musicForegroundColor, fontWeight: FontWeight.w700))),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -738,13 +832,13 @@ showColors(BuildContext context, Color sectionColor) {
           ),
         )
       ]),
-      actions: <Widget>[
-        MyFlatButton(
-          color: sectionColor,
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text('OK'),
-        ),
-      ],
+      // actions: <Widget>[
+      //   MyFlatButton(
+      //     color: sectionColor,
+      //     onPressed: () => Navigator.of(context).pop(true),
+      //     child: Text('OK'),
+      //   ),
+      // ],
     ),
   );
 }
