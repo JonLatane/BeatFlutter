@@ -1,5 +1,5 @@
 // import 'export_models.dart';
-import 'package:beatscratch_flutter_redux/widget/my_popup_menu.dart';
+import '../widget/my_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -13,21 +13,34 @@ class UniverseViewUI {
   final Function(VoidCallback) setAppState;
 
   UniverseViewUI(this.setAppState);
-  double height(BuildContext context) => !visible
-      ? 0
-      : MediaQuery.of(context).size.height > 800
-          ? 400
-          : MediaQuery.of(context).size.height > 600
-              ? 300
-              : MediaQuery.of(context).size.height > 500
-                  ? 220
-                  : 150;
+  double height(BuildContext context,
+      {@required double keyboardHeight, @required double settingsHeight}) {
+    if (!visible) {
+      return 0;
+    }
+    final height =
+        MediaQuery.of(context).size.height - keyboardHeight - settingsHeight;
+    return height > 900
+        ? 600
+        : height > 700
+            ? 400
+            : height > 600
+                ? 300
+                : MediaQuery.of(context).size.height > 500
+                    ? 220
+                    : 150;
+  }
 
-  Widget build({@required BuildContext context, @required Color sectionColor}) {
+  Widget build(
+      {@required BuildContext context,
+      @required Color sectionColor,
+      @required double keyboardHeight,
+      @required double settingsHeight}) {
     return AnimatedContainer(
         duration: animationDuration,
         padding: EdgeInsets.all(3),
-        height: height(context),
+        height: height(context,
+            keyboardHeight: keyboardHeight, settingsHeight: settingsHeight),
         child: Column(
           children: [
             Row(

@@ -1,10 +1,13 @@
 import 'dart:math';
 
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
+import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:unification/unification.dart';
@@ -26,6 +29,7 @@ import 'melody_menu_browser.dart';
 import '../music_preview/melody_preview.dart';
 
 class LayersView extends StatefulWidget {
+  final AppSettings appSettings;
   final ScoreManager scoreManager;
   final MusicViewMode musicViewMode;
   final bool enableColorboard;
@@ -55,6 +59,7 @@ class LayersView extends StatefulWidget {
   LayersView(
       {this.musicViewMode,
       this.superSetState,
+      this.appSettings,
       this.score,
       this.sectionColor,
       this.currentSection,
@@ -93,28 +98,29 @@ class _LayersViewState extends State<LayersView> {
   static const double maxColumnWidth = 250;
   static const double columnWidthIncrement = 12;
   static const double columnWidthMicroIncrement = 1.4;
-  double columnWidth;
+
+  double get columnWidth => widget.appSettings.layersColumnWidth;
+  set columnWidth(double v) => widget.appSettings.layersColumnWidth =
+      max(minColumnWidth, min(maxColumnWidth, v));
+
   double get columnWidthPercent =>
       0.99 *
           (columnWidth - minColumnWidth) /
           (maxColumnWidth - minColumnWidth) +
       .01;
 
+  bool get autoScroll => widget.appSettings.autoScrollLayers;
+  set autoScroll(bool v) => widget.appSettings.autoScrollLayers = v;
+
   // How "zoom" is achieved
   bool get showMediumDetails =>
       columnWidth > minColumnWidth + 3 * columnWidthIncrement;
   bool get showHighDetails =>
       columnWidth > maxColumnWidth - 3 * columnWidthIncrement;
-  bool autoScroll;
 
   @override
   initState() {
     super.initState();
-    autoScroll = true;
-    columnWidth = minColumnWidth;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      columnWidth = context.isTablet ? 200 : minColumnWidth;
-    });
   }
 
   Widget _buildAddButton() {
@@ -515,7 +521,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   get toggleEditingMelody => widget.toggleEditingMelody;
 
   get hideMelodyView => widget.hideMelodyView;
-  ScrollController scrollController = ScrollController();
+  ScrollController scrollController;
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
@@ -585,6 +591,23 @@ class _MelodiesViewState extends State<_MelodiesView> {
   }
 
   @override
+  initState() {
+    super.initState();
+    scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tryScrollToTop() {
+        if (scrollController.hasClients) {
+          requestScrollToTop(0);
+        } else {
+          Future.delayed(animationDuration, () => tryScrollToTop());
+        }
+      }
+
+      tryScrollToTop();
+    });
+  }
+
+  @override
   dispose() {
     scrollController.dispose();
     super.dispose();
@@ -600,6 +623,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
   int newMelodyBeatCountIndex = 0;
 
   String lastSelectedMelodyId;
+  double prevWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -609,6 +633,12 @@ class _MelodiesViewState extends State<_MelodiesView> {
     } else {
       partName = part.midiName;
     }
+    if (prevWidth != null &&
+        prevWidth != widget.width &&
+        scrollController.offset < (widget.showMediumDetails ? 150 : 150)) {
+      requestScrollToTop(0);
+    }
+    prevWidth = widget.width;
     bool isSelectedPart = widget.selectedPart == part;
     Color backgroundColor, textColor;
     if (part.instrument.type == InstrumentType.drum) {
@@ -629,7 +659,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       }
     }
     lastSelectedMelodyId = selectedMelody?.id;
-    return ReorderableList(
+    return frl.ReorderableList(
         onReorder: this._reorderCallback,
         onReorderDone: this._reorderDone,
         child: CustomScrollView(
@@ -688,7 +718,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                           onPressed: () {
                             selectPart(part);
                             if (widget.autoScroll) {
-                              requestScrollToTop(-1);
+                              requestScrollToTop(0);
                             }
                           },
                           child: Align(
@@ -937,7 +967,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 alignment: Alignment.center,
                 child: Row(children: [
                   Icon(
-                    Icons.control_point_duplicate,
+                    FontAwesomeIcons.codeBranch,
                     color: textColor,
                   ),
                   if (true)
@@ -1081,12 +1111,12 @@ class __MelodyReferenceState extends State<_MelodyReference>
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableItem(
+    return frl.ReorderableItem(
         key: Key("${widget.melody.id}"), //
         childBuilder: _buildChild);
   }
 
-  Widget _buildChild(BuildContext context, ReorderableItemState state) {
+  Widget _buildChild(BuildContext context, frl.ReorderableItemState state) {
     BoxDecoration decoration;
     Gradient gradient;
     Color bgColor = melodyColor;
@@ -1114,12 +1144,12 @@ class __MelodyReferenceState extends State<_MelodyReference>
           sectionColor: widget.sectionColor);
     }
 
-    if (state == ReorderableItemState.dragProxy ||
-        state == ReorderableItemState.dragProxyFinished) {
+    if (state == frl.ReorderableItemState.dragProxy ||
+        state == frl.ReorderableItemState.dragProxyFinished) {
       // slightly transparent background white dragging (just like on iOS)
       decoration = BoxDecoration(gradient: gradient);
     } else {
-      bool placeholder = state == ReorderableItemState.placeholder;
+      bool placeholder = state == frl.ReorderableItemState.placeholder;
       decoration = BoxDecoration(
           border: Border(
               top: widget.isFirst && !placeholder
@@ -1291,7 +1321,7 @@ class __MelodyReferenceState extends State<_MelodyReference>
                           hintText: widget.melody.idName),
                     ),
                   )),
-                  ReorderableListener(
+                  frl.ReorderableListener(
                       child: Container(
                           width: 24,
                           height: 24,

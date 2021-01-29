@@ -1,18 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
-
-import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
+import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
 import '../util/proto_utils.dart';
+import '../widget/my_platform.dart';
 import 'url_conversions.dart';
 
 /// ScoreManager gonna be funky if [BeatScratchPlugin.supportsStorage]

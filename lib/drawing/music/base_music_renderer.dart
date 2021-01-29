@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import '../../colors.dart';
+import '../../generated/protos/music.pb.dart';
 import 'package:unification/unification.dart';
 
 import '../color_guide.dart';

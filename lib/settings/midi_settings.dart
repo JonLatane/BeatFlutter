@@ -1,7 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../settings/app_settings.dart';
+import 'package:flutter/rendering.dart';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
@@ -79,8 +82,8 @@ bool hasMobileerMidiBTLEPairing = false; // com.mobileer.example.midibtlepairing
 
 Future<void> getApps() async {
   if (MyPlatform.isAndroid) {
-    print(await AppAvailability.checkAvailability(
-        "net.volcanomobile.fluidsynthmidi"));
+    // print(await AppAvailability.checkAvailability(
+    //     "net.volcanomobile.fluidsynthmidi"));
     hasVolcanoFluidSynth =
         await AppAvailability.isAppEnabled("net.volcanomobile.fluidsynthmidi");
     hasMobileerMidiBTLEPairing = await AppAvailability.isAppEnabled(
@@ -125,9 +128,12 @@ class _MidiSettingsState extends State<MidiSettings> {
                     color: ChordColor.tonic.color,
                     child: Column(children: [
                       Expanded(child: SizedBox()),
-                      Icon(Icons.check, color: Colors.white),
+                      Icon(Icons.check,
+                          color: ChordColor.tonic.color.textColor()),
                       Text("DONE",
-                          style: TextStyle(color: Colors.white, fontSize: 10)),
+                          style: TextStyle(
+                              color: ChordColor.tonic.color.textColor(),
+                              fontSize: 10)),
                       Expanded(child: SizedBox()),
                     ]),
                     padding: EdgeInsets.all(2),
@@ -210,9 +216,11 @@ class _MidiSettingsState extends State<MidiSettings> {
               Text("Dark Mode",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: musicBackgroundColor.textColor(),
+                      color: musicForegroundColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w700)),
+              SizedBox(height: 9),
+              Icon(FontAwesomeIcons.solidMoon, color: musicForegroundColor),
               Switch(
                 activeColor: Colors.white,
                 value: widget.appSettings.darkMode,
@@ -264,6 +272,7 @@ class _MidiSettingsState extends State<MidiSettings> {
         Widget tile;
         if (item is MidiController) {
           tile = _MidiController(
+            appSettings: widget.appSettings,
             scrollDirection: widget.scrollDirection,
             midiController: item,
             enableColorboard: widget.enableColorboard,
@@ -292,7 +301,12 @@ class _MidiSettingsState extends State<MidiSettings> {
   }
 }
 
+extension ControllerNameOrId on MidiController {
+  String get nameOrId => (name?.isNotEmpty == true) ? name : id;
+}
+
 class _MidiController extends StatelessWidget {
+  final AppSettings appSettings;
   final Axis scrollDirection;
   final MidiController midiController;
   final bool enableColorboard;
@@ -303,6 +317,7 @@ class _MidiController extends StatelessWidget {
 
   const _MidiController(
       {Key key,
+      this.appSettings,
       this.enableColorboard,
       this.setColorboardEnabled,
       this.scrollDirection,
@@ -449,13 +464,60 @@ class _MidiController extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w100)),
+                // if (isExternal)
+                //   Text("Routed to the Keyboard Part.",
+                //       textAlign: TextAlign.center,
+                //       style: TextStyle(
+                //           color: Colors.white,
+                //           fontSize: 10,
+                //           fontWeight: FontWeight.w100)),
                 if (isExternal)
-                  Text("Routed to the Keyboard Part.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w100)),
+                  MyFlatButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        if (!appSettings.controllersReplacingKeyboard
+                            .contains(midiController.nameOrId)) {
+                          appSettings.controllersReplacingKeyboard =
+                              appSettings.controllersReplacingKeyboard +
+                                  [midiController.nameOrId];
+                        } else {
+                          appSettings.controllersReplacingKeyboard = appSettings
+                              .controllersReplacingKeyboard
+                            ..remove(midiController.nameOrId);
+                        }
+                        BeatScratchPlugin.onSynthesizerStatusChange();
+                      },
+                      child: Row(children: [
+                        Checkbox(
+                          mouseCursor: SystemMouseCursors.basic,
+                          activeColor: sectionColor,
+                          checkColor: sectionColor.textColor(),
+                          value: appSettings.controllersReplacingKeyboard
+                              .contains(midiController.nameOrId),
+                          onChanged: (v) {
+                            if (v) {
+                              appSettings.controllersReplacingKeyboard =
+                                  appSettings.controllersReplacingKeyboard +
+                                      [midiController.nameOrId];
+                            } else {
+                              appSettings.controllersReplacingKeyboard =
+                                  appSettings.controllersReplacingKeyboard
+                                    ..remove(midiController.nameOrId);
+                            }
+                            BeatScratchPlugin.onSynthesizerStatusChange();
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                              "Deprioritize the On-Screen Keyboard when connected.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w100)),
+                        ),
+                        SizedBox(width: 5),
+                      ])),
                 if (isMobileerApp)
                   Text("Mobileer Inc",
                       textAlign: TextAlign.center,
@@ -500,7 +562,6 @@ class __MidiSynthesizerState extends State<_MidiSynthesizer> {
   @override
   void initState() {
     super.initState();
-    getApps();
   }
 
   @override
@@ -692,7 +753,7 @@ class _Separator extends StatelessWidget {
           child: Center(
               child: Text(text,
                   maxLines: 1,
-                  overflow: TextOverflow.fade,
+                  overflow: TextOverflow.clip,
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,

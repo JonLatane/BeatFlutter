@@ -1,5 +1,7 @@
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../colors.dart';
+import '../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import '../ui_models.dart';
@@ -620,7 +622,7 @@ class SectionToolbarState extends State<SectionToolbar> {
                           isConfirmingDelete
                       ? 0
                       : 1,
-                  child: Icon(Icons.control_point_duplicate)))),
+                  child: Icon(FontAwesomeIcons.codeBranch)))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 128 : 0,

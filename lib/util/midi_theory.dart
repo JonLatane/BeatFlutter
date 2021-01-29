@@ -3,7 +3,7 @@ import 'package:dart_midi/dart_midi.dart';
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:unification/unification.dart';
 
-import '../generated/protos/music.pb.dart';
+import '../generated/protos/protos.dart';
 import 'util.dart';
 
 extension MidiEventFilters on Iterable<MidiEvent> {

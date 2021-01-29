@@ -1,5 +1,5 @@
-import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
-import 'package:beatscratch_flutter_redux/drawing/color_guide.dart';
+import '../drawing/canvas_tone_drawer.dart';
+import '../drawing/color_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../beatscratch_plugin.dart';

@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
+import '../util/midi_theory.dart';
 import 'package:unification/unification.dart';
 
 import '../generated/protos/music.pb.dart';

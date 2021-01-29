@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:base_x/base_x.dart';
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
+import '../widget/my_platform.dart';
 import 'package:http/http.dart' as http;
 
 import '../generated/protos/music.pb.dart';

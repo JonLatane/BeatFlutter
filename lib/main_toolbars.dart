@@ -2,34 +2,29 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/export/export.dart';
-import 'package:beatscratch_flutter_redux/music_preview/melody_preview.dart';
-import 'package:beatscratch_flutter_redux/music_view/music_scroll_container.dart';
-import 'package:beatscratch_flutter_redux/music_view/music_view.dart';
-import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
-import 'package:beatscratch_flutter_redux/util/dummydata.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
-import 'util/midi_theory.dart';
 import 'colors.dart';
+import 'export/export.dart';
 import 'generated/protos/music.pb.dart';
 import 'messages/messages_ui.dart';
+import 'settings/app_settings.dart';
+import 'storage/score_manager.dart';
+import 'storage/score_picker.dart';
+import 'storage/url_conversions.dart';
+import 'ui_models.dart';
+import 'util/music_theory.dart';
+import 'util/util.dart';
 import 'widget/my_buttons.dart';
 import 'widget/my_platform.dart';
 import 'widget/my_popup_menu.dart';
-import 'storage/score_picker.dart';
-import 'ui_models.dart';
-import 'storage/url_conversions.dart';
-import 'util/music_theory.dart';
-import 'util/util.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   static final bool enableUniverse = MyPlatform.isDebug;
@@ -251,6 +246,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                 child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
                     tooltip: null,
+                    color: musicBackgroundColor.luminance < 0.5
+                        ? subBackgroundColor
+                        : musicBackgroundColor,
                     offset: Offset(0, MediaQuery.of(context).size.height),
                     onSelected: (value) {
                       switch (value) {
@@ -370,10 +368,14 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             Row(children: [
                               Text('Beat',
                                   style: TextStyle(
+                                      color:
+                                          musicForegroundColor.withOpacity(0.5),
                                       fontWeight: FontWeight.w900,
                                       fontSize: 26)),
                               Text('Scratch',
                                   style: TextStyle(
+                                      color:
+                                          musicForegroundColor.withOpacity(0.5),
                                       fontWeight: FontWeight.w100,
                                       fontSize: 26)),
                               Expanded(
@@ -382,6 +384,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                               if (packageInfo?.version != null)
                                 Text('v${packageInfo?.version}',
                                     style: TextStyle(
+                                        color: musicForegroundColor
+                                            .withOpacity(0.5),
                                         fontWeight: FontWeight.w500,
                                         fontSize: 10)),
                               if (packageInfo?.version != null)
@@ -389,23 +393,31 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                               if (packageInfo?.version != null)
                                 Text('(${packageInfo?.buildNumber})',
                                     style: TextStyle(
+                                        color: musicForegroundColor
+                                            .withOpacity(0.5),
                                         fontWeight: FontWeight.w100,
                                         fontSize: 10)),
                               if (packageInfo?.version == null)
                                 Text('(build ${packageInfo?.buildNumber})',
                                     style: TextStyle(
+                                        color: musicForegroundColor
+                                            .withOpacity(0.5),
                                         fontWeight: FontWeight.w100,
                                         fontSize: 10)),
                             ]),
                             if (MyPlatform.isWeb)
                               Text('Web Preview',
                                   style: TextStyle(
+                                      color:
+                                          musicForegroundColor.withOpacity(0.5),
                                       fontWeight: FontWeight.w300,
                                       fontSize: 12)),
                             if (MyPlatform.isWeb)
                               Text(
                                   'Native app strongly recommended for performance and features like recording, file storage, and MIDI export.',
                                   style: TextStyle(
+                                      color:
+                                          musicForegroundColor.withOpacity(0.5),
                                       fontWeight: FontWeight.w900,
                                       fontSize: 12)),
                           ]),
@@ -418,13 +430,20 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(widget.showDownloads
-                                      ? Icons.close
-                                      : Icons.download_rounded)),
+                                  child: Icon(
+                                    widget.showDownloads
+                                        ? Icons.close
+                                        : Icons.download_rounded,
+                                    color: musicForegroundColor,
+                                  )),
                               Expanded(child: SizedBox()),
-                              Text(widget.showDownloads
-                                  ? 'Hide Download Links'
-                                  : 'Download Native App'),
+                              Text(
+                                  widget.showDownloads
+                                      ? 'Hide Download Links'
+                                      : 'Download Native App',
+                                  style: TextStyle(
+                                    color: musicForegroundColor,
+                                  )),
                               Expanded(child: SizedBox()),
                             ]),
                             enabled: MyPlatform.isWeb,
@@ -435,6 +454,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             child: Column(children: [
                               Text(widget.currentScoreName,
                                   style: TextStyle(
+                                      color:
+                                          musicForegroundColor.withOpacity(0.5),
                                       fontWeight: FontWeight.w500,
                                       fontSize: 18)),
                             ]),
@@ -444,11 +465,18 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: "create",
                             child: Row(children: [
-                              Expanded(child: Text('Create Score...')),
+                              Expanded(
+                                  child: Text('Create Score...',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.add))
+                                  child: Icon(
+                                    Icons.add,
+                                    color: musicForegroundColor,
+                                  ))
                             ]),
                             enabled: BeatScratchPlugin.supportsStorage,
                           ),
@@ -456,11 +484,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: "open",
                             child: Row(children: [
-                              Expanded(child: Text('Open Score...')),
+                              Expanded(
+                                  child: Text('Open Score...',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.folder_open))
+                                  child: Icon(Icons.folder_open,
+                                      color: musicForegroundColor))
                             ]),
                             enabled: BeatScratchPlugin.supportsStorage,
                           ),
@@ -468,11 +501,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: "duplicate",
                             child: Row(children: [
-                              Expanded(child: Text('Duplicate Score...')),
+                              Expanded(
+                                  child: Text('Duplicate Score...',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.control_point_duplicate))
+                                  child: Icon(FontAwesomeIcons.codeBranch,
+                                      color: musicForegroundColor))
                             ]),
                             enabled: BeatScratchPlugin.supportsStorage,
                           ),
@@ -480,11 +518,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: "save",
                             child: Row(children: [
-                              Expanded(child: Text('Save Score')),
+                              Expanded(
+                                  child: Text('Save Score',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.save))
+                                  child: Icon(Icons.save,
+                                      color: musicForegroundColor))
                             ]),
                             enabled: BeatScratchPlugin.supportsStorage,
                           ),
@@ -492,13 +535,18 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           value: "copyScore",
                           child: Row(children: [
                             Expanded(
-                                child: Text(MyPlatform.isWeb
-                                    ? 'Copy/Update Score Link'
-                                    : 'Copy Score Link')),
+                                child: Text(
+                                    MyPlatform.isWeb
+                                        ? 'Copy/Update Score Link'
+                                        : 'Copy Score Link',
+                                    style: TextStyle(
+                                      color: musicForegroundColor,
+                                    ))),
                             Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
-                                child: Icon(Icons.content_copy))
+                                child: Icon(Icons.content_copy,
+                                    color: musicForegroundColor))
                           ]),
                           enabled: true,
                         ),
@@ -506,11 +554,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: "pasteScore",
                             child: Row(children: [
-                              Expanded(child: Text('Paste Score Link')),
+                              Expanded(
+                                  child: Text('Paste Score Link',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.content_paste))
+                                  child: Icon(Icons.content_paste,
+                                      color: musicForegroundColor))
                             ]),
                             enabled: BeatScratchPlugin.supportsStorage,
                           ),
@@ -519,11 +572,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             value: "export",
                             enabled: MyPlatform.isNative,
                             child: Row(children: [
-                              Expanded(child: Text('Export...')),
+                              Expanded(
+                                  child: Text('Export...',
+                                      style: TextStyle(
+                                        color: musicForegroundColor,
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: ExportUI.exportIcon())
+                                  child: ExportUI.exportIcon(
+                                      color: musicForegroundColor))
                             ]),
                           ),
 //                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
@@ -534,18 +592,26 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 //                          ]),
 //                        ),
                         if (kDebugMode)
-                          const MyPopupMenuItem(
+                          MyPopupMenuItem(
                             value: "clearMutableCaches",
-                            child: Text('Debug: Clear Rendering Caches'),
+                            child: Text('Debug: Clear Rendering Caches',
+                                style: TextStyle(
+                                  color: musicForegroundColor,
+                                )),
                           ),
                         MyPopupMenuItem(
                           value: "midiSettings",
                           child: Row(children: [
-                            Expanded(child: Text('Settings...')),
+                            Expanded(
+                                child: Text('Settings...',
+                                    style: TextStyle(
+                                      color: musicForegroundColor,
+                                    ))),
                             Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
-                                child: Icon(Icons.settings))
+                                child: Icon(Icons.settings,
+                                    color: musicForegroundColor))
                           ]),
                         ),
                         if (MyPlatform.isDebug)
@@ -553,18 +619,28 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             value: "tutorial",
                             enabled: false,
                             child: Row(children: [
-                              Expanded(child: Text('Help/Tutorial')),
+                              Expanded(
+                                  child: Text('Help/Tutorial',
+                                      style: TextStyle(
+                                        color: musicForegroundColor
+                                            .withOpacity(0.5),
+                                      ))),
                               Padding(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.help))
+                                  child: Icon(Icons.help,
+                                      color: musicForegroundColor))
                             ]),
                           ),
                         MyPopupMenuItem(
                           value: "feedback",
                           enabled: true,
                           child: Row(children: [
-                            Expanded(child: Text('Feedback')),
+                            Expanded(
+                                child: Text('Feedback',
+                                    style: TextStyle(
+                                      color: musicForegroundColor,
+                                    ))),
                             Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
@@ -574,33 +650,40 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                       offset: Offset(-6, -6),
                                       child: Transform.scale(
                                         scale: 0.8,
-                                        child: Icon(FontAwesomeIcons.smile),
+                                        child: Icon(FontAwesomeIcons.smile,
+                                            color: musicForegroundColor),
                                       ),
                                     ),
                                     Transform.translate(
                                       offset: Offset(6, 6),
                                       child: Transform.scale(
                                           scale: 0.8,
-                                          child:
-                                              Icon(FontAwesomeIcons.sadTear)),
+                                          child: Icon(FontAwesomeIcons.sadTear,
+                                              color: musicForegroundColor)),
                                     ),
                                   ],
                                 )),
                             Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
-                                child: Icon(FontAwesomeIcons.github))
+                                child: Icon(FontAwesomeIcons.github,
+                                    color: musicForegroundColor))
                           ]),
                         ),
                         MyPopupMenuItem(
                           value: "about",
                           enabled: true,
                           child: Row(children: [
-                            Expanded(child: Text('About BeatScratch')),
+                            Expanded(
+                                child: Text('About BeatScratch',
+                                    style: TextStyle(
+                                      color: musicForegroundColor,
+                                    ))),
                             Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 2, horizontal: 5),
-                                child: Icon(Icons.info_outline))
+                                child: Icon(Icons.info_outline,
+                                    color: musicForegroundColor))
                           ]),
                         ),
                       ];
@@ -703,7 +786,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     duration: animationDuration,
                     color: (widget.interactionMode.isEdit)
                         ? hasMelody
-                            ? melodyColor
+                            ? Colors.white
                             : hasPart
                                 ? (hasDrumPart ? Colors.brown : Colors.grey)
                                 : widget.sectionColor

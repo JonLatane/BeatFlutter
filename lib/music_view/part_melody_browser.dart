@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/layers_view/melody_menu_browser.dart';
+import '../layers_view/melody_menu_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';

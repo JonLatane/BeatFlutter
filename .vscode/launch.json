@@ -23,6 +23,13 @@
             "deviceId": "macos"
         },
         {
+            "name": "macOS (profile)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos",
+            "flutterMode": "profile"
+        },
+        {
             "name": "Android",
             "request": "launch",
             "type": "dart",

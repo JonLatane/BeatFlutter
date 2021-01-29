@@ -1,6 +1,6 @@
-import 'package:beatscratch_flutter_redux/cache_management.dart';
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import '../cache_management.dart';
+import '../colors.dart';
+import '../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import '../beatscratch_plugin.dart';

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:beatscratch_flutter_redux/util/util.dart';
+import '../util/util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

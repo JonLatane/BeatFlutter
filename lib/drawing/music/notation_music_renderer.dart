@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/colors.dart';
+import '../../colors.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
 

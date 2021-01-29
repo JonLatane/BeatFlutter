@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
-import 'package:beatscratch_flutter_redux/util/dummydata.dart';
+import '../beatscratch_plugin.dart';
+import '../generated/protos/music.pb.dart';
+import '../messages/messages_ui.dart';
+import '../util/dummydata.dart';
 import 'package:share/share.dart';
 
-import 'package:beatscratch_flutter_redux/util/util.dart';
+import '../util/util.dart';
 
 import '../widget/my_platform.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,6 +20,7 @@ import 'export_models.dart';
 import 'package:flutter/material.dart';
 
 class ExportUI {
+  static final exportDelay = Duration(seconds: 2);
   static final double _baseHeight = 220;
   static final double _progressHeight = 30;
 
@@ -57,11 +58,20 @@ class ExportUI {
             child: AnimatedContainer(
               duration: animationDuration,
               height: progressHeight,
-              color: chromaticSteps[5],
-              child: Row(children: [
-                exportIcon(size: 20),
-                SizedBox(width: 3),
-                Text("Exporting MIDI data...")
+              // color: chromaticSteps[5],
+              child: Stack(children: [
+                Row(children: [
+                  AnimatedContainer(
+                      duration: exportDelay,
+                      width: exporting ? MediaQuery.of(context).size.width : 0,
+                      color: chromaticSteps[0]),
+                  Expanded(child: Container(color: chromaticSteps[5]))
+                ]),
+                Row(children: [
+                  exportIcon(size: 20),
+                  SizedBox(width: 3),
+                  Text("Exporting MIDI data...")
+                ])
               ]),
             ),
           ),
@@ -113,17 +123,17 @@ class ExportUI {
                           child: Icon(Icons.info,
                               size: 24, color: ChordColor.tonic.color)),
                       SizedBox(width: 5),
-                      Text("NOTE",
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500)),
-                      SizedBox(width: 7),
+                      // Text("NOTE",
+                      //     style: TextStyle(
+                      //         fontSize: 16,
+                      //         color: Colors.white,
+                      //         fontWeight: FontWeight.w500)),
+                      // SizedBox(width: 7),
                       Expanded(
                         child: Text(
                             "BeatScratch MIDI Exports use 24-tick-per-beat timecoding. Many MIDI players, including "
-                            "Apple QuickTime-based players, cannot play this encoding. However, imports into software "
-                            "like Sibelius should work well!",
+                            "Apple QuickTime-based players, cannot play this encoding. Imports into your "
+                            "DAW or notation/engraving software should work well, though!",
                             style: TextStyle(fontSize: 9, color: Colors.white)),
                       ),
                       SizedBox(width: 5),
@@ -146,10 +156,13 @@ class ExportUI {
                             color: ChordColor.dominant.color,
                             child: Column(children: [
                               Expanded(child: SizedBox()),
-                              Icon(Icons.cancel_outlined, color: Colors.white),
+                              Icon(Icons.cancel_outlined,
+                                  color: ChordColor.dominant.color.textColor()),
                               Text("CANCEL",
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 10)),
+                                      color:
+                                          ChordColor.dominant.color.textColor(),
+                                      fontSize: 10)),
                               Expanded(child: SizedBox()),
                             ]),
                             padding: EdgeInsets.all(2),
@@ -167,10 +180,12 @@ class ExportUI {
                             color: ChordColor.tonic.color,
                             child: Column(children: [
                               Expanded(child: SizedBox()),
-                              Icon(Icons.arrow_forward, color: Colors.white),
+                              Icon(Icons.arrow_forward,
+                                  color: ChordColor.tonic.color.textColor()),
                               Text("EXPORT",
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 10)),
+                                      color: ChordColor.tonic.color.textColor(),
+                                      fontSize: 10)),
                               Expanded(child: SizedBox()),
                             ]),
                             padding: EdgeInsets.all(2),
@@ -179,8 +194,10 @@ class ExportUI {
                               visible = false;
                               Future.microtask(() {
                                 File file;
+                                bool success = false;
                                 try {
                                   file = export(exportManager);
+                                  success = true;
                                 } catch (e) {
                                   print(e);
                                   if (e is Error) {
@@ -191,39 +208,41 @@ class ExportUI {
                                       message: "MIDI Export failed!",
                                       isError: true);
                                 }
-                                Future.delayed(Duration(seconds: 2), () {
+                                Future.delayed(exportDelay, () {
                                   setState(() {
                                     exporting = false;
                                   });
-                                  if (MyPlatform.isMacOS) {
-                                    messagesUI.sendMessage(
-                                        message:
-                                            "Opening exports directory in Finder...");
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      launchURL(
-                                          "file://${exportManager.exportsDirectory.path}");
+                                  if (success) {
+                                    if (MyPlatform.isMacOS) {
                                       messagesUI.sendMessage(
-                                          message: "Export complete!");
-                                    });
-                                  } else if (MyPlatform.isIOS) {
-                                    messagesUI.sendMessage(
-                                        message:
-                                            "Opening exports directory in Files...");
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      launchURL(
-                                          "shareddocuments://${exportManager.exportsDirectory.path}");
+                                          message:
+                                              "Opening exports directory in Finder...");
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        launchURL(
+                                            "file://${exportManager.exportsDirectory.path}");
+                                        messagesUI.sendMessage(
+                                            message: "Export complete!");
+                                      });
+                                    } else if (MyPlatform.isIOS) {
                                       messagesUI.sendMessage(
-                                          message: "Export complete!");
-                                    });
-                                  } else if (MyPlatform.isMobile) {
-                                    messagesUI.sendMessage(
-                                        message: "Sharing MIDI file...");
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      Share.shareFiles([file.path],
-                                          text: export.score.name);
+                                          message:
+                                              "Opening exports directory in Files...");
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        launchURL(
+                                            "shareddocuments://${exportManager.exportsDirectory.path}");
+                                        messagesUI.sendMessage(
+                                            message: "Export complete!");
+                                      });
+                                    } else if (MyPlatform.isMobile) {
                                       messagesUI.sendMessage(
-                                          message: "Export complete!");
-                                    });
+                                          message: "Sharing MIDI file...");
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        Share.shareFiles([file.path],
+                                            text: export.score.name);
+                                        messagesUI.sendMessage(
+                                            message: "Export complete!");
+                                      });
+                                    }
                                   }
                                 });
                               });

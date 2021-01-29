@@ -1,5 +1,5 @@
 // import 'export_models.dart';
-import 'package:beatscratch_flutter_redux/messages/bs_message.dart';
+import '../messages/bs_message.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';

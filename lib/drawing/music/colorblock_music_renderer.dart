@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
+import '../../colors.dart';
+import '../../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
 
 import 'base_music_renderer.dart';
@@ -85,7 +85,9 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
       tones.forEach((tone) {
         int realTone = tone; // + melody.offsetUnder(chord)
         if (melody.instrumentType != InstrumentType.drum) {
-          alphaDrawerPaint.color = chromaticSteps[realTone.mod12]
+          alphaDrawerPaint.color = chromaticSteps[
+                  (realTone - section.harmony.data.values.first.rootNote.tone)
+                      .mod12]
               .withAlpha((alpha * 0.9 * 255).toInt());
         } else {
           alphaDrawerPaint.color =

@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/colors.dart';
-import 'package:beatscratch_flutter_redux/ui_models.dart';
-import 'package:beatscratch_flutter_redux/util/dummydata.dart';
-import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../beatscratch_plugin.dart';
+import '../colors.dart';
+import '../ui_models.dart';
+import '../util/dummydata.dart';
+import '../util/bs_notifiers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
@@ -136,7 +138,7 @@ class _ScorePickerState extends State<ScorePicker> {
         break;
       case ScorePickerMode.duplicate:
         headerText = "Duplicate Score";
-        icon = Icons.control_point_duplicate;
+        icon = FontAwesomeIcons.codeBranch;
         String openedScoreName = widget.openedScore.name;
         String scoreManagerName = widget.scoreManager.currentScoreName;
         if (openedScoreName != scoreManagerName) {
@@ -286,7 +288,7 @@ class _ScorePickerState extends State<ScorePicker> {
                     width: widget.mode == ScorePickerMode.duplicate ? 80 : 0,
                     padding: EdgeInsets.only(right: 5),
                     child: MyFlatButton(
-                        color: chromaticSteps[0],
+                        color: ChordColor.tonic.color,
                         onPressed: widget.mode == ScorePickerMode.duplicate &&
                                 nameIsValid
                             ? () {
@@ -302,7 +304,7 @@ class _ScorePickerState extends State<ScorePicker> {
                   Container(
                     width: 80,
                     child: MyFlatButton(
-                        color: chromaticSteps[7],
+                        color: ChordColor.dominant.color,
                         onPressed: () {
                           nameController.value =
                               nameController.value.copyWith(text: "");
@@ -310,7 +312,9 @@ class _ScorePickerState extends State<ScorePicker> {
                           widget.close();
                         },
                         padding: EdgeInsets.zero,
-                        child: Text("Cancel")),
+                        child: Text("Cancel",
+                            style: TextStyle(
+                                color: ChordColor.dominant.color.textColor()))),
                   ),
                 ],
               ),
@@ -337,10 +341,12 @@ class _ScorePickerState extends State<ScorePicker> {
                             color: ChordColor.tonic.color,
                             child: Column(children: [
                               Expanded(child: SizedBox()),
-                              Icon(Icons.check, color: Colors.white),
+                              Icon(Icons.check,
+                                  color: ChordColor.tonic.color.textColor()),
                               Text("DONE",
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 10)),
+                                      color: ChordColor.tonic.color.textColor(),
+                                      fontSize: 10)),
                               Expanded(child: SizedBox()),
                             ]),
                             padding: EdgeInsets.all(2),

@@ -2,7 +2,9 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:beatscratch_flutter_redux/colors.dart';
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+
+import '../colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -44,6 +46,7 @@ enum _Thumbnail { a, b }
 class _ScorePreviewState extends State<ScorePreview> {
   bool hasBuilt;
   String _prevScoreId;
+  RenderingMode _prevRenderingMode;
   Color _prevMusicForegroundColor;
   _Thumbnail currentThumbnail;
   Uint8List thumbnailA, thumbnailB;
@@ -81,8 +84,10 @@ class _ScorePreviewState extends State<ScorePreview> {
       partTopOffsets: ValueNotifier(partTopOffsets),
       staffOffsets: ValueNotifier(staffOffsets),
       colorGuideOpacityNotifier: ValueNotifier(0),
-      colorblockOpacityNotifier: ValueNotifier(0),
-      notationOpacityNotifier: ValueNotifier(1),
+      colorblockOpacityNotifier: ValueNotifier(
+          AppSettings.globalRenderingMode == RenderingMode.colorblock ? 1 : 0),
+      notationOpacityNotifier: ValueNotifier(
+          AppSettings.globalRenderingMode == RenderingMode.notation ? 1 : 0),
       colorboardNotesNotifier: ValueNotifier([]),
       keyboardNotesNotifier: ValueNotifier([]),
       visibleRect: () => Rect.fromLTRB(0, 0, widget.width, widget.height),
@@ -152,6 +157,7 @@ class _ScorePreviewState extends State<ScorePreview> {
     widget.notifyUpdate?.addListener(_updateScoreImage);
     renderableWidth = actualWidth;
     _prevMusicForegroundColor = musicForegroundColor;
+    _prevRenderingMode = AppSettings.globalRenderingMode;
   }
 
   @override
@@ -164,10 +170,12 @@ class _ScorePreviewState extends State<ScorePreview> {
   @override
   Widget build(BuildContext context) {
     if (_prevScoreId != widget.score.id ||
-        _prevMusicForegroundColor != musicForegroundColor) {
+        _prevMusicForegroundColor != musicForegroundColor ||
+        _prevRenderingMode != AppSettings.globalRenderingMode) {
       _updateScoreImage();
       _prevScoreId = widget.score.id;
       _prevMusicForegroundColor = musicForegroundColor;
+      _prevRenderingMode = AppSettings.globalRenderingMode;
     }
     return AnimatedContainer(
       duration: animationDuration,

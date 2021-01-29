@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/util/midi_theory.dart';
+import '../beatscratch_plugin.dart';
+import '../generated/protos/music.pb.dart';
+import '../util/midi_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';

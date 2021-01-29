@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:beatscratch_flutter_redux/universe_view/universe_view_ui.dart';
+import 'settings/app_settings.dart';
+import 'universe_view/universe_view_ui.dart';
 
 import 'recording/recording.dart';
 import 'package:fluro/fluro.dart' as Fluro;
@@ -108,6 +108,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 //    debugPaintSizeEnabled = true;
+    MyHomePage home;
+    try {
+      home = MyHomePage(title: 'BeatScratch', initialScore: defaultScore());
+    } catch (e) {
+      print(e);
+    }
     return MaterialApp(
       key: Key(MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch'),
       title: 'BeatScratch',
@@ -127,7 +133,7 @@ class MyApp extends StatelessWidget {
           platform: TargetPlatform.iOS,
           fontFamily: 'VulfSans'),
       onGenerateRoute: router.generator,
-      home: MyHomePage(title: 'BeatScratch', initialScore: defaultScore()),
+      home: home,
     );
   }
 }
@@ -176,7 +182,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  RenderingMode renderingMode = RenderingMode.notation;
+  RenderingMode get renderingMode => _appSettings.renderingMode;
+  set renderingMode(RenderingMode rm) => _appSettings.renderingMode = rm;
 
   bool _recordingMelody = false;
   bool _softKeyboardVisible = false;
@@ -332,11 +339,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  bool get hasPrioritizedMIDIController =>
+      _appSettings.controllersReplacingKeyboard.any((nameOrId) =>
+          BeatScratchPlugin.midiControllers
+              .map((c) => c.nameOrId)
+              .contains(nameOrId));
+  bool hadPriotizedMIDIController = false;
+
   _setKeyboardPart(Part part) {
     setState(() {
       bool wasAssignedByPartCreation = keyboardPart == null;
       keyboardPart = part;
-      if (part != null && !wasAssignedByPartCreation) {
+      if (part != null &&
+          !wasAssignedByPartCreation &&
+          !hasPrioritizedMIDIController) {
         showKeyboard = true;
       }
     });
@@ -891,6 +907,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     loadingAnimationController = AnimationController(vsync: this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppSettings.initializingState = false;
       Future.delayed(
           Duration(seconds: 10), () => MelodyMenuBrowser.loadScoreData());
     });
@@ -969,6 +986,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       splitMode = (context.isTablet) ? SplitMode.half : SplitMode.full;
       verticalSectionList = context.isTablet || context.isLandscapePhone;
     }
+    if (hasPrioritizedMIDIController && !hadPriotizedMIDIController) {
+      showKeyboard = false;
+    }
+    hadPriotizedMIDIController = hasPrioritizedMIDIController;
     _isPhone = context.isPhone;
     _isLandscapePhone = context.isLandscapePhone;
     // if (editingMelody && _isPhone) {
@@ -1017,7 +1038,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       setState: setState,
                       currentSection: currentSection),
                   universeViewUI.build(
-                      context: context, sectionColor: sectionColor),
+                      context: context,
+                      sectionColor: sectionColor,
+                      keyboardHeight: _keyboardHeight,
+                      settingsHeight: _midiSettingsHeight),
                   _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [
@@ -1091,7 +1115,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
-            resizeToAvoidBottomPadding: false,
+            resizeToAvoidBottomInset: false,
             backgroundColor: subBackgroundColor,
             appBar: PreferredSize(
                 preferredSize: Size.fromHeight(0.0), // here the desired height
@@ -1640,7 +1664,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: Row(
           children: <Widget>[
             Expanded(
-                flex: 1, child: createBeatScratchToolbar(leftHalfOnly: true)),
+                flex: 2, child: createBeatScratchToolbar(leftHalfOnly: true)),
             Container(
                 height: 36,
                 child: AnimatedContainer(
@@ -1648,7 +1672,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     width: MediaQuery.of(context).size.width / 2,
                     child: createSecondToolbar())),
             Expanded(
-                flex: 1, child: createBeatScratchToolbar(rightHalfOnly: true)),
+                flex: MyPlatform.isDebug ? 3 : 2,
+                child: createBeatScratchToolbar(rightHalfOnly: true)),
           ],
         ));
   }
@@ -1893,7 +1918,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -
-        universeViewUI.height(context) -
+        universeViewUI.height(context,
+            keyboardHeight: _keyboardHeight,
+            settingsHeight: _midiSettingsHeight) -
         downloadLinksHeight -
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
@@ -2026,6 +2053,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       BuildContext context, double availableWidth, double availableHeight) {
     return LayersView(
       key: ValueKey("main-part-melodies-view"),
+      appSettings: _appSettings,
       musicViewMode: musicViewMode,
       superSetState: setState,
       currentSection: currentSection,
@@ -2061,6 +2089,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   MusicView _musicView(BuildContext context, double width, double height) {
     return MusicView(
       key: ValueKey("main-melody-view"),
+      appSettings: _appSettings,
       enableColorboard: enableColorboard,
       superSetState: setState,
       melodyViewSizeFactor: _musicViewSizeFactor,
@@ -2375,6 +2404,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _rightNotchPadding -
               _landscapePhoneSecondToolbarWidth -
               _landscapeTapInBarWidth,
+          appSettings: _appSettings,
           leftMargin: /*_landscapePhoneBeatscratchToolbarWidth + */ _leftNotchPadding,
           part: keyboardPart,
           height: _keyboardHeight,

@@ -1,4 +1,4 @@
-import 'package:beatscratch_flutter_redux/drawing/music/music.dart';
+import 'drawing/music/music.dart';
 
 import 'util/music_theory.dart';
 import 'util/midi_theory.dart';

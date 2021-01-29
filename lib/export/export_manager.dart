@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
+import '../widget/my_platform.dart';
 
 import 'package:path_provider/path_provider.dart';
 

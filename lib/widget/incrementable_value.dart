@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:beatscratch_flutter_redux/music_view/music_action_button.dart';
+import '../music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 

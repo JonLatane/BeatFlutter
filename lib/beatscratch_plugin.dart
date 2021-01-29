@@ -1,18 +1,18 @@
 import 'dart:typed_data';
 
-import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:dart_midi/dart_midi.dart';
 // ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'generated/protos/protos.dart';
 import 'recording/recording.dart';
 import 'settings/midi_settings.dart';
 import 'util/fake_js.dart' if (dart.library.js) 'dart:js';
-import 'util/proto_utils.dart';
 import 'util/music_utils.dart';
+import 'util/proto_utils.dart';
+import 'widget/my_platform.dart';
 
 /// The native platform side of the app is expected to maintain one [Score].
 /// We can push [Part]s and [Melody]s to it. [createScore] should be the first thing called
@@ -218,8 +218,8 @@ class BeatScratchPlugin {
   static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds: 5), () {
-      _checkBeatScratchAudioStatus();
       getApps();
+      _checkBeatScratchAudioStatus();
       _doSynthesizerStatusChangeLoop();
     });
   }

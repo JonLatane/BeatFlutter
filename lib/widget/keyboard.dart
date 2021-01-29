@@ -3,7 +3,8 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';
-import 'package:beatscratch_flutter_redux/drawing/canvas_tone_drawer.dart';
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+import '../drawing/canvas_tone_drawer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,7 @@ import '../ui_models.dart';
 import '../util/util.dart';
 
 class Keyboard extends StatefulWidget {
+  final AppSettings appSettings;
   final double height;
   final bool showConfiguration;
   final Function() hideConfiguration;
@@ -33,6 +35,7 @@ class Keyboard extends StatefulWidget {
 
   const Keyboard(
       {Key key,
+      this.appSettings,
       this.height,
       this.showConfiguration,
       this.hideConfiguration,
@@ -78,8 +81,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
 
   AnimationController animationController() =>
       AnimationController(vsync: this, duration: Duration(milliseconds: 250));
-  double _halfStepWidthInPx = 35;
-  bool usePressure = true;
+  double get _halfStepWidthInPx => widget.appSettings.keyboardHalfStepWidth;
+  set _halfStepWidthInPx(double v) =>
+      widget.appSettings.keyboardHalfStepWidth = v;
 
   double get halfStepWidthInPx => _halfStepWidthInPx;
 
@@ -356,7 +360,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                   tone = diatonicTone(left);
                 }
                 try {
-                  int velocity = usePressure
+                  int velocity = widget.appSettings.keyboard3DTouch
                       ? 30 +
                           (97 *
                                   (event.pressure - event.pressureMin) /
@@ -364,7 +368,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                               .round()
                       : 127;
                   BeatScratchPlugin.playNote(tone, velocity, widget.part);
-                } catch (t) {}
+                } catch (t) {
+                  print(t);
+                }
                 _pointerIdsToTones[event.pointer] = tone;
                 print("pressed tone $tone");
                 widget.pressedNotesNotifier.value = _pointerIdsToTones.values;
@@ -646,15 +652,20 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                                         height: 20,
                                         child: Switch(
                                           activeColor: Colors.white,
-                                          value: usePressure,
+                                          value: widget
+                                              .appSettings.keyboard3DTouch,
                                           onChanged: (v) => setState(() {
-                                            usePressure = v;
+                                            widget.appSettings.keyboard3DTouch =
+                                                v;
                                           }),
                                         )),
                                     Text("3D Touch",
                                         style: TextStyle(
                                             color: Colors.white.withOpacity(
-                                                usePressure ? 1 : 0.5))),
+                                                widget.appSettings
+                                                        .keyboard3DTouch
+                                                    ? 1
+                                                    : 0.5))),
                                     Expanded(child: SizedBox()),
                                   ],
                                 ),
@@ -862,7 +873,7 @@ class KeyboardRenderer extends CanvasToneDrawer {
   bool renderLettersAndNumbers = true;
 
   draw(Canvas canvas) {
-    canvas.drawColor(Colors.black12, BlendMode.srcATop);
+    // canvas.drawColor(Colors.black12, BlendMode.srcATop);
     int alpha = alphaDrawerPaint.color.alpha;
 //    print("keyboard alpha=$alpha");
     alphaDrawerPaint.preserveProperties(() {

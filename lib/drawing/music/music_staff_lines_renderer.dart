@@ -1,6 +1,6 @@
 import 'base_music_renderer.dart';
-import 'package:beatscratch_flutter_redux/generated/protos/music.pb.dart';
-import 'package:beatscratch_flutter_redux/util/music_notation_theory.dart';
+import '../../generated/protos/music.pb.dart';
+import '../../util/music_notation_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:unification/unification.dart';
 import '../../util/util.dart';
@@ -73,23 +73,31 @@ extension ClefNotes on Clef {
     NoteSpecification.name(letter: NoteLetter.C, octave: 0)
   ];
 
-
   static Map<Clef, int> diatonicMaxCache = Map();
-  int get diatonicMax => diatonicMaxCache.putIfAbsent(this, () => notes.maxBy((it) => it.diatonicValue).diatonicValue);
+  int get diatonicMax => diatonicMaxCache.putIfAbsent(
+      this, () => notes.maxBy((it) => it.diatonicValue).diatonicValue);
 
   static Map<Clef, int> diatonicMinCache = Map();
-  int get diatonicMin => diatonicMinCache.putIfAbsent(this, () => notes.minBy((it) => it.diatonicValue).diatonicValue);
+  int get diatonicMin => diatonicMinCache.putIfAbsent(
+      this, () => notes.minBy((it) => it.diatonicValue).diatonicValue);
 
   /// Indicates that the note can be drawn on this clef with no ledger lines
   static Map<ArgumentList, bool> coversCache = Map();
-  bool covers(NoteSpecification note) => coversCache.putIfAbsent(ArgumentList([this, note.noteName, note.octave]),
+  bool covers(NoteSpecification note) => coversCache.putIfAbsent(
+      ArgumentList([this, note.noteName, note.octave]),
       () => range(diatonicMax, diatonicMin).contains(note.diatonicValue));
 
   static Map<ArgumentList, Iterable<NoteSpecification>> ledgersToCache = Map();
-  Iterable<NoteSpecification> ledgersTo(NoteSpecification note) => ledgersToCache.putIfAbsent(ArgumentList([this, note.noteName, note.octave]),
-      () => (note.diatonicValue > diatonicMax)
-        ? ledgers.where((it) =>  it.diatonicValue > diatonicMax && it.diatonicValue <= note.diatonicValue )
-        : ledgers.where((it) =>  it.diatonicValue < diatonicMin && it.diatonicValue >= note.diatonicValue ));
+  Iterable<NoteSpecification> ledgersTo(NoteSpecification note) =>
+      ledgersToCache.putIfAbsent(
+          ArgumentList([this, note.noteName, note.octave]),
+          () => (note.diatonicValue > diatonicMax)
+              ? ledgers.where((it) =>
+                  it.diatonicValue > diatonicMax &&
+                  it.diatonicValue <= note.diatonicValue)
+              : ledgers.where((it) =>
+                  it.diatonicValue < diatonicMin &&
+                  it.diatonicValue >= note.diatonicValue));
 }
 
 class MelodyStaffLinesRenderer extends BaseMusicRenderer {

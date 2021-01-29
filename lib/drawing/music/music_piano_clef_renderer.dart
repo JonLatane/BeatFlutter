@@ -1,3 +1,5 @@
+import 'package:beatscratch_flutter_redux/colors.dart';
+
 import 'base_music_renderer.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +15,7 @@ class MelodyPianoClefRenderer extends BaseMusicRenderer {
   draw(Canvas canvas) {
     canvas.save();
     canvas.clipRect(bounds);
-    canvas.drawColor(Colors.white, BlendMode.color);
+    canvas.drawColor(musicBackgroundColor, BlendMode.color);
     canvas.translate(bounds.left, bounds.top);
 //    canvas.rotate(0.1);
     canvas.rotate(-1.5707);
