@@ -101,6 +101,11 @@ class AppSettings {
     _preferences?.setBool("keyboard3DTouch", value);
   }
 
+  bool get showBeatsBadges => _preferences?.getBool('showBeatsBadges') ?? false;
+  set showBeatsBadges(bool value) {
+    _preferences?.setBool("showBeatsBadges", value);
+  }
+
   double get keyboardHalfStepWidth =>
       _preferences?.getDouble('keyboardHalfStepWidth') ?? 35.0;
   set keyboardHalfStepWidth(double value) =>

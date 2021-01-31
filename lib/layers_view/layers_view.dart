@@ -549,6 +549,17 @@ class _MelodiesViewState extends State<_MelodiesView> {
     debugPrint("Reordering finished for ${draggedItem.id}}");
   }
 
+  DateTime _lastScrollTime;
+  setScrollToTopTimeout() {
+    final v = DateTime.now();
+    Future.delayed(Duration(seconds: 3), () {
+      if (_lastScrollTime == v && scrollControllerIsNearTop) {
+        requestScrollToTop(0);
+      }
+    });
+    _lastScrollTime = v;
+  }
+
   requestScrollToTop(int melodyIndex) {
     if (melodyIndex < 0) {
       scrollController.animateTo(0,
@@ -590,19 +601,19 @@ class _MelodiesViewState extends State<_MelodiesView> {
         curve: Curves.ease);
   }
 
+  tryScrollToTop() {
+    if (scrollController.hasClients) {
+      requestScrollToTop(0);
+    } else {
+      Future.delayed(animationDuration, () => tryScrollToTop());
+    }
+  }
+
   @override
   initState() {
     super.initState();
-    scrollController = ScrollController();
+    scrollController = ScrollController()..addListener(setScrollToTopTimeout);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      tryScrollToTop() {
-        if (scrollController.hasClients) {
-          requestScrollToTop(0);
-        } else {
-          Future.delayed(animationDuration, () => tryScrollToTop());
-        }
-      }
-
       tryScrollToTop();
     });
   }
@@ -625,6 +636,10 @@ class _MelodiesViewState extends State<_MelodiesView> {
   String lastSelectedMelodyId;
   double prevWidth;
 
+  bool get scrollControllerIsNearTop =>
+      scrollController.hasClients &&
+      scrollController.offset < (widget.showMediumDetails ? 150 : 150);
+
   @override
   Widget build(BuildContext context) {
     String partName;
@@ -635,7 +650,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
     }
     if (prevWidth != null &&
         prevWidth != widget.width &&
-        scrollController.offset < (widget.showMediumDetails ? 150 : 150)) {
+        scrollControllerIsNearTop) {
       requestScrollToTop(0);
     }
     prevWidth = widget.width;
@@ -659,6 +674,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
       }
     }
     lastSelectedMelodyId = selectedMelody?.id;
+    setScrollToTopTimeout();
     return frl.ReorderableList(
         onReorder: this._reorderCallback,
         onReorderDone: this._reorderDone,
@@ -745,6 +761,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                   value: max(0.0, min(1.0, part.instrument.volume)),
                   activeColor: textColor,
                   onChanged: (value) {
+                    setScrollToTopTimeout();
                     setPartVolume(part, value);
                   }),
             ),
@@ -827,9 +844,11 @@ class _MelodiesViewState extends State<_MelodiesView> {
                 backgroundColor: Colors.transparent,
                 floating: true,
                 pinned: false,
-                expandedHeight: max(5, widget.height - 0),
+                expandedHeight: max(5, 2 * widget.height - 0),
                 flexibleSpace: SizedBox()),
-//            Container(height: max(5, widget.height - 60))
+            // AnimatedContainer(
+            //     duration: animationDuration,
+            //     height: max(5, 2 * widget.height - 0))
           ].where((it) => it != null).toList(),
         ));
   }
@@ -1018,6 +1037,7 @@ class _MelodiesViewState extends State<_MelodiesView> {
                       padding: EdgeInsets.zero,
                       onPressed: () {
                         setState(() {
+                          setScrollToTopTimeout();
                           newMelodyBeatCountIndex = entry.key;
                         });
                       },

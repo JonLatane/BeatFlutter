@@ -633,7 +633,7 @@ class SectionToolbarState extends State<SectionToolbar> {
               child: Text("Really delete?",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white)))),
+                  style: TextStyle(color: widget.sectionColor.textColor())))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 48 : 0,

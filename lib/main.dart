@@ -300,7 +300,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
-  bool showBeatCounts;
+  bool get showBeatCounts => _appSettings.showBeatsBadges;
+  set showBeatCounts(bool v) => _appSettings.showBeatsBadges = v;
 
   _showMusicView() {
     if (interactionMode == InteractionMode.edit) {

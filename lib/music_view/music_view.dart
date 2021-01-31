@@ -1156,7 +1156,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       });
     }
 
-    return Container(
+    return AnimatedContainer(
+        duration: animationDuration,
         color: musicBackgroundColor.withOpacity(
             musicBackgroundColor.opacity * (widget.isPreview ? 0.5 : 1)),
         child: GestureDetector(

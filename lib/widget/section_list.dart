@@ -100,20 +100,27 @@ class _SectionListState extends State<SectionList> {
                             onPressed: widget.toggleShowSectionBeatCounts,
                             child: Row(children: [
                               Expanded(child: SizedBox()),
-                              Text(
-                                "$beatCount",
-                                maxLines: 1,
-                                overflow: TextOverflow.fade,
-                                style: TextStyle(fontWeight: FontWeight.w900),
-                              ),
-                              SizedBox(width: 3),
-                              Text(
-                                "beat${beatCount == 1 ? "" : "s"}",
-                                maxLines: 1,
-                                overflow: TextOverflow.fade,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w100, fontSize: 8),
-                              ),
+                              Column(children: [
+                                Expanded(child: SizedBox()),
+                                Text(
+                                  "$beatCount",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w900, height: 0.9),
+                                ),
+                                SizedBox(height: 1),
+                                Text(
+                                  "beat${beatCount == 1 ? "" : "s"}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 8,
+                                      height: 0.9),
+                                ),
+                                Expanded(child: SizedBox()),
+                              ]),
                               Expanded(child: SizedBox()),
                             ])),
                         padding: EdgeInsets.zero,
@@ -123,13 +130,13 @@ class _SectionListState extends State<SectionList> {
                               color: Colors.black,
                             ),
                             borderRadius: BorderRadius.all(Radius.circular(5))),
-                      )))
-            ]),
+                      ))), // ]),
 //      ]),
-            Row(children: [
+              // Row(children: [
               Expanded(
                   child: Container(
                       height: 36,
+                      padding: EdgeInsets.all(1),
                       child: MyRaisedButton(
                         child: Image.asset("assets/add.png"),
                         onPressed: widget.score.sections.length < 100
