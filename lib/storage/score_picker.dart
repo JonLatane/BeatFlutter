@@ -550,10 +550,10 @@ class __ScoreState extends State<_Score> {
     }
 
     Score previewScore = _previewScore;
-    if (previewScore == null) {
-      previewScore = defaultScore();
-    }
-    if (previewScore.sections.isEmpty) {
+    // if (previewScore == null) {
+    //   previewScore = defaultScore();
+    // }
+    if (previewScore?.sections?.isEmpty == true) {
       previewScore.sections.add(defaultSection());
     }
     bool isLocked = scoreName == ScoreManager.PASTED_SCORE ||
@@ -604,23 +604,29 @@ class __ScoreState extends State<_Score> {
                   Expanded(
                       child: Column(children: [
                     Expanded(
-                        child: previewScore != null
-                            ? Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                        color: musicBackgroundColor
-                                            .withOpacity(0.3),
-                                        child: SingleChildScrollView(
-                                            child: ScorePreview(previewScore,
-                                                scale: 0.1,
-                                                width: 200,
-                                                height: 300,
-                                                notifyUpdate: notifyUpdate))),
-                                  ),
-                                ],
-                              )
-                            : SizedBox()),
+                        child: AnimatedOpacity(
+                            duration: slowAnimationDuration,
+                            opacity: previewScore != null ? 1 : 0,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                      color:
+                                          musicBackgroundColor.withOpacity(0.3),
+                                      child: SingleChildScrollView(
+                                          child: previewScore != null
+                                              ? ScorePreview(previewScore,
+                                                  scale: 0.1,
+                                                  width: 200,
+                                                  height: 300,
+                                                  notifyUpdate: notifyUpdate)
+                                              : SizedBox(
+                                                  width: 200,
+                                                  height: 300,
+                                                ))),
+                                ),
+                              ],
+                            ))),
                   ]))
                 ])),
             AnimatedOpacity(

@@ -594,9 +594,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _toggleViewOptions() {
     setState(() {
       showViewOptions = !showViewOptions;
-      // if (!showViewOptions) {
-      //   _showTapInBar = false;
-      // }
+      if (!showViewOptions) {
+        _showTapInBar = false;
+      }
     });
   }
 
@@ -1807,6 +1807,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
       vertical: vertical,
+      setAppState: setState,
       recordingMelody: recordingMelody,
       enableColorboard: enableColorboard,
       toggleKeyboard: keyboardPart != null ? _toggleKeyboard : null,
@@ -2005,7 +2006,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ],
                 ),
               ],
-            ))
+            )),
+          IgnorePointer(
+              child: Row(children: [
+            Expanded(
+                child: Column(children: [
+              Expanded(
+                  child: AnimatedContainer(
+                      duration: animationDuration,
+                      color: musicBackgroundColor
+                          .withOpacity(_musicViewSizeFactor < 1 ? 0 : 1)))
+            ]))
+          ]))
         ],
       );
     }

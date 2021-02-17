@@ -958,7 +958,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
   }
 }
 
-class SecondToolbar extends StatelessWidget {
+class SecondToolbar extends StatefulWidget {
   final VoidCallback toggleKeyboard;
   final VoidCallback toggleColorboard;
   final VoidCallback toggleKeyboardConfiguration;
@@ -978,6 +978,7 @@ class SecondToolbar extends StatelessWidget {
   final bool enableColorboard;
   final bool vertical;
   final bool visible;
+  final Function(VoidCallback) setAppState;
 
   const SecondToolbar({
     Key key,
@@ -1000,10 +1001,19 @@ class SecondToolbar extends StatelessWidget {
     this.visible,
     this.tempoLongPress,
     this.rewind,
+    this.setAppState,
   }) : super(key: key);
 
+  @override
+  _SecondToolbarState createState() => _SecondToolbarState();
+}
+
+class _SecondToolbarState extends State<SecondToolbar> {
+  DateTime lastMetronomeAudioToggleTime = DateTime(0);
+  double tempoButtonGestureStartMultiplier;
+  double tempoButtonGestureStartPosition;
   Widget columnOrRow(BuildContext context, {List<Widget> children}) {
-    if (vertical) {
+    if (widget.vertical) {
       return Column(children: children);
     } else {
       return Row(children: children);
@@ -1012,15 +1022,15 @@ class SecondToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var totalSpace = vertical
+    var totalSpace = widget.vertical
         ? MediaQuery.of(context).size.height
         : MediaQuery.of(context).size.width;
-    if (context.isTabletOrLandscapey && !vertical) {
+    if (context.isTabletOrLandscapey && !widget.vertical) {
       totalSpace = totalSpace / 2;
     }
-    bool editMode = interactionMode == InteractionMode.edit;
+    bool editMode = widget.interactionMode == InteractionMode.edit;
     int numberOfButtons = editMode ? 4 : 3;
-    if (enableColorboard) {
+    if (widget.enableColorboard) {
       numberOfButtons += 1;
     }
     Widget createPlayIcon(IconData icon,
@@ -1032,192 +1042,273 @@ class SecondToolbar extends StatelessWidget {
               scale: 0.8, child: Icon(icon, color: color, size: 32)));
     }
 
-    return columnOrRow(context, children: [
-      AnimatedContainer(
-          height: !vertical
-              ? null
-              : editMode
-                  ? totalSpace / numberOfButtons
-                  : 0,
-          width: vertical
-              ? null
-              : editMode
-                  ? totalSpace / numberOfButtons
-                  : 0,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                  padding: EdgeInsets.zero,
-                  child: Stack(children: [
-                    createPlayIcon(Icons.play_arrow,
-                        visible: editMode &&
-                            !BeatScratchPlugin.playing &&
-                            !recordingMelody),
-                    createPlayIcon(Icons.pause,
-                        visible: editMode && BeatScratchPlugin.playing),
-                    createPlayIcon(Icons.fiber_manual_record,
-                        visible: editMode &&
-                            !BeatScratchPlugin.playing &&
-                            recordingMelody,
-                        color: chromaticSteps[7]),
-                    AnimatedOpacity(
-                        opacity: editMode &&
-                                BeatScratchPlugin.playing &&
-                                recordingMelody
-                            ? 0.6
-                            : 0,
-                        duration: animationDuration,
-                        child: Transform.translate(
-                            offset: Offset(12, 6),
-                            child: Transform.scale(
-                                scale: 0.5,
-                                child: Icon(Icons.fiber_manual_record,
-                                    color: chromaticSteps[7], size: 32)))),
-                  ]),
-                  onPressed: BeatScratchPlugin.supportsPlayback
-                      ? () {
-                          if (BeatScratchPlugin.playing) {
-                            BeatScratchPlugin.pause();
-                          } else {
-                            BeatScratchPlugin.play();
-                          }
-                        }
-                      : null))),
-      AnimatedContainer(
-          height: !vertical ? null : totalSpace / numberOfButtons,
-          width: vertical ? null : totalSpace / numberOfButtons,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                  padding: EdgeInsets.zero,
-                  child: AnimatedOpacity(
-                      opacity: visible ? 1 : 0,
-                      duration: animationDuration,
+    return AnimatedOpacity(
+        opacity: widget.visible ? 1 : 0,
+        duration: animationDuration,
+        child: columnOrRow(context, children: [
+          AnimatedContainer(
+              height: !widget.vertical
+                  ? null
+                  : editMode
+                      ? totalSpace / numberOfButtons
+                      : 0,
+              width: widget.vertical
+                  ? null
+                  : editMode
+                      ? totalSpace / numberOfButtons
+                      : 0,
+              duration: animationDuration,
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: MyRaisedButton(
+                      padding: EdgeInsets.zero,
+                      child: Stack(children: [
+                        createPlayIcon(Icons.play_arrow,
+                            visible: editMode &&
+                                !BeatScratchPlugin.playing &&
+                                !widget.recordingMelody),
+                        createPlayIcon(Icons.pause,
+                            visible: editMode && BeatScratchPlugin.playing),
+                        createPlayIcon(Icons.fiber_manual_record,
+                            visible: editMode &&
+                                !BeatScratchPlugin.playing &&
+                                widget.recordingMelody,
+                            color: chromaticSteps[7]),
+                        AnimatedOpacity(
+                            opacity: editMode &&
+                                    BeatScratchPlugin.playing &&
+                                    widget.recordingMelody
+                                ? 0.6
+                                : 0,
+                            duration: animationDuration,
+                            child: Transform.translate(
+                                offset: Offset(12, 6),
+                                child: Transform.scale(
+                                    scale: 0.5,
+                                    child: Icon(Icons.fiber_manual_record,
+                                        color: chromaticSteps[7], size: 32)))),
+                      ]),
+                      onPressed: BeatScratchPlugin.supportsPlayback
+                          ? () {
+                              if (BeatScratchPlugin.playing) {
+                                BeatScratchPlugin.pause();
+                              } else {
+                                BeatScratchPlugin.play();
+                              }
+                            }
+                          : null))),
+          AnimatedContainer(
+              height: !widget.vertical ? null : totalSpace / numberOfButtons,
+              width: widget.vertical ? null : totalSpace / numberOfButtons,
+              duration: animationDuration,
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: MyRaisedButton(
+                      padding: EdgeInsets.zero,
                       child: Align(
                           alignment: Alignment.center,
                           child: Transform.scale(
                               scale: 0.8,
-                              child: Icon(Icons.skip_previous, size: 32)))),
-                  onPressed:
-                      BeatScratchPlugin.supportsPlayback ? rewind : null))),
-      Expanded(
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                padding: EdgeInsets.zero,
-                child: Stack(children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: Transform.scale(
-                        scale: 0.8,
-                        child: Opacity(
-                            opacity: 0.5,
-                            child: Image.asset('assets/metronome.png'))),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                        padding: EdgeInsets.only(right: 3.5),
-                        child: Text(
-                            (BeatScratchPlugin.unmultipliedBpm *
-                                    BeatScratchPlugin.bpmMultiplier)
-                                .toStringAsFixed(0),
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(fontSize: 16))),
-                  ),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                        padding: EdgeInsets.only(left: 10.5),
-                        child: Text(
-                            BeatScratchPlugin.unmultipliedBpm
-                                .toStringAsFixed(0),
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w200,
-                                fontSize: 12,
-                                fontStyle: FontStyle.normal))),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                        padding: EdgeInsets.only(left: 3.5),
-                        child: Text(
-                            "x${BeatScratchPlugin.bpmMultiplier.toStringAsPrecision(3)}",
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                              fontSize: 12,
-                            ))),
-                  )
-                ]),
-                onPressed: toggleTempoConfiguration,
-                onLongPress: tempoLongPress,
-                color: (showTempoConfiguration) ? Colors.white : Colors.grey,
-              ))),
-      AnimatedContainer(
-          height: !vertical
-              ? null
-              : (enableColorboard)
-                  ? totalSpace / numberOfButtons
-                  : 0,
-          width: vertical
-              ? null
-              : (enableColorboard)
-                  ? totalSpace / numberOfButtons
-                  : 0,
-          duration: animationDuration,
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                child: AnimatedOpacity(
-                    duration: animationDuration,
-                    opacity: toggleColorboard != null ? 1 : 0.25,
+                              child: Icon(Icons.skip_previous, size: 32))),
+                      onPressed: BeatScratchPlugin.supportsPlayback
+                          ? widget.rewind
+                          : null))),
+          Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: tempoButton(context))),
+          AnimatedContainer(
+              height: !widget.vertical
+                  ? null
+                  : (widget.enableColorboard)
+                      ? totalSpace / numberOfButtons
+                      : 0,
+              width: widget.vertical
+                  ? null
+                  : (widget.enableColorboard)
+                      ? totalSpace / numberOfButtons
+                      : 0,
+              duration: animationDuration,
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: MyRaisedButton(
+                    child: AnimatedOpacity(
+                        duration: animationDuration,
+                        opacity: widget.toggleColorboard != null ? 1 : 0.25,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Transform.scale(
+                              scale: widget.vertical
+                                  ? MyPlatform.isMacOS || MyPlatform.isWeb
+                                      ? 0.8
+                                      : 2.5
+                                  : 0.8,
+                              child: Image.asset('assets/colorboard.png')),
+                        )),
+                    onPressed: widget.toggleColorboard,
+                    onLongPress: widget.toggleColorboardConfiguration,
+                    color: (widget.showColorboardConfiguration)
+                        ? widget.sectionColor
+                        : (widget.showColorboard)
+                            ? Colors.white
+                            : Colors.grey,
+                  ))),
+          Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: MyRaisedButton(
                     child: Align(
                       alignment: Alignment.center,
                       child: Transform.scale(
-                          scale: vertical
+                          scale: widget.vertical
                               ? MyPlatform.isMacOS || MyPlatform.isWeb
                                   ? 0.8
                                   : 2.5
                               : 0.8,
-                          child: Image.asset('assets/colorboard.png')),
-                    )),
-                onPressed: toggleColorboard,
-                onLongPress: toggleColorboardConfiguration,
-                color: (showColorboardConfiguration)
-                    ? sectionColor
-                    : (showColorboard)
-                        ? Colors.white
-                        : Colors.grey,
-              ))),
-      Expanded(
-          child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: MyRaisedButton(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Transform.scale(
-                      scale: vertical
-                          ? MyPlatform.isMacOS || MyPlatform.isWeb
-                              ? 0.8
-                              : 2.5
-                          : 0.8,
-                      child: Image.asset('assets/piano.png')),
-                ),
-                onPressed: toggleKeyboard,
-                onLongPress: toggleKeyboardConfiguration,
-                color: (showKeyboardConfiguration)
-                    ? sectionColor
-                    : (showKeyboard)
-                        ? Colors.white
-                        : Colors.grey,
-              ))),
-    ]);
+                          child: Image.asset('assets/piano.png')),
+                    ),
+                    onPressed: widget.toggleKeyboard,
+                    onLongPress: widget.toggleKeyboardConfiguration,
+                    color: (widget.showKeyboardConfiguration)
+                        ? widget.sectionColor
+                        : (widget.showKeyboard)
+                            ? Colors.white
+                            : Colors.grey,
+                  ))),
+        ]));
+  }
+
+  Widget tempoButton(BuildContext context) {
+    double sensitivity = 7;
+    tempoDragStart(DragStartDetails details) {
+      tempoButtonGestureStartPosition =
+          widget.vertical ? details.localPosition.dy : details.localPosition.dx;
+      tempoButtonGestureStartMultiplier = BeatScratchPlugin.bpmMultiplier;
+    }
+
+    tempoDragUpdate(DragUpdateDetails details) {
+      final change = widget.vertical
+          ? -(details.localPosition.dy - tempoButtonGestureStartPosition)
+          : details.localPosition.dx - tempoButtonGestureStartPosition;
+      widget.setAppState(() {
+        double newMultiplier = tempoButtonGestureStartMultiplier + change / 250;
+        BeatScratchPlugin.bpmMultiplier = max(0.1, min(newMultiplier, 2));
+      });
+    }
+
+    tempoDragEnd() {
+      tempoButtonGestureStartPosition = null;
+      tempoButtonGestureStartMultiplier = null;
+    }
+
+    otherAxisUpdate(DragUpdateDetails details) {
+      // Up swipe (normal) or right swipe (vertical)
+      bool isToggleMetronomeSound =
+          !widget.vertical && details.delta.dy < -sensitivity ||
+              widget.vertical && details.delta.dx > sensitivity;
+      isToggleMetronomeSound &= DateTime.now()
+              .difference(lastMetronomeAudioToggleTime)
+              .inMilliseconds >
+          600;
+      // Down swipe (normal) or left swipe (vertical)
+      bool isToggleTempoTo1x =
+          !widget.vertical && details.delta.dy > sensitivity ||
+              widget.vertical && details.delta.dx < -sensitivity;
+      if (isToggleMetronomeSound) {
+        widget.setAppState(() {
+          BeatScratchPlugin.metronomeEnabled =
+              !BeatScratchPlugin.metronomeEnabled;
+        });
+        lastMetronomeAudioToggleTime = DateTime.now();
+      } else if (isToggleTempoTo1x) {
+        widget.setAppState(() {
+          BeatScratchPlugin.bpmMultiplier = 1;
+        });
+      }
+    }
+
+    return GestureDetector(
+        onVerticalDragStart: widget.vertical ? tempoDragStart : null,
+        onVerticalDragUpdate:
+            widget.vertical ? tempoDragUpdate : otherAxisUpdate,
+        onVerticalDragCancel: widget.vertical ? tempoDragEnd : null,
+        onVerticalDragEnd: widget.vertical
+            ? (_) {
+                tempoDragEnd();
+              }
+            : null,
+        onHorizontalDragStart: !widget.vertical ? tempoDragStart : null,
+        onHorizontalDragUpdate:
+            !widget.vertical ? tempoDragUpdate : otherAxisUpdate,
+        onHorizontalDragCancel: !widget.vertical ? tempoDragEnd : null,
+        onHorizontalDragEnd: !widget.vertical
+            ? (_) {
+                tempoDragEnd();
+              }
+            : null,
+        child: MyRaisedButton(
+          padding: EdgeInsets.zero,
+          child: Stack(children: [
+            Align(
+              alignment: Alignment.center,
+              child: Transform.scale(
+                  scale: 0.8,
+                  child: Opacity(
+                      opacity: 0.5,
+                      child: Image.asset('assets/metronome.png'))),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                  padding: EdgeInsets.only(
+                      right: 3.5, top: widget.vertical ? 26 : 0),
+                  child: Text(
+                      (BeatScratchPlugin.unmultipliedBpm *
+                              BeatScratchPlugin.bpmMultiplier)
+                          .toStringAsFixed(0),
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(fontSize: 16))),
+            ),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                  padding: EdgeInsets.only(left: 10.5),
+                  child: Text(
+                      BeatScratchPlugin.unmultipliedBpm.toStringAsFixed(0),
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w200,
+                          fontSize: 12,
+                          fontStyle: FontStyle.normal))),
+            ),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
+                  padding: EdgeInsets.only(left: 3.5),
+                  child: Text(
+                      "x${BeatScratchPlugin.bpmMultiplier.toStringAsPrecision(3)}",
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 12,
+                      ))),
+            ),
+            Align(
+                alignment: Alignment.center,
+                child: Transform.translate(
+                    offset: Offset(15, widget.vertical ? 0 : 0),
+                    child: Transform.scale(
+                        scale: 0.55,
+                        child: Icon(BeatScratchPlugin.metronomeEnabled
+                            ? Icons.volume_up
+                            : Icons.not_interested))))
+          ]),
+          onPressed: widget.toggleTempoConfiguration,
+          onLongPress: widget.tempoLongPress,
+          color: (widget.showTempoConfiguration) ? Colors.white : Colors.grey,
+        ));
   }
 }

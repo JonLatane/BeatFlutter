@@ -37,8 +37,10 @@ extension ScoreReKey on Score {
 extension DeleteNotes on Melody {
   deleteMidiNote(int midiNote, int subdivision) {
     // First delete the NoteOnEvent here
-    midiData.data[subdivision].midiEvents =
-        midiData.data[subdivision].midiEvents.withoutNoteOnEvents(midiNote);
+    midiData.data[subdivision].midiEvents = midiData
+        .data[subdivision].midiEvents
+        .withoutNoteOnEvents(midiNote)
+        .toList();
 
     // Find the NoteOff that corresponds and delete it
     int s = subdivision;
@@ -48,7 +50,8 @@ extension DeleteNotes on Melody {
       if (midiChange != null) {
         final midiEvents = midiChange.midiEvents;
         if (midiEvents.hasNoteOnEvent(midiNote) != null) {
-          midiChange.midiEvents = midiEvents.withoutNoteOffEvents(midiNote);
+          midiChange.midiEvents =
+              midiEvents.withoutNoteOffEvents(midiNote).toList();
           foundNoteOff = true;
         }
       }

@@ -20,30 +20,12 @@ class AppDelegate: FlutterAppDelegate {
   {
     // Get URL components from the incoming user activity.
     guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
-          let incomingURL = userActivity.webpageURL,
-          let _ = NSURLComponents(url: incomingURL, resolvingAgainstBaseURL: true) else {
-            return false
-          }
-    
-    return true
-    
-//    // Check for specific URL components that you need.
-//    guard let path = components.path,
-//          let params = components.queryItems else {
-//      return false
-//    }
-//    print("path = \(path)")
-//    
-//    if let albumName = params.first(where: { $0.name == "albumname" } )?.value,
-//       let photoIndex = params.first(where: { $0.name == "index" })?.value {
-//      print("album = \(albumName)")
-//      print("photoIndex = \(photoIndex)")
-//      return true
-//      
-//    } else {
-//      print("Either album name or photo index missing")
-//      return false
-//    }
+      let url = userActivity.webpageURL/*,
+      let components = URLComponents(url: url, resolvingAgainstBaseURL: true)*/ else {
+        return false
+    }
+    BeatScratchPlugin.sharedInstance.notifyScoreUrlOpened(url.absoluteString)
+    return false
   }
 
 }

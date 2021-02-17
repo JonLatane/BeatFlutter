@@ -4,12 +4,10 @@
 cd "$(dirname "$0")"
 
 echo "#-----------------------------------------------------------------------" && \
-echo "# Building/Archiving for iOS" && \
+echo "# Building, Archiving, and Uploading for iOS" && \
 echo "#-----------------------------------------------------------------------" && \
 flutter build ios | sed 's/.*/\[iOS\] &/' && \
 echo "Archiving iOS app..." && \
 xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration release archive | sed 's/.*/\[iOS\] &/' && \
-echo "iOS app built! Manually archive/upload build to TestFlight in XCode." && \
-open "/Applications/XCode.app"
-#&& \
-#xcodebuild -exportArchive -archivePath $PWD/build/myApp.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath $PWD/build
+echo "iOS app built! Uploading to the App Store..." && \
+./build-upload-ios | sed 's/.*/\[iOS: App Store Upload\] &/'
