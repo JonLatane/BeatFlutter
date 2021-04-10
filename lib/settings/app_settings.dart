@@ -110,4 +110,9 @@ class AppSettings {
       _preferences?.getDouble('keyboardHalfStepWidth') ?? 35.0;
   set keyboardHalfStepWidth(double value) =>
       _preferences?.setDouble("keyboardHalfStepWidth", value);
+
+  bool get enableUniverse => _preferences?.getBool('enableUniverse') ?? false;
+  set enableUniverse(bool value) {
+    _preferences?.setBool("enableUniverse", value);
+  }
 }

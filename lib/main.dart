@@ -188,12 +188,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _recordingMelody = false;
   bool _softKeyboardVisible = false;
 
-  double get bottomKeyboardPadding => context.isLandscapePhone
-      ? (showKeyboard ^ showColorboard)
-          ? -30
-          : 40
-      : 65;
-
   bool get recordingMelody => _recordingMelody;
 
   set recordingMelody(value) {
@@ -288,6 +282,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   ValueNotifier<Iterable<int>> keyboardNotesNotifier;
+  int keyboardChordBase;
+  Set<int> keyboardChordNotes = Set();
+  ValueNotifier<Chord> keyboardChordNotifier;
 
   bool get melodyViewVisible => _musicViewSizeFactor > 0;
 
@@ -510,9 +507,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _viewMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
-    universeViewUI.visible = false;
     setState(() {
+      universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
+      if (scorePickerMode == ScorePickerMode.universe) {
+        scorePickerMode = ScorePickerMode.open;
+      }
       recordingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
@@ -529,6 +529,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       interactionMode = InteractionMode.universe;
       universeViewUI.visible = true;
+      scorePickerMode = ScorePickerMode.universe;
+      _showScorePicker = true;
       recordingMelody = false;
       if (!_scalableUI) {
         showViewOptions = false;
@@ -547,6 +549,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
       universeViewUI.visible = false;
+
+      if (scorePickerMode == ScorePickerMode.universe) {
+        scorePickerMode = ScorePickerMode.open;
+      }
       if (interactionMode == InteractionMode.edit) {
         if (selectedMelody != null) {
           _prevSelectedMelody = selectedMelody;
@@ -684,7 +690,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _topNotchPaddingReal => MediaQuery.of(context).padding.top;
 
   double get _secondToolbarHeight => _portraitPhoneUI
-      ? interactionMode == InteractionMode.edit || showViewOptions
+      ? interactionMode == InteractionMode.edit ||
+              interactionMode == InteractionMode.view ||
+              showViewOptions
           ? 36
           : 0
       : 0;
@@ -699,8 +707,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double get _midiSettingsHeight => showMidiConfiguration ? 175 : 0;
 
-  double get _scorePickerHeight =>
-      showScorePicker ? 210 + bottomKeyboardPadding : 0;
+  double _scorePickerHeight(BuildContext context) => showScorePicker
+      ? interactionMode == InteractionMode.universe
+          ? flexibleAreaHeight(context) * 0.75
+          : 210.0 +
+              (context.isLandscapePhone
+                  ? (showKeyboard ^ showColorboard)
+                      ? -30
+                      : 40
+                  : 65)
+      : 0.0;
 
   // ignore: unused_field
   bool _isPhone = false;
@@ -766,7 +782,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get horizontalSectionListHeight =>
       interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
 
-  AnimationController loadingAnimationController;
   ExportUI exportUI;
   MessagesUI messagesUI;
   UniverseViewUI universeViewUI;
@@ -904,8 +919,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
-
-    loadingAnimationController = AnimationController(vsync: this);
+    keyboardNotesNotifier.addListener(() {
+      final notes = keyboardNotesNotifier.value;
+      if (notes.isEmpty) {
+        keyboardChordBase = null;
+      }
+      if (keyboardChordBase == null && notes.length == 1) {
+        keyboardChordBase = notes.first;
+      }
+      keyboardChordNotes.addAll(notes.map((n) => n.mod12));
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AppSettings.initializingState = false;
@@ -916,7 +939,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    loadingAnimationController.dispose();
     colorboardNotesNotifier.dispose();
     keyboardNotesNotifier.dispose();
     scrollToCurrentBeat.dispose();
@@ -1033,16 +1055,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: Column(children: [
                   _webBanner(context),
                   _downloadBanner(context),
-                  _scorePicker(context),
-                  exportUI.build(
-                      context: context,
-                      setState: setState,
-                      currentSection: currentSection),
                   universeViewUI.build(
                       context: context,
                       sectionColor: sectionColor,
                       keyboardHeight: _keyboardHeight,
                       settingsHeight: _midiSettingsHeight),
+                  _scorePicker(context),
+                  exportUI.build(
+                      context: context,
+                      setState: setState,
+                      currentSection: currentSection),
                   _horizontalSectionList(),
                   Expanded(
                       child: Row(children: [
@@ -1391,7 +1413,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           ? Icons.fiber_manual_record
                           : Icons.play_arrow,
                       color: Colors.grey),
-                if (withText) SizedBox(width: 5),
+                SizedBox(width: 5),
                 if (withText)
                   Expanded(
                     child: Text(
@@ -1418,7 +1440,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     color: recordingMelody
                         ? chromaticSteps[7]
                         : chromaticSteps[0]),
-                if (withText) SizedBox(width: 5),
+                SizedBox(width: 5),
                 if (withText)
                   Text(
                       recordingMelody && BeatScratchPlugin.supportsRecording
@@ -1496,11 +1518,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                 ))),
       ),
-      if (_scalableUI)
+      if (!vertical)
         Expanded(
+            flex: 1,
             child: Padding(
                 padding: EdgeInsets.only(left: 7),
-                child: tapInBarInstructions())),
+                child: tapInBarInstructions(withText: !_portraitPhoneUI))),
       if (vertical) SizedBox(height: 15),
       if (vertical)
         Expanded(
@@ -1516,6 +1539,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             child: _tempoConfigurationBar(context)),
       if (_portraitPhoneUI && !vertical)
         Expanded(
+          flex: 5,
           child: AnimatedOpacity(
               duration: animationDuration,
               opacity: isDisplayed ? 1 : 0,
@@ -1735,6 +1759,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         showScorePicker: (mode) {
           setState(() {
             scorePickerMode = mode;
+            if (interactionMode == InteractionMode.universe &&
+                mode != ScorePickerMode.universe) {
+              _viewMode();
+            }
             showScorePicker = true;
           });
         },
@@ -1903,14 +1931,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       context.isLandscapePhone ? 0 : 48;
   double beatScratchToolbarWidth(BuildContext context) =>
       context.isLandscapePhone ? 48 : 0;
-  Widget _layersAndMusicView(BuildContext context) {
+
+  double flexibleAreaHeight(BuildContext context) {
     var data = MediaQuery.of(context);
-    double fullHeight = data.size.height -
+    return data.size.height -
         data.padding.top -
         // kToolbarHeight -
         _secondToolbarHeight -
         _midiSettingsHeight -
-        _scorePickerHeight -
         _colorboardHeight -
         _keyboardHeight -
         messagesUI.height(context) -
@@ -1927,6 +1955,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
         beatScratchToolbarHeight(context);
+  }
+
+  Widget _layersAndMusicView(BuildContext context) {
+    var data = MediaQuery.of(context);
+    double fullHeight =
+        flexibleAreaHeight(context) - _scorePickerHeight(context);
     double fullWidth = data.size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
@@ -2365,7 +2399,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         padding: (!_scalableUI) ? EdgeInsets.only(top: 5) : EdgeInsets.zero,
         curve: Curves.easeInOut,
         duration: animationDuration,
-        height: _scorePickerHeight,
+        height: _scorePickerHeight(context),
         width: MediaQuery.of(context).size.width,
         color: subBackgroundColor,
         child: ScorePicker(

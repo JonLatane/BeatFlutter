@@ -27,7 +27,6 @@ import 'widget/my_platform.dart';
 import 'widget/my_popup_menu.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
-  static final bool enableUniverse = MyPlatform.isDebug;
   final AppSettings appSettings;
   final Score score;
   final Section currentSection;
@@ -745,7 +744,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                 //   : Icons.menu,
                               ],
                             ))))),
-          if (!widget.leftHalfOnly && BeatScratchToolbar.enableUniverse)
+          if (!widget.leftHalfOnly && widget.appSettings.enableUniverse)
             Expanded(
                 child: AnimatedContainer(
                     duration: animationDuration,
@@ -756,11 +755,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         onPressed: widget.universeMode,
                         onLongPress: widget.universeMode,
                         padding: EdgeInsets.all(0.0),
-                        child: Icon(FontAwesomeIcons.globe,
-                            color: (widget.interactionMode ==
-                                    InteractionMode.universe)
-                                ? widget.sectionColor.textColor()
-                                : widget.sectionColor)))),
+                        child: Transform.translate(
+                            offset: Offset(-2, 0),
+                            child: Icon(FontAwesomeIcons.rocket,
+                                color: (widget.interactionMode ==
+                                        InteractionMode.universe)
+                                    ? widget.sectionColor.textColor()
+                                    : widget.sectionColor))))),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(

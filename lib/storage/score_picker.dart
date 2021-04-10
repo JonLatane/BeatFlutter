@@ -27,6 +27,7 @@ enum ScorePickerMode {
   duplicate,
   show,
   none,
+  universe,
 }
 
 extension ShowScoreNameEntry on ScorePickerMode {
@@ -121,7 +122,8 @@ class _ScorePickerState extends State<ScorePicker> {
         nameController.value.text.trim() != ScoreManager.PASTED_SCORE &&
         nameController.value.text.trim() != ScoreManager.WEB_SCORE;
     bool showHeader = widget.mode != ScorePickerMode.none &&
-        widget.mode != ScorePickerMode.show;
+        widget.mode != ScorePickerMode.show &&
+        widget.mode != ScorePickerMode.universe;
     String headerText;
     String extraDetailText = "";
     IconData icon;
@@ -249,6 +251,7 @@ class _ScorePickerState extends State<ScorePicker> {
                           focusNode: nameFocus,
                           controller: nameController,
                           maxLines: 1,
+                          cursorColor: Colors.white,
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w400,
@@ -375,6 +378,8 @@ class _ScorePickerState extends State<ScorePicker> {
         _scrollController.animateTo(position,
             duration: animationDuration, curve: Curves.easeInOut);
       } else {
+        _scrollController.animateTo(0,
+            duration: animationDuration, curve: Curves.easeInOut);
         widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text);
@@ -396,6 +401,8 @@ class _ScorePickerState extends State<ScorePicker> {
         _scrollController.animateTo(position,
             duration: animationDuration, curve: Curves.easeInOut);
       } else {
+        _scrollController.animateTo(0,
+            duration: animationDuration, curve: Curves.easeInOut);
         widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text,
@@ -556,8 +563,13 @@ class __ScoreState extends State<_Score> {
     if (previewScore?.sections?.isEmpty == true) {
       previewScore.sections.add(defaultSection());
     }
+    String actualScoreName = scoreName;
+    if (_previewScore != null) {
+      actualScoreName = _previewScore.name;
+    }
     bool isLocked = scoreName == ScoreManager.PASTED_SCORE ||
-        scoreName == ScoreManager.WEB_SCORE;
+        scoreName == ScoreManager.WEB_SCORE ||
+        scoreName == ScoreManager.UNIVERSE_SCORE;
     return AnimatedContainer(
         duration: animationDuration,
         width: widget.scrollDirection == Axis.horizontal ? 200 : null,
@@ -580,11 +592,36 @@ class __ScoreState extends State<_Score> {
                   Row(children: [
                     SizedBox(width: 5),
                     Expanded(
-                        child: Text(scoreName,
-                            style: TextStyle(
-                                color: foregroundColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w100))),
+                        child: isLocked
+                            ? Stack(children: [
+                                Transform.translate(
+                                    offset: Offset(0, 5),
+                                    child: Text(actualScoreName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: foregroundColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w100))),
+                                Transform.translate(
+                                    offset: Offset(0, -5),
+                                    child: Text(scoreName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: foregroundColor
+                                                .withOpacity(0.5),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w100)))
+                              ])
+                            : Text(
+                                actualScoreName.isNotEmpty
+                                    ? actualScoreName
+                                    : scoreName,
+                                style: TextStyle(
+                                    color: foregroundColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w100))),
                     Container(
                         width: 36,
                         height: 36,
@@ -598,7 +635,8 @@ class __ScoreState extends State<_Score> {
                                   },
                             padding: EdgeInsets.zero,
                             child: Icon(isLocked ? Icons.lock : Icons.delete,
-                                color: foregroundColor))),
+                                color: foregroundColor
+                                    .withOpacity(isLocked ? 0.5 : 1)))),
 //          SizedBox(width:5),
                   ]),
                   Expanded(

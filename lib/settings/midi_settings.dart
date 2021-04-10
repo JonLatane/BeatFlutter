@@ -249,12 +249,71 @@ class _MidiSettingsState extends State<MidiSettings> {
         onPressed: () => showColors(context, widget.sectionColor),
       ),
     ];
+
+    List<dynamic> features = [
+      _Separator(text: "Beta Features", id: "features"),
+      _SettingsTile(
+        id: "universeMode",
+        color: widget.appSettings.enableUniverse
+            ? widget.sectionColor
+            : Colors.grey,
+        child: Container(
+          child: Column(
+            children: [
+              Expanded(child: SizedBox()),
+              SizedBox(height: 15),
+              Text("Universe Mode",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: (widget.appSettings.enableUniverse
+                              ? widget.sectionColor
+                              : Colors.grey)
+                          .textColor(),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+              SizedBox(height: 9),
+              Row(children: [
+                Expanded(child: SizedBox()),
+                Icon(FontAwesomeIcons.rocket,
+                    color: (widget.appSettings.enableUniverse
+                            ? widget.sectionColor
+                            : Colors.grey)
+                        .textColor()),
+                SizedBox(width: 5),
+                Text("BETA",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: (widget.appSettings.enableUniverse
+                                ? widget.sectionColor
+                                : Colors.grey)
+                            .textColor(),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900)),
+                Expanded(child: SizedBox()),
+              ]),
+              Switch(
+                activeColor: Colors.white,
+                value: widget.appSettings.enableUniverse,
+                onChanged: (v) => setState(() {
+                  widget.appSettings.enableUniverse = v;
+                  BeatScratchPlugin.onSynthesizerStatusChange();
+                }),
+//                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 5),
+        ),
+      ),
+    ];
     List<dynamic> items = <dynamic>[
       _Separator(text: "MIDI Devices", id: "midi-settings")
     ]
         .followedBy(midiSynthesizers)
         .followedBy(midiControllers)
         .followedBy(appSettings)
+        .followedBy(features)
         .toList();
     return ImplicitlyAnimatedList<dynamic>(
       scrollDirection: widget.scrollDirection,

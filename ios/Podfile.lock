@@ -71,7 +71,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   aeyrium_sensor: cdaa0bdd7206824ea4fb910c627cad05275362e5
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   flutter_appavailability: ebf8f85abea44436d1262fcde8a4e64b2534b01a
   flutter_keyboard_visibility: 6195387fb6d8f46e5cd6dda4a4154e41f800f545
   native_device_orientation: 3b4cfc9565a7b879cc4fde282b3e27745e852d0d

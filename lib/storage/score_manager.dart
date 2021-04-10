@@ -21,6 +21,8 @@ class ScoreManager {
   static const String FROM_CLIPBOARD = " (from Clipboard)";
   static const String WEB_SCORE = "Linked Score";
   static const String FROM_WEB = " (from Link)";
+  static const String UNIVERSE_SCORE = "Universe Score";
+  static const String FROM_UNIVERSE = " (from Universe)";
   Function(Score) doOpenScore;
   Directory _scoresDirectory;
   SharedPreferences _prefs;
