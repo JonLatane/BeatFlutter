@@ -232,8 +232,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         if (value != null &&
             value.oldScale
                 .notRoughlyEquals(value.newScale, precision: 0.0005)) {
-          print("ScaleUpdate: ${value.oldScale.toStringAsFixed(12)} -> "
-              "${value.newScale.toStringAsFixed(12)}");
+          // print("ScaleUpdate: ${value.oldScale.toStringAsFixed(12)} -> "
+          // "${value.newScale.toStringAsFixed(12)}");
           handler(value);
           notifier.value = null;
         }
@@ -276,7 +276,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           p2 = p1 * s2 / s1;
         }
         p2 += (w2 - w1) / 2;
-        print("For scale, jumping from $p1 to $p2");
+        // print("For scale, jumping from $p1 to $p2");
         timeScrollController.jumpTo(p2);
         // scrollToFocusedBeat();
       }

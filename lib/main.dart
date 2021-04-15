@@ -511,7 +511,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
       if (scorePickerMode == ScorePickerMode.universe) {
-        scorePickerMode = ScorePickerMode.open;
+        scorePickerMode = ScorePickerMode.show;
+        Future.delayed(Duration(seconds: 2), () {
+          _closeScorePicker(onlyIfShowMode: true);
+        });
       }
       recordingMelody = false;
       if (!_scalableUI) {
@@ -527,6 +530,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _universeMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
+      if (interactionMode != InteractionMode.universe) {
+        if (BeatScratchPlugin.supportsStorage) {
+          saveCurrentScore();
+          _scoreManager.openScoreWithFilename(
+              score, ScoreManager.UNIVERSE_SCORE);
+        }
+      }
       interactionMode = InteractionMode.universe;
       universeViewUI.visible = true;
       scorePickerMode = ScorePickerMode.universe;
@@ -549,10 +559,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
       universeViewUI.visible = false;
-
-      if (scorePickerMode == ScorePickerMode.universe) {
-        scorePickerMode = ScorePickerMode.open;
-      }
       if (interactionMode == InteractionMode.edit) {
         if (selectedMelody != null) {
           _prevSelectedMelody = selectedMelody;
@@ -583,6 +589,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         //   setState(() {splitMode = SplitMode.half;});
         // }
       } else {
+        if (_showScorePicker) {
+          scorePickerMode = ScorePickerMode.show;
+          _closeScorePicker(onlyIfShowMode: true);
+        }
         interactionMode = InteractionMode.edit;
         if (_prevSelectedMelody != null) {
           _selectOrDeselectMelody(_prevSelectedMelody);
@@ -692,6 +702,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _secondToolbarHeight => _portraitPhoneUI
       ? interactionMode == InteractionMode.edit ||
               interactionMode == InteractionMode.view ||
+              interactionMode == InteractionMode.universe ||
               showViewOptions
           ? 36
           : 0
@@ -700,22 +711,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _landscapePhoneBeatscratchToolbarWidth =>
       _landscapePhoneUI ? 48 : 0;
 
-  double get _landscapePhoneSecondToolbarWidth => _landscapePhoneUI &&
-          (interactionMode == InteractionMode.edit || showViewOptions)
-      ? 48
-      : 0;
+  double get _landscapePhoneSecondToolbarWidth => _landscapePhoneUI ? 48 : 0;
 
   double get _midiSettingsHeight => showMidiConfiguration ? 175 : 0;
 
   double _scorePickerHeight(BuildContext context) => showScorePicker
       ? interactionMode == InteractionMode.universe
-          ? flexibleAreaHeight(context) * 0.75
-          : 210.0 +
-              (context.isLandscapePhone
-                  ? (showKeyboard ^ showColorboard)
-                      ? -30
-                      : 40
-                  : 65)
+          ? flexibleAreaHeight(context) *
+              (flexibleAreaHeight(context) < 600
+                  ? flexibleAreaHeight(context) < 500
+                      ? 0.5
+                      : 0.66667
+                  : 0.75)
+          : min(
+              flexibleAreaHeight(context) * 0.66,
+              210.0 +
+                  (context.isLandscapePhone
+                      ? (showKeyboard ^ showColorboard)
+                          ? -30
+                          : 40
+                      : 65))
       : 0.0;
 
   // ignore: unused_field
@@ -1763,6 +1778,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 mode != ScorePickerMode.universe) {
               _viewMode();
             }
+            if (interactionMode != InteractionMode.view &&
+                mode != ScorePickerMode.show) {
+              _viewMode();
+            }
             showScorePicker = true;
           });
         },
@@ -1835,6 +1854,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
       vertical: vertical,
+      appSettings: _appSettings,
       setAppState: setState,
       recordingMelody: recordingMelody,
       enableColorboard: enableColorboard,
@@ -1914,11 +1934,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   saveCurrentScore() {
+    final score = this.score;
+    final scoreFile = _scoreManager.currentScoreFile;
     Future.microtask(() {
       setState(() {
         _savingScore = true;
       });
-      _scoreManager.saveCurrentScore(score);
+      _scoreManager.saveScoreFile(scoreFile, score);
       Future.delayed(animationDuration * 2, () {
         setState(() {
           _savingScore = false;
@@ -2407,6 +2429,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             mode: scorePickerMode,
             sectionColor: sectionColor,
             openedScore: score,
+            width: MediaQuery.of(context).size.width,
+            height: _scorePickerHeight(context),
             requestKeyboardFocused: (focused) {
               setState(() {});
             },
@@ -2415,26 +2439,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 scorePickerMode = mode;
               });
             },
-            close: () {
-              doClose() {
-                setState(() {
-                  scorePickerMode = ScorePickerMode.none;
-                  showScorePicker = false;
-                });
-              }
+            close: _closeScorePicker));
+  }
 
-              doCloseButWaitForSave() {
-                if (_savingScore) {
-                  Future.delayed(Duration(milliseconds: 1500), () {
-                    doCloseButWaitForSave();
-                  });
-                } else {
-                  doClose();
-                }
-              }
+  _closeScorePicker({bool onlyIfShowMode = false}) {
+    doClose() {
+      setState(() {
+        if (!onlyIfShowMode || scorePickerMode == ScorePickerMode.show) {
+          scorePickerMode = ScorePickerMode.none;
+          showScorePicker = false;
+        }
+      });
+    }
 
-              doCloseButWaitForSave();
-            }));
+    doCloseButWaitForSave() {
+      if (_savingScore) {
+        Future.delayed(Duration(milliseconds: 1500), () {
+          doCloseButWaitForSave();
+        });
+      } else {
+        doClose();
+      }
+    }
+
+    doCloseButWaitForSave();
   }
 
   AnimatedContainer _keyboard(BuildContext context) {

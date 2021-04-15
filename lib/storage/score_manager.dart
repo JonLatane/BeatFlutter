@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +25,7 @@ class ScoreManager {
   static const String UNIVERSE_SCORE = "Universe Score";
   static const String FROM_UNIVERSE = " (from Universe)";
   Function(Score) doOpenScore;
-  Directory _scoresDirectory;
+  Directory scoresDirectory;
   SharedPreferences _prefs;
 
   String get currentScoreName =>
@@ -33,12 +34,12 @@ class ScoreManager {
   set currentScoreName(String value) =>
       _prefs?.setString("currentScoreName", value);
 
-  File get _currentScoreFile => File(
-      "${_scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
+  File get currentScoreFile => File(
+      "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
-    if (_scoresDirectory != null) {
-      List<FileSystemEntity> result = _scoresDirectory?.listSync();
+    if (scoresDirectory != null) {
+      List<FileSystemEntity> result = scoresDirectory?.listSync();
       result.sort(
           (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       return result;
@@ -50,20 +51,15 @@ class ScoreManager {
     _initialize();
   }
 
+  String get scoresDirectoryName => "Scores";
+
   _initialize() async {
     _prefs = await SharedPreferences.getInstance();
     if (!MyPlatform.isWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      final scoresPath = "${documentsDirectory.path}/Scores";
-
-      Directory _oldScoresDirectory =
-          Directory("${documentsDirectory.path}/scores}");
-      if (_oldScoresDirectory.existsSync()) {
-        _oldScoresDirectory.renameSync(scoresPath);
-      }
-
-      _scoresDirectory = Directory(scoresPath);
-      _scoresDirectory.createSync();
+      final scoresPath = "${documentsDirectory.path}/$scoresDirectoryName";
+      scoresDirectory = Directory(scoresPath);
+      scoresDirectory.createSync();
       loadCurrentScoreIntoUI();
     }
   }
@@ -76,16 +72,16 @@ class ScoreManager {
   }
 
   saveCurrentScore(Score score) {
-    _saveCurrentScore(_currentScoreFile, score);
+    saveScoreFile(currentScoreFile, score);
   }
 
-  _saveCurrentScore(File scoreFile, Score score) async {
+  saveScoreFile(File scoreFile, Score score) async {
     if (scoreFile.scoreName != WEB_SCORE &&
         scoreFile.scoreName != PASTED_SCORE) {
       print("Updating score name");
       score.name = scoreFile.scoreName;
     }
-    _currentScoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
+    currentScoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
   }
 
   openScore(File file) async {
@@ -199,21 +195,13 @@ class ScoreManager {
     }
   }
 
-  openWebScore(Score score) async {
-    openScoreWithFilename(score, WEB_SCORE);
-  }
-
-  openClipboardScore(Score score) async {
-    openScoreWithFilename(score, PASTED_SCORE);
-  }
-
   openScoreWithFilename(Score score, String filename) async {
     currentScoreName = filename;
     doOpenScore(score);
     saveCurrentScore(score);
   }
 
-  Future<Score> loadCurrentScore() async => loadScore(_currentScoreFile);
+  Future<Score> loadCurrentScore() async => loadScore(currentScoreFile);
 
   static Future<Score> loadScore(File file) async =>
       Score.fromBuffer(file.readAsBytesSync());
@@ -222,7 +210,7 @@ class ScoreManager {
 extension ScoreName on FileSystemEntity {
   String get scoreName {
     String fileName = path.split("/")?.last ?? ".beatscratch";
-    fileName = fileName.substring(0, fileName.length - 12);
+    fileName = fileName.substring(0, max(0, fileName.length - 12));
     String scoreName = Uri.decodeComponent(fileName);
     return scoreName;
   }

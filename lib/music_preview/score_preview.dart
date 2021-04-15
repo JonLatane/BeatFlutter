@@ -47,6 +47,7 @@ class _ScorePreviewState extends State<ScorePreview> {
   bool hasBuilt;
   String _prevScoreId;
   RenderingMode _prevRenderingMode;
+  double _prevScale, _prevWidth, _prevHeight;
   Color _prevMusicForegroundColor;
   _Thumbnail currentThumbnail;
   Uint8List thumbnailA, thumbnailB;
@@ -158,6 +159,9 @@ class _ScorePreviewState extends State<ScorePreview> {
     renderableWidth = actualWidth;
     _prevMusicForegroundColor = musicForegroundColor;
     _prevRenderingMode = AppSettings.globalRenderingMode;
+    _prevScale = widget.scale;
+    _prevWidth = widget.width;
+    _prevHeight = widget.height;
   }
 
   @override
@@ -171,11 +175,17 @@ class _ScorePreviewState extends State<ScorePreview> {
   Widget build(BuildContext context) {
     if (_prevScoreId != widget.score.id ||
         _prevMusicForegroundColor != musicForegroundColor ||
-        _prevRenderingMode != AppSettings.globalRenderingMode) {
+        _prevRenderingMode != AppSettings.globalRenderingMode ||
+        _prevScale != widget.scale ||
+        _prevWidth != widget.width ||
+        _prevHeight != widget.height) {
       _updateScoreImage();
       _prevScoreId = widget.score.id;
       _prevMusicForegroundColor = musicForegroundColor;
       _prevRenderingMode = AppSettings.globalRenderingMode;
+      _prevScale = widget.scale;
+      _prevWidth = widget.width;
+      _prevHeight = widget.height;
     }
     return AnimatedContainer(
       duration: animationDuration,

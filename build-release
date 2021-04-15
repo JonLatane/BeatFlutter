@@ -23,14 +23,14 @@ for arg; do
         flutterChannel=${platformFlutterChannel#*:}
       fi
     done
-    echo "Switching to Flutter Channel: $flutterChannel"
-    flutter channel "$flutterChannel"
+    # echo "Switching to Flutter Channel: $flutterChannel"
+    # flutter channel "$flutterChannel"
     # if [[ "${platform}" == "ios" ]]; then
     #   echo "Cleaning iOS build for stable"
     #   ./build-fix-stable
     # fi
-    echo "Upgrading Flutter"
-    flutter upgrade
+    # echo "Upgrading Flutter"
+    # flutter upgrade
     echo "Building for $platform"
     ./build-release-${platform}
   else

@@ -960,6 +960,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 }
 
 class SecondToolbar extends StatefulWidget {
+  final AppSettings appSettings;
   final VoidCallback toggleKeyboard;
   final VoidCallback toggleColorboard;
   final VoidCallback toggleKeyboardConfiguration;
@@ -983,6 +984,7 @@ class SecondToolbar extends StatefulWidget {
 
   const SecondToolbar({
     Key key,
+    this.appSettings,
     this.toggleKeyboard,
     this.toggleColorboard,
     this.showKeyboard,
@@ -1034,14 +1036,23 @@ class _SecondToolbarState extends State<SecondToolbar> {
     if (widget.enableColorboard) {
       numberOfButtons += 1;
     }
-    Widget createPlayIcon(IconData icon,
-        {bool visible, Color color = Colors.black}) {
+    Widget createPlayIcon(IconData icon, {bool visible, Color color}) {
       return AnimatedOpacity(
           opacity: visible ? 1 : 0,
           duration: animationDuration,
           child: Transform.scale(
               scale: 0.8, child: Icon(icon, color: color, size: 32)));
     }
+
+    final buttonBackgroundColor =
+        widget.appSettings.darkMode ? musicBackgroundColor : melodyColor;
+    final buttonForegroundColor = buttonBackgroundColor.textColor();
+
+    final keyboardBackgroundColor = (widget.showKeyboardConfiguration)
+        ? widget.sectionColor
+        : (widget.showKeyboard)
+            ? Colors.white
+            : buttonBackgroundColor;
 
     return AnimatedOpacity(
         opacity: widget.visible ? 1 : 0,
@@ -1062,13 +1073,16 @@ class _SecondToolbarState extends State<SecondToolbar> {
               child: Padding(
                   padding: const EdgeInsets.all(2),
                   child: MyRaisedButton(
+                      color: buttonBackgroundColor,
                       padding: EdgeInsets.zero,
                       child: Stack(children: [
                         createPlayIcon(Icons.play_arrow,
+                            color: buttonForegroundColor,
                             visible: editMode &&
                                 !BeatScratchPlugin.playing &&
                                 !widget.recordingMelody),
                         createPlayIcon(Icons.pause,
+                            color: buttonForegroundColor,
                             visible: editMode && BeatScratchPlugin.playing),
                         createPlayIcon(Icons.fiber_manual_record,
                             visible: editMode &&
@@ -1105,19 +1119,24 @@ class _SecondToolbarState extends State<SecondToolbar> {
               child: Padding(
                   padding: const EdgeInsets.all(2),
                   child: MyRaisedButton(
+                      color: buttonBackgroundColor,
                       padding: EdgeInsets.zero,
                       child: Align(
                           alignment: Alignment.center,
                           child: Transform.scale(
                               scale: 0.8,
-                              child: Icon(Icons.skip_previous, size: 32))),
+                              child: Icon(Icons.skip_previous,
+                                  color: buttonForegroundColor, size: 32))),
                       onPressed: BeatScratchPlugin.supportsPlayback
                           ? widget.rewind
                           : null))),
           Expanded(
               child: Padding(
                   padding: const EdgeInsets.all(2),
-                  child: tempoButton(context))),
+                  child: tempoButton(
+                    context,
+                    backgroundColor: buttonBackgroundColor,
+                  ))),
           AnimatedContainer(
               height: !widget.vertical
                   ? null
@@ -1152,7 +1171,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
                         ? widget.sectionColor
                         : (widget.showColorboard)
                             ? Colors.white
-                            : Colors.grey,
+                            : buttonBackgroundColor,
                   ))),
           Expanded(
               child: Padding(
@@ -1166,20 +1185,24 @@ class _SecondToolbarState extends State<SecondToolbar> {
                                   ? 0.8
                                   : 2.5
                               : 0.8,
-                          child: Image.asset('assets/piano.png')),
+                          child: ColorFiltered(
+                            child: Image.asset(
+                              "assets/piano.png",
+                              scale: 1,
+                            ),
+                            colorFilter: ColorFilter.mode(
+                                keyboardBackgroundColor.textColor(),
+                                BlendMode.srcIn),
+                          )),
                     ),
                     onPressed: widget.toggleKeyboard,
                     onLongPress: widget.toggleKeyboardConfiguration,
-                    color: (widget.showKeyboardConfiguration)
-                        ? widget.sectionColor
-                        : (widget.showKeyboard)
-                            ? Colors.white
-                            : Colors.grey,
+                    color: keyboardBackgroundColor,
                   ))),
         ]));
   }
 
-  Widget tempoButton(BuildContext context) {
+  Widget tempoButton(BuildContext context, {Color backgroundColor}) {
     double sensitivity = 7;
     tempoDragStart(DragStartDetails details) {
       tempoButtonGestureStartPosition =
@@ -1228,6 +1251,9 @@ class _SecondToolbarState extends State<SecondToolbar> {
       }
     }
 
+    final buttonBackgroundColor =
+        (widget.showTempoConfiguration) ? Colors.white : backgroundColor;
+    final buttonForegroundColor = buttonBackgroundColor.textColor();
     return GestureDetector(
         onVerticalDragStart: widget.vertical ? tempoDragStart : null,
         onVerticalDragUpdate:
@@ -1248,16 +1274,24 @@ class _SecondToolbarState extends State<SecondToolbar> {
               }
             : null,
         child: MyRaisedButton(
+          color: buttonBackgroundColor,
           padding: EdgeInsets.zero,
           child: Stack(children: [
             Align(
-              alignment: Alignment.center,
-              child: Transform.scale(
+                alignment: Alignment.center,
+                child: Transform.scale(
                   scale: 0.8,
                   child: Opacity(
                       opacity: 0.5,
-                      child: Image.asset('assets/metronome.png'))),
-            ),
+                      child: ColorFiltered(
+                        child: Image.asset(
+                          "assets/metronome.png",
+                          scale: 1,
+                        ),
+                        colorFilter: ColorFilter.mode(
+                            buttonForegroundColor, BlendMode.srcIn),
+                      )),
+                )),
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
@@ -1269,7 +1303,10 @@ class _SecondToolbarState extends State<SecondToolbar> {
                           .toStringAsFixed(0),
                       maxLines: 1,
                       overflow: TextOverflow.fade,
-                      style: TextStyle(fontSize: 16))),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: buttonForegroundColor,
+                      ))),
             ),
             Align(
               alignment: Alignment.topLeft,
@@ -1281,6 +1318,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
                       overflow: TextOverflow.fade,
                       style: TextStyle(
                           fontWeight: FontWeight.w200,
+                          color: buttonForegroundColor,
                           fontSize: 12,
                           fontStyle: FontStyle.normal))),
             ),
@@ -1294,6 +1332,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
                       overflow: TextOverflow.fade,
                       style: TextStyle(
                         fontStyle: FontStyle.italic,
+                        color: buttonForegroundColor,
                         fontSize: 12,
                       ))),
             ),
@@ -1303,13 +1342,15 @@ class _SecondToolbarState extends State<SecondToolbar> {
                     offset: Offset(15, widget.vertical ? 0 : 0),
                     child: Transform.scale(
                         scale: 0.55,
-                        child: Icon(BeatScratchPlugin.metronomeEnabled
-                            ? Icons.volume_up
-                            : Icons.not_interested))))
+                        child: Icon(
+                          BeatScratchPlugin.metronomeEnabled
+                              ? Icons.volume_up
+                              : Icons.not_interested,
+                          color: buttonForegroundColor,
+                        ))))
           ]),
           onPressed: widget.toggleTempoConfiguration,
           onLongPress: widget.tempoLongPress,
-          color: (widget.showTempoConfiguration) ? Colors.white : Colors.grey,
         ));
   }
 }
