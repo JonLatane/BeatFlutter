@@ -24,6 +24,6 @@ xcodebuild -exportArchive \
             -archivePath "$XCARCHIVE_PATH" \
             -exportPath build-upload-ios-export-out \
             -exportOptionsPlist `pwd`/ios/exportOptions.plist
-rm build-upload-ios-export-out
+# rm build-upload-ios-export-out
 # xcrun altool --validate-app --file "$IPA_PATH" --username "$APP_STORE_USERNAME" --password @keychain:"Application Loader: $APP_STORE_USERNAME"
 # xcrun altool --upload-app --file "$IPA_PATH" --username "$APP_STORE_USERNAME" --password @keychain:"Application Loader: $APP_STORE_USERNAME"

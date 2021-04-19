@@ -62,6 +62,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final MessagesUI messagesUI;
   final bool showDownloads;
   final VoidCallback toggleShowDownloads;
+  final bool savingScore;
 
   const BeatScratchToolbar(
       {Key key,
@@ -97,6 +98,7 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.currentSection,
       @required this.leftHalfOnly,
       @required this.rightHalfOnly,
+      @required this.savingScore, // BeatScratchPlugin.isSynthesizerAvailable
       this.messagesUI,
       this.showDownloads,
       this.toggleShowDownloads})
@@ -688,7 +690,25 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                       ];
                     },
                     padding: EdgeInsets.only(bottom: 10.0),
-                    icon: Image.asset('assets/logo.png'))),
+                    icon: Stack(children: [
+                      Image.asset('assets/logo.png'),
+                      Transform.translate(
+                          offset: Offset(25, 18),
+                          child: AnimatedOpacity(
+                              duration: animationDuration,
+                              opacity: widget.savingScore ? 0.6667 : 0,
+                              child: Icon(Icons.save,
+                                  size: 16, color: chromaticSteps[0]))),
+                      Transform.translate(
+                          offset: Offset(25, 3),
+                          child: AnimatedOpacity(
+                              duration: animationDuration,
+                              opacity: !BeatScratchPlugin.isSynthesizerAvailable
+                                  ? 0.6667
+                                  : 0,
+                              child: Icon(Icons.warning,
+                                  size: 16, color: chromaticSteps[5])))
+                    ]))),
           if (!widget.rightHalfOnly)
             Expanded(
                 child: MyFlatButton(
@@ -756,8 +776,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         onLongPress: widget.universeMode,
                         padding: EdgeInsets.all(0.0),
                         child: Transform.translate(
-                            offset: Offset(-2, 0),
-                            child: Icon(FontAwesomeIcons.rocket,
+                            offset: Offset(0, 0),
+                            child: Icon(FontAwesomeIcons.atom,
                                 color: (widget.interactionMode ==
                                         InteractionMode.universe)
                                     ? widget.sectionColor.textColor()

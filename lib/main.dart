@@ -533,8 +533,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (interactionMode != InteractionMode.universe) {
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore();
-          _scoreManager.openScoreWithFilename(
-              score, ScoreManager.UNIVERSE_SCORE);
+
+          _scoreManager.openScoreWithName(ScoreManager.UNIVERSE_SCORE);
         }
       }
       interactionMode = InteractionMode.universe;
@@ -593,7 +593,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           scorePickerMode = ScorePickerMode.show;
           _closeScorePicker(onlyIfShowMode: true);
         }
-        interactionMode = InteractionMode.edit;
         if (_prevSelectedMelody != null) {
           _selectOrDeselectMelody(_prevSelectedMelody);
         } else if (_prevSelectedPart != null) {
@@ -601,6 +600,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         } else {
           musicViewMode = MusicViewMode.section;
         }
+        interactionMode = InteractionMode.edit;
         _showMusicView();
 //        _hideMelodyView();
       }
@@ -722,7 +722,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ? flexibleAreaHeight(context) < 500
                       ? 0.5
                       : 0.66667
-                  : 0.75)
+                  : 0.6)
           : min(
               flexibleAreaHeight(context) * 0.66,
               210.0 +
@@ -753,20 +753,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : 150
       : 0;
 
-  bool get _showStatusBar => BeatScratchPlugin.isSynthesizerAvailable;
-
-  double get _statusBarHeight => _showStatusBar
-      ? 0
-      : _isLandscapePhone
-          ? 25
-          : 30;
   bool _savingScore = false;
-
-  double get _savingScoreHeight => !_savingScore
-      ? 0
-      : _isLandscapePhone
-          ? 25
-          : 30;
 
   set pasteFailed(bool value) {
     messagesUI.sendMessage(message: "Paste Failed!", isError: true);
@@ -821,9 +808,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         score = scoreToOpen;
         clearMutableCaches();
         currentSection = scoreToOpen.sections.first;
-        musicViewMode = interactionMode == InteractionMode.view
-            ? MusicViewMode.score
-            : MusicViewMode.section;
+        if (interactionMode == InteractionMode.edit) {
+          musicViewMode = MusicViewMode.section;
+        }
         selectedMelody = null;
         selectedPart = null;
         _prevSelectedMelody = null;
@@ -1093,8 +1080,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _midiSettings(context),
                   // _pasteFailedBar(context),
                   messagesUI.build(context: context),
-                  _savingScoreBar(context),
-                  _audioSystemWorkingBar(context),
                   _colorboard(context),
                   if (!_landscapePhoneUI) _tapInBar(context),
                   _keyboard(context),
@@ -1361,44 +1346,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           },
                           child: Text("Platform Feature Comparison"))),
                 ]))));
-  }
-
-  Widget _audioSystemWorkingBar(BuildContext context) {
-    return AnimatedContainer(
-        duration: animationDuration,
-        height: _statusBarHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          SizedBox(width: 5),
-          AnimatedOpacity(
-              duration: animationDuration,
-              opacity: _showStatusBar ? 0 : 1,
-              child: Icon(Icons.warning, size: 18, color: chromaticSteps[5])),
-          SizedBox(width: 5),
-          Text("BeatScratch Synthesizer is loading...",
-              style: TextStyle(
-                color: Colors.white,
-              ))
-        ]));
-  }
-
-  Widget _savingScoreBar(BuildContext context) {
-    return AnimatedContainer(
-        duration: animationDuration,
-        height: _savingScoreHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          SizedBox(width: 5),
-          AnimatedOpacity(
-              duration: animationDuration,
-              opacity: _savingScore ? 1 : 0,
-              child: Icon(Icons.info, size: 18, color: chromaticSteps[0])),
-          SizedBox(width: 5),
-          Text("Saving score...",
-              style: TextStyle(
-                color: Colors.white,
-              ))
-        ]));
   }
 
   Widget _tapInBar(
@@ -1734,6 +1681,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
         score: score,
+        savingScore: _savingScore,
         appSettings: _appSettings,
         messagesUI: messagesUI,
         currentSection: currentSection,
@@ -1936,10 +1884,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   saveCurrentScore() {
     final score = this.score;
     final scoreFile = _scoreManager.currentScoreFile;
+    print("Saving score ${score.name} to ${scoreFile.path.split('/').last}...");
     Future.microtask(() {
       setState(() {
         _savingScore = true;
       });
+      print(
+          "REALLY Saving score ${score.name} to ${scoreFile.path.split('/').last}...");
       _scoreManager.saveScoreFile(scoreFile, score);
       Future.delayed(animationDuration * 2, () {
         setState(() {
@@ -1966,7 +1917,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         messagesUI.height(context) -
         horizontalSectionListHeight -
         _tapInBarHeight -
-        _statusBarHeight -
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -

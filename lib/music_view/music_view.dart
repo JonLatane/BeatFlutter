@@ -1307,19 +1307,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     if (widget.showViewOptions) SizedBox(width: 2),
                     Column(children: [
                       Expanded(child: SizedBox()),
-                      Column(children: [
-                        expandPartButton(visible: showExpandPartButton),
-                        if (xScale != alignedScale) SizedBox(height: 2),
-                        expandButton(visible: showExpandButton),
-                      ]),
-                      if (xScale != minScale) SizedBox(height: 2),
-                      minimizeButton(visible: showMinimizeButton),
-                      SizedBox(height: 2),
-                    ]),
-                    if (xScale != alignedScale || xScale != partAlignedScale)
-                      SizedBox(width: 2),
-                    Column(children: [
-                      Expanded(child: SizedBox()),
                       autoScrollButton(visible: widget.showViewOptions),
                       SizedBox(height: 2),
                       scrollToCurrentBeatButton(),
@@ -1395,75 +1382,112 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   Widget zoomButton() {
     final zoomIncrement = 1.03;
+    final bigDecrementIcon = (xScale > alignedScale || yScale > alignedScale)
+        ? Icons.expand
+        : FontAwesomeIcons.compressArrowsAlt;
+    final bigDecrementAction = (xScale > alignedScale || yScale > alignedScale)
+        ? () {
+            setState(() {
+              alignVertically();
+            });
+          }
+        : (xScale > minScale || yScale > minScale)
+            ? () {
+                setState(() {
+                  minimize();
+                });
+              }
+            : null;
+    final bigIncrementIcon = (xScale >= alignedScale || yScale >= alignedScale)
+        ? FontAwesomeIcons.expandArrowsAlt
+        : Icons.expand;
+    final bigIncrementAction = (xScale < alignedScale || yScale < alignedScale)
+        ? () {
+            setState(() {
+              alignVertically();
+            });
+          }
+        : (xScale < partAlignedScale || yScale < partAlignedScale)
+            ? () {
+                setState(() {
+                  partAlignVertically();
+                });
+              }
+            : null;
     return Container(
         color: Colors.black12,
         padding: EdgeInsets.zero,
         child: IncrementableValue(
-            child: Container(
-              // color: Colors.black12,
-              width: 48,
-              height: 48,
-              child: Align(
-                alignment: Alignment.center,
-                child: Stack(children: [
-                  Transform.translate(
-                      offset: Offset(-5, 5),
-                      child: Transform.scale(
-                          scale: 1,
-                          child: Icon(Icons.zoom_out, color: Colors.black54))),
-                  Transform.translate(
-                      offset: Offset(5, -5),
-                      child: Transform.scale(
-                          scale: 1,
-                          child: Icon(Icons.zoom_in, color: Colors.black54))),
-                  Transform.translate(
-                    offset: Offset(2, 20),
-                    child: Text("${(xScale * 100).toStringAsFixed(0)}%",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                            color: Colors.black87)),
-                  ),
-                ]),
-              ),
+          child: Container(
+            // color: Colors.black12,
+            width: 48,
+            height: 48,
+            child: Align(
+              alignment: Alignment.center,
+              child: Stack(children: [
+                Transform.translate(
+                    offset: Offset(-5, 5),
+                    child: Transform.scale(
+                        scale: 1,
+                        child: Icon(Icons.zoom_out, color: Colors.black54))),
+                Transform.translate(
+                    offset: Offset(5, -5),
+                    child: Transform.scale(
+                        scale: 1,
+                        child: Icon(Icons.zoom_in, color: Colors.black54))),
+                Transform.translate(
+                  offset: Offset(2, 20),
+                  child: Text("${(xScale * 100).toStringAsFixed(0)}%",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: Colors.black87)),
+                ),
+              ]),
             ),
-            musicActionButtonStyle: true,
-            musicActionButtonColor: zoomButtonColor,
-            collapsing: true,
-            onPointerUpCallback: () {
-              ignoreNextTap = true;
-              focusedBeat.value = null;
-            },
-            onPointerDownCallback: () {
-              // focusedBeat.value = BeatScratchPlugin.currentBeat.value;
-            },
-            incrementIcon: Icons.zoom_in,
-            decrementIcon: Icons.zoom_out,
-            incrementDistance: 1,
-            onIncrement: (xScale < maxScale || yScale < maxScale)
-                ? () {
-                    _ignoreNextScale = true;
-                    _aligned = false;
-                    _partAligned = false;
-                    setState(() {
-                      rawXScale = min(maxScale, (xScale) * zoomIncrement);
-                      rawYScale = min(maxScale, (yScale) * zoomIncrement);
-                      // print("zoomIn done; xScale=$targetXScale, yScale=$targetYScale");
-                    });
-                  }
-                : null,
-            onDecrement: (xScale > minScale || yScale > minScale)
-                ? () {
-                    _ignoreNextScale = true;
-                    _aligned = false;
-                    _partAligned = false;
-                    setState(() {
-                      rawXScale = max(minScale, xScale / zoomIncrement);
-                      rawYScale = max(minScale, yScale / zoomIncrement);
-                      // print("zoomOut done; xScale=$xScale, yScale=$yScale");
-                    });
-                  }
-                : null));
+          ),
+          musicActionButtonStyle: true,
+          musicActionButtonColor: zoomButtonColor,
+          collapsing: true,
+          onPointerUpCallback: () {
+            ignoreNextTap = true;
+            focusedBeat.value = null;
+          },
+          onPointerDownCallback: () {
+            // focusedBeat.value = BeatScratchPlugin.currentBeat.value;
+          },
+          incrementIcon: Icons.zoom_in,
+          decrementIcon: Icons.zoom_out,
+          incrementDistance: 1,
+          onIncrement: (xScale < maxScale || yScale < maxScale)
+              ? () {
+                  _ignoreNextScale = true;
+                  _aligned = false;
+                  _partAligned = false;
+                  setState(() {
+                    rawXScale = min(maxScale, (xScale) * zoomIncrement);
+                    rawYScale = min(maxScale, (yScale) * zoomIncrement);
+                    // print("zoomIn done; xScale=$targetXScale, yScale=$targetYScale");
+                  });
+                }
+              : null,
+          onDecrement: (xScale > minScale || yScale > minScale)
+              ? () {
+                  _ignoreNextScale = true;
+                  _aligned = false;
+                  _partAligned = false;
+                  setState(() {
+                    rawXScale = max(minScale, xScale / zoomIncrement);
+                    rawYScale = max(minScale, yScale / zoomIncrement);
+                    // print("zoomOut done; xScale=$xScale, yScale=$yScale");
+                  });
+                }
+              : null,
+          onBigDecrement: bigDecrementAction,
+          bigDecrementIcon: bigDecrementIcon,
+          onBigIncrement: bigIncrementAction,
+          bigIncrementIcon: bigIncrementIcon,
+        ));
   }
 
   Widget scrollToCurrentBeatButton() {
@@ -1480,78 +1504,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       (widget.keyboardPart.isDrum ? Colors.brown : Colors.grey)
           .withOpacity(0.26);
 
-  Widget expandPartButton({@required bool visible}) {
-    return MusicActionButton(
-      child: Stack(children: [
-        Transform.translate(
-            offset: Offset(7, 3),
-            child: AnimatedOpacity(
-              duration: animationDuration,
-              opacity: 1,
-              child: Icon(Icons.expand, color: Colors.white, size: 22),
-            )),
-        Transform.translate(
-          offset: Offset(-7, -3),
-          child: AnimatedOpacity(
-            duration: animationDuration,
-            opacity: 1,
-            child: Icon(Icons.zoom_in, color: Colors.black, size: 22),
-          ),
-        ),
-      ]),
-      visible: visible,
-      color: zoomButtonColor,
-      onPressed: () {
-        setState(() {
-          _aligned = true;
-          _partAligned = true;
-          _preButtonScale();
-          partAlignVertically();
-          _lineUpAfterSizeChange();
-        });
-      },
-    );
-  }
-
-  Widget expandButton({@required bool visible}) {
-    return MusicActionButton(
-      child: Icon(
-        Icons.expand,
-        color: Colors.white,
-      ),
-      visible: visible,
-      color: zoomButtonColor,
-      onPressed: () {
-        setState(() {
-          _aligned = true;
-          _partAligned = false;
-          _preButtonScale();
-          alignVertically();
-          _lineUpAfterSizeChange();
-        });
-      },
-    );
-  }
-
-  Widget minimizeButton({@required bool visible}) {
-    return MusicActionButton(
-      child: Icon(
-        FontAwesomeIcons.compressArrowsAlt,
-        color: Colors.black,
-      ),
-      visible: visible,
-      color: zoomButtonColor,
-      onPressed: () {
-        setState(() {
-          _aligned = false;
-          _partAligned = false;
-          _preButtonScale();
-          xScale = minScale;
-          yScale = minScale;
-          _lineUpAfterSizeChange();
-        });
-      },
-    );
+  minimize() {
+    _aligned = false;
+    _partAligned = false;
+    _preButtonScale();
+    xScale = minScale;
+    yScale = minScale;
+    _lineUpAfterSizeChange();
   }
 
   _preButtonScale() {

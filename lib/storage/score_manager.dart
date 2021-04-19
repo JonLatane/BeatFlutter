@@ -39,7 +39,10 @@ class ScoreManager {
 
   List<FileSystemEntity> get scoreFiles {
     if (scoresDirectory != null) {
-      List<FileSystemEntity> result = scoresDirectory?.listSync();
+      List<FileSystemEntity> result = scoresDirectory
+          ?.listSync()
+          .where((f) => f.path.endsWith(".beatscratch"))
+          .toList();
       result.sort(
           (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       return result;
@@ -77,7 +80,8 @@ class ScoreManager {
 
   saveScoreFile(File scoreFile, Score score) async {
     if (scoreFile.scoreName != WEB_SCORE &&
-        scoreFile.scoreName != PASTED_SCORE) {
+        scoreFile.scoreName != PASTED_SCORE &&
+        scoreFile.scoreName != UNIVERSE_SCORE) {
       print("Updating score name");
       score.name = scoreFile.scoreName;
     }
@@ -86,6 +90,11 @@ class ScoreManager {
 
   openScore(File file) async {
     currentScoreName = file.scoreName;
+    loadCurrentScoreIntoUI();
+  }
+
+  openScoreWithName(String name) {
+    currentScoreName = name;
     loadCurrentScoreIntoUI();
   }
 

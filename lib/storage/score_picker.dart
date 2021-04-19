@@ -125,7 +125,8 @@ class _ScorePickerState extends State<ScorePicker> {
     previousMode = widget.mode;
     final nameIsValid = nameController.value.text.trim().isNotEmpty &&
         nameController.value.text.trim() != ScoreManager.PASTED_SCORE &&
-        nameController.value.text.trim() != ScoreManager.WEB_SCORE;
+        nameController.value.text.trim() != ScoreManager.WEB_SCORE &&
+        nameController.value.text.trim() != ScoreManager.UNIVERSE_SCORE;
     bool showHeader = widget.mode != ScorePickerMode.none &&
         widget.mode != ScorePickerMode.show &&
         widget.mode != ScorePickerMode.universe;

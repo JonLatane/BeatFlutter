@@ -274,7 +274,7 @@ class _MidiSettingsState extends State<MidiSettings> {
               SizedBox(height: 9),
               Row(children: [
                 Expanded(child: SizedBox()),
-                Icon(FontAwesomeIcons.rocket,
+                Icon(FontAwesomeIcons.atom,
                     color: (widget.appSettings.enableUniverse
                             ? widget.sectionColor
                             : Colors.grey)

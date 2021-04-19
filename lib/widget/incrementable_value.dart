@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/colors.dart';
+
 import '../music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -15,6 +17,8 @@ import '../ui_models.dart';
 class IncrementableValue extends StatefulWidget {
   final Function onIncrement;
   final Function onDecrement;
+  final Function onBigIncrement;
+  final Function onBigDecrement;
   final String value;
   final TextStyle textStyle;
   final double valueWidth;
@@ -25,6 +29,8 @@ class IncrementableValue extends StatefulWidget {
   final bool collapsing;
   final IconData incrementIcon;
   final IconData decrementIcon;
+  final IconData bigIncrementIcon;
+  final IconData bigDecrementIcon;
   final VoidCallback onPointerUpCallback;
   final VoidCallback onPointerDownCallback;
   final bool musicActionButtonStyle;
@@ -48,6 +54,10 @@ class IncrementableValue extends StatefulWidget {
     this.onPointerDownCallback,
     this.musicActionButtonStyle = false,
     this.musicActionButtonColor,
+    this.onBigIncrement,
+    this.onBigDecrement,
+    this.bigIncrementIcon,
+    this.bigDecrementIcon,
   }) : super(key: key);
 
   @override
@@ -163,9 +173,20 @@ class _IncrementableValueState extends State<IncrementableValue> {
 
     ;
 
+    bool showBigIncrement =
+        widget.onBigIncrement != null || widget.bigIncrementIcon != null;
+    bool showBigDecrement =
+        widget.onBigDecrement != null || widget.bigDecrementIcon != null;
+
+    double overallWidth = widget.valueWidth +
+        2 * buttonWidth +
+        3 +
+        (showBigDecrement && showButtons ? buttonWidth + 3 : 0) +
+        (showBigIncrement && showButtons ? buttonWidth + 3 : 0);
+
     Widget bgListener = AnimatedContainer(
         duration: animationDuration,
-        width: widget.valueWidth + 2 * buttonWidth,
+        width: overallWidth,
         height: 48,
         child: Listener(
           child: MyFlatButton(
@@ -185,7 +206,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                 visible: true,
                 color: widget.musicActionButtonColor ?? Colors.black12,
                 onPressed: null,
-                width: widget.valueWidth + 2 * buttonWidth,
+                width: overallWidth,
                 height: 48,
                 child: bgListener)
             : bgListener,
@@ -196,14 +217,37 @@ class _IncrementableValueState extends State<IncrementableValue> {
           child: Container(
               child: Row(children: [
             AnimatedContainer(
+                width: showBigDecrement ? buttonWidth : 0,
+                padding: EdgeInsets.only(left: showButtons ? 3 : 0),
+                duration: animationDuration,
+                child: MyRaisedButton(
+                  color: musicBackgroundColor,
+                  child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: showBigDecrement && showButtons ? 1 : 0,
+                    child: Icon(widget.bigDecrementIcon,
+                        color: musicForegroundColor),
+                  ),
+                  onPressed: widget.onBigDecrement != null
+                      ? () {
+                          lastTouchTimeMs =
+                              DateTime.now().millisecondsSinceEpoch;
+                          widget.onBigDecrement();
+                        }
+                      : null,
+                  padding: EdgeInsets.all(0),
+                )),
+            AnimatedContainer(
                 width: buttonWidth,
                 padding: EdgeInsets.only(left: showButtons ? 3 : 0),
                 duration: animationDuration,
                 child: MyRaisedButton(
+                  color: musicBackgroundColor,
                   child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: showButtons ? 1 : 0,
-                    child: Icon(widget.decrementIcon),
+                    child:
+                        Icon(widget.decrementIcon, color: musicForegroundColor),
                   ),
                   onPressed: widget.onDecrement != null
                       ? () {
@@ -230,16 +274,39 @@ class _IncrementableValueState extends State<IncrementableValue> {
                 padding: EdgeInsets.only(right: showButtons ? 3 : 0),
                 duration: animationDuration,
                 child: MyRaisedButton(
+                  color: musicBackgroundColor,
                   child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: showButtons ? 1 : 0,
-                    child: Icon(widget.incrementIcon),
+                    child:
+                        Icon(widget.incrementIcon, color: musicForegroundColor),
                   ),
                   onPressed: widget.onIncrement != null
                       ? () {
                           lastTouchTimeMs =
                               DateTime.now().millisecondsSinceEpoch;
                           widget.onIncrement();
+                        }
+                      : null,
+                  padding: EdgeInsets.all(0),
+                )),
+            AnimatedContainer(
+                width: showBigIncrement ? buttonWidth : 0,
+                padding: EdgeInsets.only(left: showButtons ? 3 : 0),
+                duration: animationDuration,
+                child: MyRaisedButton(
+                  color: musicBackgroundColor,
+                  child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: showBigIncrement && showButtons ? 1 : 0,
+                    child: Icon(widget.bigIncrementIcon,
+                        color: musicForegroundColor),
+                  ),
+                  onPressed: widget.onBigIncrement != null
+                      ? () {
+                          lastTouchTimeMs =
+                              DateTime.now().millisecondsSinceEpoch;
+                          widget.onBigIncrement();
                         }
                       : null,
                   padding: EdgeInsets.all(0),

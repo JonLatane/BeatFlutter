@@ -156,10 +156,10 @@ packages:
   flutter_reorderable_list:
     dependency: "direct main"
     description:
-      path: "../flutter_reorderable_list"
-      relative: true
-    source: path
-    version: "0.1.5"
+      name: flutter_reorderable_list
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -610,5 +610,5 @@ packages:
     source: hosted
     version: "0.1.2"
 sdks:
-  dart: ">=2.12.0-0.0 <3.0.0"
-  flutter: ">=1.22.0"
+  dart: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"

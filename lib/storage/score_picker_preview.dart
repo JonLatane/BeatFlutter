@@ -166,23 +166,26 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                     fontSize: 12,
                                     fontWeight: FontWeight.w100))),
 
-                    Container(
-                        width: (widget.deleteScore != null) ? 36 : 0,
-                        height: 36,
-                        child: MyFlatButton(
-                            onPressed: isLocked
-                                ? null
-                                : () {
-                                    if (!disposed) {
-                                      setState(() {
-                                        _confirmingDelete = true;
-                                      });
-                                    }
-                                  },
-                            padding: EdgeInsets.zero,
-                            child: Icon(isLocked ? Icons.lock : Icons.delete,
-                                color: foregroundColor
-                                    .withOpacity(isLocked ? 0.5 : 1)))),
+                    (widget.deleteScore != null)
+                        ? Container(
+                            width: 36,
+                            height: 36,
+                            child: MyFlatButton(
+                                onPressed: isLocked
+                                    ? null
+                                    : () {
+                                        if (!disposed) {
+                                          setState(() {
+                                            _confirmingDelete = true;
+                                          });
+                                        }
+                                      },
+                                padding: EdgeInsets.zero,
+                                child: Icon(
+                                    isLocked ? Icons.lock : Icons.delete,
+                                    color: foregroundColor
+                                        .withOpacity(isLocked ? 0.5 : 1))))
+                        : SizedBox(height: 36),
 //          SizedBox(width:5),
                   ]),
                   Expanded(

@@ -40,7 +40,7 @@ class UniverseViewUI {
                     Transform.translate(
                         offset: Offset(0, 1.5),
                         child:
-                            Icon(FontAwesomeIcons.rocket, color: Colors.white)),
+                            Icon(FontAwesomeIcons.atom, color: Colors.white)),
                     SizedBox(width: 3),
                     Text("Beat",
                         style: TextStyle(

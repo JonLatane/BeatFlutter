@@ -40,8 +40,9 @@ class MelodyMenuBrowser extends StatefulWidget {
 
   static loadScoreData() async {
     if (kIsWeb) return;
+
     final List<Future<Score>> futures = _manager.scoreFiles.map((it) async {
-      var score;
+      Score score;
       try {
         score = await ScoreManager.loadScore(it as File);
       } catch (e) {
@@ -49,7 +50,7 @@ class MelodyMenuBrowser extends StatefulWidget {
       }
       score.name = it.scoreName;
       return score;
-    });
+    }).toList();
     final List<Score> data = await Future.wait(futures);
     _scoreDataCache.clear();
     _scoreDataCache

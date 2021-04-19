@@ -414,7 +414,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
             scrollToCurrentBeat();
             _lastAutoScrollTime = DateTime.now();
           } else if (prevWidth != null && prevWidth != widget.width) {
-            print("width changed");
+            // print("width changed");
             scrollToCurrentBeat();
             _lastAutoScrollTime = DateTime.now();
           } else if (_prevSectionOrder != null &&
@@ -525,8 +525,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   double _animationPos(double currentBeat) {
-    print(
-        "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+    // print(
+    //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
     final beatWidth = targetBeatWidth;
     double animationPos = (currentBeat) * beatWidth;
     animationPos = min(animationPos,
@@ -546,8 +546,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       {Duration beatAnimationDuration = animationDuration,
       Curve curve = Curves.linear}) {
     double animationPos = _animationPos(currentBeat);
-    print(
-        "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
+    // print(
+    //     "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
     // final pixels = timeScrollController.position.pixels;
     // final offset = timeScrollController.offset;
     if (_hasBuilt &&
@@ -617,7 +617,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       (myVisibleRect.width / targetBeatWidth);
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
-    print("_constrainToSectionBounds");
+    // print("_constrainToSectionBounds");
     try {
       double position = timeScrollController.position.pixels;
       double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
