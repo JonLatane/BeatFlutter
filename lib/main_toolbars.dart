@@ -241,6 +241,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     return Container(
         height: widget.vertical ? null : 48,
         width: widget.vertical ? 48 : null,
+        color: subBackgroundColor.withOpacity(0.5),
         child: columnOrRow(context, children: [
           if (!widget.rightHalfOnly)
             Expanded(
@@ -693,14 +694,16 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     icon: Stack(children: [
                       Image.asset('assets/logo.png'),
                       Transform.translate(
-                          offset: Offset(25, 18),
+                          offset:
+                              widget.vertical ? Offset(20, 43) : Offset(25, 18),
                           child: AnimatedOpacity(
                               duration: animationDuration,
                               opacity: widget.savingScore ? 0.6667 : 0,
                               child: Icon(Icons.save,
                                   size: 16, color: chromaticSteps[0]))),
                       Transform.translate(
-                          offset: Offset(25, 3),
+                          offset:
+                              widget.vertical ? Offset(2, 43) : Offset(25, 3),
                           child: AnimatedOpacity(
                               duration: animationDuration,
                               opacity: !BeatScratchPlugin.isSynthesizerAvailable

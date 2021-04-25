@@ -610,9 +610,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _toggleViewOptions() {
     setState(() {
       showViewOptions = !showViewOptions;
-      if (!showViewOptions) {
-        _showTapInBar = false;
-      }
     });
   }
 
@@ -1054,37 +1051,53 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     duration: animationDuration, width: _leftNotchPadding),
               Expanded(
                 // fit: FlexFit.loose,
-                child: Column(children: [
-                  _webBanner(context),
-                  _downloadBanner(context),
-                  universeViewUI.build(
-                      context: context,
-                      sectionColor: sectionColor,
-                      keyboardHeight: _keyboardHeight,
-                      settingsHeight: _midiSettingsHeight),
-                  _scorePicker(context),
-                  exportUI.build(
-                      context: context,
-                      setState: setState,
-                      currentSection: currentSection),
-                  _horizontalSectionList(),
-                  Expanded(
-                      child: Row(children: [
-                    _verticalSectionList(),
-                    Expanded(child: _layersAndMusicView(context))
-                  ])),
-                  if (_portraitPhoneUI) _toolbarsInColumn(context),
-                  if (_scalableUI) _toolbarsInRow(context),
-                  // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
-                  // if (_portraitPhoneUI) _tempoConfigurationBar(context),
-                  _midiSettings(context),
-                  // _pasteFailedBar(context),
-                  messagesUI.build(context: context),
-                  _colorboard(context),
-                  if (!_landscapePhoneUI) _tapInBar(context),
-                  _keyboard(context),
-                  _tapInBar(context, bottom: true),
-                  Container(height: _bottomNotchPadding),
+                child: Stack(children: [
+                  Column(children: [
+                    _webBanner(context),
+                    _downloadBanner(context),
+                    universeViewUI.build(
+                        context: context,
+                        sectionColor: sectionColor,
+                        keyboardHeight: _keyboardHeight,
+                        settingsHeight: _midiSettingsHeight),
+                    _scorePicker(context),
+                    exportUI.build(
+                        context: context,
+                        setState: setState,
+                        currentSection: currentSection),
+                    _horizontalSectionList(),
+                    Expanded(
+                        child: Row(children: [
+                      _verticalSectionList(),
+                      Expanded(child: _layersAndMusicView(context))
+                    ])),
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        height: (_landscapePhoneUI ? 0 : 48) +
+                            _secondToolbarHeight +
+                            _midiSettingsHeight +
+                            messagesUI.height(context) +
+                            _colorboardHeight +
+                            _keyboardHeight +
+                            _bottomNotchPadding +
+                            _tapInBarHeight +
+                            _bottomTapInBarHeight)
+                  ]),
+                  Column(children: [
+                    Expanded(child: SizedBox()),
+                    if (_portraitPhoneUI) _toolbarsInColumn(context),
+                    if (_scalableUI) _toolbarsInRow(context),
+                    // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
+                    // if (_portraitPhoneUI) _tempoConfigurationBar(context),
+                    _midiSettings(context),
+                    // _pasteFailedBar(context),
+                    messagesUI.build(context: context),
+                    _colorboard(context),
+                    if (!_landscapePhoneUI) _tapInBar(context),
+                    _keyboard(context),
+                    _tapInBar(context, bottom: true),
+                    Container(height: _bottomNotchPadding),
+                  ])
                 ]),
               ),
               AnimatedContainer(
@@ -1363,6 +1376,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2)
             ? 42
             : 0;
+    final audioButtonColor =
+        BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey;
     tapInBarInstructions({bool withText = true, bool withIcon = true}) =>
         Stack(children: [
           AnimatedOpacity(
@@ -1516,23 +1531,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               opacity: showTapInBar && isDisplayed ? 1 : 0,
               child: MyRaisedButton(
                 padding: EdgeInsets.zero,
-                color: BeatScratchPlugin.metronomeEnabled
-                    ? sectionColor
-                    : Colors.grey,
+                color: audioButtonColor,
                 child: Stack(
                   children: [
                     Transform.translate(
                         offset: Offset(-3.5, 3.5),
                         child: Transform.scale(
                             scale: 0.7,
-                            child: Image.asset('assets/metronome.png'))),
+                            child: ColorFiltered(
+                              child: Image.asset(
+                                "assets/metronome.png",
+                                scale: 1,
+                              ),
+                              colorFilter: ColorFilter.mode(
+                                  audioButtonColor.textColor(),
+                                  BlendMode.srcIn),
+                            ))),
                     Transform.translate(
                         offset: Offset(17, -4),
                         child: Transform.scale(
                             scale: 0.55,
-                            child: Icon(BeatScratchPlugin.metronomeEnabled
-                                ? Icons.volume_up
-                                : Icons.not_interested))),
+                            child: Icon(
+                                BeatScratchPlugin.metronomeEnabled
+                                    ? Icons.volume_up
+                                    : Icons.not_interested,
+                                color: audioButtonColor.textColor()))),
                   ],
                 ),
                 onPressed: BeatScratchPlugin.supportsPlayback
@@ -1721,16 +1744,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         showScorePicker: (mode) {
           setState(() {
-            scorePickerMode = mode;
-            if (interactionMode == InteractionMode.universe &&
-                mode != ScorePickerMode.universe) {
+            if ((interactionMode == InteractionMode.universe &&
+                    mode != ScorePickerMode.universe) ||
+                (interactionMode != InteractionMode.view &&
+                    mode != ScorePickerMode.show)) {
+              scorePickerMode = ScorePickerMode.none;
               _viewMode();
+              Future.delayed(slowAnimationDuration, () {
+                setState(() {
+                  scorePickerMode = mode;
+                  showScorePicker = true;
+                });
+              });
+            } else {
+              scorePickerMode = mode;
+              showScorePicker = true;
             }
-            if (interactionMode != InteractionMode.view &&
-                mode != ScorePickerMode.show) {
-              _viewMode();
-            }
-            showScorePicker = true;
           });
         },
         showMidiInputSettings: () {

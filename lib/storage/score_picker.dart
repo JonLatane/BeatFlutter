@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+import 'package:beatscratch_flutter_redux/storage/url_conversions.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
 import 'package:beatscratch_flutter_redux/storage/score_picker_preview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:convert';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
@@ -102,6 +105,9 @@ class _ScorePickerState extends State<ScorePicker> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.mode != ScorePickerMode.universe) {
+      cachedUniverseData = null;
+    }
     bool showScoreNameEntry = widget.mode.showScoreNameEntry;
     if (!showScoreNameEntry && wasShowingScoreNameEntry) {
       Future.delayed(Duration(milliseconds: 1), () {
@@ -374,7 +380,7 @@ class _ScorePickerState extends State<ScorePicker> {
 
   double get _scoreWidth => widget.width < 400
       ? widget.height < 400
-          ? 150
+          ? 200
           : 250
       : widget.width < 800
           ? 340
@@ -427,27 +433,71 @@ class _ScorePickerState extends State<ScorePicker> {
     });
   }
 
-  Widget getList(BuildContext context) {
-    List<FileSystemEntity> scoreFiles;
-    if (widget.mode != ScorePickerMode.none) {
-      scoreFiles = scoreManager.scoreFiles;
-    } else {
-      scoreFiles = <FileSystemEntity>[];
-    }
-    return ImplicitlyAnimatedList<FileSystemEntity>(
-      scrollDirection: widget.scrollDirection,
-      spawnIsolate: false,
-      controller: _scrollController,
-      items: scoreFiles,
-      areItemsTheSame: (a, b) => a?.path == b?.path,
-      // Called, as needed, to build list item widgets.
-      // List items are only built when they're scrolled into view.
-      itemBuilder: (context, animation, section, index) {
-        File scoreFile;
-        if (index < scoreFiles.length) {
-          scoreFile = scoreFiles[index];
+  List<ScoreFuture> cachedUniverseData;
+
+  loadUniverseData() async {
+    http.Response response = await http.get(
+      'https://www.reddit.com/r/BeatScratch/new.json?limit=25',
+      headers: <String, String>{
+        "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
+      },
+    );
+    dynamic data = jsonDecode(response.body);
+    ScoreFuture convertRedditData(Map<String, dynamic> redditData) {
+      String title = redditData["data"]["title"];
+      String author = redditData["data"]["author"];
+      int voteCount = redditData["data"]["ups"] - redditData["data"]["downs"];
+      String url = redditData["data"]["url_overridden_by_dest"];
+      String commentUrl =
+          "https://reddit.com${redditData["data"]["permalink"]}";
+      Future<Score> loadScore() async {
+        String scoreUrl = url;
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
+        try {
+          final score = scoreFromUrlHashValue(scoreUrl);
+          if (score == null) {
+            throw "failed to load";
+          }
+          return score;
+        } catch (e) {
+          try {
+            return widget.scoreManager.loadPastebinScore(scoreUrl);
+          } catch (e) {
+            return Future.value(defaultScore());
+          }
         }
-        // Future
+      }
+
+      return ScoreFuture(loadScore(), commentUrl,
+          title: title,
+          author: author,
+          commentUrl: commentUrl,
+          voteCount: voteCount);
+    }
+
+    List<Map<String, dynamic>> redditEntries = data["data"]["children"]
+        .map<Map<String, dynamic>>((e) => e as Map<String, dynamic>)
+        .toList();
+
+    cachedUniverseData = redditEntries.map(convertRedditData).toList();
+  }
+
+  List<ScoreFuture> get _listedScores {
+    if (widget.mode == ScorePickerMode.none) {
+      return [];
+    } else if (widget.mode == ScorePickerMode.universe) {
+      if (cachedUniverseData == null) {
+        loadUniverseData();
+        return [];
+      } else {
+        return cachedUniverseData;
+      }
+    } else {
+      List<FileSystemEntity> scoreFiles;
+      scoreFiles = scoreManager.scoreFiles;
+      return scoreFiles.map((scoreFile) {
         Future<Score> loadScore() async {
           if (scoreFile == null) {
             return Future.value(defaultScore());
@@ -461,35 +511,61 @@ class _ScorePickerState extends State<ScorePicker> {
           }
         }
 
+        return ScoreFuture(loadScore(), scoreFile.path, file: scoreFile);
+      }).toList();
+    }
+  }
+
+  Widget getList(BuildContext context) {
+    List<ScoreFuture> scores = _listedScores;
+    return ImplicitlyAnimatedList<ScoreFuture>(
+      scrollDirection: widget.scrollDirection,
+      spawnIsolate: false,
+      controller: _scrollController,
+      items: scores,
+      areItemsTheSame: (a, b) => a?.identity == b?.identity,
+      // Called, as needed, to build list item widgets.
+      // List items are only built when they're scrolled into view.
+      itemBuilder: (context, animation, section, index) {
+        ScoreFuture scoreFuture;
+        if (index < scores.length) {
+          scoreFuture = scores[index];
+        }
+        File scoreFile = scoreFuture?.file;
+
         Widget tile = ScorePickerPreview(
           currentScoreName: scoreManager.currentScoreName,
           sectionColor: widget.sectionColor,
           width: _scoreWidth,
           height: widget.height,
-          unloadedScoreName: scoreFile?.scoreName ?? "",
-          onClickScore: () {
-            switch (widget.mode) {
-              case ScorePickerMode.open:
-                if (scoreFile != null) {
-                  widget.scoreManager.openScore(scoreFile);
-                }
-                break;
-              case ScorePickerMode.universe:
-                break;
-              default:
-                String scoreName = scoreFile?.scoreName;
-                if (scoreName != null) {
-                  nameController.clear();
-                  setState(() {
-                    nameController.value =
-                        nameController.value.copyWith(text: scoreName);
-                  });
-                }
-            }
-          },
+          onClickScore: widget.mode == ScorePickerMode.show ||
+                  widget.mode == ScorePickerMode.none
+              ? null
+              : () {
+                  switch (widget.mode) {
+                    case ScorePickerMode.open:
+                      if (scoreFile != null) {
+                        widget.scoreManager.openScore(scoreFile);
+                      }
+                      break;
+                    case ScorePickerMode.universe:
+                      scoreFuture.loadScore.then(
+                          (value) => widget.scoreManager.doOpenScore(value));
+                      break;
+                    default:
+                      String scoreName = scoreFile?.scoreName;
+                      if (scoreName != null) {
+                        nameController.clear();
+                        setState(() {
+                          nameController.value =
+                              nameController.value.copyWith(text: scoreName);
+                        });
+                      }
+                  }
+                },
           scoreManager: scoreManager,
           scoreKey: (scoreFile?.lastModifiedSync() ?? DateTime(0)).hashCode,
-          loadScore: scoreFile != null ? loadScore() : null,
+          scoreFuture: scoreFuture,
           deleteScore: widget.mode == ScorePickerMode.universe
               ? null
               : () {
@@ -508,7 +584,8 @@ class _ScorePickerState extends State<ScorePicker> {
             });
           },
         );
-        tile = Padding(padding: EdgeInsets.all(5), child: tile);
+        tile =
+            Padding(padding: EdgeInsets.symmetric(horizontal: 5), child: tile);
         return SizeFadeTransition(
             sizeFraction: 0.7,
             curve: Curves.easeInOut,

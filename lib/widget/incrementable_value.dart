@@ -199,6 +199,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
           onPointerUp: onPointerUp,
           onPointerCancel: onPointerCancel,
         ));
+    foregroundColor(enabled) =>
+        musicForegroundColor.withOpacity(enabled ? 1 : 0.5);
     return Stack(
       children: [
         widget.musicActionButtonStyle
@@ -226,7 +228,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     duration: animationDuration,
                     opacity: showBigDecrement && showButtons ? 1 : 0,
                     child: Icon(widget.bigDecrementIcon,
-                        color: musicForegroundColor),
+                        color: foregroundColor(widget.onBigDecrement != null)),
                   ),
                   onPressed: widget.onBigDecrement != null
                       ? () {
@@ -246,8 +248,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
                   child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: showButtons ? 1 : 0,
-                    child:
-                        Icon(widget.decrementIcon, color: musicForegroundColor),
+                    child: Icon(widget.decrementIcon,
+                        color: foregroundColor(widget.onDecrement != null)),
                   ),
                   onPressed: widget.onDecrement != null
                       ? () {
@@ -278,8 +280,8 @@ class _IncrementableValueState extends State<IncrementableValue> {
                   child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: showButtons ? 1 : 0,
-                    child:
-                        Icon(widget.incrementIcon, color: musicForegroundColor),
+                    child: Icon(widget.incrementIcon,
+                        color: foregroundColor(widget.onIncrement != null)),
                   ),
                   onPressed: widget.onIncrement != null
                       ? () {
@@ -300,7 +302,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                     duration: animationDuration,
                     opacity: showBigIncrement && showButtons ? 1 : 0,
                     child: Icon(widget.bigIncrementIcon,
-                        color: musicForegroundColor),
+                        color: foregroundColor(widget.onBigIncrement != null)),
                   ),
                   onPressed: widget.onBigIncrement != null
                       ? () {

@@ -1388,7 +1388,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     final bigDecrementAction = (xScale > alignedScale || yScale > alignedScale)
         ? () {
             setState(() {
+              _aligned = true;
+              _partAligned = false;
+              _preButtonScale();
               alignVertically();
+              _lineUpAfterSizeChange();
             });
           }
         : (xScale > minScale || yScale > minScale)
@@ -1404,13 +1408,23 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     final bigIncrementAction = (xScale < alignedScale || yScale < alignedScale)
         ? () {
             setState(() {
+              _aligned = true;
+              _partAligned = false;
+              _preButtonScale();
               alignVertically();
+              _lineUpAfterSizeChange();
             });
           }
-        : (xScale < partAlignedScale || yScale < partAlignedScale)
+        : (xScale < partAlignedScale || yScale < partAlignedScale) &&
+                !xScale.roughlyEquals(partAlignedScale) &&
+                widget.musicViewMode != MusicViewMode.section
             ? () {
                 setState(() {
+                  _aligned = true;
+                  _partAligned = true;
+                  _preButtonScale();
                   partAlignVertically();
+                  _lineUpAfterSizeChange();
                 });
               }
             : null;

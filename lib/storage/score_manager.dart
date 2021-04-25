@@ -160,6 +160,24 @@ class ScoreManager {
     _lastSuggestedScoreName = name;
   }
 
+  Future<Score> loadPastebinScore(String codeOrUrl) async {
+    final code = codeOrUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
+
+    http.Response response = await http.get(
+      'https://api.paste.ee/v1/pastes/$code',
+      headers: <String, String>{
+        "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
+      },
+    );
+    dynamic data = jsonDecode(response.body);
+    String longUrl = data['paste']['sections'].first['contents'];
+    longUrl = longUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+    longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+
+    Score score = scoreFromUrlHashValue(longUrl);
+    return score;
+  }
+
   loadPastebinScoreIntoUI(String pastebinCode,
       {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
@@ -170,18 +188,7 @@ class ScoreManager {
       return;
     }
     try {
-      http.Response response = await http.get(
-        'https://api.paste.ee/v1/pastes/$pastebinCode',
-        headers: <String, String>{
-          "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
-        },
-      );
-      dynamic data = jsonDecode(response.body);
-      String longUrl = data['paste']['sections'].first['contents'];
-      longUrl = longUrl.replaceFirst(new RegExp(r'http.*#score='), '');
-      longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
-
-      Score score = scoreFromUrlHashValue(longUrl);
+      Score score = await loadPastebinScore(pastebinCode);
       String scoreName = score.name ?? "";
       String suggestedScoreName = scoreName;
       if (suggestedScoreName.trim().isEmpty) {
