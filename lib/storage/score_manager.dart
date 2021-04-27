@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +15,8 @@ import '../util/proto_utils.dart';
 import '../widget/my_platform.dart';
 import 'url_conversions.dart';
 
+/// ScoreManager is in charge of loading Scores from local storage
+/// or the web.
 /// ScoreManager gonna be funky if [BeatScratchPlugin.supportsStorage]
 /// isn't true (i.e. for the web). You still have JSON serialization
 /// stuff available... you could write this, enterprising code school dev!
@@ -35,7 +38,7 @@ class ScoreManager {
       _prefs?.setString("currentScoreName", value);
 
   File get currentScoreFile => File(
-      "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName)}.beatscratch");
+      "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
     if (scoresDirectory != null) {
@@ -63,6 +66,12 @@ class ScoreManager {
       final scoresPath = "${documentsDirectory.path}/$scoresDirectoryName";
       scoresDirectory = Directory(scoresPath);
       scoresDirectory.createSync();
+
+      //Migrate files
+      scoreFiles.forEach((file) {
+        file.rename(file.path.replaceAll("%20", " "));
+      });
+
       loadCurrentScoreIntoUI();
     }
   }
@@ -78,14 +87,9 @@ class ScoreManager {
     saveScoreFile(currentScoreFile, score);
   }
 
-  saveScoreFile(File scoreFile, Score score) async {
-    if (scoreFile.scoreName != WEB_SCORE &&
-        scoreFile.scoreName != PASTED_SCORE &&
-        scoreFile.scoreName != UNIVERSE_SCORE) {
-      print("Updating score name");
-      score.name = scoreFile.scoreName;
-    }
-    currentScoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
+  Future saveScoreFile(File scoreFile, Score score) async {
+    return compute(
+        _saveScoreFile, _SaveRequest(scoreFile.path, score.writeToBuffer()));
   }
 
   openScore(File file) async {
@@ -114,6 +118,7 @@ class ScoreManager {
       Score currentScoreToSave,
       VoidCallback onFail,
       Function(String) onSuccess}) {
+    print("ScoreURL=$scoreUrl");
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
@@ -230,4 +235,23 @@ extension ScoreName on FileSystemEntity {
     String scoreName = Uri.decodeComponent(fileName);
     return scoreName;
   }
+}
+
+class _SaveRequest {
+  final String scoreFilePath;
+  final Uint8List scoreBytes;
+
+  const _SaveRequest(this.scoreFilePath, this.scoreBytes);
+}
+
+_saveScoreFile(_SaveRequest request) {
+  File scoreFile = File(request.scoreFilePath);
+  Score score = Score.fromBuffer(request.scoreBytes);
+  if (scoreFile.scoreName != ScoreManager.WEB_SCORE &&
+      scoreFile.scoreName != ScoreManager.PASTED_SCORE &&
+      scoreFile.scoreName != ScoreManager.UNIVERSE_SCORE) {
+    print("Updating score name");
+    score.name = scoreFile.scoreName;
+  }
+  scoreFile.writeAsBytes(score.bsCopy().writeToBuffer());
 }

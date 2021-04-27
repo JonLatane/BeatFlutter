@@ -1,5 +1,8 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'settings/app_settings.dart';
 import 'universe_view/universe_view_ui.dart';
 
@@ -61,6 +64,7 @@ const Map<int, Color> swatch = {
 };
 
 ScoreManager _scoreManager = ScoreManager();
+UniverseManager _universeManager = UniverseManager();
 AppSettings _appSettings = AppSettings();
 String webScoreName = "Empty Web Score";
 var baseHandler = Fluro.Handler(
@@ -511,10 +515,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
       if (scorePickerMode == ScorePickerMode.universe) {
-        scorePickerMode = ScorePickerMode.show;
-        Future.delayed(Duration(seconds: 2), () {
-          _closeScorePicker(onlyIfShowMode: true);
-        });
+        _closeScorePicker();
       }
       recordingMelody = false;
       if (!_scalableUI) {
@@ -531,10 +532,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       if (interactionMode != InteractionMode.universe) {
+        _universeManager.currentUniverseScore = "";
         if (BeatScratchPlugin.supportsStorage) {
-          saveCurrentScore();
-
-          _scoreManager.openScoreWithName(ScoreManager.UNIVERSE_SCORE);
+          saveCurrentScore(delay: slowAnimationDuration * 2);
+          _scoreManager.currentScoreName = ScoreManager.UNIVERSE_SCORE;
         }
       }
       interactionMode = InteractionMode.universe;
@@ -549,6 +550,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       musicViewMode = MusicViewMode.score;
       selectedMelody = null;
       _showMusicView();
+      exportUI.visible = false;
     });
   }
 
@@ -589,9 +591,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         //   setState(() {splitMode = SplitMode.half;});
         // }
       } else {
-        if (_showScorePicker) {
-          scorePickerMode = ScorePickerMode.show;
-          _closeScorePicker(onlyIfShowMode: true);
+        _closeScorePicker();
+        if (exportUI.visible) {
+          exportUI.visible = false;
         }
         if (_prevSelectedMelody != null) {
           _selectOrDeselectMelody(_prevSelectedMelody);
@@ -714,12 +716,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double _scorePickerHeight(BuildContext context) => showScorePicker
       ? interactionMode == InteractionMode.universe
-          ? flexibleAreaHeight(context) *
-              (flexibleAreaHeight(context) < 600
-                  ? flexibleAreaHeight(context) < 500
-                      ? 0.5
-                      : 0.66667
-                  : 0.6)
+          ? universeViewUI.signingIn
+              ? 0
+              : flexibleAreaHeight(context) *
+                  (flexibleAreaHeight(context) < 600
+                      ? flexibleAreaHeight(context) < 500
+                          ? 0.5
+                          : 0.66667
+                      : 0.6)
           : min(
               flexibleAreaHeight(context) * 0.66,
               210.0 +
@@ -790,7 +794,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     messagesUI = MessagesUI(setState);
-    universeViewUI = UniverseViewUI(setState);
+    universeViewUI = UniverseViewUI(setState, _universeManager)
+      ..messagesUI = messagesUI;
     exportUI = ExportUI()..messagesUI = messagesUI;
     scrollToCurrentBeat = BSMethod();
     BeatScratchPlugin.setupWebStuff();
@@ -843,37 +848,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.onSynthesizerStatusChange = () {
       setState(() {});
     };
-    BeatScratchPlugin.onLoadScoreFromLink = (scoreUrl) {
-      saveCurrentScore();
-
-      bool failed = false;
-      Future.delayed(slowAnimationDuration, () {
-        _scoreManager.loadFromScoreUrl(scoreUrl,
-            newScoreDefaultFilename: ScoreManager.WEB_SCORE,
-            newScoreNameSuffix: ScoreManager.FROM_WEB,
-            currentScoreToSave: score, onSuccess: (_) {
-          setState(() {
-            scorePickerMode = ScorePickerMode.duplicate;
-            showScorePicker = true;
-            _viewMode();
-          });
-        }, onFail: () {
-          failed = true;
-          setState(() {
-            messagesUI.sendMessage(
-                message: "Failed to open Score Link!", isError: true);
-          });
-        });
-
-        Future.delayed(slowAnimationDuration, () {
-          if (!failed) {
-            messagesUI.sendMessage(
-              message: "Opened linked score!",
-            );
-          }
-        });
-      });
-    };
+    BeatScratchPlugin.onOpenUrlFromSystem = onOpenUrlFromSystem;
     BeatScratchPlugin.onCountInInitiated = () {
       setState(() {
         _tapInBeat = -2;
@@ -941,7 +916,46 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     colorboardNotesNotifier.dispose();
     keyboardNotesNotifier.dispose();
     scrollToCurrentBeat.dispose();
+    universeViewUI.dispose();
     super.dispose();
+  }
+
+  onOpenUrlFromSystem(String scoreUrl) {
+    print("Opening URL: $scoreUrl");
+    closeWebView();
+
+    if (universeViewUI.tryAuthentication(scoreUrl)) {
+      return;
+    }
+
+    saveCurrentScore();
+    bool failed = false;
+    Future.delayed(slowAnimationDuration, () {
+      _scoreManager.loadFromScoreUrl(scoreUrl,
+          newScoreDefaultFilename: ScoreManager.WEB_SCORE,
+          newScoreNameSuffix: ScoreManager.FROM_WEB,
+          currentScoreToSave: score, onSuccess: (_) {
+        setState(() {
+          scorePickerMode = ScorePickerMode.duplicate;
+          showScorePicker = true;
+          _viewMode();
+        });
+      }, onFail: () {
+        failed = true;
+        setState(() {
+          messagesUI.sendMessage(
+              message: "Failed to open Score Link!", isError: true);
+        });
+      });
+
+      Future.delayed(slowAnimationDuration, () {
+        if (!failed) {
+          messagesUI.sendMessage(
+            message: "Opened linked score!",
+          );
+        }
+      });
+    });
   }
 
   // ignore: missing_return
@@ -1085,13 +1099,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ]),
                   Column(children: [
                     Expanded(child: SizedBox()),
+                    Opacity(
+                        opacity: 0.8,
+                        child: messagesUI.build(context: context)),
                     if (_portraitPhoneUI) _toolbarsInColumn(context),
                     if (_scalableUI) _toolbarsInRow(context),
                     // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
                     // if (_portraitPhoneUI) _tempoConfigurationBar(context),
                     _midiSettings(context),
                     // _pasteFailedBar(context),
-                    messagesUI.build(context: context),
                     _colorboard(context),
                     if (!_landscapePhoneUI) _tapInBar(context),
                     _keyboard(context),
@@ -1811,10 +1827,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
         },
         export: () {
-          setState(() {
-            exportUI.visible = true;
-            showScorePicker = false;
-          });
+          if (interactionMode == InteractionMode.view) {
+            setState(() {
+              exportUI.visible = true;
+              showScorePicker = false;
+            });
+          } else {
+            _viewMode();
+            Future.delayed(slowAnimationDuration, () {
+              setState(() {
+                exportUI.visible = true;
+                showScorePicker = false;
+              });
+            });
+          }
         },
         openMelody: selectedMelody,
         openPart: selectedPart,
@@ -1910,23 +1936,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return result;
   }
 
-  saveCurrentScore() {
+  saveCurrentScore({Duration delay}) {
     final score = this.score;
     final scoreFile = _scoreManager.currentScoreFile;
     print("Saving score ${score.name} to ${scoreFile.path.split('/').last}...");
-    Future.microtask(() {
+    doSave() {
       setState(() {
         _savingScore = true;
       });
       print(
           "REALLY Saving score ${score.name} to ${scoreFile.path.split('/').last}...");
-      _scoreManager.saveScoreFile(scoreFile, score);
-      Future.delayed(animationDuration * 2, () {
-        setState(() {
-          _savingScore = false;
-        });
-      });
-    });
+      _scoreManager
+          .saveScoreFile(scoreFile, score)
+          .then((_) => Future.delayed(animationDuration * 2, () {
+                setState(() {
+                  _savingScore = false;
+                });
+              }));
+    }
+
+    if (delay == null) {
+      Future.microtask(doSave);
+    } else {
+      Future.delayed(delay, doSave);
+    }
   }
 
   double beatScratchToolbarHeight(BuildContext context) =>
@@ -1943,7 +1976,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _midiSettingsHeight -
         _colorboardHeight -
         _keyboardHeight -
-        messagesUI.height(context) -
+        // messagesUI.height(context) -
         horizontalSectionListHeight -
         _tapInBarHeight -
         webWarningHeight -
@@ -2066,7 +2099,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     bottomShadow: true),
               ),
               AnimatedContainer(
-                curve: Curves.linear,
+                curve: Curves.easeOutQuart,
                 duration: slowAnimationDuration,
                 padding:
                     EdgeInsets.only(top: (_musicViewSizeFactor == 1) ? 0 : 5),
@@ -2405,6 +2438,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         color: subBackgroundColor,
         child: ScorePicker(
             scoreManager: _scoreManager,
+            universeManager: _universeManager,
             mode: scorePickerMode,
             sectionColor: sectionColor,
             openedScore: score,

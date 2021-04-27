@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/universe_view/universe_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -778,13 +780,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         onPressed: widget.universeMode,
                         onLongPress: widget.universeMode,
                         padding: EdgeInsets.all(0.0),
-                        child: Transform.translate(
-                            offset: Offset(0, 0),
-                            child: Icon(FontAwesomeIcons.atom,
-                                color: (widget.interactionMode ==
-                                        InteractionMode.universe)
-                                    ? widget.sectionColor.textColor()
-                                    : widget.sectionColor))))),
+                        child: UniverseIcon(
+                            interactionMode: widget.interactionMode,
+                            sectionColor: widget.sectionColor)))),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(

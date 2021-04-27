@@ -25,6 +25,7 @@ import '../music_preview/score_preview.dart';
 import '../util/music_utils.dart';
 import '../widget/my_buttons.dart';
 import 'score_manager.dart';
+import 'universe_manager.dart';
 
 enum ScorePickerMode {
   create,
@@ -49,6 +50,7 @@ class ScorePicker extends StatefulWidget {
   final Function(ScorePickerMode) requestMode;
   final Score openedScore;
   final ScoreManager scoreManager;
+  final UniverseManager universeManager;
   final Function(bool) requestKeyboardFocused;
   final double width, height;
 
@@ -61,6 +63,7 @@ class ScorePicker extends StatefulWidget {
       this.mode,
       this.openedScore,
       this.scoreManager,
+      this.universeManager,
       this.requestKeyboardFocused,
       this.requestMode,
       this.width,
@@ -438,9 +441,9 @@ class _ScorePickerState extends State<ScorePicker> {
   loadUniverseData() async {
     http.Response response = await http.get(
       'https://www.reddit.com/r/BeatScratch/new.json?limit=25',
-      headers: <String, String>{
-        "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
-      },
+      // headers: <String, String>{
+      //   "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
+      // },
     );
     dynamic data = jsonDecode(response.body);
     ScoreFuture convertRedditData(Map<String, dynamic> redditData) {
@@ -534,7 +537,6 @@ class _ScorePickerState extends State<ScorePicker> {
         File scoreFile = scoreFuture?.file;
 
         Widget tile = ScorePickerPreview(
-          currentScoreName: scoreManager.currentScoreName,
           sectionColor: widget.sectionColor,
           width: _scoreWidth,
           height: widget.height,
@@ -549,8 +551,11 @@ class _ScorePickerState extends State<ScorePicker> {
                       }
                       break;
                     case ScorePickerMode.universe:
-                      scoreFuture.loadScore.then(
-                          (value) => widget.scoreManager.doOpenScore(value));
+                      scoreFuture.loadScore.then((value) {
+                        widget.scoreManager.doOpenScore(value);
+                        widget.universeManager.currentUniverseScore =
+                            scoreFuture.identity;
+                      });
                       break;
                     default:
                       String scoreName = scoreFile?.scoreName;
@@ -564,6 +569,7 @@ class _ScorePickerState extends State<ScorePicker> {
                   }
                 },
           scoreManager: scoreManager,
+          universeManager: widget.universeManager,
           scoreKey: (scoreFile?.lastModifiedSync() ?? DateTime(0)).hashCode,
           scoreFuture: scoreFuture,
           deleteScore: widget.mode == ScorePickerMode.universe

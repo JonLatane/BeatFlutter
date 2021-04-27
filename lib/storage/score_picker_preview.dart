@@ -21,6 +21,7 @@ import '../music_preview/score_preview.dart';
 import '../util/music_utils.dart';
 import '../widget/my_buttons.dart';
 import 'score_manager.dart';
+import 'universe_manager.dart';
 
 class ScoreFuture {
   final Future<Score> loadScore;
@@ -37,11 +38,11 @@ class ScorePickerPreview extends StatefulWidget {
   final ScoreFuture scoreFuture;
   final VoidCallback deleteScore;
   final ScoreManager scoreManager;
+  final UniverseManager universeManager;
   final VoidCallback onClickScore;
   final int scoreKey;
   final String overwritingScoreName;
   final VoidCallback cancelOverwrite;
-  final String currentScoreName;
   final double width, height;
 
   const ScorePickerPreview(
@@ -53,7 +54,7 @@ class ScorePickerPreview extends StatefulWidget {
       this.overwritingScoreName,
       this.scoreKey,
       this.cancelOverwrite,
-      this.currentScoreName,
+      this.universeManager,
       this.onClickScore,
       this.width,
       this.height})
@@ -88,10 +89,14 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
   String get unloadedScoreName =>
       widget.scoreFuture?.title ?? widget.scoreFuture?.file?.scoreName ?? "";
 
+  bool get isUniverse => widget.scoreFuture?.voteCount != null;
   @override
   Widget build(BuildContext context) {
     final scoreName = unloadedScoreName;
-    bool isCurrentScore = unloadedScoreName == widget.currentScoreName;
+    bool isCurrentScore = isUniverse
+        ? widget.scoreFuture.identity ==
+            widget.universeManager.currentUniverseScore
+        : unloadedScoreName == widget.scoreManager.currentScoreName;
     if (widget.scoreKey != _lastScoreKey && widget.scoreFuture != null) {
       _confirmingDelete = false;
       _previewScore = null;
@@ -125,8 +130,11 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     if (previewScore?.sections?.isEmpty == true) {
       previewScore.sections.add(defaultSection());
     }
-    final actualScoreName =
-        _previewScore != null ? _previewScore.name : unloadedScoreName;
+    final actualScoreName = isUniverse
+        ? unloadedScoreName
+        : _previewScore != null
+            ? _previewScore.name
+            : unloadedScoreName;
 
     double previewScale =
         widget.width > 200 && widget.height > 200 ? 0.33 : 0.13;
@@ -283,37 +291,71 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                       )
                     : SizedBox(),
               ),
+              Align(
+                  alignment: Alignment.bottomLeft,
+                  child: AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: widget.scoreFuture?.author != null ? 1 : 0,
+                      child: Container(
+                          height: 36,
+                          padding: EdgeInsets.all(5),
+                          color: musicBackgroundColor.withOpacity(0.5),
+                          child: Row(children: [
+                            Column(children: [
+                              Text("submitted",
+                                  style: TextStyle(
+                                      color: musicForegroundColor,
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 8)),
+                              Text("by",
+                                  style: TextStyle(
+                                      color: musicForegroundColor,
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 8))
+                            ]),
+                            SizedBox(width: 5),
+                            Text(widget.scoreFuture?.author ?? "",
+                                style: TextStyle(
+                                    color: musicForegroundColor,
+                                    fontWeight: FontWeight.w700))
+                          ]))))
             ],
           )),
-      AnimatedContainer(
+      AnimatedOpacity(
           duration: animationDuration,
-          color: musicBackgroundColor,
-          width: widget.scoreFuture?.voteCount != null ? 48 : 0,
-          child: Column(
-            children: [
-              MyFlatButton(
-                  onPressed: null,
-                  child: Icon(Icons.arrow_upward,
-                      color: chromaticSteps[11].withOpacity(0.5))),
-              Row(children: [
-                Expanded(child: SizedBox()),
-                Text(widget.scoreFuture?.voteCount?.toString() ?? '',
-                    style: TextStyle(
-                        color: musicForegroundColor,
-                        fontWeight: FontWeight.w800)),
-                Expanded(child: SizedBox()),
-              ]),
-              MyFlatButton(
-                  onPressed: null,
-                  child: Icon(Icons.arrow_downward,
-                      color: chromaticSteps[10].withOpacity(0.5))),
-              Expanded(child: SizedBox()),
-              MyFlatButton(
-                  onPressed: null,
-                  child: Icon(Icons.comment,
-                      color: chromaticSteps[0].withOpacity(0.5))),
-            ],
-          ))
+          opacity: isUniverse ? 1 : 0,
+          child: AnimatedContainer(
+              duration: animationDuration,
+              color: musicBackgroundColor,
+              width: isUniverse ? 48 : 0,
+              child: Column(
+                children: [
+                  MyFlatButton(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      onPressed: () {},
+                      child: Icon(Icons.arrow_upward,
+                          color: chromaticSteps[11].withOpacity(0.5))),
+                  Row(children: [
+                    Expanded(child: SizedBox()),
+                    Text(widget.scoreFuture?.voteCount?.toString() ?? '',
+                        style: TextStyle(
+                            color: musicForegroundColor,
+                            fontWeight: FontWeight.w800)),
+                    Expanded(child: SizedBox()),
+                  ]),
+                  MyFlatButton(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      onPressed: () {},
+                      child: Icon(Icons.arrow_downward,
+                          color: chromaticSteps[10].withOpacity(0.5))),
+                  Expanded(child: SizedBox()),
+                  MyFlatButton(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      onPressed: () {},
+                      child: Icon(Icons.comment,
+                          color: chromaticSteps[0].withOpacity(0.5))),
+                ],
+              )))
     ]);
   }
 }

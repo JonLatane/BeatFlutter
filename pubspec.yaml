@@ -2,7 +2,7 @@ name: beatscratch_flutter_redux
 description: BeatScratch for Flutter
 publish_to: none
 
-version: 1.0.9+276
+version: 1.0.10+284
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -54,6 +54,8 @@ dependencies:
   fluro: "^1.6.3"
   flutter_appavailability: ^0.0.21
   native_device_orientation: ^0.4.3
+  webview_flutter: ^2.0.4
+  flutter_icons: ^1.1.0
 
 dev_dependencies:
   flutter_test:

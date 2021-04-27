@@ -115,8 +115,8 @@ class BeatScratchPlugin {
   }
 
   static _notifyScoreUrlOpened(String url) {
-    if (onLoadScoreFromLink != null) {
-      onLoadScoreFromLink(url);
+    if (onOpenUrlFromSystem != null) {
+      onOpenUrlFromSystem(url);
     } else {
       Future.delayed(Duration(milliseconds: 500), () {
         _notifyScoreUrlOpened(url);
@@ -213,7 +213,7 @@ class BeatScratchPlugin {
 
   static VoidCallback onCountInInitiated;
   static VoidCallback onSynthesizerStatusChange;
-  static Function(String) onLoadScoreFromLink;
+  static Function(String) onOpenUrlFromSystem;
   static Function(String) onSectionSelected;
   static Function(Melody) onRecordingMelodyUpdated;
   static _doSynthesizerStatusChangeLoop() {

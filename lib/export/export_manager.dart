@@ -12,7 +12,7 @@ class ExportManager {
 
   File createExportFile(BSExport export) {
     String path =
-        "${exportsDirectory.path.toString()}/${Uri.encodeComponent(export.score.name)}";
+        "${exportsDirectory.path.toString()}/${Uri.encodeComponent(export.score.name).replaceAll("%20", " ")}";
     if (export.exportedSection != null) {
       path += "-${Uri.encodeComponent(export.exportedSection.canonicalName)}";
     }
