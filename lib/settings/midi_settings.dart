@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/universe_view/universe_icon.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../settings/app_settings.dart';
@@ -274,11 +275,12 @@ class _MidiSettingsState extends State<MidiSettings> {
               SizedBox(height: 9),
               Row(children: [
                 Expanded(child: SizedBox()),
-                Icon(FontAwesomeIcons.atom,
-                    color: (widget.appSettings.enableUniverse
-                            ? widget.sectionColor
-                            : Colors.grey)
-                        .textColor()),
+                UniverseIcon(
+                  interactionMode: InteractionMode.universe,
+                  sectionColor: widget.appSettings.enableUniverse
+                      ? widget.sectionColor
+                      : Colors.grey,
+                ),
                 SizedBox(width: 5),
                 Text("BETA",
                     textAlign: TextAlign.center,
@@ -306,6 +308,63 @@ class _MidiSettingsState extends State<MidiSettings> {
           padding: EdgeInsets.symmetric(horizontal: 5),
         ),
       ),
+      if (MyPlatform.isIOS)
+        _SettingsTile(
+          id: "apolloUniverse",
+          color: widget.appSettings.enableApollo
+              ? widget.sectionColor
+              : Colors.grey,
+          child: Container(
+            child: Column(
+              children: [
+                Expanded(child: SizedBox()),
+                SizedBox(height: 15),
+                Text("iOS: Apollo",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: (widget.appSettings.enableApollo
+                                ? widget.sectionColor
+                                : Colors.grey)
+                            .textColor(),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700)),
+                SizedBox(height: 9),
+                Row(children: [
+                  Expanded(child: SizedBox()),
+                  Icon(FontAwesomeIcons.reddit,
+                      color: (widget.appSettings.enableApollo
+                              ? widget.sectionColor
+                              : Colors.grey)
+                          .textColor()),
+                  SizedBox(width: 5),
+                  Text("Use Apollo to\nread Reddit comments",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: (widget.appSettings.enableApollo
+                                  ? widget.sectionColor
+                                  : Colors.grey)
+                              .textColor(),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w100)),
+                  Expanded(child: SizedBox()),
+                ]),
+                Switch(
+                  activeColor: Colors.white,
+                  value: widget.appSettings.enableApollo,
+                  onChanged: widget.appSettings.enableUniverse
+                      ? (v) => setState(() {
+                            widget.appSettings.enableApollo = v;
+                            BeatScratchPlugin.onSynthesizerStatusChange();
+                          })
+                      : null,
+//                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                ),
+                Expanded(child: SizedBox()),
+              ],
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 5),
+          ),
+        ),
     ];
     List<dynamic> items = <dynamic>[
       _Separator(text: "MIDI Devices", id: "midi-settings")

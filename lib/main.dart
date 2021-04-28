@@ -796,6 +796,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     messagesUI = MessagesUI(setState);
     universeViewUI = UniverseViewUI(setState, _universeManager)
       ..messagesUI = messagesUI;
+    _universeManager
+      ..messagesUI = messagesUI
+      ..setAppState = setState;
     exportUI = ExportUI()..messagesUI = messagesUI;
     scrollToCurrentBeat = BSMethod();
     BeatScratchPlugin.setupWebStuff();
@@ -924,7 +927,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     print("Opening URL: $scoreUrl");
     closeWebView();
 
-    if (universeViewUI.tryAuthentication(scoreUrl)) {
+    if (_universeManager.tryAuthentication(scoreUrl)) {
       return;
     }
 
@@ -2439,6 +2442,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         child: ScorePicker(
             scoreManager: _scoreManager,
             universeManager: _universeManager,
+            appSettings: _appSettings,
             mode: scorePickerMode,
             sectionColor: sectionColor,
             openedScore: score,

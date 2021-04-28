@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/storage/url_conversions.dart';
 import 'package:http/http.dart' as http;
 
@@ -51,6 +52,7 @@ class ScorePicker extends StatefulWidget {
   final Score openedScore;
   final ScoreManager scoreManager;
   final UniverseManager universeManager;
+  final AppSettings appSettings;
   final Function(bool) requestKeyboardFocused;
   final double width, height;
 
@@ -64,6 +66,7 @@ class ScorePicker extends StatefulWidget {
       this.openedScore,
       this.scoreManager,
       this.universeManager,
+      this.appSettings,
       this.requestKeyboardFocused,
       this.requestMode,
       this.width,
@@ -540,6 +543,7 @@ class _ScorePickerState extends State<ScorePicker> {
           sectionColor: widget.sectionColor,
           width: _scoreWidth,
           height: widget.height,
+          appSettings: widget.appSettings,
           onClickScore: widget.mode == ScorePickerMode.show ||
                   widget.mode == ScorePickerMode.none
               ? null

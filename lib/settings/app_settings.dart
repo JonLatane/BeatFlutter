@@ -1,3 +1,5 @@
+import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
+
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import 'package:flutter/material.dart';
@@ -114,5 +116,13 @@ class AppSettings {
   bool get enableUniverse => _preferences?.getBool('enableUniverse') ?? false;
   set enableUniverse(bool value) {
     _preferences?.setBool("enableUniverse", value);
+  }
+
+  bool get enableApollo =>
+      MyPlatform.isIOS &&
+      enableUniverse &&
+      (_preferences?.getBool('enableApollo') ?? false);
+  set enableApollo(bool value) {
+    _preferences?.setBool("enableApollo", value);
   }
 }

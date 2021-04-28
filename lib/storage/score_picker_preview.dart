@@ -3,6 +3,8 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
+import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+import 'package:beatscratch_flutter_redux/util/util.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../beatscratch_plugin.dart';
@@ -39,6 +41,7 @@ class ScorePickerPreview extends StatefulWidget {
   final VoidCallback deleteScore;
   final ScoreManager scoreManager;
   final UniverseManager universeManager;
+  final AppSettings appSettings;
   final VoidCallback onClickScore;
   final int scoreKey;
   final String overwritingScoreName;
@@ -51,6 +54,7 @@ class ScorePickerPreview extends StatefulWidget {
       this.scoreFuture,
       this.deleteScore,
       this.scoreManager,
+      this.appSettings,
       this.overwritingScoreName,
       this.scoreKey,
       this.cancelOverwrite,
@@ -332,9 +336,15 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                 children: [
                   MyFlatButton(
                       padding: EdgeInsets.symmetric(vertical: 5),
-                      onPressed: () {},
+                      onPressed:
+                          widget.universeManager.redditUsername.isNotEmpty
+                              ? () {}
+                              : null,
                       child: Icon(Icons.arrow_upward,
-                          color: chromaticSteps[11].withOpacity(0.5))),
+                          color:
+                              widget.universeManager.redditUsername.isNotEmpty
+                                  ? chromaticSteps[11]
+                                  : musicForegroundColor.withOpacity(0.5))),
                   Row(children: [
                     Expanded(child: SizedBox()),
                     Text(widget.scoreFuture?.voteCount?.toString() ?? '',
@@ -345,15 +355,27 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                   ]),
                   MyFlatButton(
                       padding: EdgeInsets.symmetric(vertical: 5),
-                      onPressed: () {},
+                      onPressed:
+                          widget.universeManager.redditUsername.isNotEmpty
+                              ? () {}
+                              : null,
                       child: Icon(Icons.arrow_downward,
-                          color: chromaticSteps[10].withOpacity(0.5))),
+                          color:
+                              widget.universeManager.redditUsername.isNotEmpty
+                                  ? chromaticSteps[10]
+                                  : musicForegroundColor.withOpacity(0.5))),
                   Expanded(child: SizedBox()),
                   MyFlatButton(
                       padding: EdgeInsets.symmetric(vertical: 5),
-                      onPressed: () {},
-                      child: Icon(Icons.comment,
-                          color: chromaticSteps[0].withOpacity(0.5))),
+                      onPressed: () {
+                        if (widget.appSettings.enableApollo) {
+                          launchURL(widget.scoreFuture.commentUrl
+                              .replaceAll("https://", "apollo:"));
+                        } else {
+                          launchURL(widget.scoreFuture.commentUrl);
+                        }
+                      },
+                      child: Icon(Icons.comment, color: chromaticSteps[0])),
                 ],
               )))
     ]);
