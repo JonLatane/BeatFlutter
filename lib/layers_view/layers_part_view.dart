@@ -1,33 +1,25 @@
 import 'dart:math';
 
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import 'package:implicitly_animated_reorderable_list/transitions.dart';
-import 'package:unification/unification.dart';
 
+import '../../util/util.dart';
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../storage/score_manager.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
-import 'melody_reference_view.dart';
 import '../util/music_theory.dart';
 import '../util/proto_utils.dart';
 import '../util/util.dart';
 import '../widget/beats_badge.dart';
 import '../widget/my_buttons.dart';
-import '../widget/my_platform.dart';
-import '../widget/scalable_view.dart';
 import 'melody_menu_browser.dart';
-import '../music_preview/melody_preview.dart';
+import 'melody_reference_view.dart';
 
 class LayersPartView extends StatefulWidget {
   static const double minColumnWidth = MelodyReferenceView.minColumnWidth;

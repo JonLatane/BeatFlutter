@@ -14,7 +14,7 @@ import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
-import '../util/bs_notifiers.dart';
+import '../util/bs_methods.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';

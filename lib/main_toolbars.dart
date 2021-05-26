@@ -22,7 +22,7 @@ import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
-import 'util/bs_notifiers.dart';
+import 'util/bs_methods.dart';
 import 'util/music_theory.dart';
 import 'util/util.dart';
 import 'widget/my_buttons.dart';

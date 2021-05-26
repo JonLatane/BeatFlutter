@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
-import '../util/bs_notifiers.dart';
+import '../util/bs_methods.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 import '../music_view/music_system_painter.dart';

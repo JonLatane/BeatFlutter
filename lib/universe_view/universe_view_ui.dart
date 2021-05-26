@@ -1,7 +1,7 @@
 // import 'export_models.dart';
 import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
-import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
+import 'package:beatscratch_flutter_redux/util/bs_methods.dart';
 import 'package:beatscratch_flutter_redux/widget/my_buttons.dart';
 
 import '../widget/my_popup_menu.dart';

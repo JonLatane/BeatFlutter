@@ -3,12 +3,11 @@ import 'dart:ui';
 
 import '../../colors.dart';
 import '../../generated/protos/music.pb.dart';
-import 'package:unification/unification.dart';
-
-import '../color_guide.dart';
-import '../canvas_tone_drawer.dart';
-import '../../util/music_theory.dart';
 import '../../util/music_notation_theory.dart';
+import '../../util/music_theory.dart';
+import '../../util/util.dart';
+import '../canvas_tone_drawer.dart';
+import '../color_guide.dart';
 
 class BaseMusicRenderer extends ColorGuide {
   @override

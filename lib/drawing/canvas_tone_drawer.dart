@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 //import 'sizeutil.dart';
 import '../generated/protos/music.pb.dart';
-import 'package:unification/unification.dart';
 import '../util/music_theory.dart';
+import '../util/util.dart';
 
 extension PreserveColor on Paint {
   preserveProperties(VoidCallback callback) {
@@ -50,36 +50,36 @@ class CanvasToneDrawer {
     ..chroma = 2047;
   double normalizedDevicePitch = 0;
 
-
-
   List<VisiblePitch> get visiblePitches {
     List<VisiblePitch> result = [];
-    double orientationRange = highestPitch - lowestPitch + 1 -
-      halfStepsOnScreen;
+    double orientationRange =
+        highestPitch - lowestPitch + 1 - halfStepsOnScreen;
     // This "point" is under the same scale as bottomMostNote; i.e. 0.5f is a "quarter step"
     // (in scrolling distance) past middle C, regardless of the scale level.
-    double bottomMostPoint = lowestPitch +
-      (normalizedDevicePitch * orientationRange);
+    double bottomMostPoint =
+        lowestPitch + (normalizedDevicePitch * orientationRange);
     double halfStepPhysicalDistance = axisLength / halfStepsOnScreen;
-    range(bottomMostNote, min(highestPitch + 1,bottomMostNote + halfStepsOnScreen.toInt() + 2))
-      .forEach((tone) {
+    range(
+            bottomMostNote,
+            min(highestPitch + 1,
+                bottomMostNote + halfStepsOnScreen.toInt() + 2))
+        .forEach((tone) {
       // Tone may not be in chord...
-      Rect visiblePitchBounds = renderVertically ?
-      Rect.fromLTRB(
-        this.bounds.left,
-        this.bounds.bottom -
-          (tone - bottomMostPoint) * halfStepPhysicalDistance,
-        this.bounds.right,
-        this.bounds.bottom -
-          (1 + tone - bottomMostPoint) * halfStepPhysicalDistance
-      ) :
-      Rect.fromLTRB(
-        this.bounds.left + (tone - bottomMostPoint) * halfStepPhysicalDistance,
-        this.bounds.top,
-        this.bounds.left +
-          (1 + tone - bottomMostPoint) * halfStepPhysicalDistance,
-        this.bounds.bottom
-      );
+      Rect visiblePitchBounds = renderVertically
+          ? Rect.fromLTRB(
+              this.bounds.left,
+              this.bounds.bottom -
+                  (tone - bottomMostPoint) * halfStepPhysicalDistance,
+              this.bounds.right,
+              this.bounds.bottom -
+                  (1 + tone - bottomMostPoint) * halfStepPhysicalDistance)
+          : Rect.fromLTRB(
+              this.bounds.left +
+                  (tone - bottomMostPoint) * halfStepPhysicalDistance,
+              this.bounds.top,
+              this.bounds.left +
+                  (1 + tone - bottomMostPoint) * halfStepPhysicalDistance,
+              this.bounds.bottom);
       result.add(VisiblePitch(tone, visiblePitchBounds));
     });
     return result;
@@ -87,19 +87,22 @@ class CanvasToneDrawer {
 
   List<VisiblePitch> get visibleDiatonicPitches {
     List<VisiblePitch> result = [];
-    double orientationRange = highestPitch - lowestPitch + 1 -
-      halfStepsOnScreen;
+    double orientationRange =
+        highestPitch - lowestPitch + 1 - halfStepsOnScreen;
     // This "point" is under the same scale as bottomMostNote; i.e. 0.5f is a "quarter step"
     // (in scrolling distance) past middle C, regardless of the scale level.
-    double bottomMostPoint = lowestPitch +
-      (normalizedDevicePitch * orientationRange);
-    double diatonicStepDistance = (axisLength / halfStepsOnScreen) * 12.0/7;
-    range(bottomMostWhiteKey, min(highestPitch + 1,bottomMostNote + halfStepsOnScreen.toInt() + 2))
-      .where((tone) => tone.isWhiteKey)
-      .forEach((tone) {
+    double bottomMostPoint =
+        lowestPitch + (normalizedDevicePitch * orientationRange);
+    double diatonicStepDistance = (axisLength / halfStepsOnScreen) * 12.0 / 7;
+    range(
+            bottomMostWhiteKey,
+            min(highestPitch + 1,
+                bottomMostNote + halfStepsOnScreen.toInt() + 2))
+        .where((tone) => tone.isWhiteKey)
+        .forEach((tone) {
       // Tone may not be in chord...
       double leftOffset = 0;
-      switch(tone.mod12) {
+      switch (tone.mod12) {
         case 0:
           leftOffset = 0;
           break;
@@ -123,27 +126,32 @@ class CanvasToneDrawer {
           break;
       }
       Rect visiblePitchBounds = Rect.fromLTRB(
-        leftOffset * diatonicStepDistance + this.bounds.left + (tone - bottomMostPoint) * halfStepPhysicalDistance,
-        this.bounds.top,
-        leftOffset * diatonicStepDistance + this.bounds.left + (tone - bottomMostPoint) * halfStepPhysicalDistance + diatonicStepDistance,
-        this.bounds.bottom
-      );
+          leftOffset * diatonicStepDistance +
+              this.bounds.left +
+              (tone - bottomMostPoint) * halfStepPhysicalDistance,
+          this.bounds.top,
+          leftOffset * diatonicStepDistance +
+              this.bounds.left +
+              (tone - bottomMostPoint) * halfStepPhysicalDistance +
+              diatonicStepDistance,
+          this.bounds.bottom);
       result.add(VisiblePitch(tone, visiblePitchBounds));
     });
     return result;
   }
 
   double get orientationRange =>
-    highestPitch - lowestPitch + 1 - halfStepsOnScreen;
+      highestPitch - lowestPitch + 1 - halfStepsOnScreen;
 
   double get bottomMostPoint =>
-    lowestPitch + (normalizedDevicePitch * orientationRange);
+      lowestPitch + (normalizedDevicePitch * orientationRange);
 
   int get bottomMostNote => bottomMostPoint.floor();
-  int get bottomMostWhiteKey => (bottomMostNote.isWhiteKey) ? bottomMostNote : bottomMostNote - 1;
+  int get bottomMostWhiteKey =>
+      (bottomMostNote.isWhiteKey) ? bottomMostNote : bottomMostNote - 1;
 
   double get halfStepPhysicalDistance => axisLength / halfStepsOnScreen;
 
   double get startPoint =>
-    (bottomMostNote - bottomMostPoint) * halfStepPhysicalDistance;
+      (bottomMostNote - bottomMostPoint) * halfStepPhysicalDistance;
 }

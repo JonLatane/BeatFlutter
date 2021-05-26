@@ -1,5 +1,4 @@
 import '../util/midi_theory.dart';
-import 'package:unification/unification.dart';
 
 import '../generated/protos/music.pb.dart';
 import 'util.dart';

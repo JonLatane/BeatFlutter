@@ -20,7 +20,7 @@ import 'app_settings.dart';
 import '../storage/universe_manager.dart';
 import '../ui_models.dart';
 import '../universe_view/universe_icon.dart';
-import '../util/bs_notifiers.dart';
+import '../util/bs_methods.dart';
 import '../util/dummydata.dart';
 import '../util/midi_theory.dart';
 import '../util/util.dart';

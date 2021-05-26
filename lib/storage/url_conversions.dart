@@ -20,10 +20,10 @@ extension URLConversions on Score {
     return urlString;
   }
 
-  Future<String> convertToShortUrl() async {
+  Future<String> convertToShortUrl() async { 
     try {
       http.Response response = await http.post(
-        'https://api.paste.ee/v1/pastes',
+        Uri.parse('https://api.paste.ee/v1/pastes'),
         headers: <String, String>{
           "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
           'Content-Type': 'application/json; charset=UTF-8',

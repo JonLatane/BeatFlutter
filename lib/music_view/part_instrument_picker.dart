@@ -1,22 +1,22 @@
 import 'dart:math';
 
-import '../beatscratch_plugin.dart';
-import '../generated/protos/music.pb.dart';
-import '../util/midi_theory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:recase/recase.dart';
-import 'package:unification/unification.dart';
 
-import '../util/music_theory.dart';
-import '../widget/my_buttons.dart';
-import '../widget/my_platform.dart';
+import '../../util/util.dart';
+import '../beatscratch_plugin.dart';
+import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
+import '../util/midi_theory.dart';
+import '../util/music_theory.dart';
 import '../util/util.dart';
 import '../widget/incrementable_value.dart';
+import '../widget/my_buttons.dart';
+import '../widget/my_platform.dart';
 
 class PartConfiguration extends StatefulWidget {
   final Part part;

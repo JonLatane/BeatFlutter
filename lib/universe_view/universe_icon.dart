@@ -1,5 +1,5 @@
 import 'package:beatscratch_flutter_redux/ui_models.dart';
-import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
+import 'package:beatscratch_flutter_redux/util/bs_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

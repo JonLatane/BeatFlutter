@@ -170,7 +170,7 @@ class ScoreManager {
     final code = codeOrUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
 
     http.Response response = await http.get(
-      'https://api.paste.ee/v1/pastes/$code',
+      Uri.parse('https://api.paste.ee/v1/pastes/$code'),
       headers: <String, String>{
         "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
       },

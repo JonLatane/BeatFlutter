@@ -1,10 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import '../generated/protos/music.pb.dart';
-import 'package:unification/unification.dart';
-import '../util/music_theory.dart';
+
 import '../colors.dart';
+import '../generated/protos/music.pb.dart';
+import '../util/music_theory.dart';
+import '../util/util.dart';
 
 extension _HarmonyHighlight on Color {
   // ignore: unused_element
@@ -70,7 +71,7 @@ class HarmonyBeatRenderer {
   Meter get meter => section?.meter;
   int beatPosition = 0;
 
-  List<int> get subdivisionRange => rangeList(
+  Iterable<int> get subdivisionRange => range(
       beatPosition * harmony.subdivisionsPerBeat,
       min(harmony.length, (beatPosition + 1) * harmony.subdivisionsPerBeat));
 
@@ -89,7 +90,7 @@ class HarmonyBeatRenderer {
     paint.color = Color(0xFFFFFFFF);
     canvas.drawRect(bounds, paint);
     var elementCount = subdivisionRange.length;
-    subdivisionRange.asMap().forEach((elementIndex, elementPosition) {
+    subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
       bounds = Rect.fromLTRB(
           overallBounds.left + overallWidth * elementIndex / elementCount,
           overallBounds.top,

@@ -96,7 +96,7 @@ class UniverseManager {
         String authHeader = stringToBase64.encode(credentials);
 
         http.post(
-          'https://www.reddit.com/api/v1/access_token',
+          Uri.parse('https://www.reddit.com/api/v1/access_token'),
           body: {
             'grant_type': 'authorization_code',
             'code': code,
@@ -147,7 +147,7 @@ class UniverseManager {
   loadRedditUsername() {
     http
         .get(
-      'https://oauth.reddit.com/api/v1/me',
+      Uri.parse('https://oauth.reddit.com/api/v1/me'),
       headers: authenticatedRedditRequestHeaders,
     )
         .then((response) {
@@ -189,7 +189,7 @@ class UniverseManager {
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
     String authHeader = stringToBase64.encode(credentials);
     return await http.post(
-      'https://www.reddit.com/api/v1/access_token',
+      Uri.parse('https://www.reddit.com/api/v1/access_token'),
       body: {
         'grant_type': 'refresh_token',
         'refresh_token': redditRefreshToken,
@@ -212,7 +212,7 @@ class UniverseManager {
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
     String authHeader = stringToBase64.encode(credentials);
     return await http.post(
-      'https://www.reddit.com/api/v1/access_token',
+      Uri.parse('https://www.reddit.com/api/v1/access_token'),
       body: {
         'grant_type': 'https://oauth.reddit.com/grants/installed_client',
         'device_id': 'DO_NOT_TRACK_THIS_DEVICE',
@@ -232,7 +232,7 @@ class UniverseManager {
 
   Future<List<ScoreFuture>> loadUniverseData() async {
     http.Response response = await http
-        .get('https://oauth.reddit.com/r/BeatScratch/hot',
+        .get(Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
             headers: authenticatedRedditRequestHeaders)
         .onError((error, stackTrace) {
       setAppState(() {
@@ -261,7 +261,7 @@ class UniverseManager {
         String commentUrl =
             "https://reddit.com${redditData["data"]["permalink"]}";
         Future<Score> loadScore() async {
-          String scoreUrl = url;
+          String scoreUrl = url; 
           scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
           scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
           scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
@@ -317,7 +317,7 @@ class UniverseManager {
 
   vote(String fullName, bool likes, {bool andReauthorize}) async {
     http
-        .post('https://oauth.reddit.com/api/vote',
+        .post(Uri.parse('https://oauth.reddit.com/api/vote'),
             body: {
               'id': fullName,
               'dir': (likes == true

@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
-import 'package:unification/unification.dart';
 
+import '../../util/util.dart';
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../drawing/color_guide.dart';
@@ -295,10 +295,10 @@ class MusicSystemPainter extends CustomPainter {
           .where((melodyReference) =>
               melodyReference.playbackType !=
               MelodyReference_PlaybackType.disabled)
-          .where(
-              (ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
-          .map((it) => score.melodyReferencedBy(it))
-          .toList();
+          .where((MelodyReference ref) =>
+              part.melodies.any((melody) => melody.id == ref.melodyId) as bool)
+          .map<Melody>((it) => score.melodyReferencedBy(it))
+          .toList(growable: false);
       //        canvas.save();
       //        canvas.translate(0, partOffset);
       Rect melodyBounds = Rect.fromLTRB(

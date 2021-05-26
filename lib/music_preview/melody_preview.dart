@@ -1,4 +1,4 @@
-import '../util/bs_notifiers.dart';
+import '../util/bs_methods.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

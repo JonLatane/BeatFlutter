@@ -1,5 +1,3 @@
-import 'package:quiver/iterables.dart';
-
 import '../generated/protos/music.pb.dart';
 import '../util/proto_utils.dart';
 import 'midi_theory.dart';

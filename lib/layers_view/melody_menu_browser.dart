@@ -12,7 +12,7 @@ import '../music_preview/melody_preview.dart';
 import '../storage/score_manager.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
-import '../util/bs_notifiers.dart';
+import '../util/bs_methods.dart';
 import '../widget/my_popup_menu.dart';
 import '../widget/my_popup_menu.dart' as myPopup;
 import '../widget/beats_badge.dart';
