@@ -7,10 +7,15 @@
          FlutterApplication and put your custom class here. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />  
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />  
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>  
+
     <uses-feature
       android:name="android.software.midi"
       android:required="false"/>
     <application
+        android:usesCleartextTraffic="true"
         android:name=".MainApplication"
         android:label="BeatScratch"
         android:icon="@mipmap/launcher"
@@ -49,10 +54,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="beatscratch.io" android:scheme="http" android:path="/app" />
-                <data android:host="beatscratch.io" android:scheme="http" android:path="/app/" />
-                <data android:host="beatscratch.io" android:scheme="https" android:path="/app" />
-                <data android:host="beatscratch.io" android:scheme="https" android:path="/app/" />
+                <data android:host="beatscratch.io" android:scheme="http" android:pathPrefix="/app" />
+                <data android:host="beatscratch.io" android:scheme="https" android:pathPrefix="/app" />
             </intent-filter>
 
         </activity>

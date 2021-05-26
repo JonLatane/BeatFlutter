@@ -7,8 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'generated/protos/protos.dart';
+import 'messages/messages_ui.dart';
 import 'recording/recording.dart';
-import 'settings/midi_settings.dart';
+import 'settings/settings_panel.dart';
+import 'settings/settings_common.dart';
 import 'util/fake_js.dart' if (dart.library.js) 'dart:js';
 import 'util/music_utils.dart';
 import 'util/proto_utils.dart';
@@ -111,6 +113,7 @@ class BeatScratchPlugin {
       context["notifyMidiDevices"] = _notifyMidiDevices;
       context["notifyBeatScratchAudioAvailable"] =
           _notifyBeatScratchAudioAvailable;
+      context["notifyScoreUrlOpened"] = _notifyScoreUrlOpened;
     }
   }
 
@@ -216,6 +219,7 @@ class BeatScratchPlugin {
   static Function(String) onOpenUrlFromSystem;
   static Function(String) onSectionSelected;
   static Function(Melody) onRecordingMelodyUpdated;
+  static MessagesUI messagesUI;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds: 5), () {
       getApps();
@@ -438,6 +442,12 @@ class BeatScratchPlugin {
   static void _play() async {
     if (kIsWeb) {
       context.callMethod('play', []);
+      messagesUI?.sendMessage(
+          message: "Web playback isn't great. Download the app!",
+          isError: true);
+      messagesUI?.sendMessage(
+        message: "You may have to play the Keyboard to play.",
+      );
     } else {
       _channel.invokeMethod('play');
     }

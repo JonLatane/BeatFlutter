@@ -28,11 +28,18 @@ import 'universe_manager.dart';
 class ScoreFuture {
   final Future<Score> loadScore;
   final String identity;
-  final String title, author, commentUrl;
-  final int voteCount;
+  final String title, author, commentUrl, fullName;
+  int voteCount;
+  bool likes;
   final FileSystemEntity file;
-  const ScoreFuture(this.loadScore, this.identity,
-      {this.file, this.title, this.author, this.commentUrl, this.voteCount});
+  ScoreFuture(this.loadScore, this.identity,
+      {this.file,
+      this.title,
+      this.author,
+      this.commentUrl,
+      this.voteCount,
+      this.likes,
+      this.fullName});
 }
 
 class ScorePickerPreview extends StatefulWidget {
@@ -148,7 +155,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     return Row(children: [
       AnimatedContainer(
           duration: animationDuration,
-          width: widget.width,
+          width: widget.scoreFuture?.loadScore != null ? widget.width : 0,
           color: backgroundColor,
           padding: EdgeInsets.zero,
           child: Stack(
@@ -335,47 +342,94 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
               child: Column(
                 children: [
                   MyFlatButton(
+                      color: widget.scoreFuture?.likes == true
+                          ? chromaticSteps[11]
+                          : Colors.transparent,
                       padding: EdgeInsets.symmetric(vertical: 5),
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
-                              ? () {}
+                              ? () {
+                                  bool oldValue = widget.scoreFuture?.likes;
+                                  setState(() {
+                                    if (oldValue == true) {
+                                      widget.scoreFuture?.likes = null;
+                                      widget.scoreFuture.voteCount -= 1;
+                                    } else {
+                                      widget.scoreFuture?.likes = true;
+                                      widget.scoreFuture.voteCount +=
+                                          oldValue == null ? 1 : 2;
+                                    }
+                                    widget.universeManager.vote(
+                                        widget.scoreFuture?.fullName,
+                                        widget.scoreFuture?.likes);
+                                  });
+                                }
                               : null,
                       child: Icon(Icons.arrow_upward,
-                          color:
-                              widget.universeManager.redditUsername.isNotEmpty
-                                  ? chromaticSteps[11]
-                                  : musicForegroundColor.withOpacity(0.5))),
+                          color: widget.universeManager.isAuthenticated
+                              ? widget.scoreFuture?.likes == true
+                                  ? chromaticSteps[11].textColor()
+                                  : chromaticSteps[11]
+                              : musicForegroundColor.withOpacity(0.5))),
                   Row(children: [
                     Expanded(child: SizedBox()),
                     Text(widget.scoreFuture?.voteCount?.toString() ?? '',
                         style: TextStyle(
-                            color: musicForegroundColor,
+                            color:
+                                /*widget.scoreFuture.like == true
+                                ? chromaticSteps[11]
+                                : widget.scoreFuture.like == false
+                                    ? chromaticSteps[10]
+                                    : */
+                                musicForegroundColor,
                             fontWeight: FontWeight.w800)),
                     Expanded(child: SizedBox()),
                   ]),
                   MyFlatButton(
+                      color: widget.scoreFuture?.likes == false
+                          ? chromaticSteps[10]
+                          : Colors.transparent,
                       padding: EdgeInsets.symmetric(vertical: 5),
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
-                              ? () {}
+                              ? () {
+                                  bool oldValue = widget.scoreFuture?.likes;
+                                  setState(() {
+                                    if (oldValue == false) {
+                                      widget.scoreFuture?.likes = null;
+                                      widget.scoreFuture.voteCount += 1;
+                                    } else {
+                                      widget.scoreFuture?.likes = false;
+                                      widget.scoreFuture.voteCount -=
+                                          oldValue == null ? 1 : 2;
+                                    }
+                                    widget.universeManager.vote(
+                                        widget.scoreFuture?.fullName,
+                                        widget.scoreFuture?.likes);
+                                  });
+                                }
                               : null,
                       child: Icon(Icons.arrow_downward,
-                          color:
-                              widget.universeManager.redditUsername.isNotEmpty
-                                  ? chromaticSteps[10]
-                                  : musicForegroundColor.withOpacity(0.5))),
+                          color: widget.universeManager.isAuthenticated
+                              ? widget.scoreFuture?.likes == false
+                                  ? chromaticSteps[10].textColor()
+                                  : chromaticSteps[10]
+                              : musicForegroundColor.withOpacity(0.5))),
                   Expanded(child: SizedBox()),
                   MyFlatButton(
                       padding: EdgeInsets.symmetric(vertical: 5),
                       onPressed: () {
                         if (widget.appSettings.enableApollo) {
-                          launchURL(widget.scoreFuture.commentUrl
-                              .replaceAll("https://", "apollo:"));
+                          launchURL(
+                              widget.scoreFuture.commentUrl
+                                  .replaceAll("https://", "apollo://"),
+                              forceSafariVC: false);
                         } else {
                           launchURL(widget.scoreFuture.commentUrl);
                         }
                       },
-                      child: Icon(Icons.comment, color: chromaticSteps[0])),
+                      child: Icon(FontAwesomeIcons.commentDots,
+                          color: chromaticSteps[0])),
                 ],
               )))
     ]);

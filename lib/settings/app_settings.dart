@@ -1,11 +1,10 @@
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
-
-import '../beatscratch_plugin.dart';
-import '../colors.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../beatscratch_plugin.dart';
+import '../colors.dart';
 import '../ui_models.dart';
+import '../widget/my_platform.dart';
 
 class AppSettings {
   static bool initializingState = true;
@@ -31,11 +30,6 @@ class AppSettings {
     }
   }
 
-  String get currentScoreName =>
-      _preferences?.getString('currentScoreName') ?? "Untitled Score";
-  set currentScoreName(String value) =>
-      _preferences?.setString("currentScoreName", value);
-
   RenderingMode get renderingMode => RenderingMode.values.firstWhere(
       (rm) => rm.index == (_preferences?.getInt('renderingMode') ?? 0));
   set renderingMode(RenderingMode rm) {
@@ -52,7 +46,7 @@ class AppSettings {
   set integratePastee(bool value) =>
       _preferences?.setBool("integratePastee", value);
 
-  bool get darkMode => _preferences?.getBool('darkMode') ?? false;
+  bool get darkMode => _preferences?.getBool('darkMode') ?? true;
   set darkMode(bool value) {
     _preferences?.setBool("darkMode", value);
     _updateColors();
@@ -113,7 +107,8 @@ class AppSettings {
   set keyboardHalfStepWidth(double value) =>
       _preferences?.setDouble("keyboardHalfStepWidth", value);
 
-  bool get enableUniverse => _preferences?.getBool('enableUniverse') ?? false;
+  bool get enableUniverse =>
+      true; //_preferences?.getBool('enableUniverse') ?? false;
   set enableUniverse(bool value) {
     _preferences?.setBool("enableUniverse", value);
   }
@@ -124,5 +119,12 @@ class AppSettings {
       (_preferences?.getBool('enableApollo') ?? false);
   set enableApollo(bool value) {
     _preferences?.setBool("enableApollo", value);
+  }
+
+  bool get showWebDownloadLinks =>
+      MyPlatform.isWeb &&
+      (_preferences?.getBool('showWebDownloadLinks') ?? MyPlatform.isWeb);
+  set showWebDownloadLinks(bool value) {
+    _preferences?.setBool("showWebDownloadLinks", value);
   }
 }

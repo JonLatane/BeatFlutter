@@ -247,40 +247,27 @@ class MusicSystemPainter extends CustomPainter {
 
 //      print("renderingSectionBeat=$renderingSectionBeat");
 
-        staves.value.forEach((staff) {
-          staff.getParts(score, staves.value).forEach((part) {
-            double partOffset =
-                partTopOffsets.value.putIfAbsent(part.id, () => 0);
-            List<Melody> melodiesToRender = renderingSection.melodies
-                .where((melodyReference) =>
-                    melodyReference.playbackType !=
-                    MelodyReference_PlaybackType.disabled)
-                .where((ref) =>
-                    part.melodies.any((melody) => melody.id == ref.melodyId))
-                .map((it) => score.melodyReferencedBy(it))
-                .toList();
-            //        canvas.save();
-            //        canvas.translate(0, partOffset);
-            Rect melodyBounds = Rect.fromLTRB(
-                left, top + partOffset, right, top + partOffset + melodyHeight);
-            // if (!drawContinuousColorGuide) {
-            //   _renderSubdividedColorGuide(
-            //     renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
-            // }
-            _renderMelodies(
-                part,
-                melodiesToRender,
-                canvas,
-                melodyBounds,
-                renderingSection,
-                renderingSectionBeat,
-                renderingBeat,
-                left,
-                staff,
-                staves.value);
-            //        canvas.restore();
-          });
-        });
+        if (isPreview) {
+          staves.value.forEach((staff) async => doRenderMelodies(
+              staff,
+              renderingSection,
+              canvas,
+              left,
+              right,
+              top,
+              renderingSectionBeat,
+              renderingBeat));
+        } else {
+          staves.value.forEach((staff) => doRenderMelodies(
+              staff,
+              renderingSection,
+              canvas,
+              left,
+              right,
+              top,
+              renderingSectionBeat,
+              renderingBeat));
+        }
       }
       left += standardBeatWidth;
       renderingBeat += 1;
@@ -298,6 +285,41 @@ class MusicSystemPainter extends CustomPainter {
     }
     // final endTime = DateTime.now().millisecondsSinceEpoch;
 //    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
+  }
+
+  doRenderMelodies(staff, renderingSection, canvas, left, right, top,
+      renderingSectionBeat, renderingBeat) {
+    staff.getParts(score, staves.value).forEach((part) {
+      double partOffset = partTopOffsets.value.putIfAbsent(part.id, () => 0);
+      List<Melody> melodiesToRender = renderingSection.melodies
+          .where((melodyReference) =>
+              melodyReference.playbackType !=
+              MelodyReference_PlaybackType.disabled)
+          .where(
+              (ref) => part.melodies.any((melody) => melody.id == ref.melodyId))
+          .map((it) => score.melodyReferencedBy(it))
+          .toList();
+      //        canvas.save();
+      //        canvas.translate(0, partOffset);
+      Rect melodyBounds = Rect.fromLTRB(
+          left, top + partOffset, right, top + partOffset + melodyHeight);
+      // if (!drawContinuousColorGuide) {
+      //   _renderSubdividedColorGuide(
+      //     renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
+      // }
+      _renderMelodies(
+          part,
+          melodiesToRender,
+          canvas,
+          melodyBounds,
+          renderingSection,
+          renderingSectionBeat,
+          renderingBeat,
+          left,
+          staff,
+          staves.value);
+      //        canvas.restore();
+    });
   }
 
   _renderMelodies(

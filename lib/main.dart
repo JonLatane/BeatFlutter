@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'settings/app_settings.dart';
+import 'settings/settings.dart';
 import 'universe_view/universe_view_ui.dart';
 
 import 'recording/recording.dart';
@@ -23,7 +23,6 @@ import 'generated/protos/music.pb.dart';
 import 'generated/protos/protobeats_plugin.pb.dart';
 import 'main_toolbars.dart';
 import 'messages/messages.dart';
-import 'settings/midi_settings.dart';
 import 'music_view/music_view.dart';
 import 'layers_view/melody_menu_browser.dart';
 import 'layers_view/layers_view.dart';
@@ -66,7 +65,6 @@ const Map<int, Color> swatch = {
 ScoreManager _scoreManager = ScoreManager();
 UniverseManager _universeManager = UniverseManager();
 AppSettings _appSettings = AppSettings();
-String webScoreName = "Empty Web Score";
 var baseHandler = Fluro.Handler(
     handlerFunc: (BuildContext context, Map<String, dynamic> params) {
   return MyHomePage(title: 'BeatScratch', initialScore: defaultScore());
@@ -78,7 +76,6 @@ var scoreRouteHandler = Fluro.Handler(
   Score score;
   try {
     score = scoreFromUrlHashValue(scoreData);
-    webScoreName = score.name;
   } catch (any) {
     score = defaultScore();
   }
@@ -97,7 +94,7 @@ var pastebinRouteHandler = Fluro.Handler(
   // return UsersScreen(params["scoreData"][0]);
 });
 
-final Fluro.Router router = Fluro.Router()
+final Fluro.FluroRouter router = Fluro.FluroRouter()
   ..define("/",
       handler: baseHandler, transitionType: Fluro.TransitionType.material)
   ..define("/s/:pasteBinData",
@@ -119,10 +116,9 @@ class MyApp extends StatelessWidget {
       print(e);
     }
     return MaterialApp(
-      key: Key(MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch'),
+      key: Key('BeatScratch'),
       title: 'BeatScratch',
-      onGenerateTitle: (context) =>
-          MyPlatform.isWeb ? "BeatScratch: $webScoreName" : 'BeatScratch',
+      onGenerateTitle: (context) => 'BeatScratch',
       theme: ThemeData(
           // This is the theme of your application.
           //
@@ -156,7 +152,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score score;
-  InteractionMode interactionMode = InteractionMode.view;
+  InteractionMode interactionMode = InteractionMode.universe;
   SplitMode _splitMode;
 
   SplitMode get splitMode => _splitMode;
@@ -221,9 +217,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             MelodyReference_PlaybackType.disabled) {
       recordingMelody = false;
     }
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: sectionColor,
-    ));
+    if (MyPlatform.isAndroid) {
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        statusBarColor: sectionColor,
+      ));
+    }
   }
 
   int _tapInBeat;
@@ -231,8 +229,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
   bool _wereViewOptionsShowingWhenMidiConfigurationOpened = false;
-  ScorePickerMode scorePickerMode = ScorePickerMode.none;
-  bool _showScorePicker = false;
+  ScorePickerMode scorePickerMode = ScorePickerMode.universe;
+  bool _showScorePicker = true;
 
   bool get showScorePicker => _showScorePicker;
 
@@ -297,7 +295,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool showWebWarning = false; //kIsWeb || kDebugMode;
 
   double get webWarningHeight => showWebWarning ? 60 : 0;
-  bool showDownloadLinks = kIsWeb;
+  bool get showDownloadLinks => _appSettings.showWebDownloadLinks;
+  set showDownloadLinks(v) => _appSettings.showWebDownloadLinks = v;
 
   double get downloadLinksHeight => showDownloadLinks ? 60 : 0;
 
@@ -518,10 +517,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _closeScorePicker();
       }
       recordingMelody = false;
-      if (!_scalableUI) {
-        showViewOptions = false;
-        _showTapInBar = false;
-      }
       musicViewMode = MusicViewMode.score;
       selectedMelody = null;
       _showMusicView();
@@ -543,10 +538,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       scorePickerMode = ScorePickerMode.universe;
       _showScorePicker = true;
       recordingMelody = false;
-      if (!_scalableUI) {
-        showViewOptions = false;
-        _showTapInBar = false;
-      }
       musicViewMode = MusicViewMode.score;
       selectedMelody = null;
       _showMusicView();
@@ -583,13 +574,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _selectSection(currentSection);
           }
         }
-        // if (_melodyViewSizeFactor == 0) {
-        //   _selectSection(currentSection);
-        // } else if (_melodyViewSizeFactor == 0.5) {
-        //   setState(() {splitMode = SplitMode.full;});
-        // } else {
-        //   setState(() {splitMode = SplitMode.half;});
-        // }
       } else {
         _closeScorePicker();
         if (exportUI.visible) {
@@ -604,7 +588,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
         interactionMode = InteractionMode.edit;
         _showMusicView();
-//        _hideMelodyView();
       }
     });
   }
@@ -789,18 +772,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   MessagesUI messagesUI;
   UniverseViewUI universeViewUI;
   BSMethod scrollToCurrentBeat;
+  BSMethod refreshUniverseData;
+  BSMethod bluetoothScan;
 
   @override
   void initState() {
     super.initState();
+    scrollToCurrentBeat = BSMethod();
+    refreshUniverseData = BSMethod();
+    bluetoothScan = BSMethod();
     messagesUI = MessagesUI(setState);
     universeViewUI = UniverseViewUI(setState, _universeManager)
-      ..messagesUI = messagesUI;
+      ..messagesUI = messagesUI
+      ..refreshUniverseData = refreshUniverseData
+      ..refreshUniverseData = refreshUniverseData;
     _universeManager
       ..messagesUI = messagesUI
-      ..setAppState = setState;
+      ..setAppState = setState
+      ..scoreManager = _scoreManager;
+    BeatScratchPlugin.messagesUI = messagesUI;
     exportUI = ExportUI()..messagesUI = messagesUI;
-    scrollToCurrentBeat = BSMethod();
     BeatScratchPlugin.setupWebStuff();
     showBeatCounts = false;
     score = widget.initialScore;
@@ -808,6 +799,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _scoreManager.doOpenScore = (Score scoreToOpen) {
       scoreToOpen.migrate();
       MelodyMenuBrowser.loadScoreData();
+      if (_scoreManager.currentScoreName != ScoreManager.UNIVERSE_SCORE &&
+          interactionMode == InteractionMode.universe) {
+        _viewMode();
+      }
       setState(() {
         BeatScratchPlugin.createScore(scoreToOpen);
         score = scoreToOpen;
@@ -1070,13 +1065,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // fit: FlexFit.loose,
                 child: Stack(children: [
                   Column(children: [
-                    _webBanner(context),
-                    _downloadBanner(context),
                     universeViewUI.build(
                         context: context,
                         sectionColor: sectionColor,
                         keyboardHeight: _keyboardHeight,
-                        settingsHeight: _midiSettingsHeight),
+                        settingsHeight: _midiSettingsHeight,
+                        showDownloads:
+                            ((MyPlatform.isWeb) && !showDownloadLinks)
+                                ? () => setState(() => showDownloadLinks = true)
+                                : null),
+                    _downloadBanner(context),
                     _scorePicker(context),
                     exportUI.build(
                         context: context,
@@ -1109,7 +1107,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     if (_scalableUI) _toolbarsInRow(context),
                     // if (_portraitPhoneUI || _landscapePhoneUI) _scorePicker(context),
                     // if (_portraitPhoneUI) _tempoConfigurationBar(context),
-                    _midiSettings(context),
+                    _settingsPanel(context),
                     // _pasteFailedBar(context),
                     _colorboard(context),
                     if (!_landscapePhoneUI) _tapInBar(context),
@@ -1206,178 +1204,96 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const EdgeInsets _bannerPadding =
       EdgeInsets.symmetric(vertical: 20, horizontal: 15);
 
-  Widget _webBanner(BuildContext context) {
-    bool isWeb = MyPlatform.isWeb;
-    bool hideDownloadLinkButton =
-        showDownloadLinks || !showWebWarning || !isWeb;
-    return AnimatedContainer(
-        duration: animationDuration,
-        height: webWarningHeight,
-        color: Color(0xFF212121),
-        child: Row(children: [
-          Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-              child: SingleChildScrollView(
-                  child: Column(children: [
-                Align(
-                    child: Text("BeatScratch",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700))),
-                Align(
-                    child: Row(children: [
-                  if (isWeb)
-                    Text("Web",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700)),
-                  Text("Preview",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w100)),
-                ])),
-              ]))),
-          Expanded(
-              child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(children: [
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: hideDownloadLinkButton ? 0 : 180,
-                        child: Padding(
-                            padding: EdgeInsets.only(left: 5),
-                            child: MyRaisedButton(
-                                padding: _bannerPadding,
-                                onPressed: showDownloadLinks
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          showDownloadLinks = true;
-                                        });
-                                      },
-                                child: Text("Download App")))),
-                    Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Text(
-                            "BeatScratch is pre-release software.\nBugs and missing features abound." +
-                                (isWeb
-                                    ? "\nmacOS/iOS/Android apps have recording and better performance."
-                                    : ""),
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w100))),
-//        Expanded(child:SizedBox()),
-                    AnimatedContainer(
-                        duration: animationDuration,
-                        width: max(
-                            0,
-                            MediaQuery.of(context).size.width -
-                                (isWeb ? 792 : 620) -
-                                (hideDownloadLinkButton ? 0 : 180)),
-                        child: SizedBox()),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5, left: 5),
-                        child: MyRaisedButton(
-                            padding: _bannerPadding,
-                            onPressed: () {
-                              launchURL("https://beatscratch.io/privacy.html");
-                            },
-                            child: Text("Privacy"))),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5),
-                        child: MyRaisedButton(
-                            padding: _bannerPadding,
-                            onPressed: () {
-                              launchURL("https://beatscratch.io/usage.html");
-                            },
-                            child: Text("Docs"))),
-                  ]))),
-          Padding(
-              padding: EdgeInsets.only(right: 5),
-              child: MyRaisedButton(
-                  padding: _bannerPadding,
-                  color: sectionColor,
-                  onPressed: () {
-                    setState(() {
-                      showWebWarning = false;
-                      showDownloadLinks = false;
-                    });
-                  },
-                  child: Text("OK!"))),
-        ]));
-  }
-
   Widget _downloadBanner(BuildContext context) {
     return AnimatedContainer(
         duration: animationDuration,
         height: downloadLinksHeight,
-        color: Color(0xFF212121),
-        child: Align(
-            alignment: Alignment.center,
-            child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  MyFlatButton(
-                      onPressed: () {
-                        launchURL(
-                            "https://apps.apple.com/us/app/beatscratch/id1509788448");
-                      },
-                      padding: EdgeInsets.all(0),
-                      child: Image.asset("assets/app_store.png",
-                          width: 120, height: 40, fit: BoxFit.fitHeight)),
-                  SizedBox(width: 3),
-                  MyFlatButton(
-                      onPressed: () {
-                        launchURL(
-                            "https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
-                      },
-                      padding: EdgeInsets.all(0),
-                      child: Image.asset("assets/play_en_badge_web_generic.png",
-                          width: 140, height: 60, fit: BoxFit.fitHeight)),
-                  SizedBox(width: 5),
-                  Container(
-                      width: 120,
-                      height: 40,
-                      padding: EdgeInsets.only(right: 5),
-                      child: MyFlatButton(
-                          color: Colors.white,
-                          onPressed: () {
-                            launchURL(
-                                "https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
-                          },
-                          padding: EdgeInsets.all(0),
-                          child: Stack(children: [
-                            Align(
-                                alignment: Alignment.bottomRight,
-                                child: Padding(
-                                    padding:
-                                        EdgeInsets.only(right: 5, bottom: 2),
-                                    child: Text("macOS",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400)))),
-                            Align(
-                                alignment: Alignment.topLeft,
-                                child: Padding(
-                                    padding: EdgeInsets.only(top: 2, left: 5),
-                                    child: Text("Download For",
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400))))
-                          ]))),
-                  Padding(
-                      padding: EdgeInsets.only(right: 5, left: 3),
-                      child: MyRaisedButton(
-                          padding: _bannerPadding,
-                          onPressed: () {
-                            launchURL("https://beatscratch.io/platforms.html");
-                          },
-                          child: Text("Platform Feature Comparison"))),
-                ]))));
+        color: subBackgroundColor,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 0,
+              child: SizedBox(),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [
+                    MyFlatButton(
+                        onPressed: () {
+                          launchURL(
+                              "https://apps.apple.com/us/app/beatscratch/id1509788448");
+                        },
+                        padding: EdgeInsets.all(0),
+                        child: Image.asset("assets/app_store.png",
+                            width: 120, height: 40, fit: BoxFit.fitHeight)),
+                    SizedBox(width: 3),
+                    MyFlatButton(
+                        onPressed: () {
+                          launchURL(
+                              "https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
+                        },
+                        padding: EdgeInsets.all(0),
+                        child: Image.asset(
+                            "assets/play_en_badge_web_generic.png",
+                            width: 140,
+                            height: 60,
+                            fit: BoxFit.fitHeight)),
+                    SizedBox(width: 5),
+                    Container(
+                        width: 120,
+                        height: 40,
+                        padding: EdgeInsets.only(right: 5),
+                        child: MyFlatButton(
+                            color: Colors.white,
+                            onPressed: () {
+                              launchURL(
+                                  "https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+                            },
+                            padding: EdgeInsets.all(0),
+                            child: Stack(children: [
+                              Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                      padding:
+                                          EdgeInsets.only(right: 5, bottom: 2),
+                                      child: Text("macOS",
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w400)))),
+                              Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Padding(
+                                      padding: EdgeInsets.only(top: 2, left: 5),
+                                      child: Text("Download For",
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400))))
+                            ]))),
+                    Padding(
+                        padding: EdgeInsets.only(right: 5, left: 3),
+                        child: MyRaisedButton(
+                            padding: _bannerPadding,
+                            onPressed: () {
+                              launchURL(
+                                  "https://beatscratch.io/platforms.html");
+                            },
+                            child: Text("Platform Feature Comparison"))),
+                  ])),
+            ),
+            Expanded(
+              flex: 0,
+              child: SizedBox(),
+            ),
+            Container(
+                width: 48,
+                child: MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  child: Icon(Icons.close, color: Colors.white),
+                  onPressed: () => setState(() => showDownloadLinks = false),
+                ))
+          ],
+        ));
   }
 
   Widget _tapInBar(
@@ -1558,6 +1474,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         child: Transform.scale(
                             scale: 0.7,
                             child: ColorFiltered(
+                              key: ValueKey(
+                                  "MetronomeEnabledIcon-filtered-bg-${audioButtonColor}"),
                               child: Image.asset(
                                 "assets/metronome.png",
                                 scale: 1,
@@ -1741,6 +1659,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         vertical: vertical,
         verticalSections: verticalSectionList,
+        refreshUniverseData: refreshUniverseData,
         togglePlaying: () {
           setState(() {
             if (!BeatScratchPlugin.playing) {
@@ -2346,7 +2265,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _selectSection(newSection);
   }
 
-  Widget _midiSettings(BuildContext context) {
+  Widget _settingsPanel(BuildContext context) {
     bool visible = _midiSettingsHeight > 0;
     return Column(
       children: [
@@ -2380,9 +2299,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             height: visible ? max(0, _midiSettingsHeight - 26) : 0,
             width: MediaQuery.of(context).size.width,
             color: subBackgroundColor,
-            child: MidiSettings(
+            child: SettingsPanel(
               appSettings: _appSettings,
+              universeManager: _universeManager,
+              messagesUI: messagesUI,
               sectionColor: sectionColor,
+              bluetoothScan: bluetoothScan,
+              visible: showMidiConfiguration,
               enableColorboard: enableColorboard,
               setColorboardEnabled: (value) {
                 setState(() {
@@ -2440,26 +2363,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         width: MediaQuery.of(context).size.width,
         color: subBackgroundColor,
         child: ScorePicker(
-            scoreManager: _scoreManager,
-            universeManager: _universeManager,
-            appSettings: _appSettings,
-            mode: scorePickerMode,
-            sectionColor: sectionColor,
-            openedScore: score,
-            width: MediaQuery.of(context).size.width,
-            height: _scorePickerHeight(context),
-            requestKeyboardFocused: (focused) {
-              setState(() {});
-            },
-            requestMode: (mode) {
-              setState(() {
-                scorePickerMode = mode;
-              });
-            },
-            close: _closeScorePicker));
+          scoreManager: _scoreManager,
+          universeManager: _universeManager,
+          appSettings: _appSettings,
+          mode: scorePickerMode,
+          sectionColor: sectionColor,
+          openedScore: score,
+          width: MediaQuery.of(context).size.width,
+          height: _scorePickerHeight(context),
+          requestKeyboardFocused: (focused) {
+            setState(() {});
+          },
+          requestMode: (mode) {
+            setState(() {
+              scorePickerMode = mode;
+            });
+          },
+          close: () => _closeScorePicker(waitForSave: true),
+          refreshUniverseData: refreshUniverseData,
+        ));
   }
 
-  _closeScorePicker({bool onlyIfShowMode = false}) {
+  _closeScorePicker({bool waitForSave = false, bool onlyIfShowMode = false}) {
     doClose() {
       setState(() {
         if (!onlyIfShowMode || scorePickerMode == ScorePickerMode.show) {
@@ -2479,7 +2404,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
     }
 
-    doCloseButWaitForSave();
+    if (waitForSave) {
+      doCloseButWaitForSave();
+    } else {
+      doClose();
+    }
   }
 
   AnimatedContainer _keyboard(BuildContext context) {

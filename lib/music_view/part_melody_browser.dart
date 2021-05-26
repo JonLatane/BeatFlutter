@@ -157,6 +157,7 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
       }
     });
     return ImplicitlyAnimatedList<Melody>(
+      key: ValueKey("PartMelodyBrowserList"),
       scrollDirection: Axis.horizontal,
       spawnIsolate: false,
       controller: _scrollController,

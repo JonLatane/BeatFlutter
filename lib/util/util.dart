@@ -12,9 +12,29 @@ import 'package:uuid/uuid.dart';
 
 var uuid = Uuid();
 
-launchURL(String url) async {
+launchURL(
+  String url, {
+  bool forceSafariVC,
+  bool forceWebView,
+  bool enableJavaScript,
+  bool enableDomStorage,
+  bool universalLinksOnly,
+  Map<String, String> headers,
+  Brightness statusBarBrightness,
+  String webOnlyWindowName,
+}) async {
   if (await canLaunch(url)) {
-    await launch(url);
+    await launch(
+      url,
+      forceSafariVC: forceSafariVC,
+      forceWebView: forceWebView,
+      enableJavaScript: enableJavaScript,
+      enableDomStorage: enableDomStorage,
+      universalLinksOnly: universalLinksOnly,
+      headers: headers,
+      statusBarBrightness: statusBarBrightness,
+      webOnlyWindowName: webOnlyWindowName,
+    );
   } else {
     throw 'Could not launch $url';
   }

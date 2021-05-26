@@ -22,6 +22,7 @@ import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
+import 'util/bs_notifiers.dart';
 import 'util/music_theory.dart';
 import 'util/util.dart';
 import 'widget/my_buttons.dart';
@@ -65,7 +66,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final bool showDownloads;
   final VoidCallback toggleShowDownloads;
   final bool savingScore;
-
+  final BSMethod refreshUniverseData;
   const BeatScratchToolbar(
       {Key key,
       @required this.appSettings,
@@ -101,9 +102,10 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.leftHalfOnly,
       @required this.rightHalfOnly,
       @required this.savingScore, // BeatScratchPlugin.isSynthesizerAvailable
-      this.messagesUI,
-      this.showDownloads,
-      this.toggleShowDownloads})
+      @required this.messagesUI,
+      @required this.showDownloads,
+      @required this.toggleShowDownloads,
+      @required this.refreshUniverseData})
       : super(key: key);
 
   @override
@@ -160,6 +162,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     Future.microtask(() async {
       print("getting PackageInfo");
       final info = await PackageInfo.fromPlatform();
+      MyPlatform.appVersion = info.buildNumber;
       print("got PackageInfo!!!!");
       setState(() {
         packageInfo = info;
@@ -185,24 +188,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
       begin: 0,
       end: 2 * pi,
     ).animate(editRotationOnlyController);
-
-    // editController.repeat();
-    // _controller.forward();
-
-    // clipboardTriggerTime = Timer.periodic(
-    //   // you can specify any duration you want, roughly every 20 read from the system
-    //   const Duration(seconds: 5),
-    //     (timer) {
-    //     Clipboard.getData(Clipboard.kTextPlain).then((clipboardContent) {
-    //       print('Clipboard content ${clipboardContent.text}');
-    //
-    //       // post to a Stream you're subscribed to
-    //       clipboardContentStream.add(clipboardContent.text);
-    //     });
-    //   },
-    // );
   }
-  // Stream get clipboardText => clipboardContentStream.stream;
 
   @override
   void dispose() {
@@ -742,7 +728,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                         ? 1
                                         : 0,
                                     child: Icon(Icons.menu,
-                                        color: widget.sectionColor)),
+                                        color: chromaticSteps[0])),
                                 AnimatedOpacity(
                                     duration: animationDuration,
                                     opacity: !widget.interactionMode.isEdit &&
@@ -755,7 +741,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                                     !BeatScratchPlugin
                                                         .supportsPlayback)
                                                 ? Colors.grey
-                                                : widget.sectionColor)),
+                                                : chromaticSteps[0])),
                                 AnimatedOpacity(
                                     duration: animationDuration,
                                     opacity: !widget.interactionMode.isEdit &&
@@ -763,7 +749,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                         ? 1
                                         : 0,
                                     child: Icon(Icons.pause,
-                                        color: widget.sectionColor)),
+                                        color: chromaticSteps[0])),
                                 // (widget.interactionMode == InteractionMode.view)
                                 //   ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
                                 //   : Icons.menu,
@@ -777,12 +763,19 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         ? widget.sectionColor
                         : Colors.transparent,
                     child: MyFlatButton(
-                        onPressed: widget.universeMode,
-                        onLongPress: widget.universeMode,
+                        onPressed:
+                            widget.interactionMode == InteractionMode.universe
+                                ? () => widget.refreshUniverseData()
+                                : widget.universeMode,
+                        onLongPress:
+                            widget.interactionMode == InteractionMode.universe
+                                ? () => widget.refreshUniverseData()
+                                : widget.universeMode,
                         padding: EdgeInsets.all(0.0),
                         child: UniverseIcon(
                             interactionMode: widget.interactionMode,
-                            sectionColor: widget.sectionColor)))),
+                            sectionColor: widget.sectionColor,
+                            animateIcon: widget.refreshUniverseData)))),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(
@@ -1207,6 +1200,8 @@ class _SecondToolbarState extends State<SecondToolbar> {
                                   : 2.5
                               : 0.8,
                           child: ColorFiltered(
+                            key: ValueKey(
+                                "PianoIcon-filtered-bg-${keyboardBackgroundColor}"),
                             child: Image.asset(
                               "assets/piano.png",
                               scale: 1,
@@ -1305,6 +1300,8 @@ class _SecondToolbarState extends State<SecondToolbar> {
                   child: Opacity(
                       opacity: 0.5,
                       child: ColorFiltered(
+                        key: ValueKey(
+                            "MetronomeIcon-filtered-${buttonForegroundColor}"),
                         child: Image.asset(
                           "assets/metronome.png",
                           scale: 1,
@@ -1360,7 +1357,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
             Align(
                 alignment: Alignment.center,
                 child: Transform.translate(
-                    offset: Offset(15, widget.vertical ? 0 : 0),
+                    offset: Offset(15, 0),
                     child: Transform.scale(
                         scale: 0.55,
                         child: Icon(
@@ -1368,7 +1365,20 @@ class _SecondToolbarState extends State<SecondToolbar> {
                               ? Icons.volume_up
                               : Icons.not_interested,
                           color: buttonForegroundColor,
-                        ))))
+                        )))),
+            Opacity(
+                opacity: 0.85,
+                child: Align(
+                    alignment: Alignment.center,
+                    child: Transform.translate(
+                        offset:
+                            widget.vertical ? Offset(4, 0.5) : Offset(13, 10),
+                        child: Transform.scale(
+                            scale: widget.vertical ? 0.4 : 0.35,
+                            child: Icon(
+                              FontAwesomeIcons.arrowsAlt,
+                              color: buttonForegroundColor,
+                            )))))
           ]),
           onPressed: widget.toggleTempoConfiguration,
           onLongPress: widget.tempoLongPress,

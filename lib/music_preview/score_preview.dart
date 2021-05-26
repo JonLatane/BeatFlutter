@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+import 'package:flutter/foundation.dart';
 
 import '../colors.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +15,7 @@ import '../util/bs_notifiers.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 import '../music_view/music_system_painter.dart';
+import 'preview_renderer.dart';
 
 class ScorePreview extends StatefulWidget {
   final Score score;
@@ -63,80 +65,12 @@ class _ScorePreviewState extends State<ScorePreview> {
       ? thumbnailA = value
       : thumbnailB = value;
 
-  MusicSystemPainter get painter {
-    final parts = widget.score.parts;
-    final staves = parts.map((part) => PartStaff(part)).toList(growable: false);
-    final partTopOffsets = Map<String, double>.fromIterable(parts.asMap().keys,
-        key: (index) => parts[index].id,
-        value: (index) =>
-            index * widget.scale * MusicSystemPainter.staffHeight);
-    final staffOffsets = Map<String, double>.fromIterable(staves.asMap().keys,
-        key: (index) => staves[index].id,
-        value: (index) =>
-            index * widget.scale * MusicSystemPainter.staffHeight);
-    return MusicSystemPainter(
-      sectionScaleNotifier: ValueNotifier(widget.renderSections ? 1 : 0),
-      score: widget.score,
-      section: widget.score.sections.first,
-      musicViewMode: widget.musicViewMode,
-      xScaleNotifier: ValueNotifier(widget.scale),
-      yScaleNotifier: ValueNotifier(widget.scale),
-      staves: ValueNotifier(staves),
-      partTopOffsets: ValueNotifier(partTopOffsets),
-      staffOffsets: ValueNotifier(staffOffsets),
-      colorGuideOpacityNotifier: ValueNotifier(0),
-      colorblockOpacityNotifier: ValueNotifier(
-          AppSettings.globalRenderingMode == RenderingMode.colorblock ? 1 : 0),
-      notationOpacityNotifier: ValueNotifier(
-          AppSettings.globalRenderingMode == RenderingMode.notation ? 1 : 0),
-      colorboardNotesNotifier: ValueNotifier([]),
-      keyboardNotesNotifier: ValueNotifier([]),
-      visibleRect: () => Rect.fromLTRB(0, 0, widget.width, widget.height),
-      keyboardPart: ValueNotifier(null),
-      colorboardPart: ValueNotifier(null),
-      focusedPart: ValueNotifier(null),
-      sectionColor: ValueNotifier(Colors.grey),
-      isCurrentScore: false,
-      highlightedBeat: ValueNotifier(null),
-      focusedBeat: ValueNotifier(null),
-      firstBeatOfSection: 0,
-      renderPartNames: widget.renderPartNames,
-      isPreview: true,
-    );
-  }
-
   double get maxWidth =>
       (MusicSystemPainter.extraBeatsSpaceForClefs + widget.score.beatCount) *
       unscaledStandardBeatWidth *
       widget.scale;
   double get actualWidth => min(maxWidth, widget.width);
   static const double _overSampleScale = 4;
-  Future<ui.Image> get renderedScoreImage async {
-    // [CustomPainter] has its own @canvas to pass our
-    // [ui.PictureRecorder] object must be passed to [Canvas]#contructor
-    // to capture the Image. This way we can pass @recorder to [Canvas]#contructor
-    // using @painter[SignaturePainter] we can call [SignaturePainter]#paint
-    // with the our newly created @canvas
-    final recorder = ui.PictureRecorder();
-    Canvas canvas = Canvas(recorder);
-    var size =
-        Size(actualWidth * _overSampleScale, widget.height * _overSampleScale);
-    final painter = this.painter;
-    canvas.save();
-    canvas.scale(_overSampleScale);
-    painter.paint(canvas, size);
-    canvas.restore();
-    final data = recorder
-        .endRecording()
-        .toImage(size.width.floor(), size.height.floor());
-    return data;
-  }
-
-  Future<Uint8List> get renderedScoreImageData async {
-    final image = await renderedScoreImage;
-    return Uint8List.sublistView(
-        await image.toByteData(format: ui.ImageByteFormat.png));
-  }
 
   double get thumbnailAOpacity => thumbnailA != null
       ? currentThumbnail == _Thumbnail.a
@@ -209,7 +143,15 @@ class _ScorePreviewState extends State<ScorePreview> {
 
   _updateScoreImage() {
     Future.delayed(animationDuration, () async {
-      final data = await renderedScoreImageData;
+      final Uint8List data = await MusicPreviewRenderer(
+        scoreData: widget.score.writeToBuffer(),
+        scale: widget.scale,
+        width: widget.width,
+        height: widget.height,
+        renderSections: widget.renderSections,
+        renderPartNames: widget.renderPartNames,
+        musicViewMode: widget.musicViewMode,
+      ).renderedScoreImageData;
       if (disposed) return;
       setState(() {
         if (actualWidth > renderableWidth) {
@@ -227,4 +169,8 @@ class _ScorePreviewState extends State<ScorePreview> {
       }
     });
   }
+}
+
+Future<Uint8List> _renderedScoreImageData(MusicPreviewRenderer renderer) {
+  return renderer.renderedScoreImageData;
 }

@@ -150,105 +150,108 @@ class ExportUI {
                     Container(
                         width: 44,
                         padding: EdgeInsets.zero,
-                        child: Column(children: [
-                          Expanded(
-                              child: MyRaisedButton(
-                            color: ChordColor.dominant.color,
-                            child: Column(children: [
-                              Expanded(child: SizedBox()),
-                              Icon(Icons.cancel_outlined,
-                                  color: ChordColor.dominant.color.textColor()),
-                              Text("CANCEL",
-                                  style: TextStyle(
+                        child: Column(
+                            verticalDirection: VerticalDirection.up,
+                            children: [
+                              Expanded(
+                                  child: MyRaisedButton(
+                                color: ChordColor.dominant.color,
+                                child: Column(children: [
+                                  Expanded(child: SizedBox()),
+                                  Icon(Icons.cancel_outlined,
+                                      color: ChordColor.dominant.color
+                                          .textColor()),
+                                  Text("CANCEL",
+                                      style: TextStyle(
+                                          color: ChordColor.dominant.color
+                                              .textColor(),
+                                          fontSize: 10)),
+                                  Expanded(child: SizedBox()),
+                                ]),
+                                padding: EdgeInsets.all(2),
+                                onPressed: () => setState(() {
+                                  visible = false;
+                                }),
+                              )),
+                              Expanded(
+                                  child: MyRaisedButton(
+                                color: ChordColor.tonic.color,
+                                child: Column(children: [
+                                  Expanded(child: SizedBox()),
+                                  Icon(Icons.arrow_forward,
                                       color:
-                                          ChordColor.dominant.color.textColor(),
-                                      fontSize: 10)),
-                              Expanded(child: SizedBox()),
-                            ]),
-                            padding: EdgeInsets.all(2),
-                            onPressed: () => setState(() {
-                              visible = false;
-                            }),
-                          ))
-                        ])),
-                    Container(
-                        width: 44,
-                        padding: EdgeInsets.zero,
-                        child: Column(children: [
-                          Expanded(
-                              child: MyRaisedButton(
-                            color: ChordColor.tonic.color,
-                            child: Column(children: [
-                              Expanded(child: SizedBox()),
-                              Icon(Icons.arrow_forward,
-                                  color: ChordColor.tonic.color.textColor()),
-                              Text("EXPORT",
-                                  style: TextStyle(
-                                      color: ChordColor.tonic.color.textColor(),
-                                      fontSize: 10)),
-                              Expanded(child: SizedBox()),
-                            ]),
-                            padding: EdgeInsets.all(2),
-                            onPressed: () => setState(() {
-                              exporting = true;
-                              visible = false;
-                              Future.microtask(() {
-                                File file;
-                                bool success = false;
-                                try {
-                                  file = export(exportManager);
-                                  success = true;
-                                } catch (e) {
-                                  print(e);
-                                  if (e is Error) {
-                                    print(e.stackTrace);
-                                  }
+                                          ChordColor.tonic.color.textColor()),
+                                  Text("EXPORT",
+                                      style: TextStyle(
+                                          color: ChordColor.tonic.color
+                                              .textColor(),
+                                          fontSize: 10)),
+                                  Expanded(child: SizedBox()),
+                                ]),
+                                padding: EdgeInsets.all(2),
+                                onPressed: () => setState(() {
+                                  exporting = true;
+                                  visible = false;
+                                  Future.microtask(() {
+                                    File file;
+                                    bool success = false;
+                                    try {
+                                      file = export(exportManager);
+                                      success = true;
+                                    } catch (e) {
+                                      print(e);
+                                      if (e is Error) {
+                                        print(e.stackTrace);
+                                      }
 
-                                  messagesUI.sendMessage(
-                                      message: "MIDI Export failed!",
-                                      isError: true);
-                                }
-                                Future.delayed(exportDelay, () {
-                                  setState(() {
-                                    exporting = false;
-                                  });
-                                  if (success) {
-                                    if (MyPlatform.isMacOS) {
                                       messagesUI.sendMessage(
-                                          message:
-                                              "Opening exports directory in Finder...");
-                                      Future.delayed(Duration(seconds: 1), () {
-                                        launchURL(
-                                            "file://${exportManager.exportsDirectory.path}");
-                                        messagesUI.sendMessage(
-                                            message: "Export complete!");
-                                      });
-                                    } else if (MyPlatform.isIOS) {
-                                      messagesUI.sendMessage(
-                                          message:
-                                              "Opening exports directory in Files...");
-                                      Future.delayed(Duration(seconds: 1), () {
-                                        launchURL(
-                                            "shareddocuments://${exportManager.exportsDirectory.path}");
-                                        messagesUI.sendMessage(
-                                            message: "Export complete!");
-                                      });
-                                    } else if (MyPlatform.isMobile) {
-                                      messagesUI.sendMessage(
-                                          message: "Sharing MIDI file...");
-                                      Future.delayed(Duration(seconds: 1), () {
-                                        Share.shareFiles([file.path],
-                                            text: export.score.name);
-                                        messagesUI.sendMessage(
-                                            message: "Export complete!");
-                                      });
+                                          message: "MIDI Export failed!",
+                                          isError: true);
                                     }
-                                  }
-                                });
-                              });
-                            }),
-                          ))
-                        ]))
+                                    Future.delayed(exportDelay, () {
+                                      setState(() {
+                                        exporting = false;
+                                      });
+                                      if (success) {
+                                        if (MyPlatform.isMacOS) {
+                                          messagesUI.sendMessage(
+                                              message:
+                                                  "Opening exports directory in Finder...");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            launchURL(
+                                                "file://${exportManager.exportsDirectory.path}");
+                                            messagesUI.sendMessage(
+                                                message: "Export complete!");
+                                          });
+                                        } else if (MyPlatform.isIOS) {
+                                          messagesUI.sendMessage(
+                                              message:
+                                                  "Opening exports directory in Files...");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            launchURL(
+                                                "shareddocuments://${exportManager.exportsDirectory.path}");
+                                            messagesUI.sendMessage(
+                                                message: "Export complete!");
+                                          });
+                                        } else if (MyPlatform.isMobile) {
+                                          messagesUI.sendMessage(
+                                              message: "Sharing MIDI file...");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            Share.shareFiles([file.path],
+                                                text: export.score.name);
+                                            messagesUI.sendMessage(
+                                                message: "Export complete!");
+                                          });
+                                        }
+                                      }
+                                    });
+                                  });
+                                }),
+                              ))
+                            ]))
                   ]))
 //
                 ])),
@@ -270,7 +273,7 @@ class ExportUI {
       @required Function(VoidCallback) setState,
       @required Section currentSection}) {
     double width = MediaQuery.of(context).size.width;
-    double scrollContainerWidth = width - 88;
+    double scrollContainerWidth = width - 44;
     double exportTypeWidth = 100;
     double speedWidth = 100;
     double sectionWidth = 100;

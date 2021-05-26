@@ -190,6 +190,7 @@ class _SectionListState extends State<SectionList> {
 
   Widget getList(BuildContext context) {
     return ImplicitlyAnimatedReorderableList<Section>(
+      key: ValueKey("SectionList-${widget.scrollDirection}"),
       scrollDirection: widget.scrollDirection,
       spawnIsolate: false,
       controller: _scrollController,

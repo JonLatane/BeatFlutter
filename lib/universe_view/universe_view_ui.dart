@@ -1,6 +1,7 @@
 // import 'export_models.dart';
 import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
+import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
 import 'package:beatscratch_flutter_redux/widget/my_buttons.dart';
 
 import '../widget/my_popup_menu.dart';
@@ -21,8 +22,9 @@ import 'universe_icon.dart';
 import '../widget/my_platform.dart';
 
 class UniverseViewUI {
+  BSMethod refreshUniverseData;
   MessagesUI messagesUI;
-  bool visible = false;
+  bool visible = true;
   final UniverseManager universeManager;
   final Function(VoidCallback) setAppState;
   bool signingIn = false;
@@ -54,7 +56,8 @@ class UniverseViewUI {
       {@required BuildContext context,
       @required Color sectionColor,
       @required double keyboardHeight,
-      @required double settingsHeight}) {
+      @required double settingsHeight,
+      @required VoidCallback showDownloads}) {
     return AnimatedOpacity(
         duration: animationDuration,
         opacity: visible ? 1 : 0,
@@ -79,6 +82,7 @@ class UniverseViewUI {
                                 ? InteractionMode.universe
                                 : InteractionMode.view,
                             sectionColor: subBackgroundColor,
+                            animateIcon: refreshUniverseData,
                           )),
                       SizedBox(width: 8),
                       Text("Beat",
@@ -102,6 +106,23 @@ class UniverseViewUI {
                   ],
                 ),
                 Expanded(child: SizedBox()),
+
+                AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: showDownloads != null ? 1 : 0,
+                  child: AnimatedContainer(
+                      duration: animationDuration,
+                      width: showDownloads != null ? 48 : 0,
+                      // height: showDownloads != null ? 40 : 0,
+                      child: Transform.translate(
+                          offset: Offset(0, 4),
+                          child: MyFlatButton(
+                            padding: EdgeInsets.zero,
+                            child: Icon(Icons.download_rounded,
+                                color: Colors.white),
+                            onPressed: showDownloads,
+                          ))),
+                ),
                 // MyPopupMenuButton(itemBuilder: itemBuilder)
                 MyPopupMenuButton(
 //                        onPressed: _doNothing,
@@ -117,9 +138,7 @@ class UniverseViewUI {
                           break;
                         case "signOut":
                           setAppState(() {
-                            universeManager.redditAccessToken = "";
-                            universeManager.redditUsername = "";
-                            universeManager.redditRefreshToken = "";
+                            universeManager.signOut();
                             messagesUI.sendMessage(
                                 message: "Signed out of Reddit");
                           });

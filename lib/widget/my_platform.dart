@@ -1,6 +1,6 @@
-
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class MyPlatform {
   static final bool isWeb = kIsWeb;
@@ -11,4 +11,19 @@ class MyPlatform {
   static final bool isAndroid = !kIsWeb && Platform.isAndroid;
   static final bool isMobile = isAndroid || isIOS;
   static final bool isDebug = kDebugMode;
+
+  static String appVersion = "unknown";
+
+  static String get operatingSystem => isWeb
+      ? 'Web'
+      : isIOS
+          ? 'iOS'
+          : isMacOS
+              ? 'macOS'
+              : isAndroid
+                  ? 'Android'
+                  : 'Other OS';
+
+  static String get userAgent =>
+      "$operatingSystem:BeatScratch:v$appVersion (by /u/pseudocomposer)";
 }

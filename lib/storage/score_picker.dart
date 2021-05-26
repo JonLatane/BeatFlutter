@@ -55,6 +55,7 @@ class ScorePicker extends StatefulWidget {
   final AppSettings appSettings;
   final Function(bool) requestKeyboardFocused;
   final double width, height;
+  final BSMethod refreshUniverseData;
 
   const ScorePicker(
       {Key key,
@@ -70,7 +71,8 @@ class ScorePicker extends StatefulWidget {
       this.requestKeyboardFocused,
       this.requestMode,
       this.width,
-      this.height})
+      this.height,
+      this.refreshUniverseData})
       : super(key: key);
 
   @override
@@ -99,20 +101,33 @@ class _ScorePickerState extends State<ScorePicker> {
     nameFocus.addListener(() {
       widget.requestKeyboardFocused(nameFocus.hasFocus);
     });
+    widget.refreshUniverseData.addListener(_refreshUniverseData);
     previousMode = widget.mode;
   }
 
+  _refreshUniverseData() {
+    if (cachedUniverseData != null && cachedUniverseData.length > 0) {
+      _scrollController.animateTo(0,
+          duration: animationDuration, curve: Curves.easeInOut);
+    }
+    if (!disposed) setState(() => cachedUniverseData = null);
+  }
+
+  bool disposed = false;
   @override
   dispose() {
+    _scrollController.dispose();
     nameController.dispose();
     nameFocus.dispose();
+    widget.refreshUniverseData.removeListener(_refreshUniverseData);
+    disposed = true;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.mode != ScorePickerMode.universe) {
-      cachedUniverseData = null;
+      // cachedUniverseData = null;
     }
     bool showScoreNameEntry = widget.mode.showScoreNameEntry;
     if (!showScoreNameEntry && wasShowingScoreNameEntry) {
@@ -442,60 +457,24 @@ class _ScorePickerState extends State<ScorePicker> {
   List<ScoreFuture> cachedUniverseData;
 
   loadUniverseData() async {
-    http.Response response = await http.get(
-      'https://www.reddit.com/r/BeatScratch/new.json?limit=25',
-      // headers: <String, String>{
-      //   "X-Auth-Token": "aoOBUGRTRNe1caTvisGYOjCpGT1VmwthQcqC8zrjX",
-      // },
-    );
-    dynamic data = jsonDecode(response.body);
-    ScoreFuture convertRedditData(Map<String, dynamic> redditData) {
-      String title = redditData["data"]["title"];
-      String author = redditData["data"]["author"];
-      int voteCount = redditData["data"]["ups"] - redditData["data"]["downs"];
-      String url = redditData["data"]["url_overridden_by_dest"];
-      String commentUrl =
-          "https://reddit.com${redditData["data"]["permalink"]}";
-      Future<Score> loadScore() async {
-        String scoreUrl = url;
-        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
-        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
-        scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
-        try {
-          final score = scoreFromUrlHashValue(scoreUrl);
-          if (score == null) {
-            throw "failed to load";
-          }
-          return score;
-        } catch (e) {
-          try {
-            return widget.scoreManager.loadPastebinScore(scoreUrl);
-          } catch (e) {
-            return Future.value(defaultScore());
-          }
-        }
-      }
-
-      return ScoreFuture(loadScore(), commentUrl,
-          title: title,
-          author: author,
-          commentUrl: commentUrl,
-          voteCount: voteCount);
-    }
-
-    List<Map<String, dynamic>> redditEntries = data["data"]["children"]
-        .map<Map<String, dynamic>>((e) => e as Map<String, dynamic>)
-        .toList();
-
-    cachedUniverseData = redditEntries.map(convertRedditData).toList();
+    final data = await widget.universeManager.loadUniverseData();
+    setState(() {
+      cachedUniverseData = data;
+    });
   }
 
+  bool _wasAuthenticated;
   List<ScoreFuture> get _listedScores {
     if (widget.mode == ScorePickerMode.none) {
       return [];
     } else if (widget.mode == ScorePickerMode.universe) {
+      if (_wasAuthenticated != widget.universeManager.isAuthenticated) {
+        _wasAuthenticated = widget.universeManager.isAuthenticated;
+        cachedUniverseData = null;
+      }
+
       if (cachedUniverseData == null) {
-        loadUniverseData();
+        Future.delayed(slowAnimationDuration, loadUniverseData);
         return [];
       } else {
         return cachedUniverseData;
@@ -525,6 +504,7 @@ class _ScorePickerState extends State<ScorePicker> {
   Widget getList(BuildContext context) {
     List<ScoreFuture> scores = _listedScores;
     return ImplicitlyAnimatedList<ScoreFuture>(
+      key: ValueKey("ScorePickerList"),
       scrollDirection: widget.scrollDirection,
       spawnIsolate: false,
       controller: _scrollController,

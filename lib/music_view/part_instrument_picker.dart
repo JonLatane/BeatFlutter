@@ -281,6 +281,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
               Expanded(
                   child: ImplicitlyAnimatedList<int>(
                 scrollDirection: Axis.horizontal,
+                key: ValueKey("InstrumentPickerList"),
                 areItemsTheSame: (oldItem, newItem) => oldItem != newItem,
                 items: items,
                 itemBuilder: _buildMidiInstrumentDisplay,

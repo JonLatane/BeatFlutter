@@ -36,6 +36,12 @@
             "deviceId": "android"
         },
         {
+            "name": "Android x86 (Emulator)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554"
+        },
+        {
             "name": "iPhone SE (2nd generation) (mobile)",
             "request": "launch",
             "type": "dart",
@@ -45,7 +51,7 @@
             "name": "iPhone 12 (mobile)",
             "request": "launch",
             "type": "dart",
-            "deviceId": "985F9322-35D2-4BAC-B35C-24DDEE199D63"
+            "deviceId": "7182391C-3F76-4577-9A48-CDDD0EE66DFB"
         },
         {
             "name": "iPad Pro (12.9-inch) (2nd generation) (mobile)",

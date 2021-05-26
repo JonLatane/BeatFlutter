@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/ui_models.dart';
+import 'package:beatscratch_flutter_redux/util/bs_notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,9 +10,13 @@ import '../colors.dart';
 class UniverseIcon extends StatefulWidget {
   final Color sectionColor;
   final InteractionMode interactionMode;
+  final BSMethod animateIcon;
 
   const UniverseIcon(
-      {Key key, @required this.sectionColor, @required this.interactionMode})
+      {Key key,
+      @required this.sectionColor,
+      @required this.interactionMode,
+      this.animateIcon})
       : super(key: key);
 
   @override
@@ -45,12 +50,30 @@ class _UniverseIconState extends State<UniverseIcon>
       begin: 0,
       end: -2 * pi,
     ).animate(atomRotationController);
+
+    widget.animateIcon?.addListener(() {
+      if (widget.interactionMode != InteractionMode.universe) {
+        orbitRotationController.forward().then(
+            (_) => (!disposed) ? orbitRotationController.reverse() : null);
+        atomRotationController
+            .forward()
+            .then((_) => (!disposed) ? atomRotationController.reverse() : null);
+      } else {
+        orbitRotationController.reverse().then(
+            (_) => (!disposed) ? orbitRotationController.forward() : null);
+        atomRotationController
+            .reverse()
+            .then((_) => (!disposed) ? atomRotationController.forward() : null);
+      }
+    });
   }
 
+  bool disposed = false;
   @override
   dispose() {
     orbitRotationController.dispose();
     atomRotationController.dispose();
+    disposed = true;
     super.dispose();
   }
 

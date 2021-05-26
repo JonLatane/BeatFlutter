@@ -32,7 +32,7 @@ class ScoreManager {
   SharedPreferences _prefs;
 
   String get currentScoreName =>
-      _prefs?.getString('currentScoreName') ?? "Untitled Score";
+      _prefs?.getString('currentScoreName') ?? UNIVERSE_SCORE;
 
   set currentScoreName(String value) =>
       _prefs?.setString("currentScoreName", value);
@@ -88,8 +88,8 @@ class ScoreManager {
   }
 
   Future saveScoreFile(File scoreFile, Score score) async {
-    return compute(
-        _saveScoreFile, _SaveRequest(scoreFile.path, score.writeToBuffer()));
+    return //compute(
+        _saveScoreFile(_SaveRequest(scoreFile.path, score.writeToBuffer()));
   }
 
   openScore(File file) async {
@@ -165,7 +165,8 @@ class ScoreManager {
     _lastSuggestedScoreName = name;
   }
 
-  Future<Score> loadPastebinScore(String codeOrUrl) async {
+  Future<Score> loadPastebinScore(String codeOrUrl,
+      {String titleOverride}) async {
     final code = codeOrUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
 
     http.Response response = await http.get(
@@ -180,6 +181,9 @@ class ScoreManager {
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
 
     Score score = scoreFromUrlHashValue(longUrl);
+    if (titleOverride != null) {
+      score.name = titleOverride;
+    }
     return score;
   }
 
@@ -232,7 +236,7 @@ extension ScoreName on FileSystemEntity {
   String get scoreName {
     String fileName = path.split("/")?.last ?? ".beatscratch";
     fileName = fileName.substring(0, max(0, fileName.length - 12));
-    String scoreName = Uri.decodeComponent(fileName);
+    String scoreName = Uri.decodeComponent(fileName.replaceAll(" ", "%20"));
     return scoreName;
   }
 }

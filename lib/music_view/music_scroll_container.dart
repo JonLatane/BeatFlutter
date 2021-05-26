@@ -125,6 +125,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double _prevBeat;
   String _prevSectionOrder;
   String _prevSectionId;
+  Score _prevScore;
   // ignore: unused_field
   String _prevPartId;
   Rect visibleRect = Rect.zero;
@@ -443,6 +444,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         }
       }
     }
+    if (_hasBuilt && widget.score != _prevScore) {
+      scrollToBeat(0, duration: Duration.zero);
+      _prevScore = widget.score;
+    }
     prevWidth = widget.width;
     _prevViewMode = widget.musicViewMode;
     _prevBeat = currentBeat;
@@ -517,10 +522,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }) {
     if (instant) {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: Duration(milliseconds: 0), curve: Curves.ease);
+          duration: Duration(milliseconds: 0), curve: Curves.ease);
     } else {
       scrollToBeat(widget.focusedBeat.value - marginBeatsForBeat / 2,
-          beatAnimationDuration: animationDuration, curve: Curves.linear);
+          duration: animationDuration, curve: Curves.linear);
     }
   }
 
@@ -543,8 +548,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void scrollToBeat(double currentBeat,
-      {Duration beatAnimationDuration = animationDuration,
-      Curve curve = Curves.linear}) {
+      {Duration duration = animationDuration, Curve curve = Curves.linear}) {
     double animationPos = _animationPos(currentBeat);
     // print(
     //     "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
@@ -554,9 +558,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         animationPos.notRoughlyEquals(timeScrollController.offset)) {
       try {
         animate() {
-          if (beatAnimationDuration.inMilliseconds > 0) {
+          if (duration.inMilliseconds > 0) {
             timeScrollController.animateTo(animationPos,
-                duration: beatAnimationDuration, curve: curve);
+                duration: duration, curve: curve);
           } else {
             timeScrollController.jumpTo(animationPos);
           }

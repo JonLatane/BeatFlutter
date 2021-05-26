@@ -29,6 +29,9 @@ import 'melody_menu_browser.dart';
 import '../music_preview/melody_preview.dart';
 import 'layers_part_view.dart';
 
+/**
+ * The Layers
+ */
 class LayersView extends StatefulWidget {
   final AppSettings appSettings;
   final ScoreManager scoreManager;
@@ -296,6 +299,7 @@ class _LayersViewState extends State<LayersView> {
   Widget build(BuildContext context) {
     return ScalableView(
         child: ImplicitlyAnimatedReorderableList<Part>(
+          key: ValueKey("LayersViewPartList"),
 //      key: Key(widget.score.parts.map((e) => e.id).toString()),
           scrollDirection: Axis.horizontal,
           // The current items in the list.
