@@ -4,13 +4,9 @@ PODS:
   - Flutter (1.0.0)
   - flutter_appavailability (0.0.1):
     - Flutter
-  - flutter_blue (0.0.1):
-    - Flutter
-    - flutter_blue/Protos (= 0.0.1)
-  - flutter_blue/Protos (0.0.1):
-    - Flutter
-    - Protobuf (~> 3.11.4)
   - flutter_keyboard_visibility (0.7.0):
+    - Flutter
+  - flutter_midi_command (0.3.6):
     - Flutter
   - native_device_orientation (0.0.1):
     - Flutter
@@ -18,7 +14,6 @@ PODS:
     - Flutter
   - path_provider (0.0.1):
     - Flutter
-  - Protobuf (3.11.4)
   - sensors (0.0.1):
     - Flutter
   - share (0.0.1):
@@ -37,8 +32,8 @@ DEPENDENCIES:
   - aeyrium_sensor (from `.symlinks/plugins/aeyrium_sensor/ios`)
   - Flutter (from `Flutter`)
   - flutter_appavailability (from `.symlinks/plugins/flutter_appavailability/ios`)
-  - flutter_blue (from `.symlinks/plugins/flutter_blue/ios`)
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
+  - flutter_midi_command (from `.symlinks/plugins/flutter_midi_command/ios`)
   - native_device_orientation (from `.symlinks/plugins/native_device_orientation/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -52,7 +47,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - Protobuf
     - SwiftProtobuf
 
 EXTERNAL SOURCES:
@@ -62,10 +56,10 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_appavailability:
     :path: ".symlinks/plugins/flutter_appavailability/ios"
-  flutter_blue:
-    :path: ".symlinks/plugins/flutter_blue/ios"
   flutter_keyboard_visibility:
     :path: ".symlinks/plugins/flutter_keyboard_visibility/ios"
+  flutter_midi_command:
+    :path: ".symlinks/plugins/flutter_midi_command/ios"
   native_device_orientation:
     :path: ".symlinks/plugins/native_device_orientation/ios"
   package_info_plus:
@@ -89,12 +83,11 @@ SPEC CHECKSUMS:
   aeyrium_sensor: cdaa0bdd7206824ea4fb910c627cad05275362e5
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   flutter_appavailability: ebf8f85abea44436d1262fcde8a4e64b2534b01a
-  flutter_blue: eeb381dc4727a0954dede73515f683865494b370
   flutter_keyboard_visibility: 6195387fb6d8f46e5cd6dda4a4154e41f800f545
+  flutter_midi_command: 4acc18c6391c574d21f1d3a1cc40c7fe06ff461f
   native_device_orientation: 3b4cfc9565a7b879cc4fde282b3e27745e852d0d
   package_info_plus: 6c92f08e1f853dc01228d6f553146438dafcd14e
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
-  Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
   sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
@@ -103,6 +96,6 @@ SPEC CHECKSUMS:
   vibration: b5a33e764c3f609a975b9dca73dce20fdde627dc
   webview_flutter: 9f491a9b5a66f2573946a389b2677987b0ff8c0b
 
-PODFILE CHECKSUM: 77d6510022ba1a474825d27c26999b8333573929
+PODFILE CHECKSUM: cd83aa0d6f97d60229d14a136129c25a30b0bc32
 
-COCOAPODS: 1.10.0
+COCOAPODS: 1.10.1

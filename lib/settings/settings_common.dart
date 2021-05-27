@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_appavailability/flutter_appavailability.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 import '../beatscratch_plugin.dart';
 import '../generated/protos/protos.dart';

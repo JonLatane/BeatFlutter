@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
-import 'package:beatscratch_flutter_redux/settings/tile_bluetooth.dart';
+import '../messages/messages_ui.dart';
+import 'tile_bluetooth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
@@ -69,66 +69,37 @@ class _SettingsPanelState extends State<SettingsPanel> {
       BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> get midiSynthesizers =>
       BeatScratchPlugin.midiSynthesizers;
-  final flutterReactiveBle = FlutterReactiveBle();
-  List<DiscoveredDevice> observedDevices;
+  // final flutterReactiveBle = FlutterReactiveBle();
+  List<MidiDevice> observedDevices;
   List<String> connectedDeviceIds;
+  StreamSubscription<MidiPacket> midiCommandSubscription;
   // BluetoothState bluetoothState = BluetoothState.unavailable;
-  StreamSubscription<List<ScanResult>> bluetoothSubscription;
+  // StreamSubscription<List<ScanResult>> bluetoothSubscription;
   // StreamSubscription<BluetoothState> bluetoothStateSubscription;
 
-  // _bluetoothScan() {
-  //   if (widget.visible) {
-  //     // print("STARTED Bluetooth scan!");
-  //     flutterBlue.startScan(timeout: Duration(seconds: 4));
-  //   } else {
-  //     // print("SKIPPED Bluetooth scan!");
-  //   }
-
-  //   Future.delayed(Duration(seconds: widget.visible ? 10 : 25), _bluetoothScan);
-  // }
-
-  // _processBluetoothResult(List<ScanResult> results) {
-  //   // print("Got a Bluetooth scan result!");
-  //   observedDevices.addAll(results
-  //       .where((r) =>
-  //           r.advertisementData.serviceUuids
-  //               .contains(BluetoothDeviceTile.MIDI_SERVICE_UUID) &&
-  //           !observedDevices.any((d) => d.id == r.device.id))
-  //       .map((e) => e.device));
-  //   observedDevices.removeWhere((d) =>
-  //       !results.any((rd) => rd.device.id == d.id) &&
-  //       !connectedDeviceIds.any((id) => id == d.id));
-  // }
-
-  // _processBluetoothState(BluetoothState state) {
-  //   // print("Bluetooth State: $state");
-  //   bluetoothState = state;
-  // }
+  _startBluetoothScanLoop() async {
+    MidiCommand().devices.then((results) {
+      observedDevices = results.where((r) => r.type == "BLE").toList();
+      Future.delayed(
+          Duration(seconds: widget.visible ? 10 : 25), _startBluetoothScanLoop);
+    });
+  }
 
   @override
   initState() {
     super.initState();
     observedDevices = [];
     connectedDeviceIds = [];
-    flutterReactiveBle.scanForDevices(
-        withServices: [BluetoothDeviceTile.MIDI_SERVICE_UUID],
-        scanMode: ScanMode.lowPower).listen((device) {
-      observedDevices.add(device);
-    }, onError: (e) {
-      widget.messagesUI.sendMessage(
-          message: "Bluetooth discovery failed!",
-          isError: true,
-          andSetState: true);
+    MidiCommand().startScanningForBluetoothDevices();
+    _startBluetoothScanLoop();
+    midiCommandSubscription = MidiCommand().onMidiDataReceived?.listen((event) {
+      BeatScratchPlugin.sendMIDI(event.data);
     });
-    // bluetoothSubscription =
-    //     flutterBlue.scanResults.listen(_processBluetoothResult);
-    // bluetoothStateSubscription =
-    //     flutterBlue.state.listen(_processBluetoothState);
-    // _bluetoothScan();
   }
 
   @override
   dispose() {
+    midiCommandSubscription?.cancel();
     super.dispose();
   }
 
@@ -423,13 +394,12 @@ class _SettingsPanelState extends State<SettingsPanel> {
           );
         } else if (item is SettingsTile || item is SeparatorTile) {
           tile = item;
-        } else if (item is DiscoveredDevice) {
+        } else if (item is MidiDevice) {
           tile = BluetoothDeviceTile(
             key: ValueKey("Bluetooth-Device-${item.id}"),
-            flutterReactiveBle: flutterReactiveBle,
             device: item,
             sectionColor: widget.sectionColor,
-            // initiallyConnected: false,
+            connected: connectedDeviceIds.any((id) => id == item.id),
             onConnect: () {
               connectedDeviceIds.add(item.id.toString());
             },

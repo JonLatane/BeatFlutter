@@ -12,7 +12,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_midi_command/flutter_midi_command.dart';
 
 import '../ui_models.dart';
 import '../widget/my_buttons.dart';
@@ -21,19 +21,19 @@ import '../colors.dart';
 class BluetoothDeviceTile extends StatefulWidget {
   static final MIDI_SERVICE_UUID_STRING =
       '03B80E5A-EDE8-4B33-A751-6CE34EC4C700';
-  static final MIDI_SERVICE_UUID = Uuid.parse(MIDI_SERVICE_UUID_STRING);
-  final DiscoveredDevice device;
+  // static final MIDI_SERVICE_UUID = Uuid.parse(MIDI_SERVICE_UUID_STRING);
+  final MidiDevice device;
   final VoidCallback onConnect, onDisconnect;
   final Color sectionColor;
-  final FlutterReactiveBle flutterReactiveBle;
+  final bool connected;
 
   const BluetoothDeviceTile({
     Key key,
+    @required this.connected,
     @required this.device,
     @required this.sectionColor,
     @required this.onConnect,
     @required this.onDisconnect,
-    @required this.flutterReactiveBle,
   }) : super(key: key);
 
   @override
@@ -41,13 +41,13 @@ class BluetoothDeviceTile extends StatefulWidget {
 }
 
 class _BluetoothDeviceTileState extends State<BluetoothDeviceTile> {
-  DeviceConnectionState connectionState = DeviceConnectionState.disconnected;
-  bool get isConnected => connectionState == DeviceConnectionState.connected;
-  bool get isConnecting => connectionState == DeviceConnectionState.connecting;
+  // DeviceConnectionState connectionState = DeviceConnectionState.disconnected;
+  bool get isConnected => widget.connected;
+  bool isConnecting = false;
   Color get backgroundColor => isConnected ? widget.sectionColor : Colors.grey;
   Color get foregroundColor => backgroundColor.textColor();
-  DiscoveredDevice get device => widget.device;
-  Stream<ConnectionStateUpdate> connection;
+  MidiDevice get device => widget.device;
+  // Stream<ConnectionStateUpdate> connection;
 
   @override
   initState() {
@@ -106,25 +106,24 @@ class _BluetoothDeviceTileState extends State<BluetoothDeviceTile> {
   }
 
   _connect() {
-    connection = widget.flutterReactiveBle.connectToAdvertisingDevice(
-        id: device.id,
-        withServices: [
-          BluetoothDeviceTile.MIDI_SERVICE_UUID
-        ],
-        servicesWithCharacteristicsToDiscover: {
-          BluetoothDeviceTile.MIDI_SERVICE_UUID: []
-        });
-    // await device.connect();
+    setState(() {
+      isConnecting = true;
+    });
+    MidiCommand().connectToDevice(device);
     try {
       _deviceConnected();
     } catch (e) {
       print("Error setting up connection to device");
     }
     widget.onConnect();
+    setState(() {
+      isConnecting = false;
+    });
   }
 
   _disconnect() {
     // await device.disconnect();
+    MidiCommand().disconnectDevice(device);
     widget.onDisconnect();
   }
 
