@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../util/util.dart';
+import '../util/util.dart';
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../drawing/color_guide.dart';

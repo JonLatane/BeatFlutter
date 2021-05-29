@@ -7,7 +7,6 @@ import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 
-import '../../util/util.dart';
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';

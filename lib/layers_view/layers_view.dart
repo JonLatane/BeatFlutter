@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
 
-import '../../util/util.dart';
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import '../settings/app_settings.dart';
