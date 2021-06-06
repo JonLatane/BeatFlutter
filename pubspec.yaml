@@ -2,7 +2,7 @@ name: beatscratch_flutter_redux
 description: BeatScratch for Flutter
 publish_to: none
 
-version: 1.1.1+314
+version: 1.2.0+321
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -41,7 +41,8 @@ dependencies:
   #  path: ../flutter_blue
   # flutter_reactive_ble: #^3.1.0
   #   path: ../flutter_reactive_ble
-  flutter_midi_command: ^0.3.0
+  flutter_midi_command: #^0.3.0
+   path: ../FlutterMidiCommand
 
 dev_dependencies:
   flutter_test:

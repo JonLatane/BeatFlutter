@@ -284,6 +284,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   ValueNotifier<Iterable<int>> keyboardNotesNotifier;
+  ValueNotifier<Map<String, Iterable<int>>> bluetoothControllerPressedNotes;
   int keyboardChordBase;
   Set<int> keyboardChordNotes = Set();
   ValueNotifier<Chord> keyboardChordNotifier;
@@ -511,6 +512,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
+      showSections = false;
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
       if (scorePickerMode == ScorePickerMode.universe) {
@@ -527,21 +529,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       if (interactionMode != InteractionMode.universe) {
+        showSections = false;
         _universeManager.currentUniverseScore = "";
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
           _scoreManager.currentScoreName = ScoreManager.UNIVERSE_SCORE;
         }
+        interactionMode = InteractionMode.universe;
+        universeViewUI.visible = true;
+        recordingMelody = false;
+        musicViewMode = MusicViewMode.score;
+        selectedMelody = null;
+        _showMusicView();
+        exportUI.visible = false;
+
+        // Show score picker in universe mode, but only load data into
+        // it after a delay
+        scorePickerMode = ScorePickerMode.none;
+        _showScorePicker = true;
+        Future.delayed(slowAnimationDuration, () {
+          setState(() {
+            if (interactionMode == InteractionMode.universe) {
+              scorePickerMode = ScorePickerMode.universe;
+            }
+          });
+        });
       }
-      interactionMode = InteractionMode.universe;
-      universeViewUI.visible = true;
-      scorePickerMode = ScorePickerMode.universe;
-      _showScorePicker = true;
-      recordingMelody = false;
-      musicViewMode = MusicViewMode.score;
-      selectedMelody = null;
-      _showMusicView();
-      exportUI.visible = false;
     });
   }
 
@@ -587,6 +600,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           musicViewMode = MusicViewMode.section;
         }
         interactionMode = InteractionMode.edit;
+        showSections = true;
         _showMusicView();
       }
     });
@@ -758,15 +772,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       : 0;
   bool _forceShowTapInBar = false;
 
-  bool get showTapInBar => _showTapInBar || _forceShowTapInBar;
+  bool get showTapInBar =>
+      _showTapInBar || _forceShowTapInBar || recordingMelody;
 
+  bool showSections = false;
   bool verticalSectionList = false;
 
   double get verticalSectionListWidth =>
-      interactionMode == InteractionMode.edit && verticalSectionList ? 165 : 0;
+      showSections && verticalSectionList ? 165 : 0;
 
   double get horizontalSectionListHeight =>
-      interactionMode == InteractionMode.edit && !verticalSectionList ? 36 : 0;
+      showSections && !verticalSectionList ? 36 : 0;
 
   ExportUI exportUI;
   MessagesUI messagesUI;
@@ -788,7 +804,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ..refreshUniverseData = refreshUniverseData;
     _universeManager
       ..messagesUI = messagesUI
-      ..setAppState = setState
       ..scoreManager = _scoreManager;
     BeatScratchPlugin.messagesUI = messagesUI;
     exportUI = ExportUI()..messagesUI = messagesUI;
@@ -1619,8 +1634,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     width: MediaQuery.of(context).size.width / 2,
                     child: createSecondToolbar())),
             Expanded(
-                flex: MyPlatform.isDebug ? 3 : 2,
-                child: createBeatScratchToolbar(rightHalfOnly: true)),
+                flex: 3, child: createBeatScratchToolbar(rightHalfOnly: true)),
           ],
         ));
   }
@@ -1641,6 +1655,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
         score: score,
+        universeManager: _universeManager,
         savingScore: _savingScore,
         appSettings: _appSettings,
         messagesUI: messagesUI,
@@ -1658,6 +1673,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           router.navigateTo(context, "/s/$pastebinCode");
         },
         vertical: vertical,
+        showSections: showSections,
         verticalSections: verticalSectionList,
         refreshUniverseData: refreshUniverseData,
         togglePlaying: () {
@@ -1671,7 +1687,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         toggleSectionListDisplayMode: () {
           setState(() {
-            verticalSectionList = !verticalSectionList;
+            if (interactionMode == InteractionMode.edit) {
+              verticalSectionList = !verticalSectionList;
+            } else {
+              if (!showSections) {
+                showSections = true;
+                verticalSectionList = true;
+              } else if (!verticalSectionList) {
+                showSections = false;
+                verticalSectionList = true;
+              } else {
+                verticalSectionList = false;
+              }
+            }
           });
         },
         renderingMode: renderingMode,
@@ -1680,26 +1708,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             renderingMode = value;
           });
         },
-        showScorePicker: (mode) {
-          setState(() {
-            if ((interactionMode == InteractionMode.universe &&
-                    mode != ScorePickerMode.universe) ||
-                (interactionMode != InteractionMode.view &&
-                    mode != ScorePickerMode.show)) {
-              scorePickerMode = ScorePickerMode.none;
-              _viewMode();
-              Future.delayed(slowAnimationDuration, () {
-                setState(() {
-                  scorePickerMode = mode;
-                  showScorePicker = true;
-                });
-              });
-            } else {
-              scorePickerMode = mode;
-              showScorePicker = true;
-            }
-          });
-        },
+        showScorePicker: _doShowScorePicker,
         showMidiInputSettings: () {
           setState(() {
             _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
@@ -1777,6 +1786,27 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }),
       );
 
+  _doShowScorePicker(mode) {
+    setState(() {
+      if ((interactionMode == InteractionMode.universe &&
+              mode != ScorePickerMode.universe) ||
+          (interactionMode != InteractionMode.view &&
+              mode != ScorePickerMode.show)) {
+        scorePickerMode = ScorePickerMode.none;
+        _viewMode();
+        Future.delayed(slowAnimationDuration, () {
+          setState(() {
+            scorePickerMode = mode;
+            showScorePicker = true;
+          });
+        });
+      } else {
+        scorePickerMode = mode;
+        showScorePicker = true;
+      }
+    });
+  }
+
   SecondToolbar createSecondToolbar({bool vertical = false}) => SecondToolbar(
       vertical: vertical,
       appSettings: _appSettings,
@@ -1853,6 +1883,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           showBeatCounts = !showBeatCounts;
         });
       },
+      allowReordering: interactionMode == InteractionMode.edit,
     );
     _sectionLists.add(result);
     return result;
@@ -2307,6 +2338,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               bluetoothScan: bluetoothScan,
               visible: showMidiConfiguration,
               enableColorboard: enableColorboard,
+              bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
               setColorboardEnabled: (value) {
                 setState(() {
                   enableColorboard = value;

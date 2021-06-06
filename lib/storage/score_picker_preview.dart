@@ -5,41 +5,110 @@ import 'dart:ui';
 import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/util/util.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../beatscratch_plugin.dart';
-import '../colors.dart';
-import '../ui_models.dart';
-import '../util/dummydata.dart';
-import '../util/bs_methods.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
-import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../generated/protos/protobeats_plugin.pb.dart';
 import '../music_preview/score_preview.dart';
-import '../util/music_utils.dart';
+import '../ui_models.dart';
+import '../util/bs_methods.dart';
+import '../util/dummydata.dart';
 import '../widget/my_buttons.dart';
 import 'score_manager.dart';
 import 'universe_manager.dart';
+import 'url_conversions.dart';
 
 class ScoreFuture {
-  final Future<Score> loadScore;
-  final String identity;
-  final String title, author, commentUrl, fullName;
+  final String filePath, scoreUrl, title, author, commentUrl, fullName;
   int voteCount;
   bool likes;
-  final FileSystemEntity file;
-  ScoreFuture(this.loadScore, this.identity,
-      {this.file,
-      this.title,
-      this.author,
-      this.commentUrl,
-      this.voteCount,
-      this.likes,
-      this.fullName});
+
+  ScoreFuture({
+    this.filePath,
+    this.title,
+    this.author,
+    this.commentUrl,
+    this.voteCount,
+    this.likes,
+    this.fullName,
+    this.scoreUrl,
+  });
+
+  ScoreFuture.fromJson(Map<String, dynamic> json)
+      : filePath = json['filePath'],
+        title = json['title'],
+        author = json['author'],
+        commentUrl = json['commentUrl'],
+        voteCount = json['voteCount'],
+        likes = json['likes'],
+        fullName = json['fullName'],
+        scoreUrl = json['scoreUrl'];
+
+  Map<String, dynamic> toJson() => {
+        'filePath': filePath,
+        'title': title,
+        'author': author,
+        'commentUrl': commentUrl,
+        'voteCount': voteCount,
+        'likes': likes,
+        'fullName': fullName,
+        'scoreUrl': scoreUrl,
+      };
+
+  String get identity => filePath ?? "//universe-score://$scoreUrl";
+  FileSystemEntity get file {
+    if (filePath != null) {
+      try {
+        return File(filePath);
+      } catch (e) {
+        print("Error loading score from file: $e");
+      }
+    }
+    return null;
+  }
+
+  Future<Score> loadScore(ScoreManager scoreManager) async {
+    if (this.file != null) {
+      return loadScoreFromFile();
+    } else {
+      return loadScoreFromUniverse(scoreManager);
+    }
+  }
+
+  Future<Score> loadScoreFromFile() async {
+    if (file == null) {
+      return Future.value(defaultScore());
+    }
+    try {
+      final data = await File(file?.path).readAsBytes();
+
+      return Score.fromBuffer(data);
+    } catch (e) {
+      return Future.value(defaultScore());
+    }
+  }
+
+  Future<Score> loadScoreFromUniverse(ScoreManager scoreManager) async {
+    String scoreUrl = this.scoreUrl;
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
+    scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
+    try {
+      final score = scoreFromUrlHashValue(scoreUrl);
+      if (score == null) {
+        throw "failed to load";
+      }
+      return score..name = title;
+    } catch (e) {
+      try {
+        return scoreManager.loadPastebinScore(scoreUrl, titleOverride: title);
+      } catch (e) {
+        return Future.value(defaultScore());
+      }
+    }
+  }
 }
 
 class ScorePickerPreview extends StatefulWidget {
@@ -112,7 +181,8 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
       _confirmingDelete = false;
       _previewScore = null;
       Future.microtask(() async {
-        Score previewScore = await widget.scoreFuture.loadScore;
+        Score previewScore =
+            await widget.scoreFuture.loadScore(widget.scoreManager);
         if (!disposed) {
           setState(() {
             _previewScore = previewScore;
@@ -425,7 +495,8 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                   .replaceAll("https://", "apollo://"),
                               forceSafariVC: false);
                         } else {
-                          launchURL(widget.scoreFuture.commentUrl);
+                          launchURL(widget.scoreFuture.commentUrl,
+                              forceSafariVC: false);
                         }
                       },
                       child: Icon(FontAwesomeIcons.commentDots,

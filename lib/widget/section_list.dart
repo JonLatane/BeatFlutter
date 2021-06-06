@@ -24,6 +24,7 @@ class SectionList extends StatefulWidget {
   final Function(VoidCallback) setState;
   final bool showSectionBeatCounts;
   final VoidCallback toggleShowSectionBeatCounts;
+  final bool allowReordering;
 
   const SectionList(
       {Key key,
@@ -35,7 +36,8 @@ class SectionList extends StatefulWidget {
       this.sectionColor,
       this.setState,
       this.showSectionBeatCounts,
-      this.toggleShowSectionBeatCounts})
+      this.toggleShowSectionBeatCounts,
+      this.allowReordering})
       : super(key: key);
 
   @override
@@ -66,8 +68,9 @@ class _SectionListState extends State<SectionList> {
                       beats: beatCount,
                       opacity: widget.showSectionBeatCounts ? 1 : 0.5,
                     ))),
-            Container(
-                width: 37,
+            AnimatedContainer(
+                duration: animationDuration,
+                width: widget.allowReordering ? 37 : 0,
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
                 child: MyRaisedButton(
@@ -133,21 +136,22 @@ class _SectionListState extends State<SectionList> {
                       ))), // ]),
 //      ]),
               // Row(children: [
-              Expanded(
-                  child: Container(
-                      height: 36,
-                      padding: EdgeInsets.all(1),
-                      child: MyRaisedButton(
-                        child: Image.asset("assets/add.png"),
-                        onPressed: widget.score.sections.length < 100
-                            ? () {
-                                print("inserting section");
-                                widget.insertSection(defaultSection()
-                                  ..tempo = (Tempo()
-                                    ..bpm = widget.currentSection.tempo.bpm));
-                              }
-                            : null,
-                      )))
+              AnimatedContainer(
+                  duration: animationDuration,
+                  height: 36,
+                  width: widget.allowReordering ? 82.5 : 0,
+                  padding: EdgeInsets.all(1),
+                  child: MyRaisedButton(
+                    child: Image.asset("assets/add.png"),
+                    onPressed: widget.score.sections.length < 100
+                        ? () {
+                            print("inserting section");
+                            widget.insertSection(defaultSection()
+                              ..tempo = (Tempo()
+                                ..bpm = widget.currentSection.tempo.bpm));
+                          }
+                        : null,
+                  ))
             ])
           ]);
   }
@@ -223,6 +227,7 @@ class _SectionListState extends State<SectionList> {
                 scrollDirection: widget.scrollDirection,
                 section: section,
                 showBeatCount: widget.showSectionBeatCounts,
+                allowReordering: widget.allowReordering,
               );
 
               // If the item is in drag, only return the tile as the
@@ -267,6 +272,7 @@ class _Section extends StatefulWidget {
   final Function(Section) selectSection;
   final Axis scrollDirection;
   final bool showBeatCount;
+  final bool allowReordering;
 
   const _Section(
       {Key key,
@@ -275,7 +281,8 @@ class _Section extends StatefulWidget {
       this.currentSection,
       this.sectionColor,
       this.scrollDirection,
-      this.showBeatCount})
+      this.showBeatCount,
+      this.allowReordering})
       : super(key: key);
 
   @override
@@ -322,18 +329,24 @@ class _SectionState extends State<_Section> {
                           : Colors.grey),
                 ),
               )),
-              Handle(
-                  key: Key("handle-${widget.section.id}"),
-                  delay: const Duration(milliseconds: 0),
-                  child: Padding(
-                      padding: EdgeInsets.only(top: 2),
-                      child: Icon(
-                        Icons.reorder,
-                        color: (widget.currentSection == widget.section)
-                            ? widget.sectionColor.textColor()
-                            : musicForegroundColor,
-                        size: 24,
-                      )))
+              AnimatedContainer(
+                  duration: animationDuration,
+                  width: widget.allowReordering ? 24 : 0,
+                  child: Handle(
+                      key: Key("handle-${widget.section.id}"),
+                      delay: const Duration(milliseconds: 0),
+                      child: Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: AnimatedOpacity(
+                              duration: animationDuration,
+                              opacity: widget.allowReordering ? 1 : 0,
+                              child: Icon(
+                                Icons.reorder,
+                                color: (widget.currentSection == widget.section)
+                                    ? widget.sectionColor.textColor()
+                                    : musicForegroundColor,
+                                size: 24,
+                              )))))
             ]),
           ]),
           onPressed: () {

@@ -43,6 +43,8 @@ class SettingsPanel extends StatefulWidget {
   final VoidCallback toggleColorboardConfig;
   final BSMethod bluetoothScan;
   final bool visible;
+  final ValueNotifier<Map<String, Iterable<int>>>
+      bluetoothControllerPressedNotes;
 
   const SettingsPanel(
       {Key key,
@@ -56,7 +58,8 @@ class SettingsPanel extends StatefulWidget {
       @required this.toggleColorboardConfig,
       @required this.bluetoothScan,
       @required this.visible,
-      @required this.messagesUI})
+      @required this.messagesUI,
+      @required this.bluetoothControllerPressedNotes})
       : super(key: key);
 
   @override
@@ -90,11 +93,15 @@ class _SettingsPanelState extends State<SettingsPanel> {
     super.initState();
     observedDevices = [];
     connectedDeviceIds = [];
-    MidiCommand().startScanningForBluetoothDevices();
-    _startBluetoothScanLoop();
-    midiCommandSubscription = MidiCommand().onMidiDataReceived?.listen((event) {
-      BeatScratchPlugin.sendMIDI(event.data);
-    });
+    if (MyPlatform.isNative) {
+      MidiCommand().startScanningForBluetoothDevices();
+      _startBluetoothScanLoop();
+      midiCommandSubscription =
+          MidiCommand().onMidiDataReceived?.listen((event) {
+        // event.data
+        BeatScratchPlugin.sendMIDI(event.data);
+      });
+    }
   }
 
   @override
@@ -238,61 +245,62 @@ class _SettingsPanelState extends State<SettingsPanel> {
 
     List<dynamic> features = [
       SeparatorTile(text: "Beta Features", id: "features"),
-      SettingsTile(
-        id: "universeModeWebViewSignIn",
-        color: widget.universeManager.useWebViewSignIn
-            ? widget.sectionColor
-            : Colors.grey,
-        child: Container(
-          child: Column(
-            children: [
-              Expanded(child: SizedBox()),
-              SizedBox(height: 15),
-              Text("WebView Sign-in",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: (widget.universeManager.useWebViewSignIn
-                              ? widget.sectionColor
-                              : Colors.grey)
-                          .textColor(),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700)),
-              SizedBox(height: 9),
-              Row(children: [
+      if (MyPlatform.isDebug)
+        SettingsTile(
+          id: "universeModeWebViewSignIn",
+          color: widget.universeManager.useWebViewSignIn
+              ? widget.sectionColor
+              : Colors.grey,
+          child: Container(
+            child: Column(
+              children: [
                 Expanded(child: SizedBox()),
-                UniverseIcon(
-                  interactionMode: InteractionMode.universe,
-                  sectionColor: widget.universeManager.useWebViewSignIn
-                      ? widget.sectionColor
-                      : Colors.grey,
-                ),
-                SizedBox(width: 5),
-                Text("BETA",
+                SizedBox(height: 15),
+                Text("WebView Sign-in",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: (widget.universeManager.useWebViewSignIn
                                 ? widget.sectionColor
                                 : Colors.grey)
                             .textColor(),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900)),
-                Expanded(child: SizedBox()),
-              ]),
-              Switch(
-                activeColor: Colors.white,
-                value: widget.universeManager.useWebViewSignIn,
-                onChanged: (v) => setState(() {
-                  widget.universeManager.useWebViewSignIn = v;
-                  BeatScratchPlugin.onSynthesizerStatusChange();
-                }),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700)),
+                SizedBox(height: 9),
+                Row(children: [
+                  Expanded(child: SizedBox()),
+                  UniverseIcon(
+                    interactionMode: InteractionMode.universe,
+                    sectionColor: widget.universeManager.useWebViewSignIn
+                        ? widget.sectionColor
+                        : Colors.grey,
+                  ),
+                  SizedBox(width: 5),
+                  Text("BETA",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: (widget.universeManager.useWebViewSignIn
+                                  ? widget.sectionColor
+                                  : Colors.grey)
+                              .textColor(),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900)),
+                  Expanded(child: SizedBox()),
+                ]),
+                Switch(
+                  activeColor: Colors.white,
+                  value: widget.universeManager.useWebViewSignIn,
+                  onChanged: (v) => setState(() {
+                    widget.universeManager.useWebViewSignIn = v;
+                    BeatScratchPlugin.onSynthesizerStatusChange();
+                  }),
 //                controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-              ),
-              Expanded(child: SizedBox()),
-            ],
+                ),
+                Expanded(child: SizedBox()),
+              ],
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 5),
           ),
-          padding: EdgeInsets.symmetric(horizontal: 5),
         ),
-      ),
       if (MyPlatform.isIOS)
         SettingsTile(
           id: "apolloUniverse",
@@ -406,6 +414,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
             onDisconnect: () {
               connectedDeviceIds.remove(item.id.toString());
             },
+            bluetoothControllerPressedNotes:
+                widget.bluetoothControllerPressedNotes,
           );
         }
         tile = Padding(padding: EdgeInsets.all(5), child: tile);

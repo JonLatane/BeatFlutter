@@ -106,11 +106,20 @@ class _ScorePickerState extends State<ScorePicker> {
   }
 
   _refreshUniverseData() {
-    if (cachedUniverseData != null && cachedUniverseData.length > 0) {
-      _scrollController.animateTo(0,
-          duration: animationDuration, curve: Curves.easeInOut);
+    _scrollController.animateTo(0,
+        duration: animationDuration, curve: Curves.easeInOut);
+    loadUniverseData();
+  }
+
+  loadUniverseData() async {
+    final data = await widget.universeManager.loadUniverseData();
+    if (!disposed) {
+      setState(() {
+        widget.universeManager.cachedUniverseData = data;
+      });
+    } else {
+      widget.universeManager.cachedUniverseData = data;
     }
-    if (!disposed) setState(() => cachedUniverseData = null);
   }
 
   bool disposed = false;
@@ -454,31 +463,12 @@ class _ScorePickerState extends State<ScorePicker> {
     });
   }
 
-  List<ScoreFuture> cachedUniverseData;
 
-  loadUniverseData() async {
-    final data = await widget.universeManager.loadUniverseData();
-    setState(() {
-      cachedUniverseData = data;
-    });
-  }
-
-  bool _wasAuthenticated;
   List<ScoreFuture> get _listedScores {
     if (widget.mode == ScorePickerMode.none) {
       return [];
     } else if (widget.mode == ScorePickerMode.universe) {
-      if (_wasAuthenticated != widget.universeManager.isAuthenticated) {
-        _wasAuthenticated = widget.universeManager.isAuthenticated;
-        cachedUniverseData = null;
-      }
-
-      if (cachedUniverseData == null) {
-        Future.delayed(slowAnimationDuration, loadUniverseData);
-        return [];
-      } else {
-        return cachedUniverseData;
-      }
+      return widget.universeManager.cachedUniverseData;
     } else {
       List<FileSystemEntity> scoreFiles;
       scoreFiles = scoreManager.scoreFiles;
@@ -496,7 +486,7 @@ class _ScorePickerState extends State<ScorePicker> {
           }
         }
 
-        return ScoreFuture(loadScore(), scoreFile.path, file: scoreFile);
+        return ScoreFuture(filePath: scoreFile.path);
       }).toList();
     }
   }
@@ -535,7 +525,7 @@ class _ScorePickerState extends State<ScorePicker> {
                       }
                       break;
                     case ScorePickerMode.universe:
-                      scoreFuture.loadScore.then((value) {
+                      scoreFuture.loadScore(scoreManager).then((value) {
                         widget.scoreManager.doOpenScore(value);
                         widget.universeManager.currentUniverseScore =
                             scoreFuture.identity;

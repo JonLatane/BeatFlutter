@@ -3,20 +3,18 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-
-import '../colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/protos/music.pb.dart';
+import '../music_view/music_system_painter.dart';
 import '../ui_models.dart';
-import '../util/bs_methods.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
-import '../music_view/music_system_painter.dart';
+import '../widget/my_platform.dart';
 
 class MusicPreviewRenderer {
-  static const double _overSampleScale = 4;
+  static final double _overSampleScale = MyPlatform.isAppleOS ? 2 : 1;
   final Uint8List scoreData;
   final double scale, width, height;
   final bool renderSections, renderPartNames;

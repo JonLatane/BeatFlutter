@@ -26,15 +26,18 @@ class BluetoothDeviceTile extends StatefulWidget {
   final VoidCallback onConnect, onDisconnect;
   final Color sectionColor;
   final bool connected;
+  final ValueNotifier<Map<String, Iterable<int>>>
+      bluetoothControllerPressedNotes;
 
-  const BluetoothDeviceTile({
-    Key key,
-    @required this.connected,
-    @required this.device,
-    @required this.sectionColor,
-    @required this.onConnect,
-    @required this.onDisconnect,
-  }) : super(key: key);
+  const BluetoothDeviceTile(
+      {Key key,
+      @required this.connected,
+      @required this.device,
+      @required this.sectionColor,
+      @required this.onConnect,
+      @required this.onDisconnect,
+      @required this.bluetoothControllerPressedNotes})
+      : super(key: key);
 
   @override
   _BluetoothDeviceTileState createState() => _BluetoothDeviceTileState();

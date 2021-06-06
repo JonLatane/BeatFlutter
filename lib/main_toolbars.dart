@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
@@ -20,6 +21,7 @@ import 'messages/messages_ui.dart';
 import 'settings/app_settings.dart';
 import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
+import 'storage/universe_manager.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
 import 'util/bs_methods.dart';
@@ -31,6 +33,7 @@ import 'widget/my_popup_menu.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   final AppSettings appSettings;
+  final UniverseManager universeManager;
   final Score score;
   final Section currentSection;
   final ScoreManager scoreManager;
@@ -54,6 +57,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback export;
   final Function(String) routeToCurrentScore;
   final bool vertical;
+  final bool showSections;
   final bool verticalSections;
   final Melody openMelody;
   final Melody prevMelody;
@@ -70,6 +74,7 @@ class BeatScratchToolbar extends StatefulWidget {
   const BeatScratchToolbar(
       {Key key,
       @required this.appSettings,
+      @required this.universeManager,
       @required this.interactionMode,
       @required this.viewMode,
       @required this.universeMode,
@@ -92,6 +97,7 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.scoreManager,
       @required this.routeToCurrentScore,
       @required this.vertical,
+      @required this.showSections,
       @required this.verticalSections,
       @required this.openMelody,
       @required this.prevMelody,
@@ -210,7 +216,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.interactionMode.isEdit || widget.verticalSections) {
+    if (!widget.showSections || widget.verticalSections) {
       sectionOrPlayController.reverse();
     } else {
       sectionOrPlayController.forward();
@@ -226,6 +232,22 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     } else {
       editRotationOnlyController.forward();
     }
+    var totalSpace = widget.vertical
+        ? MediaQuery.of(context).size.height
+        : MediaQuery.of(context).size.width;
+    if (widget.leftHalfOnly == true) {
+      totalSpace *= 2 / 10;
+    } else if (widget.rightHalfOnly == true) {
+      totalSpace *= 3 / 10;
+    }
+    int numberOfButtons = 0;
+    if (widget.rightHalfOnly != true) {
+      numberOfButtons += 2;
+    }
+    if (widget.leftHalfOnly != true) {
+      numberOfButtons += 3;
+    }
+    bool showMenuButton = true;
     return Container(
         height: widget.vertical ? null : 48,
         width: widget.vertical ? 48 : null,
@@ -262,21 +284,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           break;
                         case "import":
                           print("Showing file picker");
-//                        filePicker.pick().then((value) {
-////                          filePicker.
-//                        });
                           break;
-//                      case "duplicate":
-//                        if(Platform.isMacOS) {
-//                          print("Showing save panel");
-//                          showSavePanel(
-//                            allowedFileTypes: [FileTypeFilterGroup(label: "BeatScratch Score", fileExtensions: ["beatscratch"])]
-//                          );
-////                          FileChooserChannelController.instance.
-//                        } else {
-//                          print("This shouldn't be happening");
-//                        }
-//                        break;
                         case "chooseBeatscratchFolder":
                           break;
                         case "notationUi":
@@ -293,6 +301,17 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           break;
                         case "clearMutableCaches":
                           clearMutableCaches();
+                          break;
+                        case "copyUniverseDataCache":
+                          print('hi"');
+
+                          Future.microtask(() async {
+                            Clipboard.setData(ClipboardData(
+                                text: jsonEncode(widget
+                                    .universeManager.cachedUniverseData
+                                    .map((e) => e.toJson())
+                                    .toList())));
+                          });
                           break;
                         case "copyScore":
                           Future.microtask(() async {
@@ -589,6 +608,14 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                   color: musicForegroundColor,
                                 )),
                           ),
+                        if (kDebugMode)
+                          MyPopupMenuItem(
+                            value: "copyUniverseDataCache",
+                            child: Text('Debug: Copy Universe Data Cache',
+                                style: TextStyle(
+                                  color: musicForegroundColor,
+                                )),
+                          ),
                         MyPopupMenuItem(
                           value: "midiSettings",
                           child: Row(children: [
@@ -702,16 +729,22 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     ]))),
           if (!widget.rightHalfOnly)
             Expanded(
+                // AnimatedContainer(
+                //     duration: animationDuration,
+                //     width: widget.vertical
+                //         ? null
+                //         : showMenuButton
+                //             ? totalSpace / numberOfButtons
+                //             : 0,
+                //     height: !widget.vertical
+                //         ? null
+                //         : showMenuButton
+                //             ? totalSpace / numberOfButtons
+                //             : 0,
                 child: MyFlatButton(
-                    onPressed: (!widget.interactionMode.isEdit)
-                        ? (BeatScratchPlugin.supportsPlayback
-                            ? () {
-                                widget.togglePlaying();
-                              }
-                            : null)
-                        : () {
-                            widget.toggleSectionListDisplayMode();
-                          },
+                    onPressed: () {
+                      widget.toggleSectionListDisplayMode();
+                    },
                     padding: EdgeInsets.all(0.0),
                     child: AnimatedBuilder(
                         animation: sectionOrPlayController,
@@ -723,36 +756,26 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                               children: [
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity: widget.interactionMode ==
-                                            InteractionMode.edit
+                                    opacity:
+                                        widget.interactionMode.isEdit ? 1 : 0,
+                                    child: Icon(Icons.reorder,
+                                        color: chromaticSteps[0])),
+                                AnimatedOpacity(
+                                    duration: animationDuration,
+                                    opacity: !widget.interactionMode.isEdit &&
+                                            widget.showSections
                                         ? 1
                                         : 0,
                                     child: Icon(Icons.menu,
                                         color: chromaticSteps[0])),
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity: !widget.interactionMode.isEdit &&
-                                            !BeatScratchPlugin.playing
-                                        ? 1
-                                        : 0,
-                                    child: Icon(Icons.play_arrow,
-                                        color:
-                                            (!widget.interactionMode.isEdit &&
-                                                    !BeatScratchPlugin
-                                                        .supportsPlayback)
-                                                ? Colors.grey
-                                                : chromaticSteps[0])),
-                                AnimatedOpacity(
-                                    duration: animationDuration,
-                                    opacity: !widget.interactionMode.isEdit &&
-                                            BeatScratchPlugin.playing
-                                        ? 1
-                                        : 0,
-                                    child: Icon(Icons.pause,
-                                        color: chromaticSteps[0])),
-                                // (widget.interactionMode == InteractionMode.view)
-                                //   ? (BeatScratchPlugin.playing ? Icons.pause : Icons.play_arrow)
-                                //   : Icons.menu,
+                                    opacity: widget.interactionMode.isEdit ||
+                                            widget.showSections
+                                        ? 0
+                                        : 1,
+                                    child:
+                                        Icon(Icons.menu, color: Colors.white)),
                               ],
                             ))))),
           if (!widget.leftHalfOnly && widget.appSettings.enableUniverse)
@@ -1037,6 +1060,9 @@ class _SecondToolbarState extends State<SecondToolbar> {
     }
   }
 
+  bool get showPlayButton =>
+      true; //widget.interactionMode == InteractionMode.edit;
+
   @override
   Widget build(BuildContext context) {
     var totalSpace = widget.vertical
@@ -1045,8 +1071,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
     if (context.isTabletOrLandscapey && !widget.vertical) {
       totalSpace = totalSpace / 2;
     }
-    bool editMode = widget.interactionMode == InteractionMode.edit;
-    int numberOfButtons = editMode ? 4 : 3;
+    int numberOfButtons = showPlayButton ? 4 : 3;
     if (widget.enableColorboard) {
       numberOfButtons += 1;
     }
@@ -1073,14 +1098,32 @@ class _SecondToolbarState extends State<SecondToolbar> {
         duration: animationDuration,
         child: columnOrRow(context, children: [
           AnimatedContainer(
+              height: !widget.vertical ? null : totalSpace / numberOfButtons,
+              width: widget.vertical ? null : totalSpace / numberOfButtons,
+              duration: animationDuration,
+              child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: MyRaisedButton(
+                      color: buttonBackgroundColor,
+                      padding: EdgeInsets.zero,
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Transform.scale(
+                              scale: 0.8,
+                              child: Icon(Icons.skip_previous,
+                                  color: buttonForegroundColor, size: 32))),
+                      onPressed: BeatScratchPlugin.supportsPlayback
+                          ? widget.rewind
+                          : null))),
+          AnimatedContainer(
               height: !widget.vertical
                   ? null
-                  : editMode
+                  : showPlayButton
                       ? totalSpace / numberOfButtons
                       : 0,
               width: widget.vertical
                   ? null
-                  : editMode
+                  : showPlayButton
                       ? totalSpace / numberOfButtons
                       : 0,
               duration: animationDuration,
@@ -1091,20 +1134,21 @@ class _SecondToolbarState extends State<SecondToolbar> {
                       padding: EdgeInsets.zero,
                       child: Stack(children: [
                         createPlayIcon(Icons.play_arrow,
-                            color: buttonForegroundColor,
-                            visible: editMode &&
+                            color: chromaticSteps[0],
+                            visible: showPlayButton &&
                                 !BeatScratchPlugin.playing &&
                                 !widget.recordingMelody),
                         createPlayIcon(Icons.pause,
-                            color: buttonForegroundColor,
-                            visible: editMode && BeatScratchPlugin.playing),
+                            color: chromaticSteps[0],
+                            visible:
+                                showPlayButton && BeatScratchPlugin.playing),
                         createPlayIcon(Icons.fiber_manual_record,
-                            visible: editMode &&
+                            visible: showPlayButton &&
                                 !BeatScratchPlugin.playing &&
                                 widget.recordingMelody,
                             color: chromaticSteps[7]),
                         AnimatedOpacity(
-                            opacity: editMode &&
+                            opacity: showPlayButton &&
                                     BeatScratchPlugin.playing &&
                                     widget.recordingMelody
                                 ? 0.6
@@ -1125,24 +1169,6 @@ class _SecondToolbarState extends State<SecondToolbar> {
                                 BeatScratchPlugin.play();
                               }
                             }
-                          : null))),
-          AnimatedContainer(
-              height: !widget.vertical ? null : totalSpace / numberOfButtons,
-              width: widget.vertical ? null : totalSpace / numberOfButtons,
-              duration: animationDuration,
-              child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: MyRaisedButton(
-                      color: buttonBackgroundColor,
-                      padding: EdgeInsets.zero,
-                      child: Align(
-                          alignment: Alignment.center,
-                          child: Transform.scale(
-                              scale: 0.8,
-                              child: Icon(Icons.skip_previous,
-                                  color: buttonForegroundColor, size: 32))),
-                      onPressed: BeatScratchPlugin.supportsPlayback
-                          ? widget.rewind
                           : null))),
           Expanded(
               child: Padding(

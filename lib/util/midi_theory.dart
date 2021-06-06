@@ -1,6 +1,7 @@
 import 'package:dart_midi/dart_midi.dart';
 // ignore: implementation_imports
 import 'package:dart_midi/src/byte_writer.dart';
+import 'package:flutter_midi_command/flutter_midi_command.dart';
 
 import '../generated/protos/protos.dart';
 import 'util.dart';
@@ -17,6 +18,50 @@ extension MidiEventFilters on Iterable<MidiEvent> {
 }
 
 extension MidiChangeTheory on MidiChange {
+  Iterable<MidiEvent> get midiEvents {
+    final args = ArgumentList((data ?? []).toList());
+    try {
+      return midiEventsCache.putIfAbsent(args, () => _midiEvents.toList());
+    } catch (e) {
+      print("midiEvents fail; args=${args.arguments}: $e");
+      return _midiEvents;
+    }
+  }
+
+  Iterable<MidiEvent> get _midiEvents {
+    if (data == null || data.isEmpty) {
+      return [];
+    }
+    var chunkedData = data.chunked(3);
+    // Parser expects some dumb time bytes... we don't need em of course
+    var fakeTrackData = chunkedData.expand((eventBytes) => [
+          0,
+        ].followedBy(eventBytes));
+    var result = _parser.parseTrack(fakeTrackData.toList());
+    return result;
+  }
+
+  set midiEvents(Iterable<MidiEvent> value) {
+//    print("setting midiEvents to ${value}; data=$data");
+    ByteWriter writer = ByteWriter();
+    value.forEach((event) {
+      event.writeEvent(writer);
+    });
+    data = writer.buffer;
+//    print("done setting midiEvents; data1=${writer.buffer}");
+//    print("done setting midiEvents; data=$data");
+  }
+
+  static final Map<ArgumentList, Iterable<MidiEvent>> midiEventsCache = Map();
+  Iterable<NoteOnEvent> get noteOns => midiEvents
+      .where((event) => event is NoteOnEvent)
+      .map((event) => event as NoteOnEvent);
+  Iterable<NoteOffEvent> get noteOffs => midiEvents
+      .where((event) => event is NoteOffEvent)
+      .map((event) => event as NoteOffEvent);
+}
+
+extension MidiEvents on MidiPacket {
   Iterable<MidiEvent> get midiEvents {
     final args = ArgumentList((data ?? []).toList());
     try {

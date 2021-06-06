@@ -45,7 +45,7 @@ class BeatsBadge extends StatelessWidget {
                 child: Transform.translate(
                     offset: Offset(0, -5),
                     child: Text(
-                      "$beats",
+                      "${beats ?? ""}",
                       maxLines: 1,
                       overflow: TextOverflow.fade,
                       style: TextStyle(

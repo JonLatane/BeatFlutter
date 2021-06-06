@@ -1,20 +1,20 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
-import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:flutter/foundation.dart';
-
-import '../colors.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../colors.dart';
 import '../generated/protos/music.pb.dart';
+import '../music_view/music_system_painter.dart';
+import '../settings/app_settings.dart';
 import '../ui_models.dart';
 import '../util/bs_methods.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
-import '../music_view/music_system_painter.dart';
+import '../util/util.dart';
+import '../widget/my_platform.dart';
 import 'preview_renderer.dart';
 
 class ScorePreview extends StatefulWidget {
@@ -70,7 +70,6 @@ class _ScorePreviewState extends State<ScorePreview> {
       unscaledStandardBeatWidth *
       widget.scale;
   double get actualWidth => min(maxWidth, widget.width);
-  static const double _overSampleScale = 4;
 
   double get thumbnailAOpacity => thumbnailA != null
       ? currentThumbnail == _Thumbnail.a

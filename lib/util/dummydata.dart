@@ -38,7 +38,7 @@ Melody boomChick() => baseMelody()
   });
 
 Melody boom() => baseMelody()
-  ..name = "Boom"
+  ..name = "Boots"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
@@ -48,7 +48,7 @@ Melody boom() => baseMelody()
   });
 
 Melody chick() => baseMelody()
-  ..name = "Chick"
+  ..name = "Cats"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 1
@@ -58,7 +58,7 @@ Melody chick() => baseMelody()
   });
 
 Melody tssst() => baseMelody()
-  ..name = "Tssst"
+  ..name = "And"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 2
@@ -68,7 +68,7 @@ Melody tssst() => baseMelody()
   }, simpleVelocity: 84);
 
 Melody tssstSwing() => baseMelody()
-  ..name = "Tssst (Swing)"
+  ..name = "And (Swing)"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 3
@@ -78,7 +78,7 @@ Melody tssstSwing() => baseMelody()
   }, simpleVelocity: 84);
 
 Melody tsstTsst() => baseMelody()
-  ..name = "Tsst-tsst"
+  ..name = "Ee-ah"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 4
@@ -89,7 +89,7 @@ Melody tsstTsst() => baseMelody()
   }, simpleVelocity: 42);
 
 Melody tsstTsstSwing() => baseMelody()
-  ..name = "Tsst-tsst (Swing)"
+  ..name = "Ee-ah (Swing)"
   ..instrumentType = InstrumentType.drum
   ..interpretationType = MelodyInterpretationType.fixed_nonadaptive
   ..subdivisionsPerBeat = 6

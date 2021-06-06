@@ -26,7 +26,6 @@ class UniverseManager {
   SharedPreferences _prefs;
   ScoreManager scoreManager;
   MessagesUI messagesUI;
-  Function(VoidCallback) setAppState;
 
   UniverseManager() {
     _initialize();
@@ -53,11 +52,33 @@ class UniverseManager {
   set redditUsername(String value) =>
       _prefs?.setString("redditUsername", value);
 
+  static const String DEFAULT_UNIVERSE_DATA_STRING =
+      '[{"filePath":null,"title":"Tropico-Pastoral","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/n5f1s1/tropicopastoral/","voteCount":1,"likes":true,"fullName":"t3_n5f1s1","scoreUrl":"https://beatscratch.io/app/#/s/CZZX0"},{"filePath":null,"title":"A cheesy educational intro","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/myliqr/a_cheesy_educational_intro/","voteCount":1,"likes":true,"fullName":"t3_myliqr","scoreUrl":"https://beatscratch.io/app/#/s/ORXsf"},{"filePath":null,"title":"A longer, original demo using 5 instruments","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/my7ajg/a_longer_original_demo_using_5_instruments/","voteCount":1,"likes":true,"fullName":"t3_my7ajg","scoreUrl":"https://beatscratch.io/app/#/s/Z4hZh"},{"filePath":null,"title":"2021, From Jacob Collier’s Insta","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/mwyv7m/2021_from_jacob_colliers_insta/","voteCount":1,"likes":null,"fullName":"t3_mwyv7m","scoreUrl":"https://beatscratch.io/app/#/s/5dVNM"},{"filePath":null,"title":"Tee Time 2.6","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/lnmxyh/tee_time_26/","voteCount":1,"likes":null,"fullName":"t3_lnmxyh","scoreUrl":"https://beatscratch.io/app/#/s/rx0w0"}]';
+  static final List<String> DEFAULT_UNIVERSE_DATA =
+      (jsonDecode(DEFAULT_UNIVERSE_DATA_STRING) as List<dynamic>)
+          .map((e) => jsonEncode(((e as Map<String, dynamic>)
+            ..remove("likes")
+            ..putIfAbsent("likes", () => null))))
+          .toList();
+  List<ScoreFuture> get __cachedUniverseData =>
+      (_prefs?.getStringList('cachedUniverseData') ?? DEFAULT_UNIVERSE_DATA)
+          .map((it) => ScoreFuture.fromJson(jsonDecode(it)))
+          .toList();
+  List<ScoreFuture> _cachedUniverseData = [];
+
+  List<ScoreFuture> get cachedUniverseData => _cachedUniverseData;
+  set cachedUniverseData(List<ScoreFuture> value) {
+    _cachedUniverseData = value;
+    Future.microtask(() => _prefs?.setStringList("cachedUniverseData",
+        value.map((it) => jsonEncode(it.toJson())).toList()));
+  }
+
   bool get isAuthenticated =>
       redditRefreshToken.isNotEmpty && redditUsername.isNotEmpty;
 
   _initialize() async {
     _prefs = await SharedPreferences.getInstance();
+    _cachedUniverseData = __cachedUniverseData;
     refreshAccessToken(andPoll: true);
   }
 
@@ -83,14 +104,12 @@ class UniverseManager {
     String code = uri.queryParameters["code"];
     if (state != null && code != null) {
       if (state != _authState) {
-        setAppState(() {
-          messagesUI.sendMessage(
-              message: "Auth codes did not match!", isError: true);
-        });
+        messagesUI.sendMessage(
+            message: "Auth codes did not match!",
+            isError: true,
+            andSetState: true);
       } else {
-        // setAppState(() {
-        //   messagesUI.sendMessage(message: "Authenticating with Reddit...");
-        // });
+        //   messagesUI.sendMessage(message: "Authenticating with Reddit...", andSetState: true);
         String credentials = "${REDDIT_CLIENT_ID}:";
         Codec<String, String> stringToBase64 = utf8.fuse(base64);
         String authHeader = stringToBase64.encode(credentials);
@@ -115,10 +134,10 @@ class UniverseManager {
             redditAccessToken = accessToken;
             loadRedditUsername();
           } else {
-            setAppState(() {
-              messagesUI.sendMessage(
-                  message: "Failed to authenticate!", isError: true);
-            });
+            messagesUI.sendMessage(
+                message: "Failed to authenticate!",
+                isError: true,
+                andSetState: true);
           }
         });
       }
@@ -141,6 +160,10 @@ class UniverseManager {
     redditAccessToken = "";
     redditUsername = "";
     redditRefreshToken = "";
+    cachedUniverseData =
+        cachedUniverseData.map((sf) => ScoreFuture.fromJson(sf.toJson()
+          ..remove("likes")
+          ..putIfAbsent("likes", () => null)));
     refreshAccessToken();
   }
 
@@ -156,18 +179,15 @@ class UniverseManager {
       if (username != null) {
         redditUsername = username;
         if (messagesUI != null) {
-          setAppState(() {
-            messagesUI.sendMessage(
-                message: "Reddit authentication successful!");
-          });
+          messagesUI.sendMessage(
+              message: "Reddit authentication successful!", andSetState: true);
         }
       } else {
         if (messagesUI != null) {
-          setAppState(() {
-            messagesUI.sendMessage(
-                message: "Failed to load Reddit user information!",
-                isError: true);
-          });
+          messagesUI.sendMessage(
+              message: "Failed to load Reddit user information!",
+              isError: true,
+              andSetState: true);
         }
       }
     });
@@ -235,11 +255,11 @@ class UniverseManager {
         .get(Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
             headers: authenticatedRedditRequestHeaders)
         .onError((error, stackTrace) {
-      setAppState(() {
-        print(error);
-        messagesUI.sendMessage(
-            message: "Error loading data from Reddit!", isError: true);
-      });
+      print(error);
+      messagesUI.sendMessage(
+          message: "Error loading data from Reddit!",
+          isError: true,
+          andSetState: true);
       return null;
     });
     if (response == null) {
@@ -260,28 +280,9 @@ class UniverseManager {
         String url = redditData["data"]["url_overridden_by_dest"];
         String commentUrl =
             "https://reddit.com${redditData["data"]["permalink"]}";
-        Future<Score> loadScore() async {
-          String scoreUrl = url; 
-          scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
-          scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
-          scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
-          try {
-            final score = scoreFromUrlHashValue(scoreUrl);
-            if (score == null) {
-              throw "failed to load";
-            }
-            return score..name = title;
-          } catch (e) {
-            try {
-              return scoreManager.loadPastebinScore(scoreUrl,
-                  titleOverride: title);
-            } catch (e) {
-              return Future.value(defaultScore());
-            }
-          }
-        }
 
-        return ScoreFuture(loadScore(), "//universe-score://$fullName",
+        return ScoreFuture(
+            scoreUrl: url,
             title: title,
             author: author,
             commentUrl: commentUrl,
@@ -296,22 +297,24 @@ class UniverseManager {
             .map<Map<String, dynamic>>((e) => e as Map<String, dynamic>)
             .toList();
       } else {
-        setAppState(() {
-          messagesUI.sendMessage(
-              message: "Error loading data from Reddit!", isError: true);
-        });
+        messagesUI.sendMessage(
+            message: "Error loading data from Reddit!",
+            isError: true,
+            andSetState: true);
       }
 
-      return redditEntries
-          .map(convertRedditData)
-          .where((e) => e != null)
-          .toList();
+      List<ScoreFuture> result =
+          redditEntries.map(convertRedditData).where((e) => e != null).toList();
+      cachedUniverseData = result;
+      return result;
     } catch (e) {
       print(e);
-      setAppState(() {
-        messagesUI.sendMessage(
-            message: "Error parsing data from Reddit!", isError: true);
-      });
+      messagesUI.sendMessage(
+          message: "Error parsing data from Reddit!",
+          isError: true,
+          andSetState: true);
+
+      return Future.value([]);
     }
   }
 
@@ -333,9 +336,8 @@ class UniverseManager {
         await refreshAccessToken();
         return await vote(fullName, likes);
       } else if (response.statusCode != 200) {
-        setAppState(() {
-          messagesUI.sendMessage(message: "Error sending vote!", isError: true);
-        });
+        messagesUI.sendMessage(
+            message: "Error sending vote!", isError: true, andSetState: true);
       }
     });
   }

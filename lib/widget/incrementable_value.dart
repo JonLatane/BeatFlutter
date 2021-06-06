@@ -85,6 +85,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
     _disposed = false;
     if (MyPlatform.isMobile) {
       Vibration.hasVibrator().then((value) => hasVibration = value);
+      Vibration.hasCustomVibrationsSupport().then((value) => hasVibration = hasVibration && value);
     }
   }
 
