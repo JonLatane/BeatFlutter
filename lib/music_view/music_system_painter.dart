@@ -38,6 +38,7 @@ class MusicSystemPainter extends CustomPainter {
       sectionScaleNotifier;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier,
       keyboardNotesNotifier;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
@@ -85,6 +86,7 @@ class MusicSystemPainter extends CustomPainter {
     this.sectionScaleNotifier,
     this.colorboardNotesNotifier,
     this.keyboardNotesNotifier,
+    this.bluetoothControllerPressedNotes,
     this.score,
     this.section,
     this.xScaleNotifier,
@@ -101,6 +103,7 @@ class MusicSystemPainter extends CustomPainter {
           notationOpacityNotifier,
           colorboardNotesNotifier,
           keyboardNotesNotifier,
+          bluetoothControllerPressedNotes,
           staves,
           partTopOffsets,
           staffOffsets,
@@ -572,20 +575,21 @@ class MusicSystemPainter extends CustomPainter {
     if (hasColorboardPart || hasKeyboardPart) {
       _colorboardDummyMelody.setMidiDataFromSimpleMelody(
           {0: colorboardNotesNotifier.value.toList()});
-      _keyboardDummyMelody.setMidiDataFromSimpleMelody({
-        0: keyboardNotesNotifier.value
-            .followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
-            .toList()
-      });
+      final keyboardNotes = keyboardNotesNotifier.value
+          .followedBy(BeatScratchPlugin.pressedMidiControllerNotes.value)
+          .followedBy(
+              bluetoothControllerPressedNotes.value.values.expand((v) => v))
+          .toSet();
+      _keyboardDummyMelody.setMidiDataFromSimpleMelody({0: keyboardNotes});
       // Stem will be up
       double avgColorboardNote = colorboardNotesNotifier.value.isEmpty
           ? -100
           : colorboardNotesNotifier.value.reduce((a, b) => a + b) /
               colorboardNotesNotifier.value.length.toDouble();
-      double avgKeyboardNote = keyboardNotesNotifier.value.isEmpty
+      double avgKeyboardNote = keyboardNotes.isEmpty
           ? -100
-          : keyboardNotesNotifier.value.reduce((a, b) => a + b) /
-              keyboardNotesNotifier.value.length.toDouble();
+          : keyboardNotes.reduce((a, b) => a + b) /
+              keyboardNotes.length.toDouble();
 
       _keyboardDummyMelody.instrumentType =
           keyboardPart?.value?.instrument?.type ?? InstrumentType.harmonic;

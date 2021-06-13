@@ -254,8 +254,14 @@ class BeatScratchPlugin {
     channel?.invokeMethod("notifyBeatScratchAudioAvailable", arguments: Conductor.sharedInstance.samplersInitialized)
   }
   
-  func notifyPlayingBeat() {
-    let beat: Int = Int(BeatScratchScorePlayer.sharedInstance.currentTick / Int64(BeatScratchPlaybackThread.ticksPerBeat))
+  func notifyPlayingBeat(minus: Int = 0) {
+    var beat: Int = Int(BeatScratchScorePlayer.sharedInstance.currentTick / Int64(BeatScratchPlaybackThread.ticksPerBeat))
+    if (minus != 0) {
+      let sectionLength: Int = Int(BeatScratchScorePlayer.sharedInstance.currentSection.harmony.length / BeatScratchScorePlayer.sharedInstance.currentSection.harmony.subdivisionsPerBeat)
+      if(beat < minus) {
+        beat += sectionLength
+      }
+    }
     channel?.invokeMethod("notifyPlayingBeat", arguments: beat)
   }
   

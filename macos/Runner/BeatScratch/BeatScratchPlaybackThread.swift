@@ -27,7 +27,23 @@ class BeatScratchPlaybackThread {
     }
     didSet {
       if(playing) {
-        semaphore.signal()
+        if(MelodyRecorder.sharedInstance.recordingMelody != nil) {
+          // Run the count-in
+          DispatchQueue.global(qos: .userInitiated).async { [self] in
+            BeatScratchScorePlayer.sharedInstance.playMetronome()
+            BeatScratchPlugin.sharedInstance.notifyCountInInitiated()
+            let start: Double = CACurrentMediaTime() * 1000
+            while(CACurrentMediaTime() * 1000 < start + tickTime * 24) {}
+            BeatScratchScorePlayer.sharedInstance.playMetronome()
+            BeatScratchPlugin.sharedInstance.notifyPlayingBeat(minus: 1)
+            while(CACurrentMediaTime() * 1000 < start + tickTime * 48) {}
+            if(playing) {
+              semaphore.signal()
+            }
+          }
+        } else {
+          semaphore.signal()
+        }
       } else {
         Conductor.sharedInstance.stopPlayingNotes()
       }

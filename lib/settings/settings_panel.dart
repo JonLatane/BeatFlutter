@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:dart_midi/dart_midi.dart';
+import 'package:dart_midi/src/byte_writer.dart';
+
 import '../messages/messages_ui.dart';
 import 'tile_bluetooth.dart';
 import 'package:flutter/foundation.dart';
@@ -43,8 +46,8 @@ class SettingsPanel extends StatefulWidget {
   final VoidCallback toggleColorboardConfig;
   final BSMethod bluetoothScan;
   final bool visible;
-  final ValueNotifier<Map<String, Iterable<int>>>
-      bluetoothControllerPressedNotes;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
+  final Part keyboardPart;
 
   const SettingsPanel(
       {Key key,
@@ -59,7 +62,8 @@ class SettingsPanel extends StatefulWidget {
       @required this.bluetoothScan,
       @required this.visible,
       @required this.messagesUI,
-      @required this.bluetoothControllerPressedNotes})
+      @required this.bluetoothControllerPressedNotes,
+      @required this.keyboardPart})
       : super(key: key);
 
   @override
@@ -72,19 +76,17 @@ class _SettingsPanelState extends State<SettingsPanel> {
       BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> get midiSynthesizers =>
       BeatScratchPlugin.midiSynthesizers;
-  // final flutterReactiveBle = FlutterReactiveBle();
   List<MidiDevice> observedDevices;
   List<String> connectedDeviceIds;
   StreamSubscription<MidiPacket> midiCommandSubscription;
-  // BluetoothState bluetoothState = BluetoothState.unavailable;
-  // StreamSubscription<List<ScanResult>> bluetoothSubscription;
-  // StreamSubscription<BluetoothState> bluetoothStateSubscription;
 
   _startBluetoothScanLoop() async {
     MidiCommand().devices.then((results) {
       observedDevices = results.where((r) => r.type == "BLE").toList();
+      connectedDeviceIds
+          .removeWhere((id) => !observedDevices.any((d) => d.id == id));
       Future.delayed(
-          Duration(seconds: widget.visible ? 10 : 25), _startBluetoothScanLoop);
+          Duration(seconds: widget.visible ? 5 : 15), _startBluetoothScanLoop);
     });
   }
 
@@ -98,8 +100,24 @@ class _SettingsPanelState extends State<SettingsPanel> {
       _startBluetoothScanLoop();
       midiCommandSubscription =
           MidiCommand().onMidiDataReceived?.listen((event) {
-        // event.data
-        BeatScratchPlugin.sendMIDI(event.data);
+        widget.bluetoothControllerPressedNotes.value
+            .putIfAbsent(event.device.id, () => []);
+        Iterable<MidiEvent> midiEvents = event.midiEvents;
+        ByteWriter writer = ByteWriter();
+        midiEvents.forEach((e) {
+          if (e is NoteOnEvent) {
+            e.channel = widget.keyboardPart.instrument.midiChannel;
+            e.writeEvent(writer);
+            widget.bluetoothControllerPressedNotes.value[event.device.id].add(e.noteNumber - 60);
+            widget.bluetoothControllerPressedNotes.notifyListeners();
+          } else if (e is NoteOffEvent) {
+            e.channel = widget.keyboardPart.instrument.midiChannel;
+            e.writeEvent(writer);
+            widget.bluetoothControllerPressedNotes.value[event.device.id].remove(e.noteNumber - 60);
+            widget.bluetoothControllerPressedNotes.notifyListeners();
+          }
+        });
+        BeatScratchPlugin.sendMIDI(writer.buffer);
       });
     }
   }

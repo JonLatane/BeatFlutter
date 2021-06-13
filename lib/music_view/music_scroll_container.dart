@@ -41,6 +41,7 @@ class MusicScrollContainer extends StatefulWidget {
   final bool autoScroll, autoFocus, renderPartNames, isPreview;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier,
       colorboardNotesNotifier;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final ValueNotifier<Part> tappedPart;
   final ValueNotifier<Offset> requestedScrollOffsetForScale;
@@ -64,6 +65,7 @@ class MusicScrollContainer extends StatefulWidget {
       this.renderingMode,
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
+      this.bluetoothControllerPressedNotes,
       this.musicViewMode,
       this.staves,
       this.keyboardPart,
@@ -489,6 +491,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
                       notationOpacityNotifier: notationOpacityNotifier,
                       colorboardNotesNotifier: widget.colorboardNotesNotifier,
                       keyboardNotesNotifier: widget.keyboardNotesNotifier,
+                      bluetoothControllerPressedNotes:
+                          widget.bluetoothControllerPressedNotes,
                       visibleRect: () => myVisibleRect,
                       keyboardPart: keyboardPart,
                       colorboardPart: colorboardPart,

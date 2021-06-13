@@ -4,11 +4,10 @@ import 'package:beatscratch_flutter_redux/colors.dart';
 
 import '../music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 
 import 'dart:async';
-
-import 'package:vibration/vibration.dart';
 
 import 'my_buttons.dart';
 import 'my_platform.dart';
@@ -68,25 +67,18 @@ class _IncrementableValueState extends State<IncrementableValue> {
   int lastTouchTimeMs = 0;
   Offset incrementStartPos;
   int incrementStartTimeMs;
-  bool hasVibration = false;
   static const _msDelay = 3000;
   // static const _delay = Duration(milliseconds: _msDelay);
   bool _disposed = false;
 
   vibrate() {
-    if (hasVibration) {
-      Vibration.vibrate(duration: 25);
-    }
+    HapticFeedback.lightImpact();
   }
 
   @override
   void initState() {
     super.initState();
     _disposed = false;
-    if (MyPlatform.isMobile) {
-      Vibration.hasVibrator().then((value) => hasVibration = value);
-      Vibration.hasCustomVibrationsSupport().then((value) => hasVibration = hasVibration && value);
-    }
   }
 
   @override

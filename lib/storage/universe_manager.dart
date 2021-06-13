@@ -95,7 +95,8 @@ class UniverseManager {
         "duration=permanent&"
         "scope=identity%20vote%20submit%20subscribe%20read";
     launchURL(authUrl,
-        forceWebView: true, forceSafariVC: true, webOnlyWindowName: '_self');
+        forceWebView: MyPlatform.isAndroid,
+        webOnlyWindowName: MyPlatform.isWeb ? '_self' : null);
   }
 
   bool tryAuthentication(String authUrl) {

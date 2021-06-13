@@ -144,7 +144,11 @@ class BeatScratchPlugin {
   }
 
   static _notifyPlayingBeat(int beat) {
-    _playing = true;
+    // In case the user pauses and a beat comes in in a race condition
+    if (_pausedTime == null ||
+        DateTime.now().difference(_pausedTime).inMilliseconds > 75) {
+      _playing = true;
+    }
     currentBeat.value = beat;
     onSynthesizerStatusChange?.call();
   }
@@ -460,14 +464,19 @@ class BeatScratchPlugin {
     } else {
       _channel.invokeMethod('stop');
     }
-    _playing = false;
-    onSynthesizerStatusChange();
+    _stopUIPlayback();
   }
 
   static void pause() {
-    _playing = false;
     _pause();
+    _stopUIPlayback();
+  }
+
+  static DateTime _pausedTime;
+  static void _stopUIPlayback() {
+    _playing = false;
     onSynthesizerStatusChange();
+    _pausedTime = DateTime.now();
   }
 
   static void _pause() async {

@@ -36,6 +36,7 @@ class MusicView extends StatefulWidget {
   final Section currentSection;
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier,
       keyboardNotesNotifier;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final Melody melody;
   final Part part;
   final Color sectionColor;
@@ -101,6 +102,7 @@ class MusicView extends StatefulWidget {
       this.renderingMode,
       this.colorboardNotesNotifier,
       this.keyboardNotesNotifier,
+      this.bluetoothControllerPressedNotes,
       this.height,
       this.width,
       this.enableColorboard,
@@ -1244,6 +1246,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                 sectionColor: widget.sectionColor,
                 colorboardNotesNotifier: widget.colorboardNotesNotifier,
                 keyboardNotesNotifier: widget.keyboardNotesNotifier,
+                bluetoothControllerPressedNotes:
+                    widget.bluetoothControllerPressedNotes,
                 focusedMelody: widget.melody,
                 renderingMode: widget.renderingMode,
                 xScale: _xScale,

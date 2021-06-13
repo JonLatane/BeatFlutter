@@ -275,8 +275,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           break;
                         case "duplicate":
                           widget.saveCurrentScore();
-                          ScoreManager.suggestScoreName(
-                              widget.scoreManager.currentScoreName);
                           widget.showScorePicker(ScorePickerMode.duplicate);
                           break;
                         case "save":
@@ -461,12 +459,25 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           MyPopupMenuItem(
                             value: null,
                             child: Column(children: [
-                              Text(widget.currentScoreName,
-                                  style: TextStyle(
-                                      color:
-                                          musicForegroundColor.withOpacity(0.5),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18)),
+                              if (widget.currentScoreName != widget.score.name)
+                                Row(children: [
+                                  Text(widget.currentScoreName,
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                          color: musicForegroundColor
+                                              .withOpacity(0.5),
+                                          fontWeight: FontWeight.w100,
+                                          fontSize: 10)),
+                                ]),
+                              Row(children: [
+                                Text(widget.score.name,
+                                    textAlign: TextAlign.left,
+                                    style: TextStyle(
+                                        color: musicForegroundColor
+                                            .withOpacity(0.5),
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 18)),
+                              ]),
                             ]),
                             enabled: false,
                           ),
@@ -756,10 +767,20 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                               children: [
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity:
-                                        widget.interactionMode.isEdit ? 1 : 0,
+                                    opacity: widget.interactionMode.isEdit &&
+                                            widget.showSections
+                                        ? 1
+                                        : 0,
                                     child: Icon(Icons.reorder,
                                         color: chromaticSteps[0])),
+                                AnimatedOpacity(
+                                    duration: animationDuration,
+                                    opacity: widget.interactionMode.isEdit &&
+                                            !widget.showSections
+                                        ? 1
+                                        : 0,
+                                    child: Icon(Icons.reorder,
+                                        color: Colors.white)),
                                 AnimatedOpacity(
                                     duration: animationDuration,
                                     opacity: !widget.interactionMode.isEdit &&
@@ -770,10 +791,10 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                         color: chromaticSteps[0])),
                                 AnimatedOpacity(
                                     duration: animationDuration,
-                                    opacity: widget.interactionMode.isEdit ||
-                                            widget.showSections
-                                        ? 0
-                                        : 1,
+                                    opacity: !widget.interactionMode.isEdit &&
+                                            !widget.showSections
+                                        ? 1
+                                        : 0,
                                     child:
                                         Icon(Icons.menu, color: Colors.white)),
                               ],

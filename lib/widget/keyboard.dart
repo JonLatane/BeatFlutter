@@ -28,6 +28,7 @@ class Keyboard extends StatefulWidget {
   final Color sectionColor;
   final Part part;
   final ValueNotifier<Iterable<int>> pressedNotesNotifier;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final double width;
   final double leftMargin;
   final double distanceFromBottom;
@@ -42,6 +43,7 @@ class Keyboard extends StatefulWidget {
       this.sectionColor,
       this.part,
       this.pressedNotesNotifier,
+      this.bluetoothControllerPressedNotes,
       this.width,
       this.leftMargin,
       this.distanceFromBottom,

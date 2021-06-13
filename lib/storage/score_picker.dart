@@ -147,15 +147,9 @@ class _ScorePickerState extends State<ScorePicker> {
     if (showScoreNameEntry && !wasShowingScoreNameEntry) {
       nameFocus.requestFocus();
     }
-    // if (previousMode != widget.mode) {
-    //   String suggestedName = scoreManager.currentScoreName;
-    //   if (suggestedName == "Pasted Score") {
-    //     suggestedName = widget.openedScore.name;
-    //   }
-    //   nameController.value = nameController.value.rebuild(text: suggestedName);
-    // }
-    final suggestedName = ScoreManager.lastSuggestedScoreName;
-    if (suggestedName != null) {
+    if (previousMode != widget.mode &&
+        widget.mode == ScorePickerMode.duplicate) {
+      String suggestedName = widget.openedScore.name;
       nameController.value = nameController.value.copyWith(text: suggestedName);
     }
     previousMode = widget.mode;
@@ -462,7 +456,6 @@ class _ScorePickerState extends State<ScorePicker> {
       }
     });
   }
-
 
   List<ScoreFuture> get _listedScores {
     if (widget.mode == ScorePickerMode.none) {

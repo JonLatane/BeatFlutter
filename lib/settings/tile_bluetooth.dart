@@ -26,7 +26,7 @@ class BluetoothDeviceTile extends StatefulWidget {
   final VoidCallback onConnect, onDisconnect;
   final Color sectionColor;
   final bool connected;
-  final ValueNotifier<Map<String, Iterable<int>>>
+  final ValueNotifier<Map<String, List<int>>>
       bluetoothControllerPressedNotes;
 
   const BluetoothDeviceTile(

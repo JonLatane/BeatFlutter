@@ -284,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   ValueNotifier<Iterable<int>> colorboardNotesNotifier;
   ValueNotifier<Iterable<int>> keyboardNotesNotifier;
-  ValueNotifier<Map<String, Iterable<int>>> bluetoothControllerPressedNotes;
+  ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   int keyboardChordBase;
   Set<int> keyboardChordNotes = Set();
   ValueNotifier<Chord> keyboardChordNotifier;
@@ -512,7 +512,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _viewMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
-      showSections = false;
+      // showSections = false;
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
       if (scorePickerMode == ScorePickerMode.universe) {
@@ -529,7 +529,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       if (interactionMode != InteractionMode.universe) {
-        showSections = false;
+        // showSections = false;
         _universeManager.currentUniverseScore = "";
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
@@ -588,7 +588,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           }
         }
       } else {
-        _closeScorePicker();
+        if (_scoreManager.currentScoreName == ScoreManager.UNIVERSE_SCORE ||
+            _scoreManager.currentScoreName == ScoreManager.WEB_SCORE ||
+            _scoreManager.currentScoreName == ScoreManager.PASTED_SCORE) {
+          setState(() {
+            scorePickerMode = ScorePickerMode.none;
+            _showScorePicker = true;
+          });
+          Future.delayed(animationDuration, () {
+            setState(() {
+              if (interactionMode == InteractionMode.edit) {
+                scorePickerMode = ScorePickerMode.duplicate;
+              }
+            });
+          });
+        } else {
+          _closeScorePicker();
+        }
         if (exportUI.visible) {
           exportUI.visible = false;
         }
@@ -600,7 +616,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           musicViewMode = MusicViewMode.section;
         }
         interactionMode = InteractionMode.edit;
-        showSections = true;
+        // showSections = true;
         _showMusicView();
       }
     });
@@ -906,6 +922,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
+    bluetoothControllerPressedNotes = ValueNotifier(Map());
     keyboardNotesNotifier.addListener(() {
       final notes = keyboardNotesNotifier.value;
       if (notes.isEmpty) {
@@ -1180,24 +1197,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       }
     }
 
-    return WillPopScope(
-        onWillPop: _onWillPop,
-        child: Scaffold(
-            resizeToAvoidBottomInset: false,
-            backgroundColor: subBackgroundColor,
-            appBar: PreferredSize(
-                preferredSize: Size.fromHeight(0.0), // here the desired height
-                child: AppBar(
-                    // Here we take the value from the MyHomePage object that was created by
-                    // the App.build method, and use it to set our appbar title.
-                    //title: Row(Text(widget.title)])
-                    )),
-            body: GestureDetector(
-              onTap: () {
-                FocusScope.of(context).requestFocus(new FocusNode());
-              },
-              child: theUIWithOrientation(context),
-            )));
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarBrightness: Brightness.light,
+        ),
+        child: WillPopScope(
+            onWillPop: _onWillPop,
+            child: Scaffold(
+                resizeToAvoidBottomInset: false,
+                backgroundColor: subBackgroundColor,
+                appBar: PreferredSize(
+                    preferredSize:
+                        Size.fromHeight(0.0), // here the desired height
+                    child: AppBar(
+                        // Here we take the value from the MyHomePage object that was created by
+                        // the App.build method, and use it to set our appbar title.
+                        //title: Row(Text(widget.title)])
+                        )),
+                body: GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).requestFocus(new FocusNode());
+                  },
+                  child: theUIWithOrientation(context),
+                ))));
   }
 
   AnimatedContainer _verticalSectionList() {
@@ -1220,95 +1242,102 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       EdgeInsets.symmetric(vertical: 20, horizontal: 15);
 
   Widget _downloadBanner(BuildContext context) {
-    return AnimatedContainer(
+    return AnimatedOpacity(
         duration: animationDuration,
-        height: downloadLinksHeight,
-        color: subBackgroundColor,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 0,
-              child: SizedBox(),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(children: [
-                    MyFlatButton(
-                        onPressed: () {
-                          launchURL(
-                              "https://apps.apple.com/us/app/beatscratch/id1509788448");
-                        },
-                        padding: EdgeInsets.all(0),
-                        child: Image.asset("assets/app_store.png",
-                            width: 120, height: 40, fit: BoxFit.fitHeight)),
-                    SizedBox(width: 3),
-                    MyFlatButton(
-                        onPressed: () {
-                          launchURL(
-                              "https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
-                        },
-                        padding: EdgeInsets.all(0),
-                        child: Image.asset(
-                            "assets/play_en_badge_web_generic.png",
-                            width: 140,
-                            height: 60,
-                            fit: BoxFit.fitHeight)),
-                    SizedBox(width: 5),
-                    Container(
-                        width: 120,
-                        height: 40,
-                        padding: EdgeInsets.only(right: 5),
-                        child: MyFlatButton(
-                            color: Colors.white,
+        opacity: downloadLinksHeight == 0 ? 0 : 1,
+        child: AnimatedContainer(
+            duration: animationDuration,
+            height: downloadLinksHeight,
+            color: subBackgroundColor,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 0,
+                  child: SizedBox(),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(children: [
+                        MyFlatButton(
                             onPressed: () {
                               launchURL(
-                                  "https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+                                  "https://apps.apple.com/us/app/beatscratch/id1509788448");
                             },
                             padding: EdgeInsets.all(0),
-                            child: Stack(children: [
-                              Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Padding(
-                                      padding:
-                                          EdgeInsets.only(right: 5, bottom: 2),
-                                      child: Text("macOS",
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w400)))),
-                              Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                      padding: EdgeInsets.only(top: 2, left: 5),
-                                      child: Text("Download For",
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400))))
-                            ]))),
-                    Padding(
-                        padding: EdgeInsets.only(right: 5, left: 3),
-                        child: MyRaisedButton(
-                            padding: _bannerPadding,
+                            child: Image.asset("assets/app_store.png",
+                                width: 120, height: 40, fit: BoxFit.fitHeight)),
+                        SizedBox(width: 3),
+                        MyFlatButton(
                             onPressed: () {
                               launchURL(
-                                  "https://beatscratch.io/platforms.html");
+                                  "https://play.google.com/store/apps/details?id=io.beatscratch.beatscratch_flutter_redux");
                             },
-                            child: Text("Platform Feature Comparison"))),
-                  ])),
-            ),
-            Expanded(
-              flex: 0,
-              child: SizedBox(),
-            ),
-            Container(
-                width: 48,
-                child: MyFlatButton(
-                  padding: EdgeInsets.zero,
-                  child: Icon(Icons.close, color: Colors.white),
-                  onPressed: () => setState(() => showDownloadLinks = false),
-                ))
-          ],
-        ));
+                            padding: EdgeInsets.all(0),
+                            child: Image.asset(
+                                "assets/play_en_badge_web_generic.png",
+                                width: 140,
+                                height: 60,
+                                fit: BoxFit.fitHeight)),
+                        SizedBox(width: 5),
+                        Container(
+                            width: 120,
+                            height: 40,
+                            padding: EdgeInsets.only(right: 5),
+                            child: MyFlatButton(
+                                color: Colors.white,
+                                onPressed: () {
+                                  launchURL(
+                                      "https://www.dropbox.com/s/71jclv5a5tgd1c7/BeatFlutter.tar.bz2?dl=1");
+                                },
+                                padding: EdgeInsets.all(0),
+                                child: Stack(children: [
+                                  Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: Padding(
+                                          padding: EdgeInsets.only(
+                                              right: 5, bottom: 2),
+                                          child: Text("macOS",
+                                              style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight:
+                                                      FontWeight.w400)))),
+                                  Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Padding(
+                                          padding:
+                                              EdgeInsets.only(top: 2, left: 5),
+                                          child: Text("Download For",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight:
+                                                      FontWeight.w400))))
+                                ]))),
+                        Padding(
+                            padding: EdgeInsets.only(right: 5, left: 3),
+                            child: MyRaisedButton(
+                                padding: _bannerPadding,
+                                onPressed: () {
+                                  launchURL(
+                                      "https://beatscratch.io/platforms.html");
+                                },
+                                child: Text("Platform Feature Comparison"))),
+                      ])),
+                ),
+                Expanded(
+                  flex: 0,
+                  child: SizedBox(),
+                ),
+                Container(
+                    width: 48,
+                    child: MyFlatButton(
+                      padding: EdgeInsets.zero,
+                      child: Icon(Icons.close, color: Colors.white),
+                      onPressed: () =>
+                          setState(() => showDownloadLinks = false),
+                    ))
+              ],
+            )));
   }
 
   Widget _tapInBar(
@@ -1687,19 +1716,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         toggleSectionListDisplayMode: () {
           setState(() {
-            if (interactionMode == InteractionMode.edit) {
-              verticalSectionList = !verticalSectionList;
+            // if (interactionMode == InteractionMode.edit) {
+            //   verticalSectionList = !verticalSectionList;
+            // } else {
+            if (!showSections) {
+              showSections = true;
+              verticalSectionList = true;
+            } else if (!verticalSectionList) {
+              showSections = false;
+              verticalSectionList = true;
             } else {
-              if (!showSections) {
-                showSections = true;
-                verticalSectionList = true;
-              } else if (!verticalSectionList) {
-                showSections = false;
-                verticalSectionList = true;
-              } else {
-                verticalSectionList = false;
-              }
+              verticalSectionList = false;
             }
+            // }
           });
         },
         renderingMode: renderingMode,
@@ -1841,9 +1870,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       toggleTempoConfiguration: () {
         setState(() {
           _showTapInBar = !_showTapInBar;
-          if (_showTapInBar) {
-            showViewOptions = true;
-          }
         });
       },
       showTempoConfiguration: _showTapInBar,
@@ -1963,7 +1989,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         {bool bottomShadow = false, bool rightShadow = false}) {
       return Stack(
         children: [
-          _partMelodiesView(context, width, height),
+          _layersView(context, width, height),
           if (rightShadow)
             IgnorePointer(
                 child: Row(
@@ -2035,6 +2061,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               Expanded(
                   child: AnimatedContainer(
                       duration: animationDuration,
+                      curve: Curves.easeInOut,
                       color: musicBackgroundColor
                           .withOpacity(_musicViewSizeFactor < 1 ? 0 : 1)))
             ]))
@@ -2083,7 +2110,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ]);
   }
 
-  Widget _partMelodiesView(
+  Widget _layersView(
       BuildContext context, double availableWidth, double availableHeight) {
     return LayersView(
       key: ValueKey("main-part-melodies-view"),
@@ -2132,6 +2159,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       currentSection: currentSection,
       colorboardNotesNotifier: colorboardNotesNotifier,
       keyboardNotesNotifier: keyboardNotesNotifier,
+      bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
       melody: selectedMelody,
       part: selectedPart,
       sectionColor: sectionColor,
@@ -2381,6 +2409,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   _showColorboardConfiguration = !_showColorboardConfiguration;
                 });
               },
+              keyboardPart: keyboardPart,
             )),
       ],
     );
@@ -2464,6 +2493,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           showConfiguration: _showKeyboardConfiguration,
           sectionColor: sectionColor,
           pressedNotesNotifier: keyboardNotesNotifier,
+          bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
           distanceFromBottom: _bottomTapInBarHeight + _bottomNotchPadding,
           closeKeyboard: showKeyboard ? _toggleKeyboard : () {},
         ));
