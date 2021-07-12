@@ -7,6 +7,7 @@ import '../settings/app_settings.dart';
 import '../widget/my_platform.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/services.dart';
 
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
@@ -1080,6 +1081,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           tappedBeat.value == null) return;
       final part = tappedPart.value;
       if (part == null) return;
+      HapticFeedback.lightImpact();
       if (widget.musicViewMode == MusicViewMode.score) {
         widget.setKeyboardPart(part);
       } else {

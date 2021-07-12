@@ -8,7 +8,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -43,7 +42,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback editMode;
   final VoidCallback toggleViewOptions;
   final VoidCallback togglePlaying;
-  final VoidCallback toggleSectionListDisplayMode;
+  final Function(bool) toggleSectionListDisplayMode;
   final InteractionMode interactionMode;
   final Color sectionColor;
   final RenderingMode renderingMode;
@@ -754,7 +753,11 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                 //             : 0,
                 child: MyFlatButton(
                     onPressed: () {
-                      widget.toggleSectionListDisplayMode();
+                      widget.toggleSectionListDisplayMode(true);
+                    },
+                    onLongPress: () {
+                      HapticFeedback.lightImpact();
+                      widget.toggleSectionListDisplayMode(false);
                     },
                     padding: EdgeInsets.all(0.0),
                     child: AnimatedBuilder(
@@ -811,10 +814,15 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             widget.interactionMode == InteractionMode.universe
                                 ? () => widget.refreshUniverseData()
                                 : widget.universeMode,
-                        onLongPress:
-                            widget.interactionMode == InteractionMode.universe
-                                ? () => widget.refreshUniverseData()
-                                : widget.universeMode,
+                        onLongPress: () {
+                          HapticFeedback.lightImpact();
+                          if (widget.interactionMode ==
+                              InteractionMode.universe) {
+                            widget.refreshUniverseData();
+                          } else {
+                            widget.universeMode();
+                          }
+                        },
                         padding: EdgeInsets.all(0.0),
                         child: UniverseIcon(
                             interactionMode: widget.interactionMode,
@@ -832,7 +840,10 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                             (widget.interactionMode == InteractionMode.view)
                                 ? widget.toggleViewOptions
                                 : widget.viewMode,
-                        onLongPress: widget.toggleViewOptions,
+                        onLongPress: () {
+                          HapticFeedback.lightImpact();
+                          widget.toggleViewOptions();
+                        },
                         padding: EdgeInsets.all(0.0),
                         child: Icon(Icons.remove_red_eye,
                             color:
@@ -1259,7 +1270,10 @@ class _SecondToolbarState extends State<SecondToolbar> {
                           )),
                     ),
                     onPressed: widget.toggleKeyboard,
-                    onLongPress: widget.toggleKeyboardConfiguration,
+                    onLongPress: () {
+                      HapticFeedback.lightImpact();
+                      widget.toggleKeyboardConfiguration();
+                    },
                     color: keyboardBackgroundColor,
                   ))),
         ]));
@@ -1278,8 +1292,17 @@ class _SecondToolbarState extends State<SecondToolbar> {
           ? -(details.localPosition.dy - tempoButtonGestureStartPosition)
           : details.localPosition.dx - tempoButtonGestureStartPosition;
       widget.setAppState(() {
+        var startTempo = (BeatScratchPlugin.unmultipliedBpm *
+                BeatScratchPlugin.bpmMultiplier)
+            .toStringAsFixed(0);
         double newMultiplier = tempoButtonGestureStartMultiplier + change / 250;
         BeatScratchPlugin.bpmMultiplier = max(0.1, min(newMultiplier, 2));
+        var endTempo = (BeatScratchPlugin.unmultipliedBpm *
+                BeatScratchPlugin.bpmMultiplier)
+            .toStringAsFixed(0);
+        if (startTempo != endTempo) {
+          HapticFeedback.lightImpact();
+        }
       });
     }
 
@@ -1305,10 +1328,14 @@ class _SecondToolbarState extends State<SecondToolbar> {
         widget.setAppState(() {
           BeatScratchPlugin.metronomeEnabled =
               !BeatScratchPlugin.metronomeEnabled;
+          HapticFeedback.lightImpact();
         });
         lastMetronomeAudioToggleTime = DateTime.now();
       } else if (isToggleTempoTo1x) {
         widget.setAppState(() {
+          if (BeatScratchPlugin.bpmMultiplier != 1) {
+            HapticFeedback.lightImpact();
+          }
           BeatScratchPlugin.bpmMultiplier = 1;
         });
       }
@@ -1428,7 +1455,10 @@ class _SecondToolbarState extends State<SecondToolbar> {
                             )))))
           ]),
           onPressed: widget.toggleTempoConfiguration,
-          onLongPress: widget.tempoLongPress,
+          onLongPress: () {
+            HapticFeedback.lightImpact();
+            widget.tempoLongPress();
+          },
         ));
   }
 }

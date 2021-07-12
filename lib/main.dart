@@ -120,6 +120,9 @@ class MyApp extends StatelessWidget {
       title: 'BeatScratch',
       onGenerateTitle: (context) => 'BeatScratch',
       theme: ThemeData(
+          textSelectionTheme: TextSelectionThemeData(
+              selectionColor: chromaticSteps[0].withOpacity(0.5),
+              selectionHandleColor: chromaticSteps[0]),
           // This is the theme of your application.
           //
           // Try running your application with "flutter run". You'll see the
@@ -1714,19 +1717,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             }
           });
         },
-        toggleSectionListDisplayMode: () {
+        toggleSectionListDisplayMode: (forward) {
           setState(() {
-            // if (interactionMode == InteractionMode.edit) {
-            //   verticalSectionList = !verticalSectionList;
-            // } else {
-            if (!showSections) {
-              showSections = true;
-              verticalSectionList = true;
-            } else if (!verticalSectionList) {
-              showSections = false;
-              verticalSectionList = true;
+            if (forward) {
+              if (!showSections) {
+                showSections = true;
+                verticalSectionList = true;
+              } else if (!verticalSectionList) {
+                showSections = false;
+                verticalSectionList = true;
+              } else {
+                verticalSectionList = false;
+              }
             } else {
-              verticalSectionList = false;
+              if (!showSections) {
+                showSections = true;
+                verticalSectionList = false;
+              } else if (verticalSectionList) {
+                showSections = false;
+                verticalSectionList = false;
+              } else {
+                verticalSectionList = true;
+              }
             }
             // }
           });
