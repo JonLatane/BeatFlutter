@@ -190,7 +190,7 @@ class _ScorePickerState extends State<ScorePicker> {
         headerText = "";
         break;
     }
-    bool detailsTextInColumn = MediaQuery.of(context).size.width < 500;
+    bool detailsTextInColumn = true; //MediaQuery.of(context).size.width < 500;
     return Column(
       children: [
         AnimatedContainer(
@@ -215,20 +215,87 @@ class _ScorePickerState extends State<ScorePicker> {
                               fontSize: 20,
                               fontWeight: FontWeight.w700),
                         ),
-                        if (!detailsTextInColumn) SizedBox(width: 15),
-                        if (!detailsTextInColumn)
-                          Expanded(
-                            child: Text(
-                              extraDetailText,
-                              maxLines: 3,
-                              overflow: TextOverflow.fade,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w200),
-                            ),
-                          ),
-                        if (!detailsTextInColumn) SizedBox(width: 100),
+                        Expanded(child: SizedBox()),
+                        AnimatedContainer(
+                          duration: animationDuration,
+                          width: widget.mode == ScorePickerMode.create ? 80 : 0,
+                          padding: EdgeInsets.only(right: 5),
+                          child: MyFlatButton(
+                              color: chromaticSteps[0],
+                              onPressed:
+                                  widget.mode == ScorePickerMode.create &&
+                                          nameIsValid
+                                      ? () {
+                                          _doCreate();
+                                        }
+                                      : null,
+                              padding: EdgeInsets.zero,
+                              child: Text(
+                                "Create",
+                                maxLines: 1,
+                              )),
+                        ),
+                        AnimatedContainer(
+                          duration: animationDuration,
+                          width:
+                              widget.mode == ScorePickerMode.duplicate ? 80 : 0,
+                          padding: EdgeInsets.only(right: 5),
+                          child: MyFlatButton(
+                              color: ChordColor.tonic.color,
+                              onPressed:
+                                  widget.mode == ScorePickerMode.duplicate &&
+                                          nameIsValid
+                                      ? () {
+                                          _doDuplicate();
+                                        }
+                                      : null,
+                              padding: EdgeInsets.zero,
+                              child: Text(
+                                "Duplicate",
+                                maxLines: 1,
+                              )),
+                        ),
+                        AnimatedContainer(
+                          duration: animationDuration,
+                          width: widget.mode == ScorePickerMode.create ||
+                                  widget.mode == ScorePickerMode.duplicate
+                              ? 80
+                              : 0,
+                          padding: EdgeInsets.only(right: 5),
+                          child: MyFlatButton(
+                              color: ChordColor.dominant.color,
+                              onPressed: () {
+                                nameController.value =
+                                    nameController.value.copyWith(text: "");
+                                overwritingScoreName = null;
+                                widget.close();
+                              },
+                              padding: EdgeInsets.zero,
+                              child: Text("Cancel",
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                      color: ChordColor.dominant.color
+                                          .textColor()))),
+                        ),
+                        AnimatedContainer(
+                          duration: animationDuration,
+                          width: widget.mode == ScorePickerMode.open ? 80 : 0,
+                          padding: EdgeInsets.only(right: 5),
+                          child: MyFlatButton(
+                              color: ChordColor.tonic.color,
+                              onPressed: () {
+                                nameController.value =
+                                    nameController.value.copyWith(text: "");
+                                overwritingScoreName = null;
+                                widget.close();
+                              },
+                              padding: EdgeInsets.zero,
+                              child: Text("Done",
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                      color:
+                                          ChordColor.tonic.color.textColor()))),
+                        ),
                       ],
                     ),
                     Expanded(child: SizedBox()),
@@ -236,7 +303,7 @@ class _ScorePickerState extends State<ScorePicker> {
                 ))),
         AnimatedContainer(
             height: detailsTextInColumn && extraDetailText.isNotEmpty
-                ? extraDetailText.length < 64
+                ? extraDetailText.length < 140
                     ? 32
                     : 48
                 : 0,
@@ -304,57 +371,6 @@ class _ScorePickerState extends State<ScorePicker> {
                           },
                         )),
                   )),
-                  AnimatedContainer(
-                    duration: animationDuration,
-                    width: widget.mode == ScorePickerMode.create ? 80 : 0,
-                    padding: EdgeInsets.only(right: 5),
-                    child: MyFlatButton(
-                        color: chromaticSteps[0],
-                        onPressed:
-                            widget.mode == ScorePickerMode.create && nameIsValid
-                                ? () {
-                                    _doCreate();
-                                  }
-                                : null,
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          "Create",
-                          maxLines: 1,
-                        )),
-                  ),
-                  AnimatedContainer(
-                    duration: animationDuration,
-                    width: widget.mode == ScorePickerMode.duplicate ? 80 : 0,
-                    padding: EdgeInsets.only(right: 5),
-                    child: MyFlatButton(
-                        color: ChordColor.tonic.color,
-                        onPressed: widget.mode == ScorePickerMode.duplicate &&
-                                nameIsValid
-                            ? () {
-                                _doDuplicate();
-                              }
-                            : null,
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          "Duplicate",
-                          maxLines: 1,
-                        )),
-                  ),
-                  Container(
-                    width: 80,
-                    child: MyFlatButton(
-                        color: ChordColor.dominant.color,
-                        onPressed: () {
-                          nameController.value =
-                              nameController.value.copyWith(text: "");
-                          overwritingScoreName = null;
-                          widget.close();
-                        },
-                        padding: EdgeInsets.zero,
-                        child: Text("Cancel",
-                            style: TextStyle(
-                                color: ChordColor.dominant.color.textColor()))),
-                  ),
                 ],
               ),
             ),
@@ -395,20 +411,32 @@ class _ScorePickerState extends State<ScorePicker> {
                   )
                 ])
               : Column(children: [
-                  Expanded(child: getList(context)),
+                  Expanded(
+                      child: AnimatedContainer(
+                          duration: animationDuration,
+                          width: widget.width,
+                          child: getList(context))),
                 ]),
         ),
       ],
     );
   }
 
-  double get _scoreWidth => widget.width < 400
-      ? widget.height < 400
-          ? 200
-          : 250
-      : widget.width < 800
+  double get _scoreWidth => widget.scrollDirection == Axis.horizontal
+      ? widget.width < 400
+          ? widget.height < 400
+              ? 200
+              : 250
+          : widget.width < 800
+              ? 340
+              : 480
+      : max(0,
+          widget.width - (widget.mode == ScorePickerMode.universe ? 62 : 10));
+  double get _scoreHeight => widget.scrollDirection == Axis.horizontal
+      ? widget.height
+      : widget.height > 500
           ? 340
-          : 480;
+          : 250;
 
   _doCreate() {
     setState(() {
@@ -417,7 +445,10 @@ class _ScorePickerState extends State<ScorePicker> {
         overwritingScoreName = nameController.value.text;
         int index = scoreManager.scoreFiles
             .indexWhere((f) => f.scoreName == nameController.value.text);
-        double position = _scoreWidth * (index);
+        double position = (widget.scrollDirection == Axis.horizontal
+                ? _scoreWidth
+                : _scoreHeight + 10) *
+            (index);
         position = min(_scrollController.position.maxScrollExtent, position);
         _scrollController.animateTo(position,
             duration: animationDuration, curve: Curves.easeInOut);
@@ -505,7 +536,7 @@ class _ScorePickerState extends State<ScorePicker> {
         Widget tile = ScorePickerPreview(
           sectionColor: widget.sectionColor,
           width: _scoreWidth,
-          height: widget.height,
+          height: _scoreHeight,
           appSettings: widget.appSettings,
           onClickScore: widget.mode == ScorePickerMode.show ||
                   widget.mode == ScorePickerMode.none
@@ -557,8 +588,12 @@ class _ScorePickerState extends State<ScorePicker> {
             });
           },
         );
-        tile =
-            Padding(padding: EdgeInsets.symmetric(horizontal: 5), child: tile);
+        tile = Padding(
+            padding: EdgeInsets.only(
+                left: 5,
+                right: 5,
+                bottom: widget.scrollDirection == Axis.vertical ? 10 : 0),
+            child: tile);
         return SizeFadeTransition(
             sizeFraction: 0.7,
             curve: Curves.easeInOut,

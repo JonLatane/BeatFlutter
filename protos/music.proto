@@ -154,6 +154,7 @@ message Melody {
   // between Parts.
   InstrumentType instrument_type = 6;
   MelodyInterpretationType interpretation_type = 7;
+  sint32 transpose = 8;
   // The Melody notes/data, the type of which should match the MelodyType.
   oneof data {
     MidiData midi_data = 101;

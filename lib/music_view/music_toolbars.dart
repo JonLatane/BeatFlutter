@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../colors.dart';
@@ -258,7 +259,10 @@ class MelodyToolbarState extends State<MelodyToolbar> {
               padding: EdgeInsets.zero,
               child: Padding(
                   padding: EdgeInsets.all(5),
-                  child: Image.asset("assets/trash.png")))),
+                  child: ColorFilteredImageAsset(
+                    imageSource: "assets/trash.png",
+                    imageColor: Colors.white,
+                  )))),
     ]));
   }
 }
@@ -321,14 +325,14 @@ class PartToolbarState extends State<PartToolbar> {
             child: MyRaisedButton(
                 onPressed: widget.toggleConfiguringPart,
                 padding: EdgeInsets.zero,
-                color: widget.configuringPart ? Colors.black : null,
+                color: widget.configuringPart ? Colors.white : null,
                 child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
                     child: Icon(Icons.settings,
                         color: widget.configuringPart
-                            ? Colors.white
-                            : Colors.black)))),
+                            ? Colors.black
+                            : Colors.white)))),
         Expanded(
             child: Padding(
                 padding: EdgeInsets.only(left: 5),
@@ -497,7 +501,9 @@ class PartToolbarState extends State<PartToolbar> {
                 padding: EdgeInsets.zero,
                 child: Padding(
                     padding: EdgeInsets.all(5),
-                    child: Image.asset("assets/trash.png")))),
+                    child: ColorFilteredImageAsset(
+                        imageSource: "assets/trash.png",
+                        imageColor: Colors.white)))),
       ]),
     );
   }
@@ -682,7 +688,11 @@ class SectionToolbarState extends State<SectionToolbar> {
               padding: EdgeInsets.zero,
               child: Padding(
                   padding: EdgeInsets.all(5),
-                  child: Image.asset("assets/trash.png")))),
+                  child: ColorFilteredImageAsset(
+                      imageSource: "assets/trash.png",
+                      imageColor: widget.canDeleteSection
+                          ? Colors.white
+                          : Colors.black)))),
     ]));
   }
 }

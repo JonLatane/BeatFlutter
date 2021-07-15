@@ -589,6 +589,8 @@ struct Melody {
 
   var interpretationType: MelodyInterpretationType = .fixedNonadaptive
 
+  var transpose: Int32 = 0
+
   /// The Melody notes/data, the type of which should match the MelodyType.
   var data: Melody.OneOf_Data? = nil
 
@@ -1209,6 +1211,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     5: .same(proto: "type"),
     6: .standard(proto: "instrument_type"),
     7: .standard(proto: "interpretation_type"),
+    8: .same(proto: "transpose"),
     101: .standard(proto: "midi_data"),
   ]
 
@@ -1225,14 +1228,19 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       case 5: try { try decoder.decodeSingularEnumField(value: &self.type) }()
       case 6: try { try decoder.decodeSingularEnumField(value: &self.instrumentType) }()
       case 7: try { try decoder.decodeSingularEnumField(value: &self.interpretationType) }()
+      case 8: try { try decoder.decodeSingularSInt32Field(value: &self.transpose) }()
       case 101: try {
         var v: MidiData?
+        var hadOneofValue = false
         if let current = self.data {
-          try decoder.handleConflictingOneOf()
+          hadOneofValue = true
           if case .midiData(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.data = .midiData(v)}
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.data = .midiData(v)
+        }
       }()
       default: break
       }
@@ -1261,6 +1269,9 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if self.interpretationType != .fixedNonadaptive {
       try visitor.visitSingularEnumField(value: self.interpretationType, fieldNumber: 7)
     }
+    if self.transpose != 0 {
+      try visitor.visitSingularSInt32Field(value: self.transpose, fieldNumber: 8)
+    }
     if case .midiData(let v)? = self.data {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 101)
     }
@@ -1275,6 +1286,7 @@ extension Melody: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if lhs.type != rhs.type {return false}
     if lhs.instrumentType != rhs.instrumentType {return false}
     if lhs.interpretationType != rhs.interpretationType {return false}
+    if lhs.transpose != rhs.transpose {return false}
     if lhs.data != rhs.data {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

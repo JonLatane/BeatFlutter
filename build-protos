@@ -3,6 +3,9 @@
 # Paths assume pwd is directory of build script.
 cd "$(dirname "$0")"
 
+echo "# Building Protos for Dart..."
 protoc --dart_out=./lib/generated ./protos/*
+echo "# Building Protos for Swift..."
 protoc --swift_out=./macos/Runner/Protos ./protos/*
+echo "# Building Protos for JavaScript..."
 protoc --js_out=import_style=browser:./web/generated ./protos/*

@@ -2,9 +2,13 @@
 //  Generated code. Do not modify.
 //  source: protos/protobeats_plugin.proto
 //
-// @dart = 2.7
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+// @dart = 2.12
+// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields,deprecated_member_use_from_same_package
 
+import 'dart:core' as $core;
+import 'dart:convert' as $convert;
+import 'dart:typed_data' as $typed_data;
+@$core.Deprecated('Use midiSynthesizerDescriptor instead')
 const MidiSynthesizer$json = const {
   '1': 'MidiSynthesizer',
   '2': const [
@@ -14,6 +18,9 @@ const MidiSynthesizer$json = const {
   ],
 };
 
+/// Descriptor for `MidiSynthesizer`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List midiSynthesizerDescriptor = $convert.base64Decode('Cg9NaWRpU3ludGhlc2l6ZXISDgoCaWQYASABKAlSAmlkEhIKBG5hbWUYAiABKAlSBG5hbWUSGAoHZW5hYmxlZBgDIAEoCFIHZW5hYmxlZA==');
+@$core.Deprecated('Use midiControllerDescriptor instead')
 const MidiController$json = const {
   '1': 'MidiController',
   '2': const [
@@ -23,6 +30,9 @@ const MidiController$json = const {
   ],
 };
 
+/// Descriptor for `MidiController`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List midiControllerDescriptor = $convert.base64Decode('Cg5NaWRpQ29udHJvbGxlchIOCgJpZBgBIAEoCVICaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRIYCgdlbmFibGVkGAMgASgIUgdlbmFibGVk');
+@$core.Deprecated('Use midiDevicesDescriptor instead')
 const MidiDevices$json = const {
   '1': 'MidiDevices',
   '2': const [
@@ -31,6 +41,9 @@ const MidiDevices$json = const {
   ],
 };
 
+/// Descriptor for `MidiDevices`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List midiDevicesDescriptor = $convert.base64Decode('CgtNaWRpRGV2aWNlcxI0CgxzeW50aGVzaXplcnMYASADKAsyEC5NaWRpU3ludGhlc2l6ZXJSDHN5bnRoZXNpemVycxIxCgtjb250cm9sbGVycxgCIAMoCzIPLk1pZGlDb250cm9sbGVyUgtjb250cm9sbGVycw==');
+@$core.Deprecated('Use synthesizerAppDescriptor instead')
 const SynthesizerApp$json = const {
   '1': 'SynthesizerApp',
   '2': const [
@@ -41,6 +54,9 @@ const SynthesizerApp$json = const {
   ],
 };
 
+/// Descriptor for `SynthesizerApp`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List synthesizerAppDescriptor = $convert.base64Decode('Cg5TeW50aGVzaXplckFwcBISCgRuYW1lGAEgASgJUgRuYW1lEhwKCWluc3RhbGxlZBgCIAEoCFIJaW5zdGFsbGVkEhwKCXN0b3JlTGluaxgDIAEoCVIJc3RvcmVMaW5rEh4KCmxhdW5jaExpbmsYBCABKAlSCmxhdW5jaExpbms=');
+@$core.Deprecated('Use controllerAppDescriptor instead')
 const ControllerApp$json = const {
   '1': 'ControllerApp',
   '2': const [
@@ -51,6 +67,9 @@ const ControllerApp$json = const {
   ],
 };
 
+/// Descriptor for `ControllerApp`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List controllerAppDescriptor = $convert.base64Decode('Cg1Db250cm9sbGVyQXBwEhIKBG5hbWUYASABKAlSBG5hbWUSHAoJaW5zdGFsbGVkGAIgASgIUglpbnN0YWxsZWQSHAoJc3RvcmVMaW5rGAMgASgJUglzdG9yZUxpbmsSHgoKbGF1bmNoTGluaxgEIAEoCVIKbGF1bmNoTGluaw==');
+@$core.Deprecated('Use midiAppsDescriptor instead')
 const MidiApps$json = const {
   '1': 'MidiApps',
   '2': const [
@@ -59,6 +78,9 @@ const MidiApps$json = const {
   ],
 };
 
+/// Descriptor for `MidiApps`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List midiAppsDescriptor = $convert.base64Decode('CghNaWRpQXBwcxIzCgxzeW50aGVzaXplcnMYASADKAsyDy5TeW50aGVzaXplckFwcFIMc3ludGhlc2l6ZXJzEjAKC2NvbnRyb2xsZXJzGAIgAygLMg4uQ29udHJvbGxlckFwcFILY29udHJvbGxlcnM=');
+@$core.Deprecated('Use midiNotesDescriptor instead')
 const MidiNotes$json = const {
   '1': 'MidiNotes',
   '2': const [
@@ -66,6 +88,9 @@ const MidiNotes$json = const {
   ],
 };
 
+/// Descriptor for `MidiNotes`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List midiNotesDescriptor = $convert.base64Decode('CglNaWRpTm90ZXMSHQoKbWlkaV9ub3RlcxgBIAMoDVIJbWlkaU5vdGVz');
+@$core.Deprecated('Use registerMelodyDescriptor instead')
 const RegisterMelody$json = const {
   '1': 'RegisterMelody',
   '2': const [
@@ -74,6 +99,9 @@ const RegisterMelody$json = const {
   ],
 };
 
+/// Descriptor for `RegisterMelody`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List registerMelodyDescriptor = $convert.base64Decode('Cg5SZWdpc3Rlck1lbG9keRIbCgltZWxvZHlfaWQYASABKAlSCG1lbG9keUlkEhcKB3BhcnRfaWQYAiABKAlSBnBhcnRJZA==');
+@$core.Deprecated('Use playbackDescriptor instead')
 const Playback$json = const {
   '1': 'Playback',
   '2': const [
@@ -82,6 +110,7 @@ const Playback$json = const {
   '4': const [Playback_Mode$json],
 };
 
+@$core.Deprecated('Use playbackDescriptor instead')
 const Playback_Mode$json = const {
   '1': 'Mode',
   '2': const [
@@ -90,6 +119,9 @@ const Playback_Mode$json = const {
   ],
 };
 
+/// Descriptor for `Playback`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List playbackDescriptor = $convert.base64Decode('CghQbGF5YmFjaxIiCgRtb2RlGAEgASgOMg4uUGxheWJhY2suTW9kZVIEbW9kZSIeCgRNb2RlEgkKBXNjb3JlEAASCwoHc2VjdGlvbhAB');
+@$core.Deprecated('Use recordedSegmentDescriptor instead')
 const RecordedSegment$json = const {
   '1': 'RecordedSegment',
   '2': const [
@@ -99,6 +131,7 @@ const RecordedSegment$json = const {
   '3': const [RecordedSegment_RecordedBeat$json, RecordedSegment_RecordedData$json],
 };
 
+@$core.Deprecated('Use recordedSegmentDescriptor instead')
 const RecordedSegment_RecordedBeat$json = const {
   '1': 'RecordedBeat',
   '2': const [
@@ -107,6 +140,7 @@ const RecordedSegment_RecordedBeat$json = const {
   ],
 };
 
+@$core.Deprecated('Use recordedSegmentDescriptor instead')
 const RecordedSegment_RecordedData$json = const {
   '1': 'RecordedData',
   '2': const [
@@ -115,3 +149,5 @@ const RecordedSegment_RecordedData$json = const {
   ],
 };
 
+/// Descriptor for `RecordedSegment`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List recordedSegmentDescriptor = $convert.base64Decode('Cg9SZWNvcmRlZFNlZ21lbnQSMwoFYmVhdHMYASADKAsyHS5SZWNvcmRlZFNlZ21lbnQuUmVjb3JkZWRCZWF0UgViZWF0cxJCCg1yZWNvcmRlZF9kYXRhGAIgAygLMh0uUmVjb3JkZWRTZWdtZW50LlJlY29yZGVkRGF0YVIMcmVjb3JkZWREYXRhGkAKDFJlY29yZGVkQmVhdBIcCgl0aW1lc3RhbXAYASABKARSCXRpbWVzdGFtcBISCgRiZWF0GAIgASgNUgRiZWF0GkgKDFJlY29yZGVkRGF0YRIcCgl0aW1lc3RhbXAYASABKARSCXRpbWVzdGFtcBIaCghtaWRpRGF0YRgCIAEoDFIIbWlkaURhdGE=');

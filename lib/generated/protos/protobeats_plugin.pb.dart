@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/protobeats_plugin.proto
 //
-// @dart = 2.7
+// @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -24,9 +24,9 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
 
   MidiSynthesizer._() : super();
   factory MidiSynthesizer({
-    $core.String id,
-    $core.String name,
-    $core.bool enabled,
+    $core.String? id,
+    $core.String? name,
+    $core.bool? enabled,
   }) {
     final _result = create();
     if (id != null) {
@@ -51,7 +51,7 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiSynthesizer copyWith(void Function(MidiSynthesizer) updates) => super.copyWith((message) => updates(message as MidiSynthesizer)); // ignore: deprecated_member_use
+  MidiSynthesizer copyWith(void Function(MidiSynthesizer) updates) => super.copyWith((message) => updates(message as MidiSynthesizer)) as MidiSynthesizer; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiSynthesizer create() => MidiSynthesizer._();
@@ -59,7 +59,7 @@ class MidiSynthesizer extends $pb.GeneratedMessage {
   static $pb.PbList<MidiSynthesizer> createRepeated() => $pb.PbList<MidiSynthesizer>();
   @$core.pragma('dart2js:noInline')
   static MidiSynthesizer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiSynthesizer>(create);
-  static MidiSynthesizer _defaultInstance;
+  static MidiSynthesizer? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -99,9 +99,9 @@ class MidiController extends $pb.GeneratedMessage {
 
   MidiController._() : super();
   factory MidiController({
-    $core.String id,
-    $core.String name,
-    $core.bool enabled,
+    $core.String? id,
+    $core.String? name,
+    $core.bool? enabled,
   }) {
     final _result = create();
     if (id != null) {
@@ -126,7 +126,7 @@ class MidiController extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiController copyWith(void Function(MidiController) updates) => super.copyWith((message) => updates(message as MidiController)); // ignore: deprecated_member_use
+  MidiController copyWith(void Function(MidiController) updates) => super.copyWith((message) => updates(message as MidiController)) as MidiController; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiController create() => MidiController._();
@@ -134,7 +134,7 @@ class MidiController extends $pb.GeneratedMessage {
   static $pb.PbList<MidiController> createRepeated() => $pb.PbList<MidiController>();
   @$core.pragma('dart2js:noInline')
   static MidiController getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiController>(create);
-  static MidiController _defaultInstance;
+  static MidiController? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -173,8 +173,8 @@ class MidiDevices extends $pb.GeneratedMessage {
 
   MidiDevices._() : super();
   factory MidiDevices({
-    $core.Iterable<MidiSynthesizer> synthesizers,
-    $core.Iterable<MidiController> controllers,
+    $core.Iterable<MidiSynthesizer>? synthesizers,
+    $core.Iterable<MidiController>? controllers,
   }) {
     final _result = create();
     if (synthesizers != null) {
@@ -196,7 +196,7 @@ class MidiDevices extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiDevices copyWith(void Function(MidiDevices) updates) => super.copyWith((message) => updates(message as MidiDevices)); // ignore: deprecated_member_use
+  MidiDevices copyWith(void Function(MidiDevices) updates) => super.copyWith((message) => updates(message as MidiDevices)) as MidiDevices; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiDevices create() => MidiDevices._();
@@ -204,7 +204,7 @@ class MidiDevices extends $pb.GeneratedMessage {
   static $pb.PbList<MidiDevices> createRepeated() => $pb.PbList<MidiDevices>();
   @$core.pragma('dart2js:noInline')
   static MidiDevices getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiDevices>(create);
-  static MidiDevices _defaultInstance;
+  static MidiDevices? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<MidiSynthesizer> get synthesizers => $_getList(0);
@@ -224,10 +224,10 @@ class SynthesizerApp extends $pb.GeneratedMessage {
 
   SynthesizerApp._() : super();
   factory SynthesizerApp({
-    $core.String name,
-    $core.bool installed,
-    $core.String storeLink,
-    $core.String launchLink,
+    $core.String? name,
+    $core.bool? installed,
+    $core.String? storeLink,
+    $core.String? launchLink,
   }) {
     final _result = create();
     if (name != null) {
@@ -255,7 +255,7 @@ class SynthesizerApp extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  SynthesizerApp copyWith(void Function(SynthesizerApp) updates) => super.copyWith((message) => updates(message as SynthesizerApp)); // ignore: deprecated_member_use
+  SynthesizerApp copyWith(void Function(SynthesizerApp) updates) => super.copyWith((message) => updates(message as SynthesizerApp)) as SynthesizerApp; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SynthesizerApp create() => SynthesizerApp._();
@@ -263,7 +263,7 @@ class SynthesizerApp extends $pb.GeneratedMessage {
   static $pb.PbList<SynthesizerApp> createRepeated() => $pb.PbList<SynthesizerApp>();
   @$core.pragma('dart2js:noInline')
   static SynthesizerApp getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SynthesizerApp>(create);
-  static SynthesizerApp _defaultInstance;
+  static SynthesizerApp? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -313,10 +313,10 @@ class ControllerApp extends $pb.GeneratedMessage {
 
   ControllerApp._() : super();
   factory ControllerApp({
-    $core.String name,
-    $core.bool installed,
-    $core.String storeLink,
-    $core.String launchLink,
+    $core.String? name,
+    $core.bool? installed,
+    $core.String? storeLink,
+    $core.String? launchLink,
   }) {
     final _result = create();
     if (name != null) {
@@ -344,7 +344,7 @@ class ControllerApp extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  ControllerApp copyWith(void Function(ControllerApp) updates) => super.copyWith((message) => updates(message as ControllerApp)); // ignore: deprecated_member_use
+  ControllerApp copyWith(void Function(ControllerApp) updates) => super.copyWith((message) => updates(message as ControllerApp)) as ControllerApp; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ControllerApp create() => ControllerApp._();
@@ -352,7 +352,7 @@ class ControllerApp extends $pb.GeneratedMessage {
   static $pb.PbList<ControllerApp> createRepeated() => $pb.PbList<ControllerApp>();
   @$core.pragma('dart2js:noInline')
   static ControllerApp getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ControllerApp>(create);
-  static ControllerApp _defaultInstance;
+  static ControllerApp? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -400,8 +400,8 @@ class MidiApps extends $pb.GeneratedMessage {
 
   MidiApps._() : super();
   factory MidiApps({
-    $core.Iterable<SynthesizerApp> synthesizers,
-    $core.Iterable<ControllerApp> controllers,
+    $core.Iterable<SynthesizerApp>? synthesizers,
+    $core.Iterable<ControllerApp>? controllers,
   }) {
     final _result = create();
     if (synthesizers != null) {
@@ -423,7 +423,7 @@ class MidiApps extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiApps copyWith(void Function(MidiApps) updates) => super.copyWith((message) => updates(message as MidiApps)); // ignore: deprecated_member_use
+  MidiApps copyWith(void Function(MidiApps) updates) => super.copyWith((message) => updates(message as MidiApps)) as MidiApps; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiApps create() => MidiApps._();
@@ -431,7 +431,7 @@ class MidiApps extends $pb.GeneratedMessage {
   static $pb.PbList<MidiApps> createRepeated() => $pb.PbList<MidiApps>();
   @$core.pragma('dart2js:noInline')
   static MidiApps getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiApps>(create);
-  static MidiApps _defaultInstance;
+  static MidiApps? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<SynthesizerApp> get synthesizers => $_getList(0);
@@ -448,7 +448,7 @@ class MidiNotes extends $pb.GeneratedMessage {
 
   MidiNotes._() : super();
   factory MidiNotes({
-    $core.Iterable<$core.int> midiNotes,
+    $core.Iterable<$core.int>? midiNotes,
   }) {
     final _result = create();
     if (midiNotes != null) {
@@ -467,7 +467,7 @@ class MidiNotes extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiNotes copyWith(void Function(MidiNotes) updates) => super.copyWith((message) => updates(message as MidiNotes)); // ignore: deprecated_member_use
+  MidiNotes copyWith(void Function(MidiNotes) updates) => super.copyWith((message) => updates(message as MidiNotes)) as MidiNotes; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiNotes create() => MidiNotes._();
@@ -475,7 +475,7 @@ class MidiNotes extends $pb.GeneratedMessage {
   static $pb.PbList<MidiNotes> createRepeated() => $pb.PbList<MidiNotes>();
   @$core.pragma('dart2js:noInline')
   static MidiNotes getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiNotes>(create);
-  static MidiNotes _defaultInstance;
+  static MidiNotes? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get midiNotes => $_getList(0);
@@ -490,8 +490,8 @@ class RegisterMelody extends $pb.GeneratedMessage {
 
   RegisterMelody._() : super();
   factory RegisterMelody({
-    $core.String melodyId,
-    $core.String partId,
+    $core.String? melodyId,
+    $core.String? partId,
   }) {
     final _result = create();
     if (melodyId != null) {
@@ -513,7 +513,7 @@ class RegisterMelody extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  RegisterMelody copyWith(void Function(RegisterMelody) updates) => super.copyWith((message) => updates(message as RegisterMelody)); // ignore: deprecated_member_use
+  RegisterMelody copyWith(void Function(RegisterMelody) updates) => super.copyWith((message) => updates(message as RegisterMelody)) as RegisterMelody; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RegisterMelody create() => RegisterMelody._();
@@ -521,7 +521,7 @@ class RegisterMelody extends $pb.GeneratedMessage {
   static $pb.PbList<RegisterMelody> createRepeated() => $pb.PbList<RegisterMelody>();
   @$core.pragma('dart2js:noInline')
   static RegisterMelody getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RegisterMelody>(create);
-  static RegisterMelody _defaultInstance;
+  static RegisterMelody? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get melodyId => $_getSZ(0);
@@ -550,7 +550,7 @@ class Playback extends $pb.GeneratedMessage {
 
   Playback._() : super();
   factory Playback({
-    Playback_Mode mode,
+    Playback_Mode? mode,
   }) {
     final _result = create();
     if (mode != null) {
@@ -569,7 +569,7 @@ class Playback extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Playback copyWith(void Function(Playback) updates) => super.copyWith((message) => updates(message as Playback)); // ignore: deprecated_member_use
+  Playback copyWith(void Function(Playback) updates) => super.copyWith((message) => updates(message as Playback)) as Playback; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Playback create() => Playback._();
@@ -577,7 +577,7 @@ class Playback extends $pb.GeneratedMessage {
   static $pb.PbList<Playback> createRepeated() => $pb.PbList<Playback>();
   @$core.pragma('dart2js:noInline')
   static Playback getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Playback>(create);
-  static Playback _defaultInstance;
+  static Playback? _defaultInstance;
 
   @$pb.TagNumber(1)
   Playback_Mode get mode => $_getN(0);
@@ -598,8 +598,8 @@ class RecordedSegment_RecordedBeat extends $pb.GeneratedMessage {
 
   RecordedSegment_RecordedBeat._() : super();
   factory RecordedSegment_RecordedBeat({
-    $fixnum.Int64 timestamp,
-    $core.int beat,
+    $fixnum.Int64? timestamp,
+    $core.int? beat,
   }) {
     final _result = create();
     if (timestamp != null) {
@@ -621,7 +621,7 @@ class RecordedSegment_RecordedBeat extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  RecordedSegment_RecordedBeat copyWith(void Function(RecordedSegment_RecordedBeat) updates) => super.copyWith((message) => updates(message as RecordedSegment_RecordedBeat)); // ignore: deprecated_member_use
+  RecordedSegment_RecordedBeat copyWith(void Function(RecordedSegment_RecordedBeat) updates) => super.copyWith((message) => updates(message as RecordedSegment_RecordedBeat)) as RecordedSegment_RecordedBeat; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RecordedSegment_RecordedBeat create() => RecordedSegment_RecordedBeat._();
@@ -629,7 +629,7 @@ class RecordedSegment_RecordedBeat extends $pb.GeneratedMessage {
   static $pb.PbList<RecordedSegment_RecordedBeat> createRepeated() => $pb.PbList<RecordedSegment_RecordedBeat>();
   @$core.pragma('dart2js:noInline')
   static RecordedSegment_RecordedBeat getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordedSegment_RecordedBeat>(create);
-  static RecordedSegment_RecordedBeat _defaultInstance;
+  static RecordedSegment_RecordedBeat? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get timestamp => $_getI64(0);
@@ -659,8 +659,8 @@ class RecordedSegment_RecordedData extends $pb.GeneratedMessage {
 
   RecordedSegment_RecordedData._() : super();
   factory RecordedSegment_RecordedData({
-    $fixnum.Int64 timestamp,
-    $core.List<$core.int> midiData,
+    $fixnum.Int64? timestamp,
+    $core.List<$core.int>? midiData,
   }) {
     final _result = create();
     if (timestamp != null) {
@@ -682,7 +682,7 @@ class RecordedSegment_RecordedData extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  RecordedSegment_RecordedData copyWith(void Function(RecordedSegment_RecordedData) updates) => super.copyWith((message) => updates(message as RecordedSegment_RecordedData)); // ignore: deprecated_member_use
+  RecordedSegment_RecordedData copyWith(void Function(RecordedSegment_RecordedData) updates) => super.copyWith((message) => updates(message as RecordedSegment_RecordedData)) as RecordedSegment_RecordedData; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RecordedSegment_RecordedData create() => RecordedSegment_RecordedData._();
@@ -690,7 +690,7 @@ class RecordedSegment_RecordedData extends $pb.GeneratedMessage {
   static $pb.PbList<RecordedSegment_RecordedData> createRepeated() => $pb.PbList<RecordedSegment_RecordedData>();
   @$core.pragma('dart2js:noInline')
   static RecordedSegment_RecordedData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordedSegment_RecordedData>(create);
-  static RecordedSegment_RecordedData _defaultInstance;
+  static RecordedSegment_RecordedData? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get timestamp => $_getI64(0);
@@ -720,8 +720,8 @@ class RecordedSegment extends $pb.GeneratedMessage {
 
   RecordedSegment._() : super();
   factory RecordedSegment({
-    $core.Iterable<RecordedSegment_RecordedBeat> beats,
-    $core.Iterable<RecordedSegment_RecordedData> recordedData,
+    $core.Iterable<RecordedSegment_RecordedBeat>? beats,
+    $core.Iterable<RecordedSegment_RecordedData>? recordedData,
   }) {
     final _result = create();
     if (beats != null) {
@@ -743,7 +743,7 @@ class RecordedSegment extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  RecordedSegment copyWith(void Function(RecordedSegment) updates) => super.copyWith((message) => updates(message as RecordedSegment)); // ignore: deprecated_member_use
+  RecordedSegment copyWith(void Function(RecordedSegment) updates) => super.copyWith((message) => updates(message as RecordedSegment)) as RecordedSegment; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RecordedSegment create() => RecordedSegment._();
@@ -751,7 +751,7 @@ class RecordedSegment extends $pb.GeneratedMessage {
   static $pb.PbList<RecordedSegment> createRepeated() => $pb.PbList<RecordedSegment>();
   @$core.pragma('dart2js:noInline')
   static RecordedSegment getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordedSegment>(create);
-  static RecordedSegment _defaultInstance;
+  static RecordedSegment? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<RecordedSegment_RecordedBeat> get beats => $_getList(0);

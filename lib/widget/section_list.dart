@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
+
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
@@ -54,13 +56,13 @@ class _SectionListState extends State<SectionList> {
     return (widget.scrollDirection == Axis.horizontal)
         ? Row(children: [
             Expanded(
-                child: Padding(
-                    padding: EdgeInsets.all(2), child: getList(context))),
+                child:
+                    Padding(padding: EdgeInsets.zero, child: getList(context))),
             AnimatedContainer(
                 duration: animationDuration,
                 width: beatsBadgeWidth(beatCount) + 5,
                 height: 32,
-                padding: EdgeInsets.only(right: 5),
+                padding: EdgeInsets.zero,
                 child: MyFlatButton(
                     padding: EdgeInsets.zero,
                     onPressed: widget.toggleShowSectionBeatCounts,
@@ -74,7 +76,10 @@ class _SectionListState extends State<SectionList> {
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
                 child: MyRaisedButton(
-                  child: Image.asset("assets/add.png"),
+                  child: ColorFilteredImageAsset(
+                    imageSource: "assets/add.png",
+                    imageColor: Colors.white,
+                  ),
                   padding: EdgeInsets.all(2),
                   onPressed: widget.score.sections.length < 100
                       ? () {
@@ -142,7 +147,10 @@ class _SectionListState extends State<SectionList> {
                   width: widget.allowReordering ? 82.5 : 0,
                   padding: EdgeInsets.all(1),
                   child: MyRaisedButton(
-                    child: Image.asset("assets/add.png"),
+                    child: ColorFilteredImageAsset(
+                      imageSource: "assets/add.png",
+                      imageColor: Colors.white,
+                    ),
                     onPressed: widget.score.sections.length < 100
                         ? () {
                             print("inserting section");

@@ -469,13 +469,17 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                           fontSize: 10)),
                                 ]),
                               Row(children: [
-                                Text(widget.score.name,
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 18)),
+                                Expanded(
+                                  child: Text(widget.score.name,
+                                      textAlign: TextAlign.left,
+                                      // overflow: TextOverflow.ellipsis,
+                                      softWrap: true,
+                                      style: TextStyle(
+                                          color: musicForegroundColor
+                                              .withOpacity(0.5),
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 18)),
+                                ),
                               ]),
                             ]),
                             enabled: false,
@@ -716,41 +720,34 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                       ];
                     },
                     padding: EdgeInsets.only(bottom: 10.0),
-                    icon: Stack(children: [
-                      Image.asset('assets/logo.png'),
-                      Transform.translate(
-                          offset:
-                              widget.vertical ? Offset(20, 43) : Offset(25, 18),
-                          child: AnimatedOpacity(
-                              duration: animationDuration,
-                              opacity: widget.savingScore ? 0.6667 : 0,
-                              child: Icon(Icons.save,
-                                  size: 16, color: chromaticSteps[0]))),
-                      Transform.translate(
-                          offset:
-                              widget.vertical ? Offset(2, 43) : Offset(25, 3),
-                          child: AnimatedOpacity(
-                              duration: animationDuration,
-                              opacity: !BeatScratchPlugin.isSynthesizerAvailable
-                                  ? 0.6667
-                                  : 0,
-                              child: Icon(Icons.warning,
-                                  size: 16, color: chromaticSteps[5])))
-                    ]))),
+                    icon: Align(
+                        alignment: Alignment.center,
+                        child: Stack(children: [
+                          Image.asset('assets/logo.png'),
+                          Transform.translate(
+                              offset: widget.vertical
+                                  ? Offset(20, 43)
+                                  : Offset(25, 18),
+                              child: AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: widget.savingScore ? 0.6667 : 0,
+                                  child: Icon(Icons.save,
+                                      size: 16, color: chromaticSteps[0]))),
+                          Transform.translate(
+                              offset: widget.vertical
+                                  ? Offset(2, 43)
+                                  : Offset(25, 3),
+                              child: AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity:
+                                      !BeatScratchPlugin.isSynthesizerAvailable
+                                          ? 0.6667
+                                          : 0,
+                                  child: Icon(Icons.warning,
+                                      size: 16, color: chromaticSteps[5])))
+                        ])))),
           if (!widget.rightHalfOnly)
             Expanded(
-                // AnimatedContainer(
-                //     duration: animationDuration,
-                //     width: widget.vertical
-                //         ? null
-                //         : showMenuButton
-                //             ? totalSpace / numberOfButtons
-                //             : 0,
-                //     height: !widget.vertical
-                //         ? null
-                //         : showMenuButton
-                //             ? totalSpace / numberOfButtons
-                //             : 0,
                 child: MyFlatButton(
                     onPressed: () {
                       widget.toggleSectionListDisplayMode(true);
@@ -760,74 +757,83 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                       widget.toggleSectionListDisplayMode(false);
                     },
                     padding: EdgeInsets.all(0.0),
-                    child: AnimatedBuilder(
-                        animation: sectionOrPlayController,
-                        builder: (_, child) => Transform(
-                            transform:
-                                Matrix4.rotationZ(sectionOrPlayRotation.value),
-                            alignment: Alignment.center,
-                            child: Stack(
-                              children: [
-                                AnimatedOpacity(
-                                    duration: animationDuration,
-                                    opacity: widget.interactionMode.isEdit &&
-                                            widget.showSections
-                                        ? 1
-                                        : 0,
-                                    child: Icon(Icons.reorder,
-                                        color: chromaticSteps[0])),
-                                AnimatedOpacity(
-                                    duration: animationDuration,
-                                    opacity: widget.interactionMode.isEdit &&
-                                            !widget.showSections
-                                        ? 1
-                                        : 0,
-                                    child: Icon(Icons.reorder,
-                                        color: Colors.white)),
-                                AnimatedOpacity(
-                                    duration: animationDuration,
-                                    opacity: !widget.interactionMode.isEdit &&
-                                            widget.showSections
-                                        ? 1
-                                        : 0,
-                                    child: Icon(Icons.menu,
-                                        color: chromaticSteps[0])),
-                                AnimatedOpacity(
-                                    duration: animationDuration,
-                                    opacity: !widget.interactionMode.isEdit &&
-                                            !widget.showSections
-                                        ? 1
-                                        : 0,
-                                    child:
-                                        Icon(Icons.menu, color: Colors.white)),
-                              ],
-                            ))))),
+                    child: Align(
+                        alignment: Alignment.center,
+                        child: AnimatedBuilder(
+                            animation: sectionOrPlayController,
+                            builder: (_, child) => Transform(
+                                transform: Matrix4.rotationZ(
+                                    sectionOrPlayRotation.value),
+                                alignment: Alignment.center,
+                                child: Stack(
+                                  children: [
+                                    AnimatedOpacity(
+                                        duration: animationDuration,
+                                        opacity:
+                                            widget.interactionMode.isEdit &&
+                                                    widget.showSections
+                                                ? 1
+                                                : 0,
+                                        child: Icon(Icons.reorder,
+                                            color: chromaticSteps[0])),
+                                    AnimatedOpacity(
+                                        duration: animationDuration,
+                                        opacity:
+                                            widget.interactionMode.isEdit &&
+                                                    !widget.showSections
+                                                ? 1
+                                                : 0,
+                                        child: Icon(Icons.reorder,
+                                            color: Colors.white)),
+                                    AnimatedOpacity(
+                                        duration: animationDuration,
+                                        opacity:
+                                            !widget.interactionMode.isEdit &&
+                                                    widget.showSections
+                                                ? 1
+                                                : 0,
+                                        child: Icon(Icons.menu,
+                                            color: chromaticSteps[0])),
+                                    AnimatedOpacity(
+                                        duration: animationDuration,
+                                        opacity:
+                                            !widget.interactionMode.isEdit &&
+                                                    !widget.showSections
+                                                ? 1
+                                                : 0,
+                                        child: Icon(Icons.menu,
+                                            color: Colors.white)),
+                                  ],
+                                )))))),
           if (!widget.leftHalfOnly && widget.appSettings.enableUniverse)
             Expanded(
-                child: AnimatedContainer(
-                    duration: animationDuration,
-                    color: (widget.interactionMode == InteractionMode.universe)
-                        ? widget.sectionColor
-                        : Colors.transparent,
-                    child: MyFlatButton(
-                        onPressed:
-                            widget.interactionMode == InteractionMode.universe
-                                ? () => widget.refreshUniverseData()
-                                : widget.universeMode,
-                        onLongPress: () {
-                          HapticFeedback.lightImpact();
-                          if (widget.interactionMode ==
-                              InteractionMode.universe) {
-                            widget.refreshUniverseData();
-                          } else {
-                            widget.universeMode();
-                          }
-                        },
-                        padding: EdgeInsets.all(0.0),
+              child: AnimatedContainer(
+                duration: animationDuration,
+                color: (widget.interactionMode == InteractionMode.universe)
+                    ? widget.sectionColor
+                    : Colors.transparent,
+                child: MyFlatButton(
+                    onPressed:
+                        widget.interactionMode == InteractionMode.universe
+                            ? () => widget.refreshUniverseData()
+                            : widget.universeMode,
+                    onLongPress: () {
+                      HapticFeedback.lightImpact();
+                      if (widget.interactionMode == InteractionMode.universe) {
+                        widget.refreshUniverseData();
+                      } else {
+                        widget.universeMode();
+                      }
+                    },
+                    padding: EdgeInsets.all(0.0),
+                    child: Align(
+                        alignment: Alignment.center,
                         child: UniverseIcon(
                             interactionMode: widget.interactionMode,
                             sectionColor: widget.sectionColor,
-                            animateIcon: widget.refreshUniverseData)))),
+                            animateIcon: widget.refreshUniverseData))),
+              ),
+            ),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(
@@ -845,11 +851,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                           widget.toggleViewOptions();
                         },
                         padding: EdgeInsets.all(0.0),
-                        child: Icon(Icons.remove_red_eye,
-                            color:
-                                (widget.interactionMode == InteractionMode.view)
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: Icon(Icons.remove_red_eye,
+                                color: (widget.interactionMode ==
+                                        InteractionMode.view)
                                     ? widget.sectionColor.textColor()
-                                    : widget.sectionColor)))),
+                                    : widget.sectionColor))))),
           if (!widget.leftHalfOnly)
             Expanded(
                 child: AnimatedContainer(
@@ -1115,8 +1123,9 @@ class _SecondToolbarState extends State<SecondToolbar> {
               scale: 0.8, child: Icon(icon, color: color, size: 32)));
     }
 
-    final buttonBackgroundColor =
-        widget.appSettings.darkMode ? musicBackgroundColor : melodyColor;
+    final buttonBackgroundColor = widget.appSettings.darkMode
+        ? musicBackgroundColor
+        : Colors.grey.shade500;
     final buttonForegroundColor = buttonBackgroundColor.textColor();
 
     final keyboardBackgroundColor = (widget.showKeyboardConfiguration)

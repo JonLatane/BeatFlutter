@@ -225,7 +225,9 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     return Row(children: [
       AnimatedContainer(
           duration: animationDuration,
-          width: widget.scoreFuture?.loadScore != null ? widget.width : 0,
+          width: /*widget.scoreFuture?.loadScore != null ? */ widget
+              .width /*: 0*/,
+          height: widget.height,
           color: backgroundColor,
           padding: EdgeInsets.zero,
           child: Stack(
@@ -409,6 +411,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
               duration: animationDuration,
               color: musicBackgroundColor,
               width: isUniverse ? 48 : 0,
+              height: widget.height,
               child: Column(
                 children: [
                   MyFlatButton(

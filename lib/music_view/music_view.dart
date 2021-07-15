@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
+
 import '../colors.dart';
 import '../music_view/part_melody_browser.dart';
 import '../settings/app_settings.dart';
@@ -636,8 +638,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                                       SplitMode.half
                                                   ? 1
                                                   : 0,
-                                              child: Image.asset(
-                                                  "assets/split_full.png")),
+                                              child: ColorFilteredImageAsset(
+                                                imageSource:
+                                                    "assets/split_full.png",
+                                                imageColor: Colors.white,
+                                              )),
                                           AnimatedOpacity(
                                               duration: animationDuration,
                                               opacity: widget.splitMode !=
@@ -645,8 +650,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                                       context.isPortrait
                                                   ? 1
                                                   : 0,
-                                              child: Image.asset(
-                                                  "assets/split_horizontal.png")),
+                                              child: ColorFilteredImageAsset(
+                                                imageSource:
+                                                    "assets/split_horizontal.png",
+                                                imageColor: Colors.white,
+                                              )),
                                           AnimatedOpacity(
                                               duration: animationDuration,
                                               opacity: widget.splitMode !=
@@ -654,8 +662,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                                       context.isLandscape
                                                   ? 1
                                                   : 0,
-                                              child: Image.asset(
-                                                  "assets/split_vertical.png")),
+                                              child: ColorFilteredImageAsset(
+                                                imageSource:
+                                                    "assets/split_vertical.png",
+                                                imageColor: Colors.white,
+                                              )),
                                         ],
                                       )))),
                         )),

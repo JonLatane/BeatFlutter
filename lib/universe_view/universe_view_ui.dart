@@ -95,12 +95,14 @@ class UniverseViewUI {
                               color: Colors.white,
                               fontSize: 22,
                               fontWeight: FontWeight.w100)),
-                      SizedBox(width: 5),
-                      Text("Universe",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500)),
+                      SizedBox(width: 7),
+                      Transform.translate(
+                          offset: Offset(0, -6),
+                          child: Text("Universe",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400))),
                     ]),
                     Expanded(child: Container(child: SizedBox()))
                   ],
@@ -124,91 +126,94 @@ class UniverseViewUI {
                           ))),
                 ),
                 // MyPopupMenuButton(itemBuilder: itemBuilder)
-                MyPopupMenuButton(
+                Transform.translate(
+                    offset: Offset(0, context.isLandscape ? -1.5 : 0),
+                    child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
-                    tooltip: null,
-                    color: musicBackgroundColor.luminance < 0.5
-                        ? subBackgroundColor
-                        : musicBackgroundColor,
-                    offset: Offset(0, MediaQuery.of(context).size.height),
-                    onSelected: (value) {
-                      switch (value) {
-                        case "signIn":
-                          universeManager.initiateSignIn();
-                          break;
-                        case "signOut":
-                          setAppState(() {
-                            universeManager.signOut();
-                            messagesUI.sendMessage(
-                                message: "Signed out of Reddit");
-                          });
-                          break;
-                      }
-                      //setState(() {});
-                    },
-                    itemBuilder: (BuildContext context) {
-                      return [
-                        if (universeManager.redditUsername.isEmpty)
-                          MyPopupMenuItem(
-                            value: "signIn",
-                            enabled: true,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Sign In with Reddit',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(FontAwesomeIcons.redditAlien,
-                                      color: musicForegroundColor))
-                            ]),
-                          ),
-                        if (universeManager.redditUsername.isNotEmpty)
-                          MyPopupMenuItem(
-                            value: "signedIn",
-                            enabled: false,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text(universeManager.redditUsername,
-                                      style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(FontAwesomeIcons.redditAlien,
-                                      color: musicForegroundColor
-                                          .withOpacity(0.5)))
-                            ]),
-                          ),
-                        if (universeManager.redditUsername.isNotEmpty)
-                          MyPopupMenuItem(
-                            value: "signOut",
-                            enabled: true,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Sign Out of Reddit',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.logout,
-                                      color: musicForegroundColor))
-                            ]),
-                          ),
-                      ];
-                    },
-                    padding: EdgeInsets.only(bottom: 10.0),
-                    icon: Icon(FontAwesomeIcons.reddit,
-                        size: 36,
-                        color: universeManager.redditUsername.isNotEmpty
-                            ? sectionColor
-                            : Colors.white)),
+                        tooltip: null,
+                        color: musicBackgroundColor.luminance < 0.5
+                            ? subBackgroundColor
+                            : musicBackgroundColor,
+                        offset: Offset(0, MediaQuery.of(context).size.height),
+                        onSelected: (value) {
+                          switch (value) {
+                            case "signIn":
+                              universeManager.initiateSignIn();
+                              break;
+                            case "signOut":
+                              setAppState(() {
+                                universeManager.signOut();
+                                messagesUI.sendMessage(
+                                    message: "Signed out of Reddit");
+                              });
+                              break;
+                          }
+                          //setState(() {});
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            if (universeManager.redditUsername.isEmpty)
+                              MyPopupMenuItem(
+                                value: "signIn",
+                                enabled: true,
+                                child: Row(children: [
+                                  Expanded(
+                                      child: Text('Sign In with Reddit',
+                                          style: TextStyle(
+                                            color: musicForegroundColor,
+                                          ))),
+                                  Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 2, horizontal: 5),
+                                      child: Icon(FontAwesomeIcons.redditAlien,
+                                          color: musicForegroundColor))
+                                ]),
+                              ),
+                            if (universeManager.redditUsername.isNotEmpty)
+                              MyPopupMenuItem(
+                                value: "signedIn",
+                                enabled: false,
+                                child: Row(children: [
+                                  Expanded(
+                                      child:
+                                          Text(universeManager.redditUsername,
+                                              style: TextStyle(
+                                                color: musicForegroundColor
+                                                    .withOpacity(0.5),
+                                              ))),
+                                  Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 2, horizontal: 5),
+                                      child: Icon(FontAwesomeIcons.redditAlien,
+                                          color: musicForegroundColor
+                                              .withOpacity(0.5)))
+                                ]),
+                              ),
+                            if (universeManager.redditUsername.isNotEmpty)
+                              MyPopupMenuItem(
+                                value: "signOut",
+                                enabled: true,
+                                child: Row(children: [
+                                  Expanded(
+                                      child: Text('Sign Out of Reddit',
+                                          style: TextStyle(
+                                            color: musicForegroundColor,
+                                          ))),
+                                  Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 2, horizontal: 5),
+                                      child: Icon(Icons.logout,
+                                          color: musicForegroundColor))
+                                ]),
+                              ),
+                          ];
+                        },
+                        padding: EdgeInsets.only(bottom: 10.0),
+                        icon: Icon(FontAwesomeIcons.reddit,
+                            size: 36,
+                            color: universeManager.redditUsername.isNotEmpty
+                                ? sectionColor
+                                : Colors.white))),
               ],
             ),
           ),

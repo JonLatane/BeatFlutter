@@ -365,7 +365,8 @@ class _LayersPartViewState extends State<LayersPartView> {
                           child: Align(
                               alignment: Alignment.bottomLeft,
                               child: Padding(
-                                  padding: EdgeInsets.only(bottom: 0, top: 30),
+                                  padding: EdgeInsets.only(
+                                      bottom: 0, top: 30, left: 7, right: 7),
                                   child: Text(
                                     partName,
                                     style: TextStyle(

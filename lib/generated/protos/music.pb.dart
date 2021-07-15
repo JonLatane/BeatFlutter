@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/music.proto
 //
-// @dart = 2.7
+// @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -22,8 +22,8 @@ class NoteName extends $pb.GeneratedMessage {
 
   NoteName._() : super();
   factory NoteName({
-    NoteLetter noteLetter,
-    NoteSign noteSign,
+    NoteLetter? noteLetter,
+    NoteSign? noteSign,
   }) {
     final _result = create();
     if (noteLetter != null) {
@@ -45,7 +45,7 @@ class NoteName extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  NoteName copyWith(void Function(NoteName) updates) => super.copyWith((message) => updates(message as NoteName)); // ignore: deprecated_member_use
+  NoteName copyWith(void Function(NoteName) updates) => super.copyWith((message) => updates(message as NoteName)) as NoteName; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static NoteName create() => NoteName._();
@@ -53,7 +53,7 @@ class NoteName extends $pb.GeneratedMessage {
   static $pb.PbList<NoteName> createRepeated() => $pb.PbList<NoteName>();
   @$core.pragma('dart2js:noInline')
   static NoteName getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<NoteName>(create);
-  static NoteName _defaultInstance;
+  static NoteName? _defaultInstance;
 
   @$pb.TagNumber(1)
   NoteLetter get noteLetter => $_getN(0);
@@ -84,9 +84,9 @@ class Chord extends $pb.GeneratedMessage {
 
   Chord._() : super();
   factory Chord({
-    NoteName rootNote,
-    NoteName bassNote,
-    $core.int chroma,
+    NoteName? rootNote,
+    NoteName? bassNote,
+    $core.int? chroma,
   }) {
     final _result = create();
     if (rootNote != null) {
@@ -111,7 +111,7 @@ class Chord extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Chord copyWith(void Function(Chord) updates) => super.copyWith((message) => updates(message as Chord)); // ignore: deprecated_member_use
+  Chord copyWith(void Function(Chord) updates) => super.copyWith((message) => updates(message as Chord)) as Chord; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Chord create() => Chord._();
@@ -119,7 +119,7 @@ class Chord extends $pb.GeneratedMessage {
   static $pb.PbList<Chord> createRepeated() => $pb.PbList<Chord>();
   @$core.pragma('dart2js:noInline')
   static Chord getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chord>(create);
-  static Chord _defaultInstance;
+  static Chord? _defaultInstance;
 
   @$pb.TagNumber(1)
   NoteName get rootNote => $_getN(0);
@@ -162,8 +162,8 @@ class Tempo extends $pb.GeneratedMessage {
 
   Tempo._() : super();
   factory Tempo({
-    $core.double bpm,
-    Tempo_Transition transition,
+    $core.double? bpm,
+    Tempo_Transition? transition,
   }) {
     final _result = create();
     if (bpm != null) {
@@ -185,7 +185,7 @@ class Tempo extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Tempo copyWith(void Function(Tempo) updates) => super.copyWith((message) => updates(message as Tempo)); // ignore: deprecated_member_use
+  Tempo copyWith(void Function(Tempo) updates) => super.copyWith((message) => updates(message as Tempo)) as Tempo; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Tempo create() => Tempo._();
@@ -193,7 +193,7 @@ class Tempo extends $pb.GeneratedMessage {
   static $pb.PbList<Tempo> createRepeated() => $pb.PbList<Tempo>();
   @$core.pragma('dart2js:noInline')
   static Tempo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Tempo>(create);
-  static Tempo _defaultInstance;
+  static Tempo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.double get bpm => $_getN(0);
@@ -222,7 +222,7 @@ class Meter extends $pb.GeneratedMessage {
 
   Meter._() : super();
   factory Meter({
-    $core.int defaultBeatsPerMeasure,
+    $core.int? defaultBeatsPerMeasure,
   }) {
     final _result = create();
     if (defaultBeatsPerMeasure != null) {
@@ -241,7 +241,7 @@ class Meter extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Meter copyWith(void Function(Meter) updates) => super.copyWith((message) => updates(message as Meter)); // ignore: deprecated_member_use
+  Meter copyWith(void Function(Meter) updates) => super.copyWith((message) => updates(message as Meter)) as Meter; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Meter create() => Meter._();
@@ -249,7 +249,7 @@ class Meter extends $pb.GeneratedMessage {
   static $pb.PbList<Meter> createRepeated() => $pb.PbList<Meter>();
   @$core.pragma('dart2js:noInline')
   static Meter getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Meter>(create);
-  static Meter _defaultInstance;
+  static Meter? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.int get defaultBeatsPerMeasure => $_getIZ(0);
@@ -272,10 +272,10 @@ class Harmony extends $pb.GeneratedMessage {
 
   Harmony._() : super();
   factory Harmony({
-    $core.String id,
-    $core.int subdivisionsPerBeat,
-    $core.int length,
-    $core.Map<$core.int, Chord> data,
+    $core.String? id,
+    $core.int? subdivisionsPerBeat,
+    $core.int? length,
+    $core.Map<$core.int, Chord>? data,
   }) {
     final _result = create();
     if (id != null) {
@@ -303,7 +303,7 @@ class Harmony extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Harmony copyWith(void Function(Harmony) updates) => super.copyWith((message) => updates(message as Harmony)); // ignore: deprecated_member_use
+  Harmony copyWith(void Function(Harmony) updates) => super.copyWith((message) => updates(message as Harmony)) as Harmony; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Harmony create() => Harmony._();
@@ -311,7 +311,7 @@ class Harmony extends $pb.GeneratedMessage {
   static $pb.PbList<Harmony> createRepeated() => $pb.PbList<Harmony>();
   @$core.pragma('dart2js:noInline')
   static Harmony getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Harmony>(create);
-  static Harmony _defaultInstance;
+  static Harmony? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -363,20 +363,22 @@ class Melody extends $pb.GeneratedMessage {
     ..e<MelodyType>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: MelodyType.midi, valueOf: MelodyType.valueOf, enumValues: MelodyType.values)
     ..e<InstrumentType>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'instrumentType', $pb.PbFieldType.OE, defaultOrMaker: InstrumentType.harmonic, valueOf: InstrumentType.valueOf, enumValues: InstrumentType.values)
     ..e<MelodyInterpretationType>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'interpretationType', $pb.PbFieldType.OE, defaultOrMaker: MelodyInterpretationType.fixed_nonadaptive, valueOf: MelodyInterpretationType.valueOf, enumValues: MelodyInterpretationType.values)
+    ..a<$core.int>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'transpose', $pb.PbFieldType.OS3)
     ..aOM<MidiData>(101, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'midiData', subBuilder: MidiData.create)
     ..hasRequiredFields = false
   ;
 
   Melody._() : super();
   factory Melody({
-    $core.String id,
-    $core.String name,
-    $core.int subdivisionsPerBeat,
-    $core.int length,
-    MelodyType type,
-    InstrumentType instrumentType,
-    MelodyInterpretationType interpretationType,
-    MidiData midiData,
+    $core.String? id,
+    $core.String? name,
+    $core.int? subdivisionsPerBeat,
+    $core.int? length,
+    MelodyType? type,
+    InstrumentType? instrumentType,
+    MelodyInterpretationType? interpretationType,
+    $core.int? transpose,
+    MidiData? midiData,
   }) {
     final _result = create();
     if (id != null) {
@@ -400,6 +402,9 @@ class Melody extends $pb.GeneratedMessage {
     if (interpretationType != null) {
       _result.interpretationType = interpretationType;
     }
+    if (transpose != null) {
+      _result.transpose = transpose;
+    }
     if (midiData != null) {
       _result.midiData = midiData;
     }
@@ -416,7 +421,7 @@ class Melody extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Melody copyWith(void Function(Melody) updates) => super.copyWith((message) => updates(message as Melody)); // ignore: deprecated_member_use
+  Melody copyWith(void Function(Melody) updates) => super.copyWith((message) => updates(message as Melody)) as Melody; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Melody create() => Melody._();
@@ -424,9 +429,9 @@ class Melody extends $pb.GeneratedMessage {
   static $pb.PbList<Melody> createRepeated() => $pb.PbList<Melody>();
   @$core.pragma('dart2js:noInline')
   static Melody getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Melody>(create);
-  static Melody _defaultInstance;
+  static Melody? _defaultInstance;
 
-  Melody_Data whichData() => _Melody_DataByTag[$_whichOneof(0)];
+  Melody_Data whichData() => _Melody_DataByTag[$_whichOneof(0)]!;
   void clearData() => clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -492,16 +497,25 @@ class Melody extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearInterpretationType() => clearField(7);
 
+  @$pb.TagNumber(8)
+  $core.int get transpose => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set transpose($core.int v) { $_setSignedInt32(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasTranspose() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearTranspose() => clearField(8);
+
   @$pb.TagNumber(101)
-  MidiData get midiData => $_getN(7);
+  MidiData get midiData => $_getN(8);
   @$pb.TagNumber(101)
   set midiData(MidiData v) { setField(101, v); }
   @$pb.TagNumber(101)
-  $core.bool hasMidiData() => $_has(7);
+  $core.bool hasMidiData() => $_has(8);
   @$pb.TagNumber(101)
   void clearMidiData() => clearField(101);
   @$pb.TagNumber(101)
-  MidiData ensureMidiData() => $_ensure(7);
+  MidiData ensureMidiData() => $_ensure(8);
 }
 
 class MidiData extends $pb.GeneratedMessage {
@@ -512,7 +526,7 @@ class MidiData extends $pb.GeneratedMessage {
 
   MidiData._() : super();
   factory MidiData({
-    $core.Map<$core.int, MidiChange> data,
+    $core.Map<$core.int, MidiChange>? data,
   }) {
     final _result = create();
     if (data != null) {
@@ -531,7 +545,7 @@ class MidiData extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiData copyWith(void Function(MidiData) updates) => super.copyWith((message) => updates(message as MidiData)); // ignore: deprecated_member_use
+  MidiData copyWith(void Function(MidiData) updates) => super.copyWith((message) => updates(message as MidiData)) as MidiData; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiData create() => MidiData._();
@@ -539,7 +553,7 @@ class MidiData extends $pb.GeneratedMessage {
   static $pb.PbList<MidiData> createRepeated() => $pb.PbList<MidiData>();
   @$core.pragma('dart2js:noInline')
   static MidiData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiData>(create);
-  static MidiData _defaultInstance;
+  static MidiData? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.Map<$core.int, MidiChange> get data => $_getMap(0);
@@ -554,8 +568,8 @@ class MelodicAttack extends $pb.GeneratedMessage {
 
   MelodicAttack._() : super();
   factory MelodicAttack({
-    $core.Iterable<$core.int> tones,
-    $core.double velocity,
+    $core.Iterable<$core.int>? tones,
+    $core.double? velocity,
   }) {
     final _result = create();
     if (tones != null) {
@@ -577,7 +591,7 @@ class MelodicAttack extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MelodicAttack copyWith(void Function(MelodicAttack) updates) => super.copyWith((message) => updates(message as MelodicAttack)); // ignore: deprecated_member_use
+  MelodicAttack copyWith(void Function(MelodicAttack) updates) => super.copyWith((message) => updates(message as MelodicAttack)) as MelodicAttack; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MelodicAttack create() => MelodicAttack._();
@@ -585,7 +599,7 @@ class MelodicAttack extends $pb.GeneratedMessage {
   static $pb.PbList<MelodicAttack> createRepeated() => $pb.PbList<MelodicAttack>();
   @$core.pragma('dart2js:noInline')
   static MelodicAttack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodicAttack>(create);
-  static MelodicAttack _defaultInstance;
+  static MelodicAttack? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get tones => $_getList(0);
@@ -608,7 +622,7 @@ class MidiChange extends $pb.GeneratedMessage {
 
   MidiChange._() : super();
   factory MidiChange({
-    $core.List<$core.int> data,
+    $core.List<$core.int>? data,
   }) {
     final _result = create();
     if (data != null) {
@@ -627,7 +641,7 @@ class MidiChange extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange)); // ignore: deprecated_member_use
+  MidiChange copyWith(void Function(MidiChange) updates) => super.copyWith((message) => updates(message as MidiChange)) as MidiChange; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MidiChange create() => MidiChange._();
@@ -635,7 +649,7 @@ class MidiChange extends $pb.GeneratedMessage {
   static $pb.PbList<MidiChange> createRepeated() => $pb.PbList<MidiChange>();
   @$core.pragma('dart2js:noInline')
   static MidiChange getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MidiChange>(create);
-  static MidiChange _defaultInstance;
+  static MidiChange? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get data => $_getN(0);
@@ -662,14 +676,14 @@ class Instrument extends $pb.GeneratedMessage {
 
   Instrument._() : super();
   factory Instrument({
-    $core.String name,
-    InstrumentType type,
-    $core.double volume,
-    $core.int midiChannel,
-    $core.int midiInstrument,
-    $core.int midiGm2Msb,
-    $core.int midiGm2Lsb,
-    SoundFonts soundFonts,
+    $core.String? name,
+    InstrumentType? type,
+    $core.double? volume,
+    $core.int? midiChannel,
+    $core.int? midiInstrument,
+    $core.int? midiGm2Msb,
+    $core.int? midiGm2Lsb,
+    SoundFonts? soundFonts,
   }) {
     final _result = create();
     if (name != null) {
@@ -709,7 +723,7 @@ class Instrument extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Instrument copyWith(void Function(Instrument) updates) => super.copyWith((message) => updates(message as Instrument)); // ignore: deprecated_member_use
+  Instrument copyWith(void Function(Instrument) updates) => super.copyWith((message) => updates(message as Instrument)) as Instrument; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Instrument create() => Instrument._();
@@ -717,7 +731,7 @@ class Instrument extends $pb.GeneratedMessage {
   static $pb.PbList<Instrument> createRepeated() => $pb.PbList<Instrument>();
   @$core.pragma('dart2js:noInline')
   static Instrument getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Instrument>(create);
-  static Instrument _defaultInstance;
+  static Instrument? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -802,7 +816,7 @@ class SoundFonts extends $pb.GeneratedMessage {
 
   SoundFonts._() : super();
   factory SoundFonts({
-    $core.Iterable<SoundFont> soundFonts,
+    $core.Iterable<SoundFont>? soundFonts,
   }) {
     final _result = create();
     if (soundFonts != null) {
@@ -821,7 +835,7 @@ class SoundFonts extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  SoundFonts copyWith(void Function(SoundFonts) updates) => super.copyWith((message) => updates(message as SoundFonts)); // ignore: deprecated_member_use
+  SoundFonts copyWith(void Function(SoundFonts) updates) => super.copyWith((message) => updates(message as SoundFonts)) as SoundFonts; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SoundFonts create() => SoundFonts._();
@@ -829,7 +843,7 @@ class SoundFonts extends $pb.GeneratedMessage {
   static $pb.PbList<SoundFonts> createRepeated() => $pb.PbList<SoundFonts>();
   @$core.pragma('dart2js:noInline')
   static SoundFonts getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SoundFonts>(create);
-  static SoundFonts _defaultInstance;
+  static SoundFonts? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<SoundFont> get soundFonts => $_getList(0);
@@ -844,8 +858,8 @@ class SoundFont extends $pb.GeneratedMessage {
 
   SoundFont._() : super();
   factory SoundFont({
-    $core.String name,
-    $core.Iterable<KeySwitch> keySwitches,
+    $core.String? name,
+    $core.Iterable<KeySwitch>? keySwitches,
   }) {
     final _result = create();
     if (name != null) {
@@ -867,7 +881,7 @@ class SoundFont extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  SoundFont copyWith(void Function(SoundFont) updates) => super.copyWith((message) => updates(message as SoundFont)); // ignore: deprecated_member_use
+  SoundFont copyWith(void Function(SoundFont) updates) => super.copyWith((message) => updates(message as SoundFont)) as SoundFont; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SoundFont create() => SoundFont._();
@@ -875,7 +889,7 @@ class SoundFont extends $pb.GeneratedMessage {
   static $pb.PbList<SoundFont> createRepeated() => $pb.PbList<SoundFont>();
   @$core.pragma('dart2js:noInline')
   static SoundFont getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SoundFont>(create);
-  static SoundFont _defaultInstance;
+  static SoundFont? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
@@ -898,7 +912,7 @@ class KeySwitch extends $pb.GeneratedMessage {
 
   KeySwitch._() : super();
   factory KeySwitch({
-    $core.String label,
+    $core.String? label,
   }) {
     final _result = create();
     if (label != null) {
@@ -917,7 +931,7 @@ class KeySwitch extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  KeySwitch copyWith(void Function(KeySwitch) updates) => super.copyWith((message) => updates(message as KeySwitch)); // ignore: deprecated_member_use
+  KeySwitch copyWith(void Function(KeySwitch) updates) => super.copyWith((message) => updates(message as KeySwitch)) as KeySwitch; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static KeySwitch create() => KeySwitch._();
@@ -925,7 +939,7 @@ class KeySwitch extends $pb.GeneratedMessage {
   static $pb.PbList<KeySwitch> createRepeated() => $pb.PbList<KeySwitch>();
   @$core.pragma('dart2js:noInline')
   static KeySwitch getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<KeySwitch>(create);
-  static KeySwitch _defaultInstance;
+  static KeySwitch? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get label => $_getSZ(0);
@@ -947,9 +961,9 @@ class Part extends $pb.GeneratedMessage {
 
   Part._() : super();
   factory Part({
-    $core.String id,
-    Instrument instrument,
-    $core.Iterable<Melody> melodies,
+    $core.String? id,
+    Instrument? instrument,
+    $core.Iterable<Melody>? melodies,
   }) {
     final _result = create();
     if (id != null) {
@@ -974,7 +988,7 @@ class Part extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Part copyWith(void Function(Part) updates) => super.copyWith((message) => updates(message as Part)); // ignore: deprecated_member_use
+  Part copyWith(void Function(Part) updates) => super.copyWith((message) => updates(message as Part)) as Part; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Part create() => Part._();
@@ -982,7 +996,7 @@ class Part extends $pb.GeneratedMessage {
   static $pb.PbList<Part> createRepeated() => $pb.PbList<Part>();
   @$core.pragma('dart2js:noInline')
   static Part getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Part>(create);
-  static Part _defaultInstance;
+  static Part? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -1018,9 +1032,9 @@ class MelodyReference extends $pb.GeneratedMessage {
 
   MelodyReference._() : super();
   factory MelodyReference({
-    $core.String melodyId,
-    MelodyReference_PlaybackType playbackType,
-    $core.double volume,
+    $core.String? melodyId,
+    MelodyReference_PlaybackType? playbackType,
+    $core.double? volume,
   }) {
     final _result = create();
     if (melodyId != null) {
@@ -1045,7 +1059,7 @@ class MelodyReference extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  MelodyReference copyWith(void Function(MelodyReference) updates) => super.copyWith((message) => updates(message as MelodyReference)); // ignore: deprecated_member_use
+  MelodyReference copyWith(void Function(MelodyReference) updates) => super.copyWith((message) => updates(message as MelodyReference)) as MelodyReference; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static MelodyReference create() => MelodyReference._();
@@ -1053,7 +1067,7 @@ class MelodyReference extends $pb.GeneratedMessage {
   static $pb.PbList<MelodyReference> createRepeated() => $pb.PbList<MelodyReference>();
   @$core.pragma('dart2js:noInline')
   static MelodyReference getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MelodyReference>(create);
-  static MelodyReference _defaultInstance;
+  static MelodyReference? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get melodyId => $_getSZ(0);
@@ -1099,15 +1113,15 @@ class Section extends $pb.GeneratedMessage {
 
   Section._() : super();
   factory Section({
-    $core.String id,
-    $core.String name,
-    Harmony harmony,
-    Meter meter,
-    Tempo tempo,
-    NoteName key,
-    $core.int transpose,
-    IntervalColor color,
-    $core.Iterable<MelodyReference> melodies,
+    $core.String? id,
+    $core.String? name,
+    Harmony? harmony,
+    Meter? meter,
+    Tempo? tempo,
+    NoteName? key,
+    $core.int? transpose,
+    IntervalColor? color,
+    $core.Iterable<MelodyReference>? melodies,
   }) {
     final _result = create();
     if (id != null) {
@@ -1150,7 +1164,7 @@ class Section extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Section copyWith(void Function(Section) updates) => super.copyWith((message) => updates(message as Section)); // ignore: deprecated_member_use
+  Section copyWith(void Function(Section) updates) => super.copyWith((message) => updates(message as Section)) as Section; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Section create() => Section._();
@@ -1158,7 +1172,7 @@ class Section extends $pb.GeneratedMessage {
   static $pb.PbList<Section> createRepeated() => $pb.PbList<Section>();
   @$core.pragma('dart2js:noInline')
   static Section getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Section>(create);
-  static Section _defaultInstance;
+  static Section? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
@@ -1255,10 +1269,10 @@ class Score extends $pb.GeneratedMessage {
 
   Score._() : super();
   factory Score({
-    $core.String id,
-    $core.String name,
-    $core.Iterable<Part> parts,
-    $core.Iterable<Section> sections,
+    $core.String? id,
+    $core.String? name,
+    $core.Iterable<Part>? parts,
+    $core.Iterable<Section>? sections,
   }) {
     final _result = create();
     if (id != null) {
@@ -1286,7 +1300,7 @@ class Score extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  Score copyWith(void Function(Score) updates) => super.copyWith((message) => updates(message as Score)); // ignore: deprecated_member_use
+  Score copyWith(void Function(Score) updates) => super.copyWith((message) => updates(message as Score)) as Score; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Score create() => Score._();
@@ -1294,7 +1308,7 @@ class Score extends $pb.GeneratedMessage {
   static $pb.PbList<Score> createRepeated() => $pb.PbList<Score>();
   @$core.pragma('dart2js:noInline')
   static Score getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Score>(create);
-  static Score _defaultInstance;
+  static Score? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
