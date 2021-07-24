@@ -1,10 +1,11 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'settings/settings.dart';
-import 'universe_view/universe_view_ui.dart';
+import 'universe_view/universe_view.dart';
 
 import 'recording/recording.dart';
 import 'package:fluro/fluro.dart' as Fluro;
@@ -534,7 +535,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (interactionMode != InteractionMode.universe) {
         // showSections = false;
-        _universeManager.currentUniverseScore = "";
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
           _scoreManager.currentScoreName = ScoreManager.UNIVERSE_SCORE;
@@ -568,6 +568,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   _editMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
     setState(() {
+      // _universeManager.currentUniverseScore = "";
       universeViewUI.visible = false;
       if (interactionMode == InteractionMode.edit) {
         if (selectedMelody != null) {
@@ -597,12 +598,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             _scoreManager.currentScoreName == ScoreManager.PASTED_SCORE) {
           setState(() {
             scorePickerMode = ScorePickerMode.none;
-            _showScorePicker = true;
+            _showScorePicker = false;
           });
-          Future.delayed(animationDuration, () {
+          Future.delayed(slowAnimationDuration, () {
             setState(() {
               if (interactionMode == InteractionMode.edit) {
                 scorePickerMode = ScorePickerMode.duplicate;
+                _showScorePicker = true;
+
                 if (context.isLandscapePhone) {
                   showKeyboard = false;
                 }
@@ -614,6 +617,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
         if (exportUI.visible) {
           exportUI.visible = false;
+        }
+        if (!showSections) {
+          Future.delayed(slowAnimationDuration, () {
+            setState(() {
+              if (interactionMode == InteractionMode.edit && !showSections) {
+                showSections = true;
+                verticalSectionList = false;
+              }
+            });
+          });
         }
         if (_prevSelectedMelody != null) {
           _selectOrDeselectMelody(_prevSelectedMelody);
@@ -739,7 +752,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double _scorePickerWidth(BuildContext context) => showScorePicker
       ? _scorePickerScrollDirection == Axis.horizontal
           ? MediaQuery.of(context).size.width
-          : min(max(365, MediaQuery.of(context).size.width / 4), 450)
+          : min(
+              max(interactionMode == InteractionMode.universe ? 300 : 365,
+                  MediaQuery.of(context).size.width / 4),
+              450)
       : 0.0;
   double _scorePickerHeight(BuildContext context) => showScorePicker
       ? _scorePickerScrollDirection == Axis.horizontal
@@ -811,7 +827,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _showTapInBar || _forceShowTapInBar || recordingMelody;
 
   bool showSections = false;
-  bool verticalSectionList = false;
+  bool _useVerticalSectionList = false;
+  bool get forceHorizontalSectionList =>
+      showScorePicker && _scorePickerScrollDirection == Axis.vertical;
+  bool get verticalSectionList =>
+      _useVerticalSectionList && !forceHorizontalSectionList;
+  set verticalSectionList(bool value) => _useVerticalSectionList = value;
 
   double get verticalSectionListWidth =>
       showSections && verticalSectionList ? 165 : 0;
@@ -827,6 +848,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   BSMethod scrollToCurrentBeat;
   BSMethod refreshUniverseData;
   BSMethod bluetoothScan;
+  BSMethod duplicateCurrentScore;
 
   @override
   void initState() {
@@ -834,12 +856,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     scrollToCurrentBeat = BSMethod();
     refreshUniverseData = BSMethod();
     bluetoothScan = BSMethod();
+    duplicateCurrentScore = BSMethod();
     messagesUI = MessagesUI(setState);
     universeViewUI = UniverseViewUI(setState, _universeManager)
       ..messagesUI = messagesUI
       ..refreshUniverseData = refreshUniverseData
       ..refreshUniverseData = refreshUniverseData;
     _universeManager
+      ..refreshUniverseData = refreshUniverseData
       ..messagesUI = messagesUI
       ..scoreManager = _scoreManager;
     BeatScratchPlugin.messagesUI = messagesUI;
@@ -953,6 +977,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         keyboardChordBase = notes.first;
       }
       keyboardChordNotes.addAll(notes.map((n) => n.mod12));
+    });
+
+    duplicateCurrentScore.addListener(() {
+      _doShowScorePicker(ScorePickerMode.duplicate);
+      _viewMode();
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1118,20 +1147,53 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // fit: FlexFit.loose,
                 child: Stack(children: [
                   Column(children: [
-                    universeViewUI.build(
-                        context: context,
-                        sectionColor: sectionColor,
-                        keyboardHeight: _keyboardHeight,
-                        settingsHeight: _midiSettingsHeight,
-                        showDownloads:
-                            ((MyPlatform.isWeb) && !showDownloadLinks)
-                                ? () => setState(() => showDownloadLinks = true)
-                                : null),
+                    if (!context.isLandscapePhone)
+                      universeViewUI.build(
+                          context: context,
+                          sectionColor: sectionColor,
+                          keyboardHeight: _keyboardHeight,
+                          settingsHeight: _midiSettingsHeight,
+                          showDownloads: ((MyPlatform.isWeb) &&
+                                  !showDownloadLinks)
+                              ? () => setState(() => showDownloadLinks = true)
+                              : null),
                     Expanded(
                         child: Row(
                       children: [
                         if (_scorePickerScrollDirection == Axis.vertical)
-                          _scorePicker(context),
+                          Column(
+                            children: [
+                              if (context.isLandscapePhone)
+                                AnimatedContainer(
+                                    duration: animationDuration,
+                                    height: universeViewUIHeight,
+                                    width: _scorePickerWidth(context),
+                                    key: ValueKey(
+                                        "UniverseViewUI-landscapephone-${context.isLandscapePhone}"),
+                                    child: universeViewUI.build(
+                                        context: context,
+                                        sectionColor: sectionColor,
+                                        keyboardHeight: _keyboardHeight,
+                                        settingsHeight: _midiSettingsHeight,
+                                        showDownloads: ((MyPlatform.isWeb) &&
+                                                !showDownloadLinks)
+                                            ? () => setState(
+                                                () => showDownloadLinks = true)
+                                            : null)),
+                              Expanded(child: _scorePicker(context)),
+                              // AnimatedContainer(
+                              //     duration: animationDuration,
+                              //     height: (_landscapePhoneUI ? 0 : 48) +
+                              //         _secondToolbarHeight +
+                              //         _midiSettingsHeight +
+                              //         messagesUI.height(context) +
+                              //         _colorboardHeight +
+                              //         _keyboardHeight +
+                              //         _bottomNotchPadding +
+                              //         _tapInBarHeight +
+                              //         _bottomTapInBarHeight)
+                            ],
+                          ),
                         Expanded(
                             child: Column(children: [
                           _downloadBanner(context),
@@ -1255,29 +1317,169 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
+  double get universeScoreTitleHeight =>
+      interactionMode == InteractionMode.universe ? 36 : 0;
+
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
+    bool showShareButton;
     if (_universeManager.currentUniverseScore == "") {
       foregroundColor = Colors.white;
       backgroundColor = Colors.grey;
+      showShareButton = true;
     } else {
       foregroundColor = musicForegroundColor;
       backgroundColor = musicBackgroundColor;
+      showShareButton = false;
     }
+    final scoreFuture = _universeManager.currentUniverseScoreFuture;
     return AnimatedContainer(
         duration: animationDuration,
-        height: interactionMode == InteractionMode.universe ? 36 : 0,
+        height: universeScoreTitleHeight,
         color: backgroundColor,
-        padding: EdgeInsets.symmetric(horizontal: 5),
         child: Row(
           children: [
+            AnimatedContainer(
+                width: showShareButton ? 0 : universeScoreTitleHeight,
+                duration: animationDuration,
+                child: MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _universeManager.redditUsername.isNotEmpty
+                      ? () {
+                          bool oldValue = _universeManager
+                              .currentUniverseScoreFuture?.likes;
+                          setState(() {
+                            if (oldValue == true) {
+                              scoreFuture?.likes = null;
+                              scoreFuture?.voteCount -= 1;
+                            } else {
+                              scoreFuture?.likes = true;
+                              scoreFuture?.voteCount +=
+                                  oldValue == null ? 1 : 2;
+                            }
+                            _universeManager.vote(
+                                scoreFuture?.fullName, scoreFuture?.likes);
+                          });
+                        }
+                      : null,
+                  color: scoreFuture?.likes == true
+                      ? chromaticSteps[11]
+                      : Colors.transparent,
+                  child: Align(
+                      alignment: Alignment.center,
+                      child: AnimatedOpacity(
+                          opacity: showShareButton ? 0 : 1,
+                          duration: animationDuration,
+                          child: Icon(Icons.arrow_upward,
+                              color: _universeManager.isAuthenticated
+                                  ? scoreFuture?.likes == true
+                                      ? chromaticSteps[11].textColor()
+                                      : chromaticSteps[11]
+                                  : musicForegroundColor.withOpacity(0.5)))),
+                )),
+            AnimatedContainer(
+                width: showShareButton ? 0 : universeScoreTitleHeight * 1,
+                duration: animationDuration,
+                child: Align(
+                    alignment: Alignment.center,
+                    child: Text(scoreFuture?.voteCount?.toString() ?? '',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: musicForegroundColor,
+                            fontWeight: FontWeight.w800)))),
+            AnimatedContainer(
+                width: showShareButton ? 0 : universeScoreTitleHeight,
+                duration: animationDuration,
+                child: MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _universeManager.redditUsername.isNotEmpty
+                      ? () {
+                          bool oldValue = _universeManager
+                              .currentUniverseScoreFuture?.likes;
+                          setState(() {
+                            if (oldValue == false) {
+                              scoreFuture?.likes = null;
+                              scoreFuture.voteCount += 1;
+                            } else {
+                              scoreFuture?.likes = false;
+                              scoreFuture.voteCount -= oldValue == null ? 1 : 2;
+                            }
+                            _universeManager.vote(
+                                scoreFuture?.fullName, scoreFuture?.likes);
+                          });
+                        }
+                      : null,
+                  color: scoreFuture?.likes == false
+                      ? chromaticSteps[10]
+                      : Colors.transparent,
+                  child: Align(
+                      alignment: Alignment.center,
+                      child: AnimatedOpacity(
+                          opacity: showShareButton ? 0 : 1,
+                          duration: animationDuration,
+                          child: Icon(Icons.arrow_downward,
+                              color: _universeManager.isAuthenticated
+                                  ? scoreFuture?.likes == false
+                                      ? chromaticSteps[10].textColor()
+                                      : chromaticSteps[10]
+                                  : musicForegroundColor.withOpacity(0.5)))),
+                )),
             Expanded(
-              child: Text(score.name,
-                  style: TextStyle(
-                      color: foregroundColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w100)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Text(score.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: foregroundColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w100)),
+              ),
             ),
+            AnimatedContainer(
+                width: showShareButton ? universeScoreTitleHeight : 0,
+                duration: animationDuration,
+                child: MyFlatButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _universeManager.isAuthenticated
+                        ? () {
+                            showUniverseUpload(context, score, sectionColor,
+                                _universeManager, duplicateCurrentScore);
+                          }
+                        : null,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: AnimatedOpacity(
+                          opacity: showShareButton ? 1 : 0,
+                          duration: animationDuration,
+                          child: Icon(Icons.upload,
+                              color: _universeManager.isAuthenticated
+                                  ? chromaticSteps[0]
+                                  : Colors.white.withOpacity(0.5))),
+                    ))),
+            AnimatedContainer(
+                width: showShareButton ? 0 : universeScoreTitleHeight,
+                duration: animationDuration,
+                child: MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    if (_appSettings.enableApollo) {
+                      launchURL(
+                          scoreFuture.commentUrl
+                              .replaceAll("https://", "apollo://"),
+                          forceSafariVC: false);
+                    } else {
+                      launchURL(scoreFuture.commentUrl, forceSafariVC: false);
+                    }
+                  },
+                  child: Align(
+                      alignment: Alignment.center,
+                      child: AnimatedOpacity(
+                          opacity: showShareButton ? 0 : 1,
+                          duration: animationDuration,
+                          child: Icon(FontAwesomeIcons.commentDots,
+                              color: chromaticSteps[0]))),
+                ))
           ],
         ));
   }
@@ -1775,25 +1977,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         },
         toggleSectionListDisplayMode: (forward) {
           setState(() {
-            if (forward) {
-              if (!showSections) {
-                showSections = true;
-                verticalSectionList = true;
-              } else if (!verticalSectionList) {
-                showSections = false;
-                verticalSectionList = true;
-              } else {
-                verticalSectionList = false;
-              }
+            if (forceHorizontalSectionList) {
+              showSections = !showSections;
             } else {
-              if (!showSections) {
-                showSections = true;
-                verticalSectionList = false;
-              } else if (verticalSectionList) {
-                showSections = false;
-                verticalSectionList = false;
+              if (forward) {
+                if (!showSections) {
+                  showSections = true;
+                  verticalSectionList = true;
+                } else if (!verticalSectionList) {
+                  showSections = false;
+                  verticalSectionList = true;
+                } else {
+                  verticalSectionList = false;
+                }
               } else {
-                verticalSectionList = true;
+                if (!showSections) {
+                  showSections = true;
+                  verticalSectionList = false;
+                } else if (verticalSectionList) {
+                  showSections = false;
+                  verticalSectionList = false;
+                } else {
+                  verticalSectionList = true;
+                }
               }
             }
             // }
@@ -1964,6 +2170,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
+      appSettings: _appSettings,
       sectionColor: sectionColor,
       score: score,
       setState: setState,
@@ -2042,8 +2249,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= _scorePickerHeight(context);
     }
-    if (interactionMode == InteractionMode.universe) {
-      fullHeight -= 36;
+    if (!context.isLandscapePhone) {
+      fullHeight -= universeScoreTitleHeight;
     }
     double fullWidth = data.size.width -
         verticalSectionListWidth -
@@ -2222,10 +2429,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   Widget _musicView(BuildContext context, double width, double height) {
-    double topBorder = interactionMode == InteractionMode.universe ? 32 : 0;
-    double otherBorder = interactionMode == InteractionMode.universe ? 5 : 0;
-    // height = height - topBorder - otherBorder;
-    // width = width - 2 * otherBorder;
     return MusicView(
       key: ValueKey("main-melody-view"),
       appSettings: _appSettings,

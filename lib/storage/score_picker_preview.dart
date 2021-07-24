@@ -448,13 +448,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                     Expanded(child: SizedBox()),
                     Text(widget.scoreFuture?.voteCount?.toString() ?? '',
                         style: TextStyle(
-                            color:
-                                /*widget.scoreFuture.like == true
-                                ? chromaticSteps[11]
-                                : widget.scoreFuture.like == false
-                                    ? chromaticSteps[10]
-                                    : */
-                                musicForegroundColor,
+                            color: musicForegroundColor,
                             fontWeight: FontWeight.w800)),
                     Expanded(child: SizedBox()),
                   ]),

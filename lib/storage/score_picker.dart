@@ -160,34 +160,68 @@ class _ScorePickerState extends State<ScorePicker> {
     bool showHeader = widget.mode != ScorePickerMode.none &&
         widget.mode != ScorePickerMode.show &&
         widget.mode != ScorePickerMode.universe;
-    String headerText;
-    String extraDetailText = "";
+    String operationText;
+    TextStyle detailTextStyle = TextStyle(
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.w200,
+        fontFamily: DefaultTextStyle.of(context).style.fontFamily);
+    TextSpan extraDetailText = TextSpan(
+      text: '',
+      style: detailTextStyle,
+    ); //ing extraDetailText = "";
     IconData icon;
     switch (widget.mode) {
       case ScorePickerMode.open:
-        headerText = "Open Score";
+        operationText = "Open";
         icon = Icons.folder_open;
         break;
       case ScorePickerMode.create:
-        headerText = "Create Score";
+        operationText = "Create";
         icon = Icons.add;
-        extraDetailText =
-            "Create a Score with one Section at 123bpm in 4/4 time, a Piano Part and a Drum Part. You can customize them in the Layers View.";
+        extraDetailText = TextSpan(
+          text:
+              "Create a Score with one Section at 123bpm in 4/4 time, a Piano Part and a Drum Part. You can customize them in the Layers View.",
+          style: detailTextStyle,
+        );
         break;
       case ScorePickerMode.duplicate:
-        headerText = "Duplicate Score";
+        operationText = "Duplicate";
         icon = FontAwesomeIcons.codeBranch;
         String openedScoreName = widget.openedScore.name;
         String scoreManagerName = widget.scoreManager.currentScoreName;
         if (openedScoreName != scoreManagerName) {
-          extraDetailText =
-              "The Score \"$openedScoreName\" has been opened with the name \"$scoreManagerName.\" To avoid data being overwritten, you should choose a new name and Duplicate it.";
+          extraDetailText = TextSpan(
+            text: 'The Score "',
+            style: detailTextStyle,
+            children: <TextSpan>[
+              TextSpan(
+                  text: openedScoreName,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: chromaticSteps[0])),
+              TextSpan(text: '" is opened with the name "'),
+              TextSpan(
+                  text: scoreManagerName,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: chromaticSteps[5])),
+              TextSpan(
+                  text: '." To avoid losing changes, choose a new name and '),
+              TextSpan(
+                  text: 'Duplicate',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: ' it.'),
+            ],
+          );
         } else {
-          extraDetailText = "Create a copy of the Score \"$openedScoreName\".";
+          extraDetailText = TextSpan(
+            text: "Create a copy of the Score \"$openedScoreName\".",
+            style: detailTextStyle,
+          );
+          ;
         }
         break;
       default:
-        headerText = "";
+        operationText = "";
         break;
     }
     bool detailsTextInColumn = true; //MediaQuery.of(context).size.width < 500;
@@ -209,11 +243,19 @@ class _ScorePickerState extends State<ScorePicker> {
                           Icon(icon, color: Colors.white, size: 32),
                         if (icon != null) SizedBox(width: 5),
                         Text(
-                          headerText,
+                          operationText,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w700),
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          "Score",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w100),
                         ),
                         Expanded(child: SizedBox()),
                         AnimatedContainer(
@@ -302,16 +344,17 @@ class _ScorePickerState extends State<ScorePicker> {
                   ],
                 ))),
         AnimatedContainer(
-            height: detailsTextInColumn && extraDetailText.isNotEmpty
-                ? extraDetailText.length < 140
+            height: detailsTextInColumn && extraDetailText.text.isNotEmpty
+                ? 0 == extraDetailText.children?.length ?? 0
                     ? 32
                     : 48
                 : 0,
             duration: animationDuration,
             child: AnimatedOpacity(
                 duration: animationDuration,
-                opacity:
-                    detailsTextInColumn && extraDetailText.isNotEmpty ? 1 : 0,
+                opacity: detailsTextInColumn && extraDetailText.text.isNotEmpty
+                    ? 1
+                    : 0,
                 child: Column(
                   children: [
                     Expanded(child: SizedBox()),
@@ -319,13 +362,9 @@ class _ScorePickerState extends State<ScorePicker> {
                       children: [
                         SizedBox(width: 5),
                         Expanded(
-                          child: Text(
-                            extraDetailText,
+                          child: RichText(
+                            text: extraDetailText,
                             maxLines: 3,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w200),
                           ),
                         ),
                         SizedBox(width: 5),
@@ -476,10 +515,12 @@ class _ScorePickerState extends State<ScorePicker> {
         _scrollController.animateTo(position,
             duration: animationDuration, curve: Curves.easeInOut);
       } else {
+        widget.universeManager.currentUniverseScore = "";
         _scrollController.animateTo(0,
             duration: animationDuration, curve: Curves.easeInOut);
         widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
+        widget.openedScore.name = nameController.value.text;
         scoreManager.createScore(nameController.value.text,
             score: widget.openedScore);
         overwritingScoreName = null;
@@ -546,6 +587,7 @@ class _ScorePickerState extends State<ScorePicker> {
                     case ScorePickerMode.open:
                       if (scoreFile != null) {
                         widget.scoreManager.openScore(scoreFile);
+                        widget.universeManager.currentUniverseScore = "";
                       }
                       break;
                     case ScorePickerMode.universe:

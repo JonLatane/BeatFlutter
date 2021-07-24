@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/settings/settings.dart';
 import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
 
 import '../beatscratch_plugin.dart';
@@ -27,6 +28,7 @@ class SectionList extends StatefulWidget {
   final bool showSectionBeatCounts;
   final VoidCallback toggleShowSectionBeatCounts;
   final bool allowReordering;
+  final AppSettings appSettings;
 
   const SectionList(
       {Key key,
@@ -39,7 +41,8 @@ class SectionList extends StatefulWidget {
       this.setState,
       this.showSectionBeatCounts,
       this.toggleShowSectionBeatCounts,
-      this.allowReordering})
+      this.allowReordering,
+      this.appSettings})
       : super(key: key);
 
   @override
@@ -49,10 +52,13 @@ class SectionList extends StatefulWidget {
 class _SectionListState extends State<SectionList> {
   ScrollController _scrollController = ScrollController();
 
+  Color get buttonBackgroundColor =>
+      widget.appSettings.darkMode ? musicBackgroundColor : Colors.grey.shade500;
   @override
   Widget build(BuildContext context) {
     _animateToNewlySelectedSection();
     int beatCount = widget.score.beatCount;
+
     return (widget.scrollDirection == Axis.horizontal)
         ? Row(children: [
             Expanded(
@@ -76,6 +82,7 @@ class _SectionListState extends State<SectionList> {
                 height: 32,
                 padding: EdgeInsets.only(right: 5),
                 child: MyRaisedButton(
+                  color: buttonBackgroundColor,
                   child: ColorFilteredImageAsset(
                     imageSource: "assets/add.png",
                     imageColor: Colors.white,
@@ -147,6 +154,7 @@ class _SectionListState extends State<SectionList> {
                   width: widget.allowReordering ? 82.5 : 0,
                   padding: EdgeInsets.all(1),
                   child: MyRaisedButton(
+                    color: buttonBackgroundColor,
                     child: ColorFilteredImageAsset(
                       imageSource: "assets/add.png",
                       imageColor: Colors.white,

@@ -127,7 +127,7 @@ class UniverseViewUI {
                 ),
                 // MyPopupMenuButton(itemBuilder: itemBuilder)
                 Transform.translate(
-                    offset: Offset(0, context.isLandscape ? -1.5 : 0),
+                    offset: Offset(0, context.isTablet ? -1.5 : 0),
                     child: MyPopupMenuButton(
 //                        onPressed: _doNothing,
                         tooltip: null,

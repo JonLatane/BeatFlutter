@@ -6,12 +6,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../beatscratch_plugin.dart';
+import '../colors.dart';
 import '../generated/protos/music.pb.dart';
 import '../util/dummydata.dart';
 import '../util/proto_utils.dart';
@@ -26,6 +29,7 @@ class UniverseManager {
   SharedPreferences _prefs;
   ScoreManager scoreManager;
   MessagesUI messagesUI;
+  BSMethod refreshUniverseData;
 
   UniverseManager() {
     _initialize();
@@ -35,9 +39,14 @@ class UniverseManager {
   set useWebViewSignIn(bool v) => _prefs?.setBool("useWebViewSignIn", v);
 
   String get currentUniverseScore =>
-      _prefs?.getString('currentUniverseScore') ?? "";
+      _prefs?.getString('currentUniverseScore') ?? '';
   set currentUniverseScore(String v) =>
       _prefs?.setString("currentUniverseScore", v);
+
+  ScoreFuture get currentUniverseScoreFuture => currentUniverseScore == ''
+      ? null
+      : cachedUniverseData.firstWhere((d) => d.identity == currentUniverseScore,
+          orElse: () => null);
 
   String get redditRefreshToken =>
       _prefs?.getString('redditRefreshToken') ?? "";
@@ -93,7 +102,7 @@ class UniverseManager {
         "state=$_authState&"
         "redirect_uri=${UniverseManager.REDDIT_REDIRECT_URI}&"
         "duration=permanent&"
-        "scope=identity%20vote%20submit%20subscribe%20read";
+        "scope=identity%20vote%20submit%20subscribe%20read%20mysubreddits";
     launchURL(authUrl,
         forceWebView: MyPlatform.isAndroid,
         webOnlyWindowName: MyPlatform.isWeb ? '_self' : null);
@@ -319,7 +328,7 @@ class UniverseManager {
     }
   }
 
-  vote(String fullName, bool likes, {bool andReauthorize}) async {
+  vote(String fullName, bool likes, {bool andReauth = true}) async {
     http
         .post(Uri.parse('https://oauth.reddit.com/api/vote'),
             body: {
@@ -333,12 +342,96 @@ class UniverseManager {
             },
             headers: authenticatedRedditRequestHeaders)
         .then((response) async {
-      if (response.statusCode == 401) {
+      if (response.statusCode == 401 && andReauth) {
         await refreshAccessToken();
-        return await vote(fullName, likes);
+        return await vote(fullName, likes, andReauth: false);
       } else if (response.statusCode != 200) {
         messagesUI.sendMessage(
             message: "Error sending vote!", isError: true, andSetState: true);
+      }
+    });
+  }
+
+  Future<bool> findDuplicate(String scoreName, {bool andReauth = true}) async {
+    return http
+        .get(
+            Uri.parse(
+                "https://oauth.reddit.com/r/BeatScratch/search?q=${Uri.encodeComponent(scoreName)}"),
+            headers: authenticatedRedditRequestHeaders)
+        .then((response) async {
+      if (response.statusCode != 200) {
+        if (response.statusCode == 401 && andReauth) {
+          await refreshAccessToken();
+          return await findDuplicate(scoreName, andReauth: false);
+        } else {
+          messagesUI.sendMessage(
+              message: "Error searching for duplicates!",
+              isError: true,
+              andSetState: true);
+          return true;
+        }
+      }
+      dynamic data = jsonDecode(response.body);
+      List<dynamic> titles = data["data"]["children"]
+          .where((it) => it["data"]["subreddit"] == "BeatScratch")
+          .map((it) => it["data"]["title"] as String)
+          .toList();
+      return titles
+          .any((t) => t.trim().toLowerCase() == scoreName.trim().toLowerCase());
+    });
+  }
+
+  submitScore(Score score, {bool andReauth = true}) async {
+    messagesUI.sendMessage(
+        icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
+        message: "Generating short URL via https://paste.ee...",
+        andSetState: true);
+    String scoreUrl = await score.convertToShortUrl();
+    messagesUI.sendMessage(
+        icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
+        message: "Uploading to the Universe...",
+        andSetState: true);
+    http
+        .post(Uri.parse('https://oauth.reddit.com/api/submit'),
+            body: {
+              'sr': 'BeatScratch',
+              'kind': 'link',
+              'title': score.name,
+              'url': scoreUrl,
+              'resubmit': 'true',
+            },
+            headers: authenticatedRedditRequestHeaders)
+        .then((response) async {
+      if (response.statusCode == 401 && andReauth) {
+        await refreshAccessToken();
+        return await submitScore(score, andReauth: false);
+      } else if (response.statusCode != 200) {
+        messagesUI.sendMessage(
+            message: "Error uploading Score!",
+            isError: true,
+            andSetState: true);
+      } else {
+        messagesUI.sendMessage(
+            icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
+            message: "Upload successful!",
+            andSetState: true);
+        tryToSelectScore(int retries) {
+          Future.delayed(Duration(seconds: 2), () {
+            refreshUniverseData();
+            ScoreFuture scoreFuture = cachedUniverseData.firstWhere(
+                (it) => it.scoreUrl == scoreUrl,
+                orElse: () => null);
+            if (scoreFuture != null) {
+              messagesUI.setAppState(() {
+                currentUniverseScore = scoreFuture.identity;
+              });
+            } else if (retries > 0) {
+              tryToSelectScore(retries - 1);
+            }
+          });
+        }
+
+        tryToSelectScore(10);
       }
     });
   }
