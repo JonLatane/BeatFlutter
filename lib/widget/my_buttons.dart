@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import '../colors.dart';
 
 class MyFlatButton extends TextButton {
   MyFlatButton({
@@ -10,22 +11,13 @@ class MyFlatButton extends TextButton {
     ValueChanged<bool> onHighlightChanged,
     MouseCursor mouseCursor = SystemMouseCursors.basic,
     ButtonTextTheme textTheme,
-    Color textColor,
-    Color disabledTextColor,
     Color color,
-    Color disabledColor,
-    Color focusColor,
-    Color hoverColor,
-    Color highlightColor,
-    Color splashColor,
-    Brightness colorBrightness,
     EdgeInsetsGeometry padding,
-    VisualDensity visualDensity,
-    ShapeBorder shape,
     Clip clipBehavior = Clip.none,
     FocusNode focusNode,
     bool autofocus = false,
-    MaterialTapTargetSize materialTapTargetSize,
+    ButtonStyle style,
+    bool lightHighlight = false,
     @required Widget child,
   })  : assert(clipBehavior != null),
         assert(autofocus != null),
@@ -33,29 +25,28 @@ class MyFlatButton extends TextButton {
           key: key,
           onPressed: onPressed,
           onLongPress: onLongPress,
-          style: ElevatedButton.styleFrom(
-              primary: color,
-              padding: padding,
-              enabledMouseCursor: SystemMouseCursors.basic),
-          // onHighlightChanged: onHighlightChanged,
-          // mouseCursor: mouseCursor,
-          // textTheme: textTheme,
-          // textColor: textColor,
-          // disabledTextColor: disabledTextColor,
-          // color: color,
-          // disabledColor: disabledColor,
-          // focusColor: focusColor,
-          // hoverColor: hoverColor,
-          // highlightColor: highlightColor,
-          // splashColor: splashColor,
-          // colorBrightness: colorBrightness,
-          // padding: padding,
-          // visualDensity: visualDensity,
-          // shape: shape,
+          style: style ??
+              ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith((state) =>
+                      {
+                        MaterialState.hovered:
+                            lightHighlight ? Colors.white : Colors.white,
+                        MaterialState.focused:
+                            lightHighlight ? Colors.white : Colors.white
+                      }[state] ??
+                      color),
+                  mouseCursor:
+                      MaterialStateProperty.all(SystemMouseCursors.basic),
+                  padding: MaterialStateProperty.all(padding)),
+          // ElevatedButton.styleFrom(
+          //     primary: color,
+          //     // onPrimary: color?.textColor(),
+          //     padding: padding,
+          //     enabledMouseCursor: SystemMouseCursors.basic),
+
           clipBehavior: clipBehavior,
           focusNode: focusNode,
           autofocus: autofocus,
-          // materialTapTargetSize: materialTapTargetSize,
           child: child,
         );
 }
@@ -106,26 +97,6 @@ class MyRaisedButton extends ElevatedButton {
               primary: color,
               padding: padding,
               enabledMouseCursor: SystemMouseCursors.basic),
-          // onHighlightChanged: onHighlightChanged,
-          // mouseCursor: mouseCursor,
-          // textTheme: textTheme,
-          // textColor: textColor,
-          // disabledTextColor: disabledTextColor,
-          // color: color,
-          // disabledColor: disabledColor,
-          // focusColor: focusColor,
-          // hoverColor: hoverColor,
-          // highlightColor: highlightColor,
-          // splashColor: splashColor,
-          // colorBrightness: colorBrightness,
-          // elevation: elevation,
-          // focusElevation: focusElevation,
-          // hoverElevation: hoverElevation,
-          // highlightElevation: highlightElevation,
-          // disabledElevation: disabledElevation,
-          // padding: padding,
-          // visualDensity: visualDensity,
-          // shape: shape,
           clipBehavior: clipBehavior,
           focusNode: focusNode,
           autofocus: autofocus,

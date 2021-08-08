@@ -605,7 +605,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               if (interactionMode == InteractionMode.edit) {
                 scorePickerMode = ScorePickerMode.duplicate;
                 _showScorePicker = true;
-
+                splitMode = SplitMode.full;
                 if (context.isLandscapePhone) {
                   showKeyboard = false;
                 }
@@ -1441,19 +1441,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 duration: animationDuration,
                 child: MyFlatButton(
                     padding: EdgeInsets.zero,
-                    onPressed: _universeManager.isAuthenticated
-                        ? () {
-                            showUniverseUpload(context, score, sectionColor,
-                                _universeManager, duplicateCurrentScore);
-                          }
-                        : null,
+                    onPressed:
+                        _universeManager.isAuthenticated && !MyPlatform.isWeb
+                            ? () {
+                                showUniverseUpload(context, score, sectionColor,
+                                    _universeManager, duplicateCurrentScore);
+                              }
+                            : null,
                     child: Align(
                       alignment: Alignment.center,
                       child: AnimatedOpacity(
                           opacity: showShareButton ? 1 : 0,
                           duration: animationDuration,
                           child: Icon(Icons.upload,
-                              color: _universeManager.isAuthenticated
+                              color: _universeManager.isAuthenticated &&
+                                      !MyPlatform.isWeb
                                   ? chromaticSteps[0]
                                   : Colors.white.withOpacity(0.5))),
                     ))),

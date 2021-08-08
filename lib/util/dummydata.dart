@@ -258,15 +258,15 @@ Score defaultScore() => Score()
 
 Score melodyPreview(Melody melody, Part part, Section section) {
   melody = melody.bsRebuild((it) {
-    it.id = uuid.v4();
+    it.id = "MelodyPreview-Melody-${melody.id}-${part.id}-{$section.id}";
   });
   part = part.bsRebuild((it) {
-    it.id = uuid.v4();
+    it.id = "MelodyPreview-Part-${melody.id}-${part.id}-{$section.id}";
     it.melodies.clear();
     it.melodies.add(melody);
   });
   section = section.bsRebuild((it) {
-    it.id = uuid.v4();
+    it.id = "MelodyPreview-Section-${melody.id}-${part.id}-{$section.id}";
     it.melodies.clear();
     it.melodies.add(MelodyReference()
       ..melodyId = melody.id

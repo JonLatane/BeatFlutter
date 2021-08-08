@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:dcache/dcache.dart';
 
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
@@ -140,17 +141,37 @@ class _ScorePreviewState extends State<ScorePreview> {
   _switchThumbnails() => currentThumbnail =
       currentThumbnail == _Thumbnail.a ? _Thumbnail.b : _Thumbnail.a;
 
+  static final Cache RENDER_CACHE = new LruCache<ArgumentList, Uint8List>(
+      storage: new InMemoryStorage<ArgumentList, Uint8List>(500))
+    ..loader = (key, oldValue) async =>
+        oldValue ??
+        await MusicPreviewRenderer(
+          scoreData: key.arguments[0].writeToBuffer(),
+          scale: key.arguments[1],
+          width: key.arguments[2],
+          height: key.arguments[3],
+          renderSections: key.arguments[4],
+          renderPartNames: key.arguments[5],
+          musicViewMode: key.arguments[6],
+        ).renderedScoreImageData;
+
+  ArgumentList get renderingArguments => ArgumentList([
+        widget.score,
+        widget.scale,
+        widget.width,
+        widget.height,
+        widget.renderPartNames,
+        widget.renderSections,
+        widget.musicViewMode
+      ]);
   _updateScoreImage() {
     Future.delayed(animationDuration, () async {
-      final Uint8List data = await MusicPreviewRenderer(
-        scoreData: widget.score.writeToBuffer(),
-        scale: widget.scale,
-        width: widget.width,
-        height: widget.height,
-        renderSections: widget.renderSections,
-        renderPartNames: widget.renderPartNames,
-        musicViewMode: widget.musicViewMode,
-      ).renderedScoreImageData;
+      final Uint8List data = RENDER_CACHE.get(renderingArguments);
+      if (data == null) {
+        print("Ummm this bad");
+        _updateScoreImage();
+        return;
+      }
       if (disposed) return;
       setState(() {
         if (actualWidth > renderableWidth) {
@@ -168,8 +189,4 @@ class _ScorePreviewState extends State<ScorePreview> {
       }
     });
   }
-}
-
-Future<Uint8List> _renderedScoreImageData(MusicPreviewRenderer renderer) {
-  return renderer.renderedScoreImageData;
 }

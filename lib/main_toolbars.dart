@@ -757,6 +757,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                       widget.toggleSectionListDisplayMode(false);
                     },
                     padding: EdgeInsets.all(0.0),
+                    lightHighlight: true,
                     child: Align(
                         alignment: Alignment.center,
                         child: AnimatedBuilder(

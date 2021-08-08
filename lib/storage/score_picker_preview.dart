@@ -115,12 +115,15 @@ class ScorePickerPreview extends StatefulWidget {
   final Color sectionColor;
   final ScoreFuture scoreFuture;
   final VoidCallback deleteScore;
+  final VoidCallback overwriteScore;
   final ScoreManager scoreManager;
   final UniverseManager universeManager;
   final AppSettings appSettings;
   final VoidCallback onClickScore;
   final int scoreKey;
+  final String deletingScoreName;
   final String overwritingScoreName;
+  final VoidCallback cancelDelete;
   final VoidCallback cancelOverwrite;
   final double width, height;
 
@@ -129,10 +132,13 @@ class ScorePickerPreview extends StatefulWidget {
       this.sectionColor,
       this.scoreFuture,
       this.deleteScore,
+      this.overwriteScore,
       this.scoreManager,
       this.appSettings,
+      this.deletingScoreName,
       this.overwritingScoreName,
       this.scoreKey,
+      this.cancelDelete,
       this.cancelOverwrite,
       this.universeManager,
       this.onClickScore,
@@ -146,6 +152,7 @@ class ScorePickerPreview extends StatefulWidget {
 
 class _ScorePickerPreviewState extends State<ScorePickerPreview> {
   bool _confirmingDelete;
+  bool _confirmingOverwrite;
   int _lastScoreKey;
   bool disposed;
 
@@ -157,6 +164,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     super.initState();
     disposed = false;
     _confirmingDelete = false;
+    _confirmingOverwrite = false;
     notifyUpdate = BSMethod();
   }
 
@@ -179,6 +187,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
         : unloadedScoreName == widget.scoreManager.currentScoreName;
     if (widget.scoreKey != _lastScoreKey && widget.scoreFuture != null) {
       _confirmingDelete = false;
+      _confirmingOverwrite = false;
       _previewScore = null;
       Future.microtask(() async {
         Score previewScore =
@@ -192,8 +201,13 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
       notifyUpdate();
       _lastScoreKey = widget.scoreKey;
     }
-    if (unloadedScoreName == widget.overwritingScoreName) {
+    if (unloadedScoreName == widget.deletingScoreName) {
       _confirmingDelete = true;
+      _confirmingOverwrite = false;
+    }
+    if (unloadedScoreName == widget.overwritingScoreName) {
+      _confirmingOverwrite = true;
+      _confirmingDelete = false;
     }
     Color foregroundColor, backgroundColor;
     if (!isCurrentScore) {
@@ -360,6 +374,52 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                       if (!disposed) {
                                         setState(() {
                                           _confirmingDelete = false;
+                                          widget.cancelDelete();
+                                        });
+                                      }
+                                    },
+                                    child: Text("No",
+                                        style: TextStyle(color: Colors.white))),
+                              ),
+                            ]),
+                            Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      )
+                    : SizedBox(),
+              ),
+              AnimatedOpacity(
+                duration: animationDuration,
+                opacity: _confirmingOverwrite ? 1 : 0,
+                child: _confirmingOverwrite
+                    ? Container(
+                        color: Colors.black87,
+                        child: Column(
+                          children: [
+                            Expanded(child: SizedBox()),
+                            Text(
+                              "Really overwrite?",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            Row(children: [
+                              Expanded(
+                                child: MyFlatButton(
+                                    onPressed: () {
+                                      if (!disposed) {
+                                        setState(() {
+                                          widget.overwriteScore();
+                                        });
+                                      }
+                                    },
+                                    child: Text("Yes",
+                                        style: TextStyle(color: Colors.white))),
+                              ),
+                              Expanded(
+                                child: MyFlatButton(
+                                    onPressed: () {
+                                      if (!disposed) {
+                                        setState(() {
+                                          _confirmingOverwrite = false;
                                           widget.cancelOverwrite();
                                         });
                                       }

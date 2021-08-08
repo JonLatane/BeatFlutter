@@ -40,6 +40,10 @@ enum ScorePickerMode {
 extension ShowScoreNameEntry on ScorePickerMode {
   bool get showScoreNameEntry =>
       this == ScorePickerMode.duplicate || this == ScorePickerMode.create;
+  bool get isLocalOperationMode =>
+      this == ScorePickerMode.duplicate ||
+      this == ScorePickerMode.create ||
+      this == ScorePickerMode.open;
 }
 
 class ScorePicker extends StatefulWidget {
@@ -89,6 +93,7 @@ class _ScorePickerState extends State<ScorePicker> {
 
   ScoreManager get scoreManager => widget.scoreManager;
   ScorePickerMode previousMode;
+  String deletingScoreName;
   String overwritingScoreName;
 
   bool get wasShowingScoreNameEntry =>
@@ -238,24 +243,44 @@ class _ScorePickerState extends State<ScorePicker> {
                     Expanded(child: SizedBox()),
                     Row(
                       children: [
-                        SizedBox(width: 5),
-                        if (icon != null)
-                          Icon(icon, color: Colors.white, size: 32),
-                        if (icon != null) SizedBox(width: 5),
-                        Text(
-                          operationText,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700),
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          "Score",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w100),
+                        if (icon != null && operationText.isNotEmpty)
+                          MyFlatButton(
+                              color: subBackgroundColor,
+                              // padding: EdgeInsets.al;l 5),
+                              onPressed: () {
+                                if (widget.mode == ScorePickerMode.create) {
+                                  widget.requestMode(ScorePickerMode.duplicate);
+                                } else if (widget.mode ==
+                                    ScorePickerMode.duplicate) {
+                                  widget.requestMode(ScorePickerMode.open);
+                                } else if (widget.mode ==
+                                    ScorePickerMode.open) {
+                                  widget.requestMode(ScorePickerMode.create);
+                                }
+                              },
+                              child: Row(children: [
+                                SizedBox(width: 5),
+                                Icon(icon, color: Colors.white, size: 32),
+                                SizedBox(width: 5),
+                                Text(
+                                  operationText,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                SizedBox(width: 5),
+                              ])),
+                        AnimatedOpacity(
+                          opacity: widget.mode.isLocalOperationMode ? 1 : 0,
+                          duration: animationDuration,
+                          child: Text(
+                            "Score",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w100),
+                          ),
                         ),
                         Expanded(child: SizedBox()),
                         AnimatedContainer(
@@ -309,6 +334,7 @@ class _ScorePickerState extends State<ScorePicker> {
                               onPressed: () {
                                 nameController.value =
                                     nameController.value.copyWith(text: "");
+                                deletingScoreName = null;
                                 overwritingScoreName = null;
                                 widget.close();
                               },
@@ -328,6 +354,7 @@ class _ScorePickerState extends State<ScorePicker> {
                               onPressed: () {
                                 nameController.value =
                                     nameController.value.copyWith(text: "");
+                                deletingScoreName = null;
                                 overwritingScoreName = null;
                                 widget.close();
                               },
@@ -595,6 +622,7 @@ class _ScorePickerState extends State<ScorePicker> {
                         widget.scoreManager.doOpenScore(value);
                         widget.universeManager.currentUniverseScore =
                             scoreFuture.identity;
+                        widget.scoreManager.saveCurrentScore(value);
                       });
                       break;
                     default:
@@ -617,13 +645,27 @@ class _ScorePickerState extends State<ScorePicker> {
               : () {
                   setState(() {
                     scoreFile.delete();
-                    if (widget.mode == ScorePickerMode.duplicate &&
-                        overwritingScoreName == (scoreFile?.scoreName ?? "")) {
-                      _doDuplicate();
+                  });
+                },
+          overwriteScore: widget.mode == ScorePickerMode.universe
+              ? null
+              : () {
+                  setState(() {
+                    if (widget.mode == ScorePickerMode.duplicate) {
+                      scoreFile.delete().then((value) => _doDuplicate());
+                    }
+                    if (widget.mode == ScorePickerMode.create) {
+                      scoreFile.delete().then((value) => _doCreate());
                     }
                   });
                 },
+          deletingScoreName: deletingScoreName,
           overwritingScoreName: overwritingScoreName,
+          cancelDelete: () {
+            setState(() {
+              deletingScoreName = null;
+            });
+          },
           cancelOverwrite: () {
             setState(() {
               overwritingScoreName = null;
