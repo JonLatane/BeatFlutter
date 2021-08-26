@@ -245,7 +245,8 @@ class _ScorePickerState extends State<ScorePicker> {
                       children: [
                         if (icon != null && operationText.isNotEmpty)
                           MyFlatButton(
-                              color: subBackgroundColor,
+                              padding: EdgeInsets.zero,
+                              lightHighlight: true,
                               // padding: EdgeInsets.al;l 5),
                               onPressed: () {
                                 if (widget.mode == ScorePickerMode.create) {
@@ -269,8 +270,9 @@ class _ScorePickerState extends State<ScorePicker> {
                                       fontSize: 20,
                                       fontWeight: FontWeight.w700),
                                 ),
-                                SizedBox(width: 5),
+                                SizedBox(width: 2.5),
                               ])),
+                        SizedBox(width: 2.5),
                         AnimatedOpacity(
                           opacity: widget.mode.isLocalOperationMode ? 1 : 0,
                           duration: animationDuration,
@@ -448,33 +450,33 @@ class _ScorePickerState extends State<ScorePicker> {
                   Expanded(
                       child: Padding(
                           padding: EdgeInsets.all(2), child: getList(context))),
-                  AnimatedOpacity(
-                    duration: animationDuration,
-                    opacity: widget.mode == ScorePickerMode.open ? 1 : 0,
-                    child: AnimatedContainer(
-                        duration: animationDuration,
-                        width: widget.mode == ScorePickerMode.open ? 44 : 0,
-//    height: 32,
-                        padding: EdgeInsets.zero,
-                        child: Column(children: [
-                          Expanded(
-                              child: MyRaisedButton(
-                            color: ChordColor.tonic.color,
-                            child: Column(children: [
-                              Expanded(child: SizedBox()),
-                              Icon(Icons.check,
-                                  color: ChordColor.tonic.color.textColor()),
-                              Text("DONE",
-                                  style: TextStyle(
-                                      color: ChordColor.tonic.color.textColor(),
-                                      fontSize: 10)),
-                              Expanded(child: SizedBox()),
-                            ]),
-                            padding: EdgeInsets.all(2),
-                            onPressed: widget.close,
-                          ))
-                        ])),
-                  )
+//                   AnimatedOpacity(
+//                     duration: animationDuration,
+//                     opacity: widget.mode == ScorePickerMode.open ? 1 : 0,
+//                     child: AnimatedContainer(
+//                         duration: animationDuration,
+//                         width: widget.mode == ScorePickerMode.open ? 44 : 0,
+// //    height: 32,
+//                         padding: EdgeInsets.zero,
+//                         child: Column(children: [
+//                           Expanded(
+//                               child: MyRaisedButton(
+//                             color: ChordColor.tonic.color,
+//                             child: Column(children: [
+//                               Expanded(child: SizedBox()),
+//                               Icon(Icons.check,
+//                                   color: ChordColor.tonic.color.textColor()),
+//                               Text("DONE",
+//                                   style: TextStyle(
+//                                       color: ChordColor.tonic.color.textColor(),
+//                                       fontSize: 10)),
+//                               Expanded(child: SizedBox()),
+//                             ]),
+//                             padding: EdgeInsets.all(2),
+//                             onPressed: widget.close,
+//                           ))
+//                         ])),
+//                   )
                 ])
               : Column(children: [
                   Expanded(

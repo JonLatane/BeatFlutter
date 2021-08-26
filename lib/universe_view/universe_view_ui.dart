@@ -69,43 +69,55 @@ class UniverseViewUI {
                 keyboardHeight: keyboardHeight, settingsHeight: settingsHeight),
             child: Row(
               children: [
-                Column(
-                  children: [
-                    Expanded(child: Container(child: SizedBox())),
-                    // SizedBox(height: 2),
-                    Row(children: [
-                      SizedBox(width: 5),
-                      Transform.translate(
-                          offset: Offset(0, 1.5),
-                          child: UniverseIcon(
-                            interactionMode: visible
-                                ? InteractionMode.universe
-                                : InteractionMode.view,
-                            sectionColor: subBackgroundColor,
-                            animateIcon: refreshUniverseData,
-                          )),
-                      SizedBox(width: 8),
-                      Text("Beat",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900)),
-                      Text("Scratch",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w100)),
-                      SizedBox(width: 7),
-                      Transform.translate(
-                          offset: Offset(0, -6),
-                          child: Text("Universe",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400))),
-                    ]),
-                    Expanded(child: Container(child: SizedBox()))
-                  ],
+                SizedBox(width: 3),
+                Transform.translate(
+                  offset: Offset(0, 2),
+                  child: MyFlatButton(
+                    onPressed: refreshUniverseData,
+                    lightHighlight: true,
+                    child: Transform.translate(
+                      offset: Offset(0, -1.5),
+                      child: Column(
+                        children: [
+                          Expanded(child: SizedBox()),
+                          // SizedBox(height: 2),
+                          Row(children: [
+                            SizedBox(width: 5),
+                            Transform.translate(
+                                offset: Offset(0, 1.5),
+                                child: UniverseIcon(
+                                  interactionMode: visible
+                                      ? InteractionMode.universe
+                                      : InteractionMode.view,
+                                  sectionColor: subBackgroundColor,
+                                  animateIcon: refreshUniverseData,
+                                )),
+                            SizedBox(width: 8),
+                            Text("Beat",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900)),
+                            Text("Scratch",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w100)),
+                            SizedBox(width: 7),
+                            Transform.translate(
+                                offset: Offset(0, -6),
+                                child: Text("Universe",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400))),
+                            SizedBox(width: 2.5),
+                          ]),
+                          Expanded(child: Container(child: SizedBox()))
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 Expanded(child: SizedBox()),
 
@@ -217,6 +229,7 @@ class UniverseViewUI {
               ],
             ),
           ),
+          // Container(height: 5, width: 50, color: Colors.red)
         ]));
   }
 

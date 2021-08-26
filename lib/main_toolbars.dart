@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/main_menu.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -28,7 +29,7 @@ import 'util/music_theory.dart';
 import 'util/util.dart';
 import 'widget/my_buttons.dart';
 import 'widget/my_platform.dart';
-import 'widget/my_popup_menu.dart';
+// import 'widget/my_popup_menu.dart';
 
 class BeatScratchToolbar extends StatefulWidget {
   final AppSettings appSettings;
@@ -119,12 +120,6 @@ class BeatScratchToolbar extends StatefulWidget {
 
 class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     with TickerProviderStateMixin {
-//  FilePickerCross filePicker = FilePickerCross(type: FileTypeCross.custom, fileExtension: "beatscratch");
-//  FilePicker asdf = FilePicker();
-//   final clipboardContentStream = StreamController<String>.broadcast();
-
-  // Timer clipboardTriggerTime;
-
   AnimationController sectionOrPlayController;
   Animation<double> sectionOrPlayRotation;
   AnimationController editController;
@@ -133,7 +128,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
   Animation<double> editScale;
   AnimationController editRotationOnlyController;
   Animation<double> editRotationOnlyRotation;
-  PackageInfo packageInfo;
 
   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
   bool get hasPart =>
@@ -163,16 +157,6 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
       begin: 0,
       end: 2 * pi,
     ).animate(editController);
-
-    Future.microtask(() async {
-      print("getting PackageInfo");
-      final info = await PackageInfo.fromPlatform();
-      MyPlatform.appVersion = info.buildNumber;
-      print("got PackageInfo!!!!");
-      setState(() {
-        packageInfo = info;
-      });
-    });
 
     editTranslation = Tween<double>(
       begin: 0,
@@ -225,8 +209,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     } else {
       editController.forward();
     }
-    if (widget.interactionMode == InteractionMode.edit &&
-        !widget.isMelodyViewOpen) {
+    if (widget.interactionMode.isEdit && !widget.isMelodyViewOpen) {
       editRotationOnlyController.reverse();
     } else {
       editRotationOnlyController.forward();
@@ -254,476 +237,62 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
         child: columnOrRow(context, children: [
           if (!widget.rightHalfOnly)
             Expanded(
-                child: MyPopupMenuButton(
-//                        onPressed: _doNothing,
-                    tooltip: null,
-                    color: musicBackgroundColor.luminance < 0.5
-                        ? subBackgroundColor
-                        : musicBackgroundColor,
-                    offset: Offset(0, MediaQuery.of(context).size.height),
-                    onSelected: (value) {
-                      switch (value) {
-                        case "create":
-                          widget.saveCurrentScore();
-                          ScoreManager.suggestScoreName("");
-                          widget.showScorePicker(ScorePickerMode.create);
-                          break;
-                        case "open":
-                          widget.saveCurrentScore();
-                          widget.showScorePicker(ScorePickerMode.open);
-                          break;
-                        case "duplicate":
-                          widget.saveCurrentScore();
-                          widget.showScorePicker(ScorePickerMode.duplicate);
-                          break;
-                        case "save":
-                          widget.saveCurrentScore();
-                          break;
-                        case "import":
-                          print("Showing file picker");
-                          break;
-                        case "chooseBeatscratchFolder":
-                          break;
-                        case "notationUi":
-                          widget.setRenderingMode(RenderingMode.notation);
-                          break;
-                        case "colorblockUi":
-                          widget.setRenderingMode(RenderingMode.colorblock);
-                          break;
-                        case "midiSettings":
-                          widget.showMidiInputSettings();
-                          break;
-                        case "showBeatCounts":
-                          widget.toggleShowBeatCounts();
-                          break;
-                        case "clearMutableCaches":
-                          clearMutableCaches();
-                          break;
-                        case "copyUniverseDataCache":
-                          print('hi"');
-
-                          Future.microtask(() async {
-                            Clipboard.setData(ClipboardData(
-                                text: jsonEncode(widget
-                                    .universeManager.cachedUniverseData
-                                    .map((e) => e.toJson())
-                                    .toList())));
-                          });
-                          break;
-                        case "copyScore":
-                          Future.microtask(() async {
-                            widget.score.name =
-                                widget.scoreManager.currentScoreName;
-                            String urlString;
-                            if (widget.appSettings.integratePastee) {
-                              widget.messagesUI.sendMessage(
-                                  message:
-                                      "Generating short URL via https://paste.ee...",
-                                  andSetState: true);
-                              urlString =
-                                  (await widget.score.convertToShortUrl()) ??
-                                      widget.score.convertToUrl();
-                              if (!urlString.contains("#/s/")) {
-                                widget.messagesUI.sendMessage(
-                                    message:
-                                        "Failed to shorten URL via https://paste.ee! Creating long-form Score Link...",
-                                    andSetState: true,
-                                    isError: true,
-                                    color: chromaticSteps[5]);
-                              }
-                            } else {
-                              urlString = widget.score.convertToUrl();
-                            }
-                            String pastebinCode = urlString.split('/').last;
-                            Clipboard.setData(ClipboardData(text: urlString));
-                            widget.messagesUI.sendMessage(
-                              message: "Copied Score Link: $urlString",
-                              andSetState: true,
-                            );
-                            if (MyPlatform.isWeb) {
-                              widget.routeToCurrentScore(pastebinCode);
-                            }
-                          });
-                          break;
-                        case "pasteScore":
-                          widget.pasteScore();
-                          break;
-                        case "export":
-                          widget.export();
-                          break;
-                        case "tutorial":
-                          break;
-                        case "feedback":
-                          launchURL(
-                              "https://github.com/falrm/falrm.github.io/issues");
-                          break;
-                        case "about":
-                          launchURL("https://beatscratch.io/about.html");
-                          break;
-                        case "downloadNative":
-                          widget.toggleShowDownloads();
-                          break;
-                      }
-                      //setState(() {});
+                child: MyFlatButton(
+                    onPressed: () {
+                      final RenderBox button =
+                          context.findRenderObject() as RenderBox;
+                      final RenderBox overlay = Overlay.of(context)
+                          .context
+                          .findRenderObject() as RenderBox;
+                      final RelativeRect position = RelativeRect.fromRect(
+                        Rect.fromPoints(
+                          button.localToGlobal(Offset.zero, ancestor: overlay),
+                          button.localToGlobal(
+                              button.size.bottomRight(Offset.zero),
+                              ancestor: overlay),
+                        ),
+                        Offset.zero & overlay.size,
+                      );
+                      showMainMenu(
+                              context: context,
+                              position: position,
+                              showDownloads: widget.showDownloads,
+                              currentScore: widget.score,
+                              currentScoreName: widget.currentScoreName)
+                          .then(onMenuItemChosen);
                     },
-                    itemBuilder: (BuildContext context) {
-                      return [
-                        MyPopupMenuItem(
-                          value: null,
-                          child: Column(children: [
-                            Row(children: [
-                              Text('Beat',
-                                  style: TextStyle(
-                                      color:
-                                          musicForegroundColor.withOpacity(0.5),
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 26)),
-                              Text('Scratch',
-                                  style: TextStyle(
-                                      color:
-                                          musicForegroundColor.withOpacity(0.5),
-                                      fontWeight: FontWeight.w100,
-                                      fontSize: 26)),
-                              Expanded(
-                                child: SizedBox(),
-                              ),
-                              if (packageInfo?.version != null)
-                                Text('v${packageInfo?.version}',
-                                    style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 10)),
-                              if (packageInfo?.version != null)
-                                SizedBox(width: 3),
-                              if (packageInfo?.version != null)
-                                Text('(${packageInfo?.buildNumber})',
-                                    style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                        fontWeight: FontWeight.w100,
-                                        fontSize: 10)),
-                              if (packageInfo?.version == null)
-                                Text('(build ${packageInfo?.buildNumber})',
-                                    style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                        fontWeight: FontWeight.w100,
-                                        fontSize: 10)),
-                            ]),
-                            if (MyPlatform.isWeb)
-                              Text('Web Preview',
-                                  style: TextStyle(
-                                      color:
-                                          musicForegroundColor.withOpacity(0.5),
-                                      fontWeight: FontWeight.w300,
-                                      fontSize: 12)),
-                            if (MyPlatform.isWeb)
-                              Text(
-                                  'Native app strongly recommended for performance and features like recording, file storage, and MIDI export.',
-                                  style: TextStyle(
-                                      color:
-                                          musicForegroundColor.withOpacity(0.5),
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12)),
-                          ]),
-                          enabled: false,
+                    onLongPress: () {
+                      HapticFeedback.lightImpact();
+                      final RenderBox button =
+                          context.findRenderObject() as RenderBox;
+                      final RenderBox overlay = Overlay.of(context)
+                          .context
+                          .findRenderObject() as RenderBox;
+                      final RelativeRect position = RelativeRect.fromRect(
+                        Rect.fromPoints(
+                          button.localToGlobal(Offset.zero, ancestor: overlay),
+                          button.localToGlobal(
+                              button.size.bottomRight(Offset.zero),
+                              ancestor: overlay),
                         ),
-                        if (MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "downloadNative",
-                            child: Row(children: [
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(
-                                    widget.showDownloads
-                                        ? Icons.close
-                                        : Icons.download_rounded,
-                                    color: musicForegroundColor,
-                                  )),
-                              Expanded(child: SizedBox()),
-                              Text(
-                                  widget.showDownloads
-                                      ? 'Hide Download Links'
-                                      : 'Download Native App',
-                                  style: TextStyle(
-                                    color: musicForegroundColor,
-                                  )),
-                              Expanded(child: SizedBox()),
-                            ]),
-                            enabled: MyPlatform.isWeb,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: null,
-                            child: Column(children: [
-                              if (widget.currentScoreName != widget.score.name)
-                                Row(children: [
-                                  Text(widget.currentScoreName,
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                          color: musicForegroundColor
-                                              .withOpacity(0.5),
-                                          fontWeight: FontWeight.w100,
-                                          fontSize: 10)),
-                                ]),
-                              Row(children: [
-                                Expanded(
-                                  child: Text(widget.score.name,
-                                      textAlign: TextAlign.left,
-                                      // overflow: TextOverflow.ellipsis,
-                                      softWrap: true,
-                                      style: TextStyle(
-                                          color: musicForegroundColor
-                                              .withOpacity(0.5),
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 18)),
-                                ),
-                              ]),
-                            ]),
-                            enabled: false,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "create",
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Create Score...',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(
-                                    Icons.add,
-                                    color: musicForegroundColor,
-                                  ))
-                            ]),
-                            enabled: BeatScratchPlugin.supportsStorage,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "open",
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Open Score...',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.folder_open,
-                                      color: musicForegroundColor))
-                            ]),
-                            enabled: BeatScratchPlugin.supportsStorage,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "duplicate",
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Duplicate Score...',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(FontAwesomeIcons.codeBranch,
-                                      color: musicForegroundColor))
-                            ]),
-                            enabled: BeatScratchPlugin.supportsStorage,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "save",
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Save Score',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.save,
-                                      color: musicForegroundColor))
-                            ]),
-                            enabled: BeatScratchPlugin.supportsStorage,
-                          ),
-                        MyPopupMenuItem(
-                          value: "copyScore",
-                          child: Row(children: [
-                            Expanded(
-                                child: Text(
-                                    MyPlatform.isWeb
-                                        ? 'Copy/Update Score Link'
-                                        : 'Copy Score Link',
-                                    style: TextStyle(
-                                      color: musicForegroundColor,
-                                    ))),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.content_copy,
-                                    color: musicForegroundColor))
-                          ]),
-                          enabled: true,
-                        ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "pasteScore",
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Paste Score Link',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.content_paste,
-                                      color: musicForegroundColor))
-                            ]),
-                            enabled: BeatScratchPlugin.supportsStorage,
-                          ),
-                        if (!MyPlatform.isWeb)
-                          MyPopupMenuItem(
-                            value: "export",
-                            enabled: MyPlatform.isNative,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Export...',
-                                      style: TextStyle(
-                                        color: musicForegroundColor,
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: ExportUI.exportIcon(
-                                      color: musicForegroundColor))
-                            ]),
-                          ),
-//                    if(interactionMode == InteractionMode.edit) MyPopupMenuItem(
-//                          value: "showBeatCounts",
-//                          child: Row(children: [
-//                            Checkbox(value: showBeatCounts, onChanged: null),
-//                            Expanded(child: Text('Show Section Beat Counts'))
-//                          ]),
-//                        ),
-                        if (kDebugMode)
-                          MyPopupMenuItem(
-                            value: "clearMutableCaches",
-                            child: Text('Debug: Clear Rendering Caches',
-                                style: TextStyle(
-                                  color: musicForegroundColor,
-                                )),
-                          ),
-                        if (kDebugMode)
-                          MyPopupMenuItem(
-                            value: "copyUniverseDataCache",
-                            child: Text('Debug: Copy Universe Data Cache',
-                                style: TextStyle(
-                                  color: musicForegroundColor,
-                                )),
-                          ),
-                        MyPopupMenuItem(
-                          value: "midiSettings",
-                          child: Row(children: [
-                            Expanded(
-                                child: Text('Settings...',
-                                    style: TextStyle(
-                                      color: musicForegroundColor,
-                                    ))),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.settings,
-                                    color: musicForegroundColor))
-                          ]),
-                        ),
-                        if (MyPlatform.isDebug)
-                          MyPopupMenuItem(
-                            value: "tutorial",
-                            enabled: false,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Text('Help/Tutorial',
-                                      style: TextStyle(
-                                        color: musicForegroundColor
-                                            .withOpacity(0.5),
-                                      ))),
-                              Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 5),
-                                  child: Icon(Icons.help,
-                                      color: musicForegroundColor))
-                            ]),
-                          ),
-                        MyPopupMenuItem(
-                          value: "feedback",
-                          enabled: true,
-                          child: Row(children: [
-                            Expanded(
-                                child: Text('Feedback',
-                                    style: TextStyle(
-                                      color: musicForegroundColor,
-                                    ))),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Stack(
-                                  children: [
-                                    Transform.translate(
-                                      offset: Offset(-6, -6),
-                                      child: Transform.scale(
-                                        scale: 0.8,
-                                        child: Icon(FontAwesomeIcons.smile,
-                                            color: musicForegroundColor),
-                                      ),
-                                    ),
-                                    Transform.translate(
-                                      offset: Offset(6, 6),
-                                      child: Transform.scale(
-                                          scale: 0.8,
-                                          child: Icon(FontAwesomeIcons.sadTear,
-                                              color: musicForegroundColor)),
-                                    ),
-                                  ],
-                                )),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(FontAwesomeIcons.github,
-                                    color: musicForegroundColor))
-                          ]),
-                        ),
-                        MyPopupMenuItem(
-                          value: "about",
-                          enabled: true,
-                          child: Row(children: [
-                            Expanded(
-                                child: Text('About BeatScratch',
-                                    style: TextStyle(
-                                      color: musicForegroundColor,
-                                    ))),
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 2, horizontal: 5),
-                                child: Icon(Icons.info_outline,
-                                    color: musicForegroundColor))
-                          ]),
-                        ),
-                      ];
+                        Offset.zero & overlay.size,
+                      );
+                      showMainMenu(
+                              context: context,
+                              position: position,
+                              showDownloads: widget.showDownloads,
+                              currentScore: widget.score,
+                              currentScoreName: widget.currentScoreName)
+                          .then(onMenuItemChosen);
                     },
-                    padding: EdgeInsets.only(bottom: 10.0),
-                    icon: Align(
+                    padding: EdgeInsets.zero,
+                    lightHighlight: true,
+                    child: Align(
                         alignment: Alignment.center,
                         child: Stack(children: [
-                          Image.asset('assets/logo.png'),
+                          Transform.scale(
+                              scale: 0.7,
+                              child: Image.asset('assets/logo.png')),
                           Transform.translate(
                               offset: widget.vertical
                                   ? Offset(20, 43)
@@ -810,22 +379,22 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
             Expanded(
               child: AnimatedContainer(
                 duration: animationDuration,
-                color: (widget.interactionMode == InteractionMode.universe)
+                color: (widget.interactionMode.isUniverse)
                     ? widget.sectionColor
                     : Colors.transparent,
                 child: MyFlatButton(
-                    onPressed:
-                        widget.interactionMode == InteractionMode.universe
-                            ? () => widget.refreshUniverseData()
-                            : widget.universeMode,
+                    onPressed: widget.interactionMode.isUniverse
+                        ? () => widget.refreshUniverseData()
+                        : widget.universeMode,
                     onLongPress: () {
                       HapticFeedback.lightImpact();
-                      if (widget.interactionMode == InteractionMode.universe) {
+                      if (widget.interactionMode.isUniverse) {
                         widget.refreshUniverseData();
                       } else {
                         widget.universeMode();
                       }
                     },
+                    lightHighlight: !widget.interactionMode.isUniverse,
                     padding: EdgeInsets.all(0.0),
                     child: Align(
                         alignment: Alignment.center,
@@ -839,18 +408,18 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
             Expanded(
                 child: AnimatedContainer(
                     duration: animationDuration,
-                    color: (widget.interactionMode == InteractionMode.view)
+                    color: (widget.interactionMode.isView)
                         ? widget.sectionColor
                         : Colors.transparent,
                     child: MyFlatButton(
-                        onPressed:
-                            (widget.interactionMode == InteractionMode.view)
-                                ? widget.toggleViewOptions
-                                : widget.viewMode,
+                        onPressed: (widget.interactionMode.isView)
+                            ? widget.toggleViewOptions
+                            : widget.viewMode,
                         onLongPress: () {
                           HapticFeedback.lightImpact();
                           widget.toggleViewOptions();
                         },
+                        lightHighlight: !widget.interactionMode.isView,
                         padding: EdgeInsets.all(0.0),
                         child: Align(
                             alignment: Alignment.center,
@@ -873,6 +442,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     child: MyFlatButton(
                         onPressed: widget.editMode,
                         padding: EdgeInsets.all(0.0),
+                        lightHighlight: !widget.interactionMode.isEdit,
                         child: Stack(
                           children: [
                             Align(
@@ -1035,6 +605,107 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                         ))))
         ]));
   }
+
+  onMenuItemChosen(value) {
+    switch (value) {
+      case "create":
+        widget.saveCurrentScore();
+        ScoreManager.suggestScoreName("");
+        widget.showScorePicker(ScorePickerMode.create);
+        break;
+      case "open":
+        widget.saveCurrentScore();
+        widget.showScorePicker(ScorePickerMode.open);
+        break;
+      case "duplicate":
+        widget.saveCurrentScore();
+        widget.showScorePicker(ScorePickerMode.duplicate);
+        break;
+      case "save":
+        widget.saveCurrentScore();
+        break;
+      case "import":
+        print("Showing file picker");
+        break;
+      case "chooseBeatscratchFolder":
+        break;
+      case "notationUi":
+        widget.setRenderingMode(RenderingMode.notation);
+        break;
+      case "colorblockUi":
+        widget.setRenderingMode(RenderingMode.colorblock);
+        break;
+      case "midiSettings":
+        widget.showMidiInputSettings();
+        break;
+      case "showBeatCounts":
+        widget.toggleShowBeatCounts();
+        break;
+      case "clearMutableCaches":
+        clearMutableCaches();
+        break;
+      case "copyUniverseDataCache":
+        print('hi"');
+
+        Future.microtask(() async {
+          Clipboard.setData(ClipboardData(
+              text: jsonEncode(widget.universeManager.cachedUniverseData
+                  .map((e) => e.toJson())
+                  .toList())));
+        });
+        break;
+      case "copyScore":
+        Future.microtask(() async {
+          widget.score.name = widget.scoreManager.currentScoreName;
+          String urlString;
+          if (widget.appSettings.integratePastee) {
+            widget.messagesUI.sendMessage(
+                message: "Generating short URL via https://paste.ee...",
+                andSetState: true);
+            urlString = (await widget.score.convertToShortUrl()) ??
+                widget.score.convertToUrl();
+            if (!urlString.contains("#/s/")) {
+              widget.messagesUI.sendMessage(
+                  message:
+                      "Failed to shorten URL via https://paste.ee! Creating long-form Score Link...",
+                  andSetState: true,
+                  isError: true,
+                  color: chromaticSteps[5]);
+            }
+          } else {
+            urlString = widget.score.convertToUrl();
+          }
+          String pastebinCode = urlString.split('/').last;
+          Clipboard.setData(ClipboardData(text: urlString));
+          widget.messagesUI.sendMessage(
+            message: "Copied Score Link: $urlString",
+            andSetState: true,
+          );
+          if (MyPlatform.isWeb) {
+            widget.routeToCurrentScore(pastebinCode);
+          }
+        });
+        break;
+      case "pasteScore":
+        widget.pasteScore();
+        break;
+      case "export":
+        widget.export();
+        break;
+      case "tutorial":
+        break;
+      case "feedback":
+        launchURL("https://github.com/falrm/falrm.github.io/issues");
+        break;
+      case "about":
+        launchURL("https://beatscratch.io/about.html");
+        break;
+      case "downloadNative":
+        widget.toggleShowDownloads();
+        break;
+    }
+    //setState(() {});
+  }
 }
 
 class SecondToolbar extends StatefulWidget {
@@ -1101,8 +772,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
     }
   }
 
-  bool get showPlayButton =>
-      true; //widget.interactionMode == InteractionMode.edit;
+  bool get showPlayButton => true; //widget.interactionMode.isEdit;
 
   @override
   Widget build(BuildContext context) {

@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   set splitMode(SplitMode value) {
     _splitMode = value;
     if (_musicViewSizeFactor != 0) {
-      if (value == SplitMode.half && interactionMode == InteractionMode.edit) {
+      if (value == SplitMode.half && interactionMode.isEdit) {
         _musicViewSizeFactor = 0.5;
       } else {
         _musicViewSizeFactor = 1;
@@ -310,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   set showBeatCounts(bool v) => _appSettings.showBeatsBadges = v;
 
   _showMusicView() {
-    if (interactionMode == InteractionMode.edit) {
+    if (interactionMode.isEdit) {
       if (splitMode == SplitMode.half) {
         _musicViewSizeFactor = 0.5;
       } else {
@@ -520,7 +520,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       // showSections = false;
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
-      if (scorePickerMode == ScorePickerMode.universe) {
+      if (scorePickerMode == ScorePickerMode.universe ||
+          scorePickerMode == ScorePickerMode.none) {
         _closeScorePicker();
       }
       recordingMelody = false;
@@ -553,7 +554,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         _showScorePicker = true;
         Future.delayed(slowAnimationDuration, () {
           setState(() {
-            if (interactionMode == InteractionMode.universe) {
+            if (interactionMode.isUniverse) {
               scorePickerMode = ScorePickerMode.universe;
             }
           });
@@ -570,7 +571,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       // _universeManager.currentUniverseScore = "";
       universeViewUI.visible = false;
-      if (interactionMode == InteractionMode.edit) {
+      if (interactionMode.isEdit) {
         if (selectedMelody != null) {
           _prevSelectedMelody = selectedMelody;
           _prevSelectedPart = null;
@@ -602,7 +603,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
           Future.delayed(slowAnimationDuration, () {
             setState(() {
-              if (interactionMode == InteractionMode.edit) {
+              if (interactionMode.isEdit && !MyPlatform.isWeb) {
                 scorePickerMode = ScorePickerMode.duplicate;
                 _showScorePicker = true;
                 splitMode = SplitMode.full;
@@ -621,7 +622,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (!showSections) {
           Future.delayed(slowAnimationDuration, () {
             setState(() {
-              if (interactionMode == InteractionMode.edit && !showSections) {
+              if (interactionMode.isEdit && !showSections) {
                 showSections = true;
                 verticalSectionList = false;
               }
@@ -732,9 +733,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _topNotchPaddingReal => MediaQuery.of(context).padding.top;
 
   double get _secondToolbarHeight => _portraitPhoneUI
-      ? interactionMode == InteractionMode.edit ||
-              interactionMode == InteractionMode.view ||
-              interactionMode == InteractionMode.universe ||
+      ? interactionMode.isEdit ||
+              interactionMode.isView ||
+              interactionMode.isUniverse ||
               showViewOptions
           ? 36
           : 0
@@ -748,12 +749,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get _midiSettingsHeight => showMidiConfiguration ? 175 : 0;
 
   Axis get _scorePickerScrollDirection =>
-      context.isLandscape ? Axis.vertical : Axis.horizontal;
+      context.isTabletOrLandscapey ? Axis.vertical : Axis.horizontal;
   double _scorePickerWidth(BuildContext context) => showScorePicker
       ? _scorePickerScrollDirection == Axis.horizontal
           ? MediaQuery.of(context).size.width
           : min(
-              max(interactionMode == InteractionMode.universe ? 300 : 365,
+              max(interactionMode.isUniverse ? 300 : 365,
                   MediaQuery.of(context).size.width / 4),
               450)
       : 0.0;
@@ -763,7 +764,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           : MediaQuery.of(context).size.height - universeViewUIHeight
       : 0.0;
   double _horizontalScorePickerHeight(BuildContext context) => showScorePicker
-      ? interactionMode == InteractionMode.universe
+      ? interactionMode.isUniverse
           ? universeViewUI.signingIn
               ? 0
               : flexibleAreaHeight(context) *
@@ -782,8 +783,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       : 65))
       : 0.0;
 
-  // ignore: unused_field
-  bool _isPhone = false;
   bool _isLandscapePhone = false;
 
   double get _colorboardHeight => showColorboard
@@ -876,7 +875,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       scoreToOpen.migrate();
       MelodyMenuBrowser.loadScoreData();
       if (_scoreManager.currentScoreName != ScoreManager.UNIVERSE_SCORE &&
-          interactionMode == InteractionMode.universe) {
+          interactionMode.isUniverse) {
         _viewMode();
       }
       setState(() {
@@ -884,7 +883,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         score = scoreToOpen;
         clearMutableCaches();
         currentSection = scoreToOpen.sections.first;
-        if (interactionMode == InteractionMode.edit) {
+        if (interactionMode.isEdit) {
           musicViewMode = MusicViewMode.section;
         }
         selectedMelody = null;
@@ -1064,7 +1063,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   bool _goBack() {
-    if (interactionMode == InteractionMode.edit && _musicViewSizeFactor > 0) {
+    if (interactionMode.isEdit && _musicViewSizeFactor > 0) {
       setState(() {
         _hideMusicView();
       });
@@ -1088,7 +1087,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         showColorboard = false;
       });
       return true;
-    } else if (interactionMode == InteractionMode.edit) {
+    } else if (interactionMode.isEdit) {
       _viewMode();
       return true;
     } else {
@@ -1106,7 +1105,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       showKeyboard = false;
     }
     hadPriotizedMIDIController = hasPrioritizedMIDIController;
-    _isPhone = context.isPhone;
     _isLandscapePhone = context.isLandscapePhone;
     // if (editingMelody && _isPhone) {
     //   verticalSectionList = context.isLandscape;
@@ -1147,7 +1145,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // fit: FlexFit.loose,
                 child: Stack(children: [
                   Column(children: [
-                    if (!context.isLandscapePhone)
+                    if (!context.isLandscape)
                       universeViewUI.build(
                           context: context,
                           sectionColor: sectionColor,
@@ -1163,7 +1161,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         if (_scorePickerScrollDirection == Axis.vertical)
                           Column(
                             children: [
-                              if (context.isLandscapePhone)
+                              if (context.isLandscape)
                                 AnimatedContainer(
                                     duration: animationDuration,
                                     height: universeViewUIHeight,
@@ -1317,8 +1315,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
-  double get universeScoreTitleHeight =>
-      interactionMode == InteractionMode.universe ? 36 : 0;
+  double get universeScoreTitleHeight => interactionMode.isUniverse ? 36 : 0;
 
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
@@ -2063,7 +2060,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           });
         },
         export: () {
-          if (interactionMode == InteractionMode.view) {
+          if (interactionMode.isView) {
             setState(() {
               exportUI.visible = true;
               showScorePicker = false;
@@ -2093,8 +2090,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _doShowScorePicker(mode) {
     setState(() {
-      if ((interactionMode == InteractionMode.universe &&
-              mode != ScorePickerMode.universe) ||
+      if ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
           (interactionMode != InteractionMode.view &&
               mode != ScorePickerMode.show)) {
         scorePickerMode = ScorePickerMode.none;
@@ -2186,7 +2182,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           showBeatCounts = !showBeatCounts;
         });
       },
-      allowReordering: interactionMode == InteractionMode.edit,
+      allowReordering: interactionMode.isEdit,
     );
     _sectionLists.add(result);
     return result;
@@ -2251,7 +2247,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= _scorePickerHeight(context);
     }
-    if (!context.isLandscapePhone) {
+    if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= universeScoreTitleHeight;
     }
     double fullWidth = data.size.width -
@@ -2522,7 +2518,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         BeatScratchPlugin.updateSections(score);
       },
       selectBeat: (beat) {
-        // if (interactionMode == InteractionMode.view) {
+        // if (interactionMode.isView) {
         int seekingBeat = 0;
         int sectionIndex = 0;
         Section section = score.sections[sectionIndex++];

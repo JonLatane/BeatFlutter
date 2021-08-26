@@ -162,13 +162,15 @@ class _ScorePreviewState extends State<ScorePreview> {
         widget.height,
         widget.renderPartNames,
         widget.renderSections,
-        widget.musicViewMode
+        widget.musicViewMode,
+        musicForegroundColor,
+        AppSettings.globalRenderingMode
       ]);
   _updateScoreImage() {
     Future.delayed(animationDuration, () async {
       final Uint8List data = RENDER_CACHE.get(renderingArguments);
       if (data == null) {
-        print("Ummm this bad");
+        // print("Ummm this bad");
         _updateScoreImage();
         return;
       }
@@ -182,6 +184,7 @@ class _ScorePreviewState extends State<ScorePreview> {
       });
       if (actualWidth < renderableWidth) {
         Future.delayed(animationDuration, () async {
+          if (disposed) return;
           setState(() {
             renderableWidth = actualWidth;
           });

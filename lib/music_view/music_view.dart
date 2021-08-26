@@ -677,6 +677,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                   if (ignoreDragEvents) return;
                                   if (details.delta.dy > sensitivity) {
                                     // Down swipe
+                                    HapticFeedback.lightImpact();
                                     if (widget.splitMode == SplitMode.half) {
                                       _hasSwipedClosed = true;
                                       widget.closeMelodyView();
@@ -687,6 +688,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                   } else if (details.delta.dy < -sensitivity) {
                                     // Up swipe
                                     if (widget.splitMode == SplitMode.half) {
+                                      HapticFeedback.lightImpact();
                                       widget.toggleSplitMode();
                                     }
                                     ignoreDragEvents = true;
@@ -698,6 +700,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                   if (ignoreDragEvents) return;
                                   if (details.delta.dx > sensitivity) {
                                     // Right swipe
+                                    HapticFeedback.lightImpact();
                                     if (widget.splitMode == SplitMode.half) {
                                       _hasSwipedClosed = true;
                                       widget.closeMelodyView();
@@ -708,6 +711,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                   } else if (details.delta.dx < -sensitivity) {
                                     // Left swipe
                                     if (widget.splitMode == SplitMode.half) {
+                                      HapticFeedback.lightImpact();
                                       widget.toggleSplitMode();
                                     }
                                     ignoreDragEvents = true;

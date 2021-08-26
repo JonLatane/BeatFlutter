@@ -232,7 +232,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
             : unloadedScoreName;
 
     double previewScale =
-        widget.width > 200 && widget.height > 200 ? 0.33 : 0.13;
+        widget.width > 200 && widget.height > 200 ? 0.23 : 0.13;
     bool isLocked = scoreName == ScoreManager.PASTED_SCORE ||
         scoreName == ScoreManager.WEB_SCORE ||
         scoreName == ScoreManager.UNIVERSE_SCORE;

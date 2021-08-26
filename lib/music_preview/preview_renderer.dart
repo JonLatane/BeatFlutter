@@ -82,12 +82,15 @@ class MusicPreviewRenderer {
     // using @painter[SignaturePainter] we can call [SignaturePainter]#paint
     // with the our newly created @canvas
     final recorder = ui.PictureRecorder();
-    Canvas canvas = Canvas(recorder);
-    var size = Size(actualWidth * _overSampleScale, height * _overSampleScale);
+    final Canvas canvas = Canvas(recorder);
+    final size =
+        Size(actualWidth * _overSampleScale, height * _overSampleScale);
     final painter = this.painter;
     canvas.save();
     canvas.scale(_overSampleScale);
+    // await () async {
     painter.paint(canvas, size);
+    // };
     canvas.restore();
     final data = recorder
         .endRecording()

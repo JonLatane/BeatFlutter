@@ -4,6 +4,8 @@ enum InteractionMode { view, edit, universe }
 
 extension EditInteractions on InteractionMode {
   bool get isEdit => this == InteractionMode.edit;
+  bool get isView => this == InteractionMode.view;
+  bool get isUniverse => this == InteractionMode.universe;
 }
 
 enum MusicViewMode { score, section, part, melody, none }

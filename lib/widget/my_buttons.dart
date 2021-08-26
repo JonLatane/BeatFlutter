@@ -27,14 +27,9 @@ class MyFlatButton extends TextButton {
           onLongPress: onLongPress,
           style: style ??
               ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith((state) =>
-                      {
-                        MaterialState.hovered:
-                            lightHighlight ? Colors.white : Colors.white,
-                        MaterialState.focused:
-                            lightHighlight ? Colors.white : Colors.white
-                      }[state] ??
-                      color),
+                  backgroundColor: MaterialStateProperty.all(color),
+                  overlayColor: MaterialStateProperty.all(
+                      lightHighlight ? Colors.white10 : null),
                   mouseCursor:
                       MaterialStateProperty.all(SystemMouseCursors.basic),
                   padding: MaterialStateProperty.all(padding)),

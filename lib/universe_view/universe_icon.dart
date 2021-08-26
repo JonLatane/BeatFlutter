@@ -79,7 +79,7 @@ class _UniverseIconState extends State<UniverseIcon>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.interactionMode == InteractionMode.universe) {
+    if (widget.interactionMode.isUniverse) {
       orbitRotationController.forward();
       atomRotationController.forward();
     } else {
