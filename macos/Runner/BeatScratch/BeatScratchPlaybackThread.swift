@@ -27,7 +27,7 @@ class BeatScratchPlaybackThread {
     }
     didSet {
       if(playing) {
-        if(MelodyRecorder.sharedInstance.recordingMelody != nil) {
+        if(MelodyRecorder.sharedInstance.recordingMelody != nil && !playingFromCountIn) {
           // Run the count-in
           DispatchQueue.global(qos: .userInitiated).async { [self] in
             BeatScratchScorePlayer.sharedInstance.playMetronome()
@@ -95,6 +95,7 @@ class BeatScratchPlaybackThread {
     }
   }
   
+  private var playingFromCountIn: Bool = false
   private var beatMinus2: Double?
   func sendBeat() {
     let time = CACurrentMediaTime() * 1000
@@ -111,7 +112,9 @@ class BeatScratchPlaybackThread {
       beatMinus2 = nil
       BeatScratchScorePlayer.sharedInstance.currentTick = 24 * (BeatScratchScorePlayer.sharedInstance.currentTick / 24) - 24
 //      BeatScratchScorePlayer.sharedInstance.currentTick = -24
+      playingFromCountIn = true
       playing = true
+      playingFromCountIn = false
     } else {
       BeatScratchScorePlayer.sharedInstance.playMetronome()
       BeatScratchPlugin.sharedInstance.notifyCountInInitiated()

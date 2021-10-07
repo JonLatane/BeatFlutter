@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/edit_menu.dart';
 import 'package:beatscratch_flutter_redux/main_menu.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -36,6 +37,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final UniverseManager universeManager;
   final Score score;
   final Section currentSection;
+  final Part currentPart;
   final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
@@ -71,6 +73,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback toggleShowDownloads;
   final bool savingScore;
   final BSMethod refreshUniverseData;
+  final Function(Object) editObject;
   const BeatScratchToolbar(
       {Key key,
       @required this.appSettings,
@@ -105,13 +108,15 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.prevPart,
       @required this.isMelodyViewOpen,
       @required this.currentSection,
+      @required this.currentPart,
       @required this.leftHalfOnly,
       @required this.rightHalfOnly,
       @required this.savingScore, // BeatScratchPlugin.isSynthesizerAvailable
       @required this.messagesUI,
       @required this.showDownloads,
       @required this.toggleShowDownloads,
-      @required this.refreshUniverseData})
+      @required this.refreshUniverseData,
+      @required this.editObject})
       : super(key: key);
 
   @override
@@ -120,7 +125,7 @@ class BeatScratchToolbar extends StatefulWidget {
 
 class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     with TickerProviderStateMixin {
-  AnimationController sectionOrPlayController;
+  AnimationController sectionRotationController;
   Animation<double> sectionOrPlayRotation;
   AnimationController editController;
   Animation<double> editRotation;
@@ -138,7 +143,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
   @override
   void initState() {
     super.initState();
-    sectionOrPlayController = AnimationController(
+    sectionRotationController = AnimationController(
       // animationBehavior: AnimationBehavior.preserve,
       duration: animationDuration,
       vsync: this,
@@ -146,7 +151,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     sectionOrPlayRotation = Tween<double>(
       begin: 0,
       end: 0.5 * pi,
-    ).animate(sectionOrPlayController);
+    ).animate(sectionRotationController);
 
     editController = AnimationController(
       duration: animationDuration,
@@ -181,7 +186,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 
   @override
   void dispose() {
-    sectionOrPlayController.dispose();
+    sectionRotationController.dispose();
     editRotationOnlyController.dispose();
     editController.dispose();
     super.dispose();
@@ -199,10 +204,10 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.showSections || widget.verticalSections) {
-      sectionOrPlayController.reverse();
+    if (/*!widget.showSections || */ widget.verticalSections) {
+      sectionRotationController.reverse();
     } else {
-      sectionOrPlayController.forward();
+      sectionRotationController.forward();
     }
     if (!widget.interactionMode.isEdit) {
       editController.reverse();
@@ -290,9 +295,13 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     child: Align(
                         alignment: Alignment.center,
                         child: Stack(children: [
-                          Transform.scale(
-                              scale: 0.7,
-                              child: Image.asset('assets/logo.png')),
+                          Transform.translate(
+                              offset: widget.vertical
+                                  ? Offset(0, 0)
+                                  : Offset(0, -5),
+                              child: Transform.scale(
+                                  scale: 0.7,
+                                  child: Image.asset('assets/logo.png'))),
                           Transform.translate(
                               offset: widget.vertical
                                   ? Offset(20, 43)
@@ -330,7 +339,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                     child: Align(
                         alignment: Alignment.center,
                         child: AnimatedBuilder(
-                            animation: sectionOrPlayController,
+                            animation: sectionRotationController,
                             builder: (_, child) => Transform(
                                 transform: Matrix4.rotationZ(
                                     sectionOrPlayRotation.value),
@@ -430,179 +439,27 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
                                     : widget.sectionColor))))),
           if (!widget.leftHalfOnly)
             Expanded(
-                child: AnimatedContainer(
-                    duration: animationDuration,
-                    color: (widget.interactionMode.isEdit)
-                        ? hasMelody
-                            ? Colors.white
-                            : hasPart
-                                ? (hasDrumPart ? Colors.brown : Colors.grey)
-                                : widget.sectionColor
-                        : Colors.transparent,
-                    child: MyFlatButton(
-                        onPressed: widget.editMode,
-                        padding: EdgeInsets.all(0.0),
-                        lightHighlight: !widget.interactionMode.isEdit,
-                        child: Stack(
-                          children: [
-                            Align(
-                                alignment: Alignment.center,
-                                child: AnimatedBuilder(
-                                    animation: editController,
-                                    builder: (_, child) => Transform(
-                                        transform: Matrix4.translationValues(
-                                            0,
-                                            -(widget.vertical ? 2 : 1) *
-                                                editTranslation.value,
-                                            0),
-                                        alignment: Alignment.center,
-                                        child: AnimatedBuilder(
-                                            animation:
-                                                editRotationOnlyController,
-                                            builder: (_, child) => Transform(
-                                                  transform: Matrix4.rotationZ(
-                                                      editRotationOnlyRotation
-                                                          .value),
-                                                  alignment: Alignment.center,
-                                                  child: Transform(
-                                                      transform:
-                                                          Matrix4.rotationZ(
-                                                              editRotation
-                                                                  .value),
-                                                      alignment:
-                                                          Alignment.center,
-                                                      child: ScaleTransition(
-                                                        scale: editScale,
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child: Stack(
-                                                          children: [
-                                                            AnimatedOpacity(
-                                                              duration:
-                                                                  animationDuration,
-                                                              opacity: !widget
-                                                                          .interactionMode
-                                                                          .isEdit ||
-                                                                      !widget
-                                                                          .isMelodyViewOpen
-                                                                  ? 1
-                                                                  : 0,
-                                                              child: Icon(
-                                                                  Icons.edit,
-                                                                  color: (widget
-                                                                          .interactionMode
-                                                                          .isEdit)
-                                                                      ? hasPart
-                                                                          ? Colors
-                                                                              .white
-                                                                          : hasMelody
-                                                                              ? Colors.black
-                                                                              : widget.sectionColor.textColor()
-                                                                      : widget.sectionColor),
-                                                            ),
-                                                            AnimatedOpacity(
-                                                              duration:
-                                                                  animationDuration,
-                                                              opacity: widget
-                                                                          .interactionMode
-                                                                          .isEdit &&
-                                                                      widget
-                                                                          .isMelodyViewOpen
-                                                                  ? 1
-                                                                  : 0,
-                                                              child: Icon(
-                                                                  Icons.close,
-                                                                  color: (widget
-                                                                          .interactionMode
-                                                                          .isEdit)
-                                                                      ? hasPart
-                                                                          ? Colors
-                                                                              .white
-                                                                          : hasMelody
-                                                                              ? Colors.black
-                                                                              : widget.sectionColor.textColor()
-                                                                      : widget.sectionColor),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )),
-                                                ))))),
-                            Transform.translate(
-                              offset: Offset(0, 8),
-                              child: AnimatedOpacity(
-                                  duration: animationDuration,
-                                  opacity: widget.interactionMode ==
-                                          InteractionMode.edit
-                                      ? 1
-                                      : 0,
-                                  child: Row(
-                                    children: [
-                                      Expanded(child: SizedBox()),
-                                      Column(
-                                        children: [
-                                          Expanded(child: SizedBox()),
-                                          Container(
-                                            width: widget.vertical ? 44 : 60,
-                                            child: Text(
-                                                widget.openMelody != null
-                                                    ? widget.openMelody
-                                                        .canonicalName
-                                                    : widget.openPart != null
-                                                        ? widget
-                                                            .openPart.midiName
-                                                        : widget.isMelodyViewOpen ||
-                                                                (widget.prevPart ==
-                                                                        null &&
-                                                                    widget.prevMelody ==
-                                                                        null)
-                                                            ? widget
-                                                                .currentSection
-                                                                .canonicalName
-                                                            : widget.prevMelody !=
-                                                                    null
-                                                                ? widget
-                                                                    .prevMelody
-                                                                    .canonicalName
-                                                                : widget.prevPart !=
-                                                                        null
-                                                                    ? widget
-                                                                        .prevPart
-                                                                        .midiName
-                                                                    : "Oops",
-                                                textAlign: TextAlign.center,
-                                                maxLines:
-                                                    widget.vertical ? 2 : 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                    height: widget.vertical
-                                                        ? 1
-                                                        : 0.9,
-                                                    fontSize: 10,
-                                                    color: hasPart
-                                                        ? Colors.white
-                                                        : hasMelody
-                                                            ? Colors.black
-                                                            : widget.sectionColor
-                                                                .textColor(),
-                                                    fontWeight: widget.openMelody !=
-                                                                null ||
-                                                            widget.prevMelody !=
-                                                                null
-                                                        ? FontWeight.w500
-                                                        : widget.openPart != null ||
-                                                                widget.prevPart != null
-                                                            ? FontWeight.w800
-                                                            : FontWeight.w200)),
-                                          ),
-                                          Expanded(child: SizedBox()),
-                                        ],
-                                      ),
-                                      Expanded(child: SizedBox()),
-                                    ],
-                                  )),
-                            )
-                          ],
-                        ))))
+                child: _EditButton(
+              score: widget.score,
+              currentSection: widget.currentSection,
+              currentPart: widget.currentPart,
+              openPart: widget.openPart,
+              prevPart: widget.prevPart,
+              openMelody: widget.openMelody,
+              prevMelody: widget.prevMelody,
+              interactionMode: widget.interactionMode,
+              editMode: widget.editMode,
+              sectionColor: widget.sectionColor,
+              editController: editController,
+              vertical: widget.vertical,
+              isMelodyViewOpen: widget.isMelodyViewOpen,
+              editRotation: editRotation,
+              editTranslation: editTranslation,
+              editScale: editScale,
+              editRotationOnlyController: editRotationOnlyController,
+              editRotationOnlyRotation: editRotationOnlyRotation,
+              editObject: widget.editObject,
+            ))
         ]));
   }
 
@@ -705,6 +562,211 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
         break;
     }
     //setState(() {});
+  }
+}
+
+class _EditButton extends StatelessWidget {
+  final Score score;
+  final Section currentSection;
+  final Part currentPart, openPart, prevPart;
+  final Melody openMelody, prevMelody;
+  final InteractionMode interactionMode;
+  final VoidCallback editMode;
+  final Color sectionColor;
+  final AnimationController editController;
+  final bool vertical, isMelodyViewOpen;
+  final Animation<double> editRotation;
+  final Animation<double> editTranslation;
+  final Animation<double> editScale;
+  final AnimationController editRotationOnlyController;
+  final Animation<double> editRotationOnlyRotation;
+  final Function(Object) editObject;
+
+  const _EditButton({
+    Key key,
+    this.score,
+    this.currentSection,
+    this.currentPart,
+    this.openPart,
+    this.prevPart,
+    this.openMelody,
+    this.prevMelody,
+    this.interactionMode,
+    this.editMode,
+    this.sectionColor,
+    this.editController,
+    this.vertical,
+    this.isMelodyViewOpen,
+    this.editRotation,
+    this.editTranslation,
+    this.editScale,
+    this.editRotationOnlyController,
+    this.editRotationOnlyRotation,
+    this.editObject,
+  }) : super(key: key);
+
+  bool get hasMelody => openMelody != null || prevMelody != null;
+  bool get hasPart => !hasMelody && openPart != null || prevPart != null;
+  bool get hasDrumPart =>
+      hasPart && (openPart?.isDrum ?? prevPart?.isDrum ?? false);
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return AnimatedContainer(
+        duration: animationDuration,
+        color: (interactionMode.isEdit)
+            ? hasMelody
+                ? Colors.white
+                : hasPart
+                    ? (hasDrumPart ? Colors.brown : Colors.grey)
+                    : sectionColor
+            : Colors.transparent,
+        child: MyFlatButton(
+            onPressed: editMode,
+            onLongPress: () {
+              HapticFeedback.lightImpact();
+              final RenderBox button = context.findRenderObject() as RenderBox;
+              final RenderBox overlay =
+                  Overlay.of(context).context.findRenderObject() as RenderBox;
+              final RelativeRect position = RelativeRect.fromRect(
+                Rect.fromPoints(
+                  button.localToGlobal(Offset.zero, ancestor: overlay),
+                  button.localToGlobal(button.size.bottomRight(Offset.zero),
+                      ancestor: overlay),
+                ),
+                Offset.zero & overlay.size,
+              );
+              showEditMenu(
+                  context: context,
+                  position: position,
+                  score: score,
+                  section: currentSection,
+                  part: currentPart,
+                  editObject: editObject); //.then(onMenuItemChosen);
+            },
+            padding: EdgeInsets.all(0.0),
+            lightHighlight: !interactionMode.isEdit,
+            child: Stack(
+              children: [
+                Align(
+                    alignment: Alignment.center,
+                    child: AnimatedBuilder(
+                        animation: editController,
+                        builder: (_, child) => Transform(
+                            transform: Matrix4.translationValues(0,
+                                -(vertical ? 2 : 1) * editTranslation.value, 0),
+                            alignment: Alignment.center,
+                            child: AnimatedBuilder(
+                                animation: editRotationOnlyController,
+                                builder: (_, child) => Transform(
+                                      transform: Matrix4.rotationZ(
+                                          editRotationOnlyRotation.value),
+                                      alignment: Alignment.center,
+                                      child: Transform(
+                                          transform: Matrix4.rotationZ(
+                                              editRotation.value),
+                                          alignment: Alignment.center,
+                                          child: ScaleTransition(
+                                            scale: editScale,
+                                            alignment: Alignment.center,
+                                            child: Stack(
+                                              children: [
+                                                AnimatedOpacity(
+                                                  duration: animationDuration,
+                                                  opacity:
+                                                      !interactionMode.isEdit ||
+                                                              !isMelodyViewOpen
+                                                          ? 1
+                                                          : 0,
+                                                  child: Icon(Icons.edit,
+                                                      color: (interactionMode
+                                                              .isEdit)
+                                                          ? hasPart
+                                                              ? Colors.white
+                                                              : hasMelody
+                                                                  ? Colors.black
+                                                                  : sectionColor
+                                                                      .textColor()
+                                                          : sectionColor),
+                                                ),
+                                                AnimatedOpacity(
+                                                  duration: animationDuration,
+                                                  opacity:
+                                                      interactionMode.isEdit &&
+                                                              isMelodyViewOpen
+                                                          ? 1
+                                                          : 0,
+                                                  child: Icon(Icons.close,
+                                                      color: (interactionMode
+                                                              .isEdit)
+                                                          ? hasPart
+                                                              ? Colors.white
+                                                              : hasMelody
+                                                                  ? Colors.black
+                                                                  : sectionColor
+                                                                      .textColor()
+                                                          : sectionColor),
+                                                ),
+                                              ],
+                                            ),
+                                          )),
+                                    ))))),
+                Transform.translate(
+                  offset: Offset(0, 8),
+                  child: AnimatedOpacity(
+                      duration: animationDuration,
+                      opacity: interactionMode == InteractionMode.edit ? 1 : 0,
+                      child: Row(
+                        children: [
+                          Expanded(child: SizedBox()),
+                          Column(
+                            children: [
+                              Expanded(child: SizedBox()),
+                              Container(
+                                width: vertical ? 44 : 60,
+                                child: Text(
+                                    openMelody != null
+                                        ? openMelody.canonicalName
+                                        : openPart != null
+                                            ? openPart.midiName
+                                            : isMelodyViewOpen ||
+                                                    (prevPart == null &&
+                                                        prevMelody == null)
+                                                ? currentSection.canonicalName
+                                                : prevMelody != null
+                                                    ? prevMelody.canonicalName
+                                                    : prevPart != null
+                                                        ? prevPart.midiName
+                                                        : "Oops",
+                                    textAlign: TextAlign.center,
+                                    maxLines: vertical ? 2 : 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        height: vertical ? 1 : 0.9,
+                                        fontSize: 10,
+                                        color: hasPart
+                                            ? Colors.white
+                                            : hasMelody
+                                                ? Colors.black
+                                                : sectionColor.textColor(),
+                                        fontWeight: openMelody != null ||
+                                                prevMelody != null
+                                            ? FontWeight.w500
+                                            : openPart != null ||
+                                                    prevPart != null
+                                                ? FontWeight.w800
+                                                : FontWeight.w200)),
+                              ),
+                              Expanded(child: SizedBox()),
+                            ],
+                          ),
+                          Expanded(child: SizedBox()),
+                        ],
+                      )),
+                )
+              ],
+            )));
   }
 }
 

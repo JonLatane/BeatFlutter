@@ -279,6 +279,20 @@ Score melodyPreview(Melody melody, Part part, Section section) {
   return result;
 }
 
+Score sectionPreview(Score score, Section section) {
+  Score result = Score();
+  result.parts.addAll(score.parts);
+  result.sections.add(section);
+  return result;
+}
+
+Score partPreview(Score score, Part part, Section section) {
+  Score result = Score();
+  result.parts.add(part);
+  result.sections.add(section);
+  return result;
+}
+
 extension MidiThings on Score {
   bool usesChannel(int channel) =>
       parts.any((part) => part.instrument.midiChannel == channel);

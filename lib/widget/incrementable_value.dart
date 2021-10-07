@@ -253,17 +253,18 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       : null,
                   padding: EdgeInsets.all(0),
                 )),
-            Container(child: widget.child) ??
-                Container(
-                    width: widget.valueWidth,
-                    child: MyRaisedButton(
-                        onPressed: widget.onValuePressed,
-                        padding: EdgeInsets.all(0),
-                        child: Text(
-                          widget.value ?? "null",
-                          style: widget.textStyle ??
-                              TextStyle(color: Colors.white),
-                        ))),
+            Container(
+                child: widget.child ??
+                    Container(
+                        width: widget.valueWidth,
+                        child: MyRaisedButton(
+                            onPressed: widget.onValuePressed,
+                            padding: EdgeInsets.all(0),
+                            child: Text(
+                              widget.value ?? "null",
+                              style: widget.textStyle ??
+                                  TextStyle(color: Colors.white),
+                            )))),
             AnimatedContainer(
                 width: buttonWidth,
                 padding: EdgeInsets.only(right: showButtons ? 3 : 0),

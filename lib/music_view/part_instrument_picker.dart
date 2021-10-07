@@ -174,6 +174,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
                 Padding(
                     padding: EdgeInsets.only(left: 5),
                     child: Text("Volume:",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 16, color: Colors.white))),
                 SizedBox(
                   width: 50,
@@ -203,6 +205,8 @@ class _PartConfigurationState extends State<PartConfiguration> {
                     child: Padding(
                         padding: EdgeInsets.only(left: 5),
                         child: Text("MIDI Channel:",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style:
                                 TextStyle(fontSize: 16, color: Colors.white)))),
                 IncrementableValue(
@@ -241,42 +245,69 @@ class _PartConfigurationState extends State<PartConfiguration> {
                   valueWidth: 100,
                   value: "Channel ${(midiChannel ?? -2) + 1}",
                 ),
-                SizedBox(width: 5)
+                // SizedBox(width: 5)
               ]),
               Row(children: [
                 Expanded(
                     child: Padding(
                         padding: EdgeInsets.only(left: 5),
                         child: Text("MIDI Instrument:",
-                            overflow: TextOverflow.fade,
-                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                             style:
                                 TextStyle(fontSize: 16, color: Colors.white)))),
-                Icon(Icons.search, color: Colors.white),
                 Container(
-                    width: 120,
-                    child: TextField(
-                      style: TextStyle(fontSize: 14, color: Colors.white),
-                      controller: searchController,
-                      textCapitalization: TextCapitalization.words,
-                      onChanged: (value) {
-                        searchText = value;
-                      },
-                      onTap: () {
-                        if (context.isLandscapePhone) {
-                          scrollController.animateTo(100,
-                              duration: animationDuration, curve: Curves.ease);
-                        }
-                      },
+                  color: Colors.white,
+                  // height: 36,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 3),
+                      Icon(Icons.search, color: Colors.grey),
+                      Container(
+                          width: 95,
+                          child: TextField(
+                            style: TextStyle(fontSize: 12, color: Colors.black),
+                            controller: searchController,
+                            textCapitalization: TextCapitalization.words,
+                            onChanged: (value) {
+                              setState(() {
+                                searchText = value;
+                              });
+                            },
+                            onTap: () {
+                              if (context.isLandscapePhone) {
+                                scrollController.animateTo(100,
+                                    duration: animationDuration,
+                                    curve: Curves.ease);
+                              }
+                            },
 //          onTap: () {
 //            if (!context.isTabletOrLandscapey) {
 //              widget.hideMelodyView();
 //            }
 //          },
-                      decoration: InputDecoration(
-                          border: InputBorder.none, hintText: "Search"),
-                    ))
+                            decoration: InputDecoration(
+                                border: InputBorder.none, hintText: "Search"),
+                          )),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        child: MyFlatButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(() {
+                                searchController.value =
+                                    searchController.value.copyWith(text: "");
+                              });
+                            },
+                            child: Icon(Icons.close, color: Colors.black)),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(width: 5)
               ]),
+              SizedBox(height: 2),
               Expanded(
                   child: ImplicitlyAnimatedList<int>(
                 scrollDirection: Axis.horizontal,

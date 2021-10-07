@@ -21,6 +21,7 @@ class ScalableView extends StatefulWidget {
   final Color primaryColor;
   final bool showViewOptions;
   final Color zoomButtonColor;
+  final bool shiftUpZoomControls;
 
   const ScalableView(
       {Key key,
@@ -36,7 +37,8 @@ class ScalableView extends StatefulWidget {
       this.showViewOptions = true,
       this.onMicroScaleDown,
       this.onMicroScaleUp,
-      this.zoomButtonColor = Colors.black26})
+      this.zoomButtonColor = Colors.black26,
+      this.shiftUpZoomControls = false})
       : super(key: key);
 
   @override
@@ -136,6 +138,9 @@ class _ScalableViewState extends State<ScalableView> {
                       onIncrement: widget.onScaleUp,
                       onDecrement: widget.onScaleDown)),
               SizedBox(height: 2),
+              AnimatedContainer(
+                  duration: animationDuration,
+                  height: widget.shiftUpZoomControls ? 24 : 0)
             ]),
             SizedBox(width: 2),
           ])

@@ -342,7 +342,7 @@ class PartToolbarState extends State<PartToolbar> {
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
-                        fontWeight: FontWeight.w600)))),
+                        fontWeight: FontWeight.w800)))),
 //        AnimatedContainer(
 //            duration: animationDuration,
 //            width: isConfirmingDelete ? 0 : 41,
@@ -517,6 +517,7 @@ class SectionToolbar extends StatefulWidget {
   final MusicViewMode musicViewMode;
   final Function(Section, String) setSectionName;
   final Function(Section) deleteSection;
+  final Function addPart;
   final Function cloneCurrentSection;
   final bool editingSection;
   final Function(bool) setEditingSection;
@@ -530,6 +531,7 @@ class SectionToolbar extends StatefulWidget {
       this.deleteSection,
       this.canDeleteSection,
       this.editingSection,
+      this.addPart,
       this.cloneCurrentSection,
       this.setEditingSection})
       : super(key: key);
@@ -615,6 +617,31 @@ class SectionToolbarState extends State<SectionToolbar> {
               widget.setEditingSection(!widget.editingSection);
             },
           )),
+      AnimatedContainer(
+          duration: animationDuration,
+          width: isConfirmingDelete || widget.addPart == null ? 0 : 69,
+          height: 36,
+          padding: EdgeInsets.only(right: 5),
+          child: MyRaisedButton(
+              onPressed: widget.addPart,
+              padding: EdgeInsets.zero,
+              child: AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: widget.musicViewMode != MusicViewMode.section ||
+                          isConfirmingDelete ||
+                          widget.addPart == null
+                      ? 0
+                      : 1,
+                  child: Row(children: [
+                    Icon(Icons.add),
+                    Expanded(
+                      child: Text("Part",
+                          maxLines: 1,
+                          overflow: TextOverflow.clip,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w900)),
+                    )
+                  ])))),
       AnimatedContainer(
           duration: animationDuration,
           width: isConfirmingDelete ? 0 : 41,

@@ -20,12 +20,15 @@ Future<String> showMainMenu(
   return showMenu(
       context: context,
       position: position,
-      color: musicBackgroundColor.luminance < 0.5
-          ? subBackgroundColor
-          : musicBackgroundColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: (musicBackgroundColor.luminance < 0.5
+              ? subBackgroundColor
+              : musicBackgroundColor)
+          .withOpacity(0.95),
       items: [
         PopupMenuItem(
           value: null,
+          mouseCursor: SystemMouseCursors.basic,
           child: Column(children: [
             Row(children: [
               Text('Beat',
@@ -79,6 +82,7 @@ Future<String> showMainMenu(
         ),
         if (MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "downloadNative",
             child: Row(children: [
               Padding(
@@ -99,6 +103,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: null,
             child: Column(children: [
               if (currentScoreName != currentScore.name)
@@ -127,6 +132,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "create",
             child: Row(children: [
               Expanded(
@@ -145,6 +151,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "open",
             child: Row(children: [
               Expanded(
@@ -160,6 +167,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "duplicate",
             child: Row(children: [
               Expanded(
@@ -176,6 +184,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "save",
             child: Row(children: [
               Expanded(
@@ -190,6 +199,7 @@ Future<String> showMainMenu(
             enabled: BeatScratchPlugin.supportsStorage,
           ),
         PopupMenuItem(
+          mouseCursor: SystemMouseCursors.basic,
           value: "copyScore",
           child: Row(children: [
             Expanded(
@@ -208,6 +218,7 @@ Future<String> showMainMenu(
         ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "pasteScore",
             child: Row(children: [
               Expanded(
@@ -223,6 +234,7 @@ Future<String> showMainMenu(
           ),
         if (!MyPlatform.isWeb)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "export",
             enabled: MyPlatform.isNative,
             child: Row(children: [
@@ -245,6 +257,7 @@ Future<String> showMainMenu(
         //                        ),
         if (kDebugMode)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "clearMutableCaches",
             child: Text('Debug: Clear Rendering Caches',
                 style: TextStyle(
@@ -253,6 +266,7 @@ Future<String> showMainMenu(
           ),
         if (kDebugMode)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "copyUniverseDataCache",
             child: Text('Debug: Copy Universe Data Cache',
                 style: TextStyle(
@@ -260,6 +274,7 @@ Future<String> showMainMenu(
                 )),
           ),
         PopupMenuItem(
+          mouseCursor: SystemMouseCursors.basic,
           value: "midiSettings",
           child: Row(children: [
             Expanded(
@@ -274,6 +289,7 @@ Future<String> showMainMenu(
         ),
         if (MyPlatform.isDebug)
           PopupMenuItem(
+            mouseCursor: SystemMouseCursors.basic,
             value: "tutorial",
             enabled: false,
             child: Row(children: [
@@ -288,6 +304,7 @@ Future<String> showMainMenu(
             ]),
           ),
         PopupMenuItem(
+          mouseCursor: SystemMouseCursors.basic,
           value: "feedback",
           enabled: true,
           child: Row(children: [
@@ -324,6 +341,7 @@ Future<String> showMainMenu(
           ]),
         ),
         PopupMenuItem(
+          mouseCursor: SystemMouseCursors.basic,
           value: "about",
           enabled: true,
           child: Row(children: [

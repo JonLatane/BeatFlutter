@@ -80,10 +80,10 @@ class ScorePicker extends StatefulWidget {
       : super(key: key);
 
   @override
-  _ScorePickerState createState() => _ScorePickerState();
+  ScorePickerState createState() => ScorePickerState();
 }
 
-class _ScorePickerState extends State<ScorePicker> {
+class ScorePickerState extends State<ScorePicker> {
   ScrollController _scrollController = ScrollController();
   Iterable<MidiController> midiControllers = BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> midiSynthesizers =
@@ -196,27 +196,8 @@ class _ScorePickerState extends State<ScorePicker> {
         String openedScoreName = widget.openedScore.name;
         String scoreManagerName = widget.scoreManager.currentScoreName;
         if (openedScoreName != scoreManagerName) {
-          extraDetailText = TextSpan(
-            text: 'The Score "',
-            style: detailTextStyle,
-            children: <TextSpan>[
-              TextSpan(
-                  text: openedScoreName,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: chromaticSteps[0])),
-              TextSpan(text: '" is opened with the name "'),
-              TextSpan(
-                  text: scoreManagerName,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: chromaticSteps[5])),
-              TextSpan(
-                  text: '." To avoid losing changes, choose a new name and '),
-              TextSpan(
-                  text: 'Duplicate',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: ' it.'),
-            ],
-          );
+          extraDetailText = duplicateWarningText(
+              detailTextStyle, widget.openedScore, widget.scoreManager);
         } else {
           extraDetailText = TextSpan(
             text: "Create a copy of the Score \"$openedScoreName\".",
@@ -486,6 +467,34 @@ class _ScorePickerState extends State<ScorePicker> {
                           child: getList(context))),
                 ]),
         ),
+      ],
+    );
+  }
+
+  static TextSpan duplicateWarningText(
+    TextStyle textStyle,
+    Score score,
+    ScoreManager scoreManager,
+  ) {
+    String openedScoreName = score.name;
+    String scoreManagerName = scoreManager.currentScoreName;
+    return TextSpan(
+      text: 'The Score "',
+      style: textStyle,
+      children: <TextSpan>[
+        TextSpan(
+            text: openedScoreName,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: chromaticSteps[0])),
+        TextSpan(text: '" is opened with the name "'),
+        TextSpan(
+            text: scoreManagerName,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: chromaticSteps[5])),
+        TextSpan(text: '." To avoid losing changes, choose a new name and '),
+        TextSpan(
+            text: 'Duplicate', style: TextStyle(fontWeight: FontWeight.bold)),
+        TextSpan(text: ' it.'),
       ],
     );
   }

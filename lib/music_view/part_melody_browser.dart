@@ -12,6 +12,7 @@ import '../util/dummydata.dart';
 import '../util/music_theory.dart';
 import '../widget/my_buttons.dart';
 
+// A list of Melodies in a Part, used as a toolbar within the Music View.
 class PartMelodyBrowser extends StatefulWidget {
   final Score score;
   final Color sectionColor;

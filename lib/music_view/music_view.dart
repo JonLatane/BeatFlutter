@@ -62,6 +62,7 @@ class MusicView extends StatefulWidget {
   final Function(Part) selectOrDeselectPart;
   final Function(Melody) selectOrDeselectMelody;
   final Function(Part, Melody, bool) createMelody;
+  final Function addPart;
   final Function cloneCurrentSection;
   final bool isPreview;
   final Color backgroundColor;
@@ -77,6 +78,7 @@ class MusicView extends StatefulWidget {
       this.selectOrDeselectPart,
       this.selectOrDeselectMelody,
       this.melodyViewSizeFactor,
+      this.addPart,
       this.cloneCurrentSection,
       this.superSetState,
       this.musicViewMode,
@@ -250,14 +252,14 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       // print("Tween params: begin: $currentValue, end: $value");
       animation = Tween<double>(begin: currentValue(), end: value())
           .animate(scaleAnimationController)
-            ..addListener(() {
-              // print("Tween scale: ${animation.value}");
-              if (!_disposed) {
-                setState(() {
-                  applyAnimatedValue(animation.value);
-                });
-              }
+        ..addListener(() {
+          // print("Tween scale: ${animation.value}");
+          if (!_disposed) {
+            setState(() {
+              applyAnimatedValue(animation.value);
             });
+          }
+        });
       scaleAnimationController.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           Future.delayed(animationDuration, () {
@@ -735,6 +737,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                       deleteSection: widget.deleteSection,
                                       canDeleteSection:
                                           widget.score.sections.length > 1,
+                                      addPart: widget.addPart,
                                       cloneCurrentSection:
                                           widget.cloneCurrentSection,
                                       editingSection: isEditingSection,
@@ -1020,15 +1023,23 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   /// In View Mode this is the Keyboard Part. In Edit Mode it's the Part that's focused, or the Part of the Melody
   /// that's focused, or the Keyboard Part if only a Section is focused.
   Part mainPart() {
-    Part mainPart =
-        widget.part; // default for Part view mode is pass it through
-    if (widget.musicViewMode == MusicViewMode.score) {
-      mainPart = widget.keyboardPart;
-    } else if (widget.musicViewMode == MusicViewMode.melody) {
-      mainPart = widget.score.parts.firstWhere(
-          (part) =>
-              part.melodies.any((melody) => melody.id == widget.melody.id),
-          orElse: () => null);
+    Part mainPart;
+    switch (widget.musicViewMode) {
+      case MusicViewMode.score:
+      case MusicViewMode.section:
+      case MusicViewMode.none:
+        mainPart = widget.keyboardPart;
+        break;
+      case MusicViewMode.part:
+        mainPart = widget.part;
+        break;
+      case MusicViewMode.melody:
+        mainPart = widget.keyboardPart;
+        // mainPart = widget.score.parts.firstWhere(
+        //     (part) =>
+        //         part.melodies.any((melody) => melody.id == widget.melody.id),
+        //     orElse: () => null);
+        break;
     }
     return mainPart;
   }

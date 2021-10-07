@@ -204,11 +204,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   @override
   void initState() {
     super.initState();
+    timeScrollController = ScrollController();
+    verticalController = ScrollController();
     widget.scrollToFocusedBeat.addListener(() {
       scrollToFocusedBeat();
     });
-    timeScrollController = ScrollController();
-    verticalController = ScrollController();
     animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
@@ -665,11 +665,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               begin: staffOffsets.value[removedStaffId], end: 0)
           .animate(
               CurvedAnimation(parent: animationController, curve: Curves.ease))
-            ..addListener(() {
-              staffOffsets.value[removedStaffId] = staffAnimation.value;
-              // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-              staffOffsets.notifyListeners();
-            });
+        ..addListener(() {
+          staffOffsets.value[removedStaffId] = staffAnimation.value;
+          // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+          staffOffsets.notifyListeners();
+        });
     });
     widget.staves.asMap().forEach((staffIndex, staff) {
       double staffPosition =
@@ -681,11 +681,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               begin: initialStaffPosition, end: staffPosition)
           .animate(
               CurvedAnimation(parent: animationController, curve: Curves.ease))
-            ..addListener(() {
-              staffOffsets.value[staff.id] = staffAnimation.value;
-              // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-              staffOffsets.notifyListeners();
-            });
+        ..addListener(() {
+          staffOffsets.value[staff.id] = staffAnimation.value;
+          // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+          staffOffsets.notifyListeners();
+        });
       staff.getParts(widget.score, widget.staves).forEach((part) {
         double partPosition = staffPosition;
         double initialPartPosition = partTopOffsets.value
@@ -695,11 +695,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
             Tween<double>(begin: initialPartPosition, end: partPosition)
                 .animate(CurvedAnimation(
                     parent: animationController, curve: Curves.ease))
-                  ..addListener(() {
-                    partTopOffsets.value[part.id] = partAnimation.value;
-                    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-                    partTopOffsets.notifyListeners();
-                  });
+              ..addListener(() {
+                partTopOffsets.value[part.id] = partAnimation.value;
+                // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+                partTopOffsets.notifyListeners();
+              });
       });
       stavesNotifier.value = widget.staves;
       colorboardPart.value = widget.colorboardPart;
@@ -719,30 +719,30 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     animation1 = Tween<double>(
             begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
         .animate(animationController)
-          ..addListener(() {
-            colorblockOpacityNotifier.value = animation1.value;
-          });
+      ..addListener(() {
+        colorblockOpacityNotifier.value = animation1.value;
+      });
     Animation animation2;
     animation2 = Tween<double>(
             begin: notationOpacityNotifier.value, end: notationOpacityValue)
         .animate(animationController)
-          ..addListener(() {
-            notationOpacityNotifier.value = animation2.value;
-          });
+      ..addListener(() {
+        notationOpacityNotifier.value = animation2.value;
+      });
     Animation animation3;
     animation3 =
         Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
             .animate(animationController)
-              ..addListener(() {
-                sectionScaleNotifier.value = animation3.value;
-              });
+          ..addListener(() {
+            sectionScaleNotifier.value = animation3.value;
+          });
     Animation animation4;
     animation4 = Tween<double>(
             begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue)
         .animate(animationController)
-          ..addListener(() {
-            colorGuideOpacityNotifier.value = animation4.value;
-          });
+      ..addListener(() {
+        colorGuideOpacityNotifier.value = animation4.value;
+      });
   }
 }
 

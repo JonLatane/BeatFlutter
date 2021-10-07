@@ -33,6 +33,7 @@ class Keyboard extends StatefulWidget {
   final double width;
   final double leftMargin;
   final double distanceFromBottom;
+  final bool closed;
   final VoidCallback closeKeyboard;
 
   const Keyboard(
@@ -48,6 +49,7 @@ class Keyboard extends StatefulWidget {
       this.width,
       this.leftMargin,
       this.distanceFromBottom,
+      this.closed,
       this.closeKeyboard})
       : super(key: key);
 
@@ -101,11 +103,11 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     Animation animation;
     animation = Tween<double>(begin: _halfStepWidthInPx, end: value)
         .animate(scaleAnimationController)
-          ..addListener(() {
-            setState(() {
-              _halfStepWidthInPx = animation.value;
-            });
-          });
+      ..addListener(() {
+        setState(() {
+          _halfStepWidthInPx = animation.value;
+        });
+      });
     scaleAnimationController.forward();
   }
 
@@ -171,10 +173,10 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                       begin: scrollPositionNotifier.value,
                       end: newScrollPositionValue)
                   .animate(orientationAnimationController)
-                    ..addListener(() {
-                      scrollPositionNotifier.value = animation.value;
+                ..addListener(() {
+                  scrollPositionNotifier.value = animation.value;
 //                setState(() {});
-                    });
+                });
               orientationAnimationController.forward(
                   from: scrollPositionNotifier.value);
 //            scrollPositionNotifier.value = newScrollPositionValue;
@@ -273,9 +275,11 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                         onVerticalDragUpdate: (details) {
                           if (details.delta.dy > sensitivity) {
                             // Down swipe
-                            print("Downswipe! details=$details");
-                            HapticFeedback.lightImpact();
-                            widget.closeKeyboard();
+                            // print("Downswipe! details=$details");
+                            if (!widget.closed) {
+                              HapticFeedback.lightImpact();
+                              widget.closeKeyboard();
+                            }
                           } else if (details.delta.dy < -sensitivity) {
                             // Up swipe
                           }

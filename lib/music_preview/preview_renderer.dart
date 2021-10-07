@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -6,6 +7,7 @@ import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../colors.dart';
 import '../generated/protos/music.pb.dart';
 import '../music_view/music_system_painter.dart';
 import '../ui_models.dart';
@@ -19,6 +21,7 @@ class MusicPreviewRenderer {
   final double scale, width, height;
   final bool renderSections, renderPartNames;
   final MusicViewMode musicViewMode;
+  final Color renderColor;
   Score get score => Score.fromBuffer(scoreData);
 
   MusicPreviewRenderer(
@@ -28,7 +31,8 @@ class MusicPreviewRenderer {
       @required this.height,
       @required this.renderSections,
       @required this.renderPartNames,
-      @required this.musicViewMode});
+      @required this.musicViewMode,
+      this.renderColor});
 
   MusicSystemPainter get painter {
     final parts = score.parts;
@@ -76,6 +80,9 @@ class MusicPreviewRenderer {
       scale;
   double get actualWidth => min(maxWidth, width);
   Future<ui.Image> get renderedScoreImage async {
+    if (height < 1 || width < 1) {
+      return null;
+    }
     // [CustomPainter] has its own @canvas to pass our
     // [ui.PictureRecorder] object must be passed to [Canvas]#contructor
     // to capture the Image. This way we can pass @recorder to [Canvas]#contructor
@@ -89,7 +96,12 @@ class MusicPreviewRenderer {
     canvas.save();
     canvas.scale(_overSampleScale);
     // await () async {
+    final originalForegroundColor = musicForegroundColor;
+    if (renderColor != null) {
+      musicForegroundColor = renderColor;
+    }
     painter.paint(canvas, size);
+    musicForegroundColor = originalForegroundColor;
     // };
     canvas.restore();
     final data = recorder
@@ -100,6 +112,9 @@ class MusicPreviewRenderer {
 
   Future<Uint8List> get renderedScoreImageData async {
     final image = await renderedScoreImage;
+    if (image == null) {
+      return null;
+    }
     return Uint8List.sublistView(
         await image.toByteData(format: ui.ImageByteFormat.png));
   }

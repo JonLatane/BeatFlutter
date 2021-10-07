@@ -370,7 +370,9 @@ class _LayersPartViewState extends State<LayersPartView> {
                                   child: Text(
                                     partName,
                                     style: TextStyle(
-                                        color: textColor, fontSize: 12),
+                                        color: textColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ))))),

@@ -27,18 +27,19 @@ class ScorePreview extends StatefulWidget {
   final double height;
   final double scale;
   final BSMethod notifyUpdate;
+  final Color renderColor;
 
-  const ScorePreview(
-    this.score, {
-    Key key,
-    this.width = 300,
-    this.height = 100,
-    this.scale = 0.15,
-    this.musicViewMode = MusicViewMode.score,
-    this.renderPartNames = true,
-    this.renderSections = true,
-    this.notifyUpdate,
-  }) : super(key: key);
+  const ScorePreview(this.score,
+      {Key key,
+      this.width = 300,
+      this.height = 100,
+      this.scale = 0.15,
+      this.musicViewMode = MusicViewMode.score,
+      this.renderPartNames = true,
+      this.renderSections = true,
+      this.notifyUpdate,
+      this.renderColor})
+      : super(key: key);
 
   @override
   _ScorePreviewState createState() => _ScorePreviewState();
@@ -51,7 +52,7 @@ class _ScorePreviewState extends State<ScorePreview> {
   String _prevScoreId;
   RenderingMode _prevRenderingMode;
   double _prevScale, _prevWidth, _prevHeight;
-  Color _prevMusicForegroundColor;
+  Color _prevRenderColor;
   _Thumbnail currentThumbnail;
   Uint8List thumbnailA, thumbnailB;
 
@@ -91,7 +92,7 @@ class _ScorePreviewState extends State<ScorePreview> {
     currentThumbnail = _Thumbnail.a;
     widget.notifyUpdate?.addListener(_updateScoreImage);
     renderableWidth = actualWidth;
-    _prevMusicForegroundColor = musicForegroundColor;
+    _prevRenderColor = widget.renderColor ?? musicForegroundColor;
     _prevRenderingMode = AppSettings.globalRenderingMode;
     _prevScale = widget.scale;
     _prevWidth = widget.width;
@@ -108,14 +109,14 @@ class _ScorePreviewState extends State<ScorePreview> {
   @override
   Widget build(BuildContext context) {
     if (_prevScoreId != widget.score.id ||
-        _prevMusicForegroundColor != musicForegroundColor ||
+        _prevRenderColor != (widget.renderColor ?? musicForegroundColor) ||
         _prevRenderingMode != AppSettings.globalRenderingMode ||
         _prevScale != widget.scale ||
         _prevWidth != widget.width ||
         _prevHeight != widget.height) {
       _updateScoreImage();
       _prevScoreId = widget.score.id;
-      _prevMusicForegroundColor = musicForegroundColor;
+      _prevRenderColor = widget.renderColor ?? musicForegroundColor;
       _prevRenderingMode = AppSettings.globalRenderingMode;
       _prevScale = widget.scale;
       _prevWidth = widget.width;
@@ -153,6 +154,7 @@ class _ScorePreviewState extends State<ScorePreview> {
           renderSections: key.arguments[4],
           renderPartNames: key.arguments[5],
           musicViewMode: key.arguments[6],
+          renderColor: key.arguments[7],
         ).renderedScoreImageData;
 
   ArgumentList get renderingArguments => ArgumentList([
@@ -163,7 +165,7 @@ class _ScorePreviewState extends State<ScorePreview> {
         widget.renderPartNames,
         widget.renderSections,
         widget.musicViewMode,
-        musicForegroundColor,
+        widget.renderColor ?? musicForegroundColor,
         AppSettings.globalRenderingMode
       ]);
   _updateScoreImage() {
@@ -171,7 +173,9 @@ class _ScorePreviewState extends State<ScorePreview> {
       final Uint8List data = RENDER_CACHE.get(renderingArguments);
       if (data == null) {
         // print("Ummm this bad");
-        _updateScoreImage();
+        if (widget.width != 0 && widget.height != 0) {
+          _updateScoreImage();
+        }
         return;
       }
       if (disposed) return;

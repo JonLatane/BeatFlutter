@@ -314,60 +314,89 @@ class _SectionState extends State<_Section> {
         duration: animationDuration,
         width: _Section.width,
         height: _Section.height,
-        color: (widget.currentSection == widget.section)
-            ? widget.sectionColor
-            : musicBackgroundColor,
-        child: MyFlatButton(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Stack(children: [
-            Row(children: [
-              BeatsBadge(
-                  beats: widget.section.harmony.length ~/
-                      widget.section.harmony.subdivisionsPerBeat,
-                  show: widget.showBeatCount),
-              SizedBox(width: 3),
-              Expanded(
-                  child: Align(
-                alignment: widget.scrollDirection == Axis.horizontal
-                    ? Alignment.center
-                    : Alignment.centerLeft,
-                child: Text(
-                  widget.section.canonicalName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w100,
-                      color: hasName
-                          ? (widget.currentSection == widget.section)
-                              ? widget.sectionColor.textColor()
-                              : musicForegroundColor
-                          : Colors.grey),
+        color: musicBackgroundColor,
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(child: SizedBox()),
+                Row(
+                  children: [
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        width: widget.currentSection == widget.section ? 0 : 2,
+                        height: _Section.height,
+                        // color: widget.sectionColor,
+                        child: SizedBox()),
+                    AnimatedContainer(
+                        duration: animationDuration,
+                        width: widget.currentSection == widget.section
+                            ? _Section.width
+                            : 5,
+                        height: widget.currentSection == widget.section
+                            ? _Section.height
+                            : _Section.height - 4,
+                        color: widget.section.color.color,
+                        child: SizedBox()),
+                  ],
                 ),
-              )),
-              AnimatedContainer(
-                  duration: animationDuration,
-                  width: widget.allowReordering ? 24 : 0,
-                  child: Handle(
-                      key: Key("handle-${widget.section.id}"),
-                      delay: const Duration(milliseconds: 0),
-                      child: Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: AnimatedOpacity(
-                              duration: animationDuration,
-                              opacity: widget.allowReordering ? 1 : 0,
-                              child: Icon(
-                                Icons.reorder,
-                                color: (widget.currentSection == widget.section)
-                                    ? widget.sectionColor.textColor()
-                                    : musicForegroundColor,
-                                size: 24,
-                              )))))
-            ]),
-          ]),
-          onPressed: () {
-            widget.selectSection(widget.section);
-          },
+                Expanded(child: SizedBox()),
+              ],
+            ),
+            MyFlatButton(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Stack(children: [
+                Row(children: [
+                  BeatsBadge(
+                      beats: widget.section.harmony.length ~/
+                          widget.section.harmony.subdivisionsPerBeat,
+                      show: widget.showBeatCount),
+                  SizedBox(width: 3),
+                  Expanded(
+                      child: Align(
+                    alignment: widget.scrollDirection == Axis.horizontal
+                        ? Alignment.center
+                        : Alignment.centerLeft,
+                    child: Text(
+                      widget.section.canonicalName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w100,
+                          color: hasName
+                              ? (widget.currentSection == widget.section)
+                                  ? widget.sectionColor.textColor()
+                                  : musicForegroundColor
+                              : Colors.grey),
+                    ),
+                  )),
+                  AnimatedContainer(
+                      duration: animationDuration,
+                      width: widget.allowReordering ? 24 : 0,
+                      child: Handle(
+                          key: Key("handle-${widget.section.id}"),
+                          delay: const Duration(milliseconds: 0),
+                          child: Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: AnimatedOpacity(
+                                  duration: animationDuration,
+                                  opacity: widget.allowReordering ? 1 : 0,
+                                  child: Icon(
+                                    Icons.reorder,
+                                    color: (widget.currentSection ==
+                                            widget.section)
+                                        ? widget.sectionColor.textColor()
+                                        : musicForegroundColor,
+                                    size: 24,
+                                  )))))
+                ]),
+              ]),
+              onPressed: () {
+                widget.selectSection(widget.section);
+              },
+            ),
+          ],
         ));
   }
 }

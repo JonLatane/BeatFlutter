@@ -93,8 +93,9 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
       [];
 
   List<Melody> findDuplicatedMelodies(List<Melody> input) => input
-      .where(
-          (it) => widget.part?.melodies?.any((m) => m.name == it.name) ?? false)
+      .where((it) =>
+          it.name.isNotEmpty &&
+          (widget.part?.melodies?.any((m) => m.name == it.name) ?? false))
       .toList();
 
   List<myPopup.PopupMenuEntry<String>> menuEntriesByDuplicateStatus(
@@ -125,7 +126,8 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
   Widget build(BuildContext context) {
     if (selectedScore == null) {}
     return new MyPopupMenuButton(
-        color: musicBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: musicBackgroundColor.withOpacity(0.95),
         padding: EdgeInsets.zero,
         tooltip: "Import Melody | ${widget.part?.midiName}",
         child: widget.child ??
@@ -236,18 +238,19 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
     return MyPopupMenuItem(
       value: "back",
       child: Container(
+          padding: EdgeInsets.only(top: 20),
           child: Row(children: [
-        Icon(Icons.chevron_left, color: musicForegroundColor),
-        Expanded(
-            child: Text(
-          selectedSamples != null
-              ? "Import"
-              : selectedPart != null && !selectedPart.isDrum
-                  ? "Parts"
-                  : "Import",
-          style: TextStyle(color: musicForegroundColor),
-        ))
-      ])),
+            Icon(Icons.chevron_left, color: musicForegroundColor),
+            Expanded(
+                child: Text(
+              selectedSamples != null
+                  ? "Import"
+                  : selectedPart != null && !selectedPart.isDrum
+                      ? "Parts"
+                      : "Import",
+              style: TextStyle(color: musicForegroundColor),
+            ))
+          ])),
       enabled: true,
     );
   }
@@ -304,13 +307,13 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             SizedBox(width: 5),
             Expanded(
                 child: Opacity(
-                    opacity: isDuplicate ? 0.5 : 1,
-                    child: Text(melody.name,
+                    opacity: isDuplicate || melody.name.isEmpty ? 0.5 : 1,
+                    child: Text(melody.canonicalName,
                         style: TextStyle(color: musicForegroundColor)))),
             SizedBox(width: 5),
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 2),
-                child: Icon(Icons.add)),
+                child: Icon(Icons.add, color: musicForegroundColor)),
             if (!isDuplicate &&
                 widget.part?.instrument?.type == melody.instrumentType)
               SizedBox(width: 5),

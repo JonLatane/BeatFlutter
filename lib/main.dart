@@ -518,6 +518,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       // showSections = false;
+      showDuplicateScoreWarning = false;
       universeViewUI.visible = false;
       interactionMode = InteractionMode.view;
       if (scorePickerMode == ScorePickerMode.universe ||
@@ -536,6 +537,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       if (interactionMode != InteractionMode.universe) {
         // showSections = false;
+        showDuplicateScoreWarning = false;
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
           _scoreManager.currentScoreName = ScoreManager.UNIVERSE_SCORE;
@@ -604,12 +606,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           Future.delayed(slowAnimationDuration, () {
             setState(() {
               if (interactionMode.isEdit && !MyPlatform.isWeb) {
-                scorePickerMode = ScorePickerMode.duplicate;
-                _showScorePicker = true;
-                splitMode = SplitMode.full;
-                if (context.isLandscapePhone) {
-                  showKeyboard = false;
-                }
+                showDuplicateScoreWarning = true;
               }
             });
           });
@@ -677,7 +674,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _selectSection(Section section) {
     setState(() {
-      if (currentSection == section) {
+      if (currentSection == section &&
+          interactionMode == InteractionMode.edit) {
         recordingMelody = false;
         if (musicViewMode != MusicViewMode.section) {
           musicViewMode = MusicViewMode.section;
@@ -754,7 +752,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ? _scorePickerScrollDirection == Axis.horizontal
           ? MediaQuery.of(context).size.width
           : min(
-              max(interactionMode.isUniverse ? 300 : 365,
+              max(interactionMode.isUniverse ? 305 : 365,
                   MediaQuery.of(context).size.width / 4),
               450)
       : 0.0;
@@ -767,12 +765,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ? interactionMode.isUniverse
           ? universeViewUI.signingIn
               ? 0
-              : flexibleAreaHeight(context) *
-                  (flexibleAreaHeight(context) < 600
-                      ? flexibleAreaHeight(context) < 500
-                          ? 0.5
-                          : 0.66667
-                      : 0.6)
+              : max(
+                  152,
+                  flexibleAreaHeight(context) *
+                      (flexibleAreaHeight(context) < 600
+                          ? flexibleAreaHeight(context) < 500
+                              ? 0.4
+                              : 0.45
+                          : 0.5))
           : min(
               flexibleAreaHeight(context) * 0.66,
               210.0 +
@@ -1135,6 +1135,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //      {"left": (right - 10).toInt(), "top": top.toInt(), "right": right.toInt(), "bottom": bottom.toInt()},
 //    ]);
     // Map<LogicalKeySet, Intent> shortcuts = {LogicalKeySet(LogicalKeyboardKey.escape): Intent.doNothing};
+
     theUI(BuildContext context) => Stack(children: [
           Row(
             children: [
@@ -1145,7 +1146,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 // fit: FlexFit.loose,
                 child: Stack(children: [
                   Column(children: [
-                    if (!context.isLandscape)
+                    if (context.isPortraitPhone)
                       universeViewUI.build(
                           context: context,
                           sectionColor: sectionColor,
@@ -1155,13 +1156,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   !showDownloadLinks)
                               ? () => setState(() => showDownloadLinks = true)
                               : null),
+                    _duplicateScoreWarning(),
                     Expanded(
                         child: Row(
                       children: [
                         if (_scorePickerScrollDirection == Axis.vertical)
                           Column(
                             children: [
-                              if (context.isLandscape)
+                              if (!context.isPortraitPhone)
                                 AnimatedContainer(
                                     duration: animationDuration,
                                     height: universeViewUIHeight,
@@ -1315,7 +1317,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
-  double get universeScoreTitleHeight => interactionMode.isUniverse ? 36 : 0;
+  double get universeScoreTitleHeight => interactionMode.isUniverse ? 40 : 0;
 
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
@@ -1481,6 +1483,84 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))
           ],
         ));
+  }
+
+  bool showDuplicateScoreWarning = false;
+  double get duplicateScoreWarningHeight => showDuplicateScoreWarning ? 44 : 0;
+  Widget _duplicateScoreWarning() {
+    Color foregroundColor = Colors.white, backgroundColor = chromaticSteps[7];
+    double sensitivity = 7;
+
+    return GestureDetector(
+        onVerticalDragUpdate: (details) {
+          if (details.delta.dy > sensitivity) {
+            // Down swipe
+          } else if (details.delta.dy < -sensitivity) {
+            // Up swipe
+            if (showDuplicateScoreWarning) {
+              HapticFeedback.lightImpact();
+              setState(() {
+                showDuplicateScoreWarning = false;
+              });
+            }
+          }
+        },
+        child: AnimatedOpacity(
+            duration: animationDuration,
+            opacity: showDuplicateScoreWarning ? 1 : 0,
+            child: AnimatedContainer(
+                duration: animationDuration,
+                height: duplicateScoreWarningHeight,
+                color: backgroundColor,
+                child: Row(
+                  children: [
+                    SizedBox(width: 4),
+                    Icon(Icons.warning, color: chromaticSteps[5]),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: RichText(
+                          text: ScorePickerState.duplicateWarningText(
+                              TextStyle(
+                                  color: foregroundColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w100),
+                              score,
+                              _scoreManager),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    Container(
+                        height: 36,
+                        child: MyFlatButton(
+                            color: subBackgroundColor,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 3, horizontal: 3),
+                            onPressed: () {
+                              setState(() {
+                                scorePickerMode = ScorePickerMode.duplicate;
+                                _showScorePicker = true;
+                                showDuplicateScoreWarning = false;
+                                splitMode = SplitMode.full;
+                                if (context.isLandscapePhone) {
+                                  showKeyboard = false;
+                                }
+                              });
+                            },
+                            child: Row(children: [
+                              // SizedBox(width: 5),
+                              Transform.translate(
+                                  offset: Offset(0, 0),
+                                  child: Icon(FontAwesomeIcons.codeBranch,
+                                      color: Colors.white)),
+                              Text("Duplicate",
+                                  style: TextStyle(color: Colors.white))
+                            ]))),
+                    SizedBox(width: 4),
+                  ],
+                ))));
   }
 
   AnimatedContainer _verticalSectionList() {
@@ -1685,6 +1765,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   BeatScratchPlugin.countIn(-2);
                   setState(() {
                     _tapInBeat = -2;
+                    HapticFeedback.lightImpact();
                   });
                   Future.delayed(Duration(seconds: 3), () {
                     setState(() {
@@ -1719,6 +1800,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             child: Listener(
                 onPointerDown: (event) {
                   BeatScratchPlugin.countIn(-1);
+                  HapticFeedback.lightImpact();
                   setState(() {
                     _tapInBeat = null;
                   });
@@ -1943,150 +2025,193 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           bool leftHalfOnly = false,
           bool rightHalfOnly = false}) =>
       BeatScratchToolbar(
-        score: score,
-        universeManager: _universeManager,
-        savingScore: _savingScore,
-        appSettings: _appSettings,
-        messagesUI: messagesUI,
-        currentSection: currentSection,
-        scoreManager: _scoreManager,
-        currentScoreName:
-            MyPlatform.isWeb ? score.name : _scoreManager.currentScoreName,
-        sectionColor: sectionColor,
-        viewMode: _viewMode,
-        universeMode: _universeMode,
-        editMode: _editMode,
-        toggleViewOptions: _toggleViewOptions,
-        interactionMode: interactionMode,
-        routeToCurrentScore: (String pastebinCode) {
-          router.navigateTo(context, "/s/$pastebinCode");
-        },
-        vertical: vertical,
-        showSections: showSections,
-        verticalSections: verticalSectionList,
-        refreshUniverseData: refreshUniverseData,
-        togglePlaying: () {
-          setState(() {
-            if (!BeatScratchPlugin.playing) {
-              BeatScratchPlugin.play();
-            } else {
-              BeatScratchPlugin.pause();
-            }
-          });
-        },
-        toggleSectionListDisplayMode: (forward) {
-          setState(() {
-            if (forceHorizontalSectionList) {
-              showSections = !showSections;
-            } else {
-              if (forward) {
-                if (!showSections) {
-                  showSections = true;
-                  verticalSectionList = true;
-                } else if (!verticalSectionList) {
-                  showSections = false;
-                  verticalSectionList = true;
+          score: score,
+          universeManager: _universeManager,
+          savingScore: _savingScore,
+          appSettings: _appSettings,
+          messagesUI: messagesUI,
+          currentSection: currentSection,
+          currentPart: keyboardPart,
+          scoreManager: _scoreManager,
+          currentScoreName:
+              MyPlatform.isWeb ? score.name : _scoreManager.currentScoreName,
+          sectionColor: sectionColor,
+          viewMode: _viewMode,
+          universeMode: _universeMode,
+          editMode: _editMode,
+          toggleViewOptions: _toggleViewOptions,
+          interactionMode: interactionMode,
+          routeToCurrentScore: (String pastebinCode) {
+            router.navigateTo(context, "/s/$pastebinCode");
+          },
+          vertical: vertical,
+          showSections: showSections,
+          verticalSections: verticalSectionList,
+          refreshUniverseData: refreshUniverseData,
+          togglePlaying: () {
+            setState(() {
+              if (!BeatScratchPlugin.playing) {
+                BeatScratchPlugin.play();
+              } else {
+                BeatScratchPlugin.pause();
+              }
+            });
+          },
+          toggleSectionListDisplayMode: (forward) {
+            setState(() {
+              if (forceHorizontalSectionList) {
+                if (forward) {
+                  showSections = !showSections;
                 } else {
-                  verticalSectionList = false;
+                  HapticFeedback.heavyImpact();
+                  Future.delayed(Duration(milliseconds: 50), () {
+                    HapticFeedback.heavyImpact();
+                  });
                 }
               } else {
-                if (!showSections) {
-                  showSections = true;
-                  verticalSectionList = false;
-                } else if (verticalSectionList) {
-                  showSections = false;
-                  verticalSectionList = false;
+                if (forward) {
+                  showSections = !showSections;
+                  // if (!showSections) {
+                  //   showSections = true;
+                  //   verticalSectionList = true;
+                  // } else if (!verticalSectionList) {
+                  //   showSections = false;
+                  //   verticalSectionList = true;
+                  // } else {
+                  //   verticalSectionList = false;
+                  // }
                 } else {
-                  verticalSectionList = true;
+                  verticalSectionList = !verticalSectionList;
+                  if (!showSections) {
+                    showSections = true;
+                  }
+                  // if (!showSections) {
+                  //   showSections = true;
+                  //   verticalSectionList = false;
+                  // } else if (verticalSectionList) {
+                  //   showSections = false;
+                  //   verticalSectionList = false;
+                  // } else {
+                  //   verticalSectionList = true;
+                  // }
                 }
               }
+              // }
+            });
+          },
+          renderingMode: renderingMode,
+          setRenderingMode: (value) {
+            setState(() {
+              renderingMode = value;
+            });
+          },
+          showScorePicker: _doShowScorePicker,
+          showMidiInputSettings: () {
+            setState(() {
+              _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
+              _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
+              _wereViewOptionsShowingWhenMidiConfigurationOpened =
+                  showViewOptions;
+              showMidiConfiguration = true;
+              showViewOptions = true;
+              if (keyboardPart != null && showKeyboard) {
+                _showKeyboardConfiguration = true;
+              }
+              if (_enableColorboard &&
+                  colorboardPart != null &&
+                  showColorboard) {
+                _showColorboardConfiguration = true;
+              }
+            });
+          },
+          showBeatCounts: showBeatCounts,
+          toggleShowBeatCounts: () {
+            setState(() {
+              showBeatCounts = !showBeatCounts;
+            });
+          },
+          saveCurrentScore: saveCurrentScore,
+          pasteScore: () async {
+            ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
+            if (data == null) {
+              setState(() {
+                pasteFailed = true;
+              });
+              return;
             }
-            // }
-          });
-        },
-        renderingMode: renderingMode,
-        setRenderingMode: (value) {
-          setState(() {
-            renderingMode = value;
-          });
-        },
-        showScorePicker: _doShowScorePicker,
-        showMidiInputSettings: () {
-          setState(() {
-            _wasKeyboardShowingWhenMidiConfigurationOpened = showKeyboard;
-            _wasColorboardShowingWhenMidiConfigurationOpened = showColorboard;
-            _wereViewOptionsShowingWhenMidiConfigurationOpened =
-                showViewOptions;
-            showMidiConfiguration = true;
-            showViewOptions = true;
-            if (keyboardPart != null && showKeyboard) {
-              _showKeyboardConfiguration = true;
-            }
-            if (_enableColorboard && colorboardPart != null && showColorboard) {
-              _showColorboardConfiguration = true;
-            }
-          });
-        },
-        showBeatCounts: showBeatCounts,
-        toggleShowBeatCounts: () {
-          setState(() {
-            showBeatCounts = !showBeatCounts;
-          });
-        },
-        saveCurrentScore: saveCurrentScore,
-        pasteScore: () async {
-          ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
-          if (data == null) {
-            setState(() {
-              pasteFailed = true;
+            String scoreUrl = data.text;
+            _scoreManager.loadFromScoreUrl(scoreUrl,
+                currentScoreToSave: this.score, onFail: () {
+              setState(() {
+                pasteFailed = true;
+              });
+            }, onSuccess: (scoreName) {
+              setState(() {
+                scorePickerMode = ScorePickerMode.duplicate;
+                showScorePicker = true;
+                messagesUI.sendMessage(
+                  message: "Pasted ${score.name}!",
+                );
+                _viewMode();
+              });
             });
-            return;
-          }
-          String scoreUrl = data.text;
-          _scoreManager.loadFromScoreUrl(scoreUrl,
-              currentScoreToSave: this.score, onFail: () {
-            setState(() {
-              pasteFailed = true;
-            });
-          }, onSuccess: (scoreName) {
-            setState(() {
-              scorePickerMode = ScorePickerMode.duplicate;
-              showScorePicker = true;
-              messagesUI.sendMessage(
-                message: "Pasted ${score.name}!",
-              );
-              _viewMode();
-            });
-          });
-        },
-        export: () {
-          if (interactionMode.isView) {
-            setState(() {
-              exportUI.visible = true;
-              showScorePicker = false;
-            });
-          } else {
-            _viewMode();
-            Future.delayed(slowAnimationDuration, () {
+          },
+          export: () {
+            if (interactionMode.isView) {
               setState(() {
                 exportUI.visible = true;
                 showScorePicker = false;
               });
+            } else {
+              _viewMode();
+              Future.delayed(slowAnimationDuration, () {
+                setState(() {
+                  exportUI.visible = true;
+                  showScorePicker = false;
+                });
+              });
+            }
+          },
+          openMelody: selectedMelody,
+          openPart: selectedPart,
+          prevMelody: _prevSelectedMelody,
+          prevPart: _prevSelectedPart,
+          isMelodyViewOpen: _musicViewSizeFactor != 0,
+          leftHalfOnly: leftHalfOnly,
+          rightHalfOnly: rightHalfOnly,
+          showDownloads: showDownloadLinks,
+          toggleShowDownloads: () => setState(() {
+                showDownloadLinks = !showDownloadLinks;
+              }),
+          editObject: (object) {
+            setState(() {
+              if (object is Melody) {
+                if (!interactionMode.isEdit) {
+                  _editMode();
+                }
+                _selectOrDeselectMelody(object);
+              } else if (object is Part) {
+                if (!interactionMode.isEdit) {
+                  _editMode();
+                }
+                _selectOrDeselectPart(object);
+              } else if (object is Section) {
+                if (selectedMelody != null) {
+                  _selectOrDeselectMelody(selectedMelody);
+                }
+                if (selectedPart != null) {
+                  _selectOrDeselectPart(selectedPart);
+                }
+                musicViewMode = MusicViewMode.section;
+                if (!interactionMode.isEdit) {
+                  _editMode();
+                }
+                if (_musicViewSizeFactor == 0) {
+                  _showMusicView();
+                }
+              }
             });
-          }
-        },
-        openMelody: selectedMelody,
-        openPart: selectedPart,
-        prevMelody: _prevSelectedMelody,
-        prevPart: _prevSelectedPart,
-        isMelodyViewOpen: _musicViewSizeFactor != 0,
-        leftHalfOnly: leftHalfOnly,
-        rightHalfOnly: rightHalfOnly,
-        showDownloads: showDownloadLinks,
-        toggleShowDownloads: () => setState(() {
-          showDownloadLinks = !showDownloadLinks;
-        }),
-      );
+          });
 
   _doShowScorePicker(mode) {
     setState(() {
@@ -2221,7 +2346,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   double flexibleAreaHeight(BuildContext context) {
     var data = MediaQuery.of(context);
-    return data.size.height -
+    double result = data.size.height -
         data.padding.top -
         // kToolbarHeight -
         _secondToolbarHeight -
@@ -2238,7 +2363,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         downloadLinksHeight -
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
+        // universeScoreTitleHeight -
+        duplicateScoreWarningHeight -
         beatScratchToolbarHeight(context);
+    // if (context.isPortraitPhone) {
+    //   result -= universeScoreTitleHeight;
+    // }
+    return result;
   }
 
   Widget _layersAndMusicView(BuildContext context) {
@@ -2247,7 +2378,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= _scorePickerHeight(context);
     }
-    if (_scorePickerScrollDirection == Axis.horizontal) {
+    if (context.isPortraitPhone) {
       fullHeight -= universeScoreTitleHeight;
     }
     double fullWidth = data.size.width -
@@ -2392,38 +2523,42 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _layersView(
       BuildContext context, double availableWidth, double availableHeight) {
     return LayersView(
-      key: ValueKey("main-part-melodies-view"),
-      appSettings: _appSettings,
-      musicViewMode: musicViewMode,
-      superSetState: setState,
-      currentSection: currentSection,
-      score: score,
-      sectionColor: sectionColor,
-      selectMelody: _selectOrDeselectMelody,
-      selectPart: _selectOrDeselectPart,
-      selectedMelody: selectedMelody,
-      selectedPart: selectedPart,
-      toggleEditingMelody: () {
-        setState(() {
-          recordingMelody = !recordingMelody;
-        });
-      },
-      toggleMelodyReference: _toggleReferenceDisabled,
-      setReferenceVolume: _setReferenceVolume,
-      setPartVolume: _setPartVolume,
-      setColorboardPart: _setColorboardPart,
-      setKeyboardPart: _setKeyboardPart,
-      colorboardPart: colorboardPart,
-      keyboardPart: keyboardPart,
-      editingMelody: recordingMelody,
-      hideMelodyView: _hideMusicView,
-      availableWidth: availableWidth,
-      height: availableHeight,
-      enableColorboard: enableColorboard,
-      showBeatCounts: showBeatCounts,
-      showViewOptions: showViewOptions,
-      scoreManager: _scoreManager,
-    );
+        key: ValueKey("main-part-melodies-view"),
+        appSettings: _appSettings,
+        musicViewMode: musicViewMode,
+        superSetState: setState,
+        currentSection: currentSection,
+        score: score,
+        sectionColor: sectionColor,
+        selectMelody: _selectOrDeselectMelody,
+        selectPart: _selectOrDeselectPart,
+        selectedMelody: selectedMelody,
+        selectedPart: selectedPart,
+        toggleEditingMelody: () {
+          setState(() {
+            recordingMelody = !recordingMelody;
+          });
+        },
+        toggleMelodyReference: _toggleReferenceDisabled,
+        setReferenceVolume: _setReferenceVolume,
+        setPartVolume: _setPartVolume,
+        setColorboardPart: _setColorboardPart,
+        setKeyboardPart: _setKeyboardPart,
+        colorboardPart: colorboardPart,
+        keyboardPart: keyboardPart,
+        editingMelody: recordingMelody,
+        hideMelodyView: _hideMusicView,
+        availableWidth: availableWidth,
+        height: availableHeight,
+        enableColorboard: enableColorboard,
+        showBeatCounts: showBeatCounts,
+        showViewOptions: showViewOptions,
+        scoreManager: _scoreManager,
+        shiftUpZoomControls: context.isLandscapePhone &&
+            MyPlatform.isMobile &&
+            !showKeyboard &&
+            !showColorboard &&
+            _musicViewSizeFactor == 0.5);
   }
 
   Widget _musicView(BuildContext context, double width, double height) {
@@ -2535,6 +2670,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         //   BeatScratchPlugin.setBeat(beat);
         // }
       },
+      addPart: score.parts.length < 5 &&
+              (!context.isLandscapePhone || splitMode != SplitMode.half)
+          ? () {
+              Part part = newPartFor(score);
+              score.parts.insert(0, part);
+              BeatScratchPlugin.createPart(part);
+              keyboardPart = part;
+              _selectOrDeselectPart(part);
+            }
+          : null,
       cloneCurrentSection: () {
         if (currentSection.name == null || currentSection.name.trim().isEmpty) {
           String prefix = "Section";
@@ -2700,7 +2845,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return AnimatedContainer(
         key: ValueKey("ScorePicker-$_scorePickerScrollDirection"),
-        padding: (!_scalableUI) ? EdgeInsets.only(top: 5) : EdgeInsets.zero,
+        padding: EdgeInsets
+            .zero, //(!_scalableUI) ? EdgeInsets.only(top: 5) : EdgeInsets.zero,
         curve: Curves.easeInOut,
         duration: animationDuration,
         height: height,
@@ -2779,6 +2925,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           pressedNotesNotifier: keyboardNotesNotifier,
           bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
           distanceFromBottom: _bottomTapInBarHeight + _bottomNotchPadding,
+          closed: !showKeyboard,
           closeKeyboard: showKeyboard ? _toggleKeyboard : () {},
         ));
   }

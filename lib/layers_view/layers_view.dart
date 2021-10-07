@@ -48,6 +48,7 @@ class LayersView extends StatefulWidget {
   final Function(VoidCallback) superSetState;
   final bool showBeatCounts;
   final bool showViewOptions;
+  final bool shiftUpZoomControls;
 
   LayersView(
       {this.musicViewMode,
@@ -76,7 +77,8 @@ class LayersView extends StatefulWidget {
       this.height,
       Key key,
       this.showViewOptions,
-      this.scoreManager})
+      this.scoreManager,
+      this.shiftUpZoomControls})
       : super(key: key);
 
   @override
@@ -357,6 +359,7 @@ class _LayersViewState extends State<LayersView> {
         ),
         zoomButtonColor:
             widget.keyboardPart.isDrum ? Colors.brown : Colors.grey,
+        shiftUpZoomControls: widget.shiftUpZoomControls,
         onScaleDown: (columnWidth > minColumnWidth)
             ? () {
                 setState(() {
