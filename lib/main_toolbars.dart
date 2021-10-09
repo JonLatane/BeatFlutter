@@ -47,6 +47,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final VoidCallback togglePlaying;
   final Function(bool) toggleSectionListDisplayMode;
   final InteractionMode interactionMode;
+  final MusicViewMode musicViewMode;
   final Color sectionColor;
   final RenderingMode renderingMode;
   final Function(RenderingMode) setRenderingMode;
@@ -79,6 +80,7 @@ class BeatScratchToolbar extends StatefulWidget {
       @required this.appSettings,
       @required this.universeManager,
       @required this.interactionMode,
+      @required this.musicViewMode,
       @required this.viewMode,
       @required this.universeMode,
       @required this.editMode,
@@ -448,6 +450,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
               openMelody: widget.openMelody,
               prevMelody: widget.prevMelody,
               interactionMode: widget.interactionMode,
+              musicViewMode: widget.musicViewMode,
               editMode: widget.editMode,
               sectionColor: widget.sectionColor,
               editController: editController,
@@ -571,6 +574,7 @@ class _EditButton extends StatelessWidget {
   final Part currentPart, openPart, prevPart;
   final Melody openMelody, prevMelody;
   final InteractionMode interactionMode;
+  final MusicViewMode musicViewMode;
   final VoidCallback editMode;
   final Color sectionColor;
   final AnimationController editController;
@@ -592,6 +596,7 @@ class _EditButton extends StatelessWidget {
     this.openMelody,
     this.prevMelody,
     this.interactionMode,
+    this.musicViewMode,
     this.editMode,
     this.sectionColor,
     this.editController,
@@ -642,6 +647,8 @@ class _EditButton extends StatelessWidget {
                   position: position,
                   score: score,
                   section: currentSection,
+                  selectedMelody: openMelody,
+                  musicViewMode: musicViewMode,
                   part: currentPart,
                   editObject: editObject); //.then(onMenuItemChosen);
             },

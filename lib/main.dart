@@ -121,6 +121,7 @@ class MyApp extends StatelessWidget {
       key: Key('BeatScratch'),
       title: 'BeatScratch',
       onGenerateTitle: (context) => 'BeatScratch',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
           textSelectionTheme: TextSelectionThemeData(
               selectionColor: chromaticSteps[0].withOpacity(0.5),
@@ -1558,6 +1559,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               Text("Duplicate",
                                   style: TextStyle(color: Colors.white))
                             ]))),
+                    SizedBox(width: 2),
+                    Container(
+                        height: 36,
+                        width: 36,
+                        child: MyFlatButton(
+                          color: chromaticSteps[5],
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            setState(() {
+                              showDuplicateScoreWarning = false;
+                            });
+                          },
+                          child:
+                              // SizedBox(width: 5),
+                              Transform.translate(
+                                  offset: Offset(0, 0),
+                                  child:
+                                      Icon(Icons.close, color: Colors.black)),
+                        )),
                     SizedBox(width: 4),
                   ],
                 ))));
@@ -2041,6 +2061,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           editMode: _editMode,
           toggleViewOptions: _toggleViewOptions,
           interactionMode: interactionMode,
+          musicViewMode: musicViewMode,
           routeToCurrentScore: (String pastebinCode) {
             router.navigateTo(context, "/s/$pastebinCode");
           },
@@ -2189,12 +2210,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 if (!interactionMode.isEdit) {
                   _editMode();
                 }
-                _selectOrDeselectMelody(object);
+                if (selectedMelody != object) {
+                  _selectOrDeselectMelody(object);
+                }
               } else if (object is Part) {
                 if (!interactionMode.isEdit) {
                   _editMode();
                 }
-                _selectOrDeselectPart(object);
+                if (selectedPart != object) {
+                  _selectOrDeselectPart(object);
+                }
               } else if (object is Section) {
                 if (selectedMelody != null) {
                   _selectOrDeselectMelody(selectedMelody);

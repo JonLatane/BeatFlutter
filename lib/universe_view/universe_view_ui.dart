@@ -105,13 +105,26 @@ class UniverseViewUI {
                                     fontSize: 22,
                                     fontWeight: FontWeight.w100)),
                             SizedBox(width: 7),
-                            Transform.translate(
-                                offset: Offset(0, -6),
-                                child: Text("Universe",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w400))),
+                            Stack(
+                              children: [
+                                Transform.translate(
+                                    offset: Offset(0, -6),
+                                    child: Text(
+                                        MyPlatform.isWeb ? "Web" : "Universe",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400))),
+                                if (MyPlatform.isWeb)
+                                  Transform.translate(
+                                      offset: Offset(0, 6),
+                                      child: Text("BETA",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w800))),
+                              ],
+                            ),
                             SizedBox(width: 2.5),
                           ]),
                           // Expanded(child: Container(child: SizedBox()))

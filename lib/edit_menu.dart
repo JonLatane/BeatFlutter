@@ -11,6 +11,7 @@ import 'generated/protos/protos.dart';
 import 'music_preview/melody_preview.dart';
 import 'music_preview/part_preview.dart';
 import 'music_preview/section_preview.dart';
+import 'ui_models.dart';
 import 'widget/beats_badge.dart';
 import 'widget/my_platform.dart';
 
@@ -19,6 +20,8 @@ Future<Object> showEditMenu(
     @required RelativeRect position,
     @required Score score,
     @required Part part,
+    @required Melody selectedMelody,
+    @required MusicViewMode musicViewMode,
     @required Section section,
     @required Function(Object) editObject}) async {
   onSelected(Object object) {
@@ -62,8 +65,10 @@ Future<Object> showEditMenu(
           ]),
           enabled: false,
         ),
-        sectionMenuItem(score, section, onSelected),
-        partMenuItem(score, part, section, onSelected),
+        sectionMenuItem(
+            score, section, onSelected, musicViewMode == MusicViewMode.section),
+        partMenuItem(score, part, section, onSelected,
+            musicViewMode == MusicViewMode.part),
         if (melodies.isNotEmpty)
           PopupMenuItem(
             mouseCursor: SystemMouseCursors.basic,
@@ -91,13 +96,13 @@ Future<Object> showEditMenu(
             ]),
             enabled: false,
           ),
-        ...melodies
-            .map((m) => melodyMenuItem(score, m, part, section, onSelected)),
+        ...melodies.map((m) => melodyMenuItem(
+            score, m, part, section, onSelected, m == selectedMelody)),
       ]);
 }
 
-PopupMenuItem<Section> sectionMenuItem(
-    Score score, Section section, Function(Object) onSelected) {
+PopupMenuItem<Section> sectionMenuItem(Score score, Section section,
+    Function(Object) onSelected, bool isSelected) {
   final backgroundColor = section.color.color;
   final foregroundColor = backgroundColor.textColor();
   double scale, height;
@@ -126,7 +131,15 @@ PopupMenuItem<Section> sectionMenuItem(
             children: [
               SizedBox(height: 3),
               Row(children: [
-                SizedBox(width: 16),
+                SizedBox(
+                  width: 16,
+                  child: isSelected
+                      ? Transform.translate(
+                          offset: Offset(1, 1),
+                          child: Icon(Icons.chevron_right,
+                              size: 14, color: foregroundColor))
+                      : null,
+                ),
                 Expanded(
                     child: Opacity(
                         opacity: 1,
@@ -155,8 +168,8 @@ PopupMenuItem<Section> sectionMenuItem(
       );
 }
 
-PopupMenuItem<Part> partMenuItem(
-    Score score, Part part, Section section, Function(Object) onSelected) {
+PopupMenuItem<Part> partMenuItem(Score score, Part part, Section section,
+    Function(Object) onSelected, bool isSelected) {
   final backgroundColor = part.isDrum ? Colors.brown : Colors.grey;
   final foregroundColor = Colors.white;
   return PopupMenuItem(
@@ -174,7 +187,15 @@ PopupMenuItem<Part> partMenuItem(
             children: [
               SizedBox(height: 3),
               Row(children: [
-                SizedBox(width: 16),
+                SizedBox(
+                  width: 16,
+                  child: isSelected
+                      ? Transform.translate(
+                          offset: Offset(1, 1),
+                          child: Icon(Icons.chevron_right,
+                              size: 14, color: foregroundColor))
+                      : null,
+                ),
                 Expanded(
                     child: Opacity(
                         opacity: 1,
@@ -208,7 +229,7 @@ PopupMenuItem<Part> partMenuItem(
 }
 
 PopupMenuItem<Melody> melodyMenuItem(Score score, Melody melody, Part part,
-    Section section, Function(Object) onSelected) {
+    Section section, Function(Object) onSelected, bool isSelected) {
   final backgroundColor = Colors.transparent;
   final foregroundColor = musicForegroundColor;
   return PopupMenuItem(
@@ -226,7 +247,15 @@ PopupMenuItem<Melody> melodyMenuItem(Score score, Melody melody, Part part,
             children: [
               SizedBox(height: 3),
               Row(children: [
-                SizedBox(width: 16),
+                SizedBox(
+                  width: 16,
+                  child: isSelected
+                      ? Transform.translate(
+                          offset: Offset(1, 1),
+                          child: Icon(Icons.chevron_right,
+                              size: 14, color: foregroundColor))
+                      : null,
+                ),
                 Expanded(
                     child: Opacity(
                         opacity: 1,

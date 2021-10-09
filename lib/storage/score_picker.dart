@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/storage/url_conversions.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
@@ -138,6 +139,7 @@ class ScorePickerState extends State<ScorePicker> {
     super.dispose();
   }
 
+  bool hideDetailsText = false;
   @override
   Widget build(BuildContext context) {
     if (widget.mode != ScorePickerMode.universe) {
@@ -152,10 +154,13 @@ class ScorePickerState extends State<ScorePicker> {
     if (showScoreNameEntry && !wasShowingScoreNameEntry) {
       nameFocus.requestFocus();
     }
-    if (previousMode != widget.mode &&
-        widget.mode == ScorePickerMode.duplicate) {
-      String suggestedName = widget.openedScore.name;
-      nameController.value = nameController.value.copyWith(text: suggestedName);
+    if (previousMode != widget.mode) {
+      hideDetailsText = false;
+      if (widget.mode == ScorePickerMode.duplicate) {
+        String suggestedName = widget.openedScore.name;
+        nameController.value =
+            nameController.value.copyWith(text: suggestedName);
+      }
     }
     previousMode = widget.mode;
     final nameIsValid = nameController.value.text.trim().isNotEmpty &&
@@ -211,6 +216,10 @@ class ScorePickerState extends State<ScorePicker> {
         break;
     }
     bool detailsTextInColumn = true; //MediaQuery.of(context).size.width < 500;
+    bool showDetailsText = detailsTextInColumn &&
+        extraDetailText.text.isNotEmpty &&
+        !hideDetailsText;
+
     return Column(
       children: [
         AnimatedContainer(
@@ -354,35 +363,48 @@ class ScorePickerState extends State<ScorePicker> {
                   ],
                 ))),
         AnimatedContainer(
-            height: detailsTextInColumn && extraDetailText.text.isNotEmpty
+            height: showDetailsText
                 ? 0 == extraDetailText.children?.length ?? 0
                     ? 32
                     : 48
                 : 0,
             duration: animationDuration,
-            child: AnimatedOpacity(
-                duration: animationDuration,
-                opacity: detailsTextInColumn && extraDetailText.text.isNotEmpty
-                    ? 1
-                    : 0,
-                child: Column(
-                  children: [
-                    Expanded(child: SizedBox()),
-                    Row(
+            child: GestureDetector(
+                onVerticalDragUpdate: (details) {
+                  final sensitivity = 7;
+                  if (details.delta.dy > sensitivity) {
+                    // Down swipe
+                  } else if (details.delta.dy < -sensitivity) {
+                    // Up swipe
+                    if (showDetailsText) {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        hideDetailsText = true;
+                      });
+                    }
+                  }
+                },
+                child: AnimatedOpacity(
+                    duration: animationDuration,
+                    opacity: showDetailsText ? 1 : 0,
+                    child: Column(
                       children: [
-                        SizedBox(width: 5),
-                        Expanded(
-                          child: RichText(
-                            text: extraDetailText,
-                            maxLines: 3,
-                          ),
+                        Expanded(child: SizedBox()),
+                        Row(
+                          children: [
+                            SizedBox(width: 5),
+                            Expanded(
+                              child: RichText(
+                                text: extraDetailText,
+                                maxLines: 3,
+                              ),
+                            ),
+                            SizedBox(width: 5),
+                          ],
                         ),
-                        SizedBox(width: 5),
+                        Expanded(child: SizedBox()),
                       ],
-                    ),
-                    Expanded(child: SizedBox()),
-                  ],
-                ))),
+                    )))),
         AnimatedContainer(
           height: showScoreNameEntry ? 40 : 0,
           duration: animationDuration,
