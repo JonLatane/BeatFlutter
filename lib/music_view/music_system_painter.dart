@@ -30,7 +30,7 @@ class MusicSystemPainter extends CustomPainter {
   final Score score;
   final Section section;
   final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
-  final Rect Function() visibleRect;
+  Rect Function() visibleRect;
   final MusicViewMode musicViewMode;
   final ValueNotifier<double> colorblockOpacityNotifier,
       colorGuideOpacityNotifier,
@@ -49,6 +49,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
+  final int systemsToRender;
 
   double get xScale => xScaleNotifier.value;
 
@@ -61,43 +62,44 @@ class MusicSystemPainter extends CustomPainter {
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score
       .beatCount;
 
-  double get standardBeatWidth => unscaledStandardBeatWidth * xScale;
+  double get standardBeatWidth => calculateStandardBeatWidth(xScale);
 
   double get width => standardBeatWidth * numberOfBeats;
 
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
-  MusicSystemPainter({
-    this.isPreview,
-    this.focusedBeat,
-    this.tappedBeat,
-    this.firstBeatOfSection,
-    this.highlightedBeat,
-    this.musicViewMode,
-    this.colorGuideOpacityNotifier,
-    this.sectionColor,
-    this.focusedPart,
-    this.tappedPart,
-    this.keyboardPart,
-    this.colorboardPart,
-    this.staves,
-    this.partTopOffsets,
-    this.staffOffsets,
-    this.sectionScaleNotifier,
-    this.colorboardNotesNotifier,
-    this.keyboardNotesNotifier,
-    this.bluetoothControllerPressedNotes,
-    this.score,
-    this.section,
-    this.xScaleNotifier,
-    this.yScaleNotifier,
-    this.visibleRect,
-    this.focusedMelodyId,
-    this.colorblockOpacityNotifier,
-    this.notationOpacityNotifier,
-    this.isCurrentScore,
-    this.renderPartNames,
-  }) : super(
+  MusicSystemPainter(
+      {this.isPreview,
+      this.focusedBeat,
+      this.tappedBeat,
+      this.firstBeatOfSection,
+      this.highlightedBeat,
+      this.musicViewMode,
+      this.colorGuideOpacityNotifier,
+      this.sectionColor,
+      this.focusedPart,
+      this.tappedPart,
+      this.keyboardPart,
+      this.colorboardPart,
+      this.staves,
+      this.partTopOffsets,
+      this.staffOffsets,
+      this.sectionScaleNotifier,
+      this.colorboardNotesNotifier,
+      this.keyboardNotesNotifier,
+      this.bluetoothControllerPressedNotes,
+      this.score,
+      this.section,
+      this.xScaleNotifier,
+      this.yScaleNotifier,
+      this.visibleRect,
+      this.focusedMelodyId,
+      this.colorblockOpacityNotifier,
+      this.notationOpacityNotifier,
+      this.isCurrentScore,
+      this.renderPartNames,
+      this.systemsToRender = 1})
+      : super(
             repaint: Listenable.merge([
           colorblockOpacityNotifier,
           notationOpacityNotifier,
@@ -120,9 +122,20 @@ class MusicSystemPainter extends CustomPainter {
     _tickPaint.strokeWidth = 2.0;
   }
 
-  static double calculateHarmonyHeight(double scale) => min(100, 30 * scale);
-  static double calculateSectionHeight(double scale) =>
-      max(22, calculateHarmonyHeight(scale));
+  static double calculateHarmonyHeight(double yScale) => min(100, 30 * yScale);
+  static double calculateSectionHeight(double yScale) =>
+      max(22, calculateHarmonyHeight(yScale));
+  static double calculateMelodyHeight(double yScale) => staffHeight * yScale;
+  static double calculateSystemHeight(double yScale, int partCount) =>
+      calculateSectionHeight(yScale) +
+      calculateHarmonyHeight(yScale) +
+      (calculateMelodyHeight(yScale) * partCount);
+  static double calculateSystemPadding(double yScale) =>
+      calculateMelodyHeight(yScale) * 0.5;
+  static double calculateStandardBeatWidth(double xScale) =>
+      unscaledStandardBeatWidth * xScale;
+  static double calculateClefWidth(double xScale) =>
+      calculateStandardBeatWidth(xScale) * 2;
 
   double get harmonyHeight => calculateHarmonyHeight(yScale);
   double get idealSectionHeight => max(22, harmonyHeight);
@@ -132,18 +145,34 @@ class MusicSystemPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    paintSystem(canvas, size);
+    canvas.save();
+    for (int i = 1; i < systemsToRender; i++) {
+      canvas.translate(
+          0,
+          calculateSystemHeight(yScale, score.parts.length) +
+              calculateSystemPadding(yScale));
+      paintSystem(canvas, size,
+          offsetStart:
+              (visibleRect().width - calculateClefWidth(xScale)) * (i));
+    }
+    canvas.restore();
+  }
+
+  void paintSystem(Canvas canvas, Size size, {double offsetStart = 0}) {
     // return;
     // final startTime = DateTime.now().millisecondsSinceEpoch;
     bool drawContinuousColorGuide = false; //xScale <= 1;
 //    canvas.clipRect(Offset.zero & size);
 
     // Calculate from which beat we should start drawing
-    int startBeat =
-        ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor();
+    int startBeat = ((visibleRect().left + offsetStart - standardBeatWidth) /
+            standardBeatWidth)
+        .floor();
 
     // ignore: unused_local_variable
     double top, left, right, bottom;
-    left = startBeat * standardBeatWidth;
+    left = startBeat * standardBeatWidth - offsetStart;
 //    canvas.drawRect(visibleRect(), Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
     staves.value.forEach((staff) {
@@ -156,7 +185,7 @@ class MusicSystemPainter extends CustomPainter {
       _renderStaffLines(canvas,
           !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
       Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
-          visibleRect().left + 2 * standardBeatWidth, top + melodyHeight);
+          visibleRect().left + calculateClefWidth(xScale), top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
       _renderClefs(canvas, clefBounds, staff);

@@ -148,6 +148,25 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   // double _startHorizontalScale = 1.0;
   // double _startVerticalScale = 1.0;
   bool _hasSwipedClosed = false;
+  bool _forceShowViewOptions = false;
+  DateTime _forceShowViewOptionsTime = DateTime.now();
+  bool get forceShowViewOptions => _forceShowViewOptions;
+  set forceShowViewOptions(bool v) {
+    _forceShowViewOptions = v;
+    final now = DateTime.now();
+    if (v) {
+      _forceShowViewOptionsTime = now;
+      Future.delayed(Duration(milliseconds: 1500), () {
+        if (_forceShowViewOptionsTime == now) {
+          setState(() {
+            _forceShowViewOptions = false;
+          });
+        }
+      });
+    }
+  }
+
+  bool get showViewOptions => widget.showViewOptions || forceShowViewOptions;
 
   ValueNotifier<double> xScaleNotifier,
       yScaleNotifier,
@@ -1004,7 +1023,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   getBeat(Offset position, {bool targeted = true}) {
+    double systemHeight = MusicSystemPainter.calculateSystemHeight(
+            yScale, widget.score.parts.length) +
+        MusicSystemPainter.calculateSystemPadding(yScale);
+    double systemXOffset = (position.dy / systemHeight).floor() *
+        (widget.width - MusicSystemPainter.calculateClefWidth(xScale));
     int beat = ((position.dx +
+                systemXOffset +
                 melodyRendererVisibleRect.left -
                 2 * unscaledStandardBeatWidth * xScale) /
             (unscaledStandardBeatWidth * (targeted ? xScale : _xScale)))
@@ -1091,7 +1116,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             widget.musicViewMode == MusicViewMode.melody ||
             widget.musicViewMode == MusicViewMode.score) &&
         (focusedPartIsNotFirst || focusedMelodyIsNotFirst) &&
-        widget.showViewOptions;
+        showViewOptions;
     bool showMinimizeButton = xScale != minScale;
     bool showExpandButton = xScale != alignedScale;
     bool showExpandPartButton = (!showExpandButton || !showMinimizeButton) &&
@@ -1127,6 +1152,18 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     }
 
     pointerDown(Offset localPosition) {
+      double systemHeight = MusicSystemPainter.calculateSystemHeight(
+              yScale, widget.score.parts.length) +
+          MusicSystemPainter.calculateSystemPadding(yScale);
+      if (systemHeight < localPosition.dy) {
+        if (autoScroll) {
+          setState(() {
+            forceShowViewOptions = true;
+            autoScroll = false;
+          });
+        }
+      }
+
       int beat = getBeat(localPosition);
       print(
           "pointerDown: ${localPosition} -> beat: $beat; x/t: $_xScale/$targetedXScale");
@@ -1134,7 +1171,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           localPosition.dy > widget.height - 104) {
         return;
       }
-      if (widget.showViewOptions) {
+      if (showViewOptions) {
         if (localPosition.dx > widget.width - 52 &&
             localPosition.dy > widget.height - 156) {
           return;
@@ -1146,14 +1183,17 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       }
 
       tappedBeat.value = beat;
-      double absoluteY = verticalScrollingPosition.value + localPosition.dy;
-      absoluteY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
+      double partIndexY = verticalScrollingPosition.value + localPosition.dy;
+      partIndexY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
       if (widget.musicViewMode == MusicViewMode.score ||
           xScale < minScale * 2) {
-        absoluteY -= MusicSystemPainter.calculateSectionHeight(yScale);
+        partIndexY -= MusicSystemPainter.calculateSectionHeight(yScale);
+      }
+      while (partIndexY > systemHeight) {
+        partIndexY -= systemHeight;
       }
       int partIndex =
-          (absoluteY / (yScale * MusicSystemPainter.staffHeight)).floor();
+          (partIndexY / (yScale * MusicSystemPainter.staffHeight)).floor();
       print("partIndex=$partIndex");
       print("mainPart=${mainPart?.midiName}");
       if (!autoFocus ||
@@ -1316,10 +1356,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   Row(children: [
                     AnimatedContainer(
                         duration: animationDuration,
-                        width: widget.showViewOptions ? 99 : 0,
+                        width: showViewOptions ? 99 : 0,
                         child: AnimatedOpacity(
                             duration: animationDuration,
-                            opacity: widget.showViewOptions ? 1 : 0,
+                            opacity: showViewOptions ? 1 : 0,
                             child: Row(children: [
                               Expanded(child: SizedBox()),
                               Column(children: [
@@ -1336,10 +1376,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                 SizedBox(height: 2),
                               ]),
                             ]))),
-                    if (widget.showViewOptions) SizedBox(width: 2),
+                    if (showViewOptions) SizedBox(width: 2),
                     Column(children: [
                       Expanded(child: SizedBox()),
-                      autoScrollButton(visible: widget.showViewOptions),
+                      autoScrollButton(visible: showViewOptions),
                       SizedBox(height: 2),
                       scrollToCurrentBeatButton(),
                       SizedBox(height: 2),
