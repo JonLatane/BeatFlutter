@@ -1,3 +1,4 @@
+import '../colors.dart';
 import '../music_view/music_action_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -104,28 +105,33 @@ class _ScalableViewState extends State<ScalableView> {
                         height: 48,
                         child: Align(
                           alignment: Alignment.center,
-                          child: Stack(children: [
-                            Transform.translate(
-                                offset: Offset(-5, 5),
-                                child: Transform.scale(
-                                    scale: 1,
-                                    child: Icon(Icons.zoom_out,
-                                        color: Colors.black54))),
-                            Transform.translate(
-                                offset: Offset(5, -5),
-                                child: Transform.scale(
-                                    scale: 1,
-                                    child: Icon(Icons.zoom_in,
-                                        color: Colors.black54))),
-                            Transform.translate(
-                              offset: Offset(2, 20),
-                              child: Text(widget.zoomLevelDescription,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
-                                      color: Colors.black87)),
-                            ),
-                          ]),
+                          child: Transform.translate(
+                              offset: Offset(0, -3),
+                              child: Stack(children: [
+                                Transform.translate(
+                                    offset: Offset(-5, 5),
+                                    child: Transform.scale(
+                                        scale: 1,
+                                        child: Icon(Icons.zoom_out,
+                                            color: musicForegroundColor
+                                                .withOpacity(0.54)))),
+                                Transform.translate(
+                                    offset: Offset(5, -5),
+                                    child: Transform.scale(
+                                        scale: 1,
+                                        child: Icon(Icons.zoom_in,
+                                            color: musicForegroundColor
+                                                .withOpacity(0.54)))),
+                                Transform.translate(
+                                  offset: Offset(2, 20),
+                                  child: Text(widget.zoomLevelDescription,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 12,
+                                          color: musicForegroundColor
+                                              .withOpacity(0.87))),
+                                ),
+                              ])),
                         ),
                       ),
                       valueWidth: 48,

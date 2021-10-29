@@ -1,4 +1,5 @@
 import 'package:beatscratch_flutter_redux/util/music_theory.dart';
+import 'package:beatscratch_flutter_redux/util/ui_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -65,8 +66,13 @@ Future<Object> showEditMenu(
           ]),
           enabled: false,
         ),
+        // if (!context.isPortraitPhone)
+        //   sectionAndPartMenuItem(
+        //       score, section, part, onSelected, musicViewMode),
+        // if (context.isPortraitPhone)
         sectionMenuItem(
             score, section, onSelected, musicViewMode == MusicViewMode.section),
+        // if (context.isPortraitPhone)
         partMenuItem(score, part, section, onSelected,
             musicViewMode == MusicViewMode.part),
         if (melodies.isNotEmpty)
@@ -101,7 +107,35 @@ Future<Object> showEditMenu(
       ]);
 }
 
+PopupMenuItem<void> sectionAndPartMenuItem(Score score, Section section,
+    Part part, Function(Object) onSelected, MusicViewMode musicViewMode) {
+  Widget sectionView = sectionPreview(
+          score, section, onSelected, musicViewMode == MusicViewMode.section),
+      partView = partPreview(score, part, section, onSelected,
+          musicViewMode == MusicViewMode.part);
+  return PopupMenuItem(
+      value: null,
+      mouseCursor: SystemMouseCursors.basic,
+      padding: EdgeInsets.zero,
+      child: Row(
+        children: [
+          Container(width: 300, child: sectionView),
+          Container(width: 300, child: partView)
+        ],
+      ));
+}
+
 PopupMenuItem<Section> sectionMenuItem(Score score, Section section,
+    Function(Object) onSelected, bool isSelected) {
+  return PopupMenuItem(
+      value: section,
+      mouseCursor: SystemMouseCursors.basic,
+      padding: EdgeInsets.zero,
+      child: sectionPreview(score, section, onSelected, isSelected),
+      enabled: true);
+}
+
+Material sectionPreview(Score score, Section section,
     Function(Object) onSelected, bool isSelected) {
   final backgroundColor = section.color.color;
   final foregroundColor = backgroundColor.textColor();
@@ -116,116 +150,113 @@ PopupMenuItem<Section> sectionMenuItem(Score score, Section section,
     scale = 0.076;
     height = 40.0 * score.parts.length;
   }
-  return PopupMenuItem(
-      value: section,
+  return Material(
+    color: backgroundColor,
+    child: InkWell(
       mouseCursor: SystemMouseCursors.basic,
-      padding: EdgeInsets.zero,
-      child: Material(
-        color: backgroundColor,
-        child: InkWell(
-          mouseCursor: SystemMouseCursors.basic,
-          onTap: () {
-            onSelected(section);
-          },
-          child: Column(
-            children: [
-              SizedBox(height: 3),
-              Row(children: [
-                SizedBox(
-                  width: 16,
-                  child: isSelected
-                      ? Transform.translate(
-                          offset: Offset(1, 1),
-                          child: Icon(Icons.chevron_right,
-                              size: 14, color: foregroundColor))
-                      : null,
-                ),
-                Expanded(
-                    child: Opacity(
-                        opacity: 1,
-                        child: Text(section.canonicalName,
-                            style: TextStyle(
-                                color: foregroundColor.withOpacity(
-                                    section.name.isNotEmpty ? 1 : 0.5),
-                                fontWeight: FontWeight.w100)))),
-                SizedBox(width: 3),
-                Opacity(
-                    opacity: 1, child: BeatsBadge(beats: section.beatCount)),
-                SizedBox(width: 3),
-              ]),
-              Opacity(
-                  opacity: 1,
-                  child: SectionPreview(
-                      score: score,
-                      section: section,
-                      scale: scale,
-                      height: height)),
-            ],
-          ),
-        ),
+      onTap: () {
+        onSelected(section);
+      },
+      child: Column(
+        children: [
+          SizedBox(height: 3),
+          Row(children: [
+            SizedBox(
+              width: 16,
+              child: isSelected
+                  ? Transform.translate(
+                      offset: Offset(1, 1),
+                      child: Icon(Icons.chevron_right,
+                          size: 14, color: foregroundColor))
+                  : null,
+            ),
+            Expanded(
+                child: Opacity(
+                    opacity: 1,
+                    child: Text(section.canonicalName,
+                        style: TextStyle(
+                            color: foregroundColor
+                                .withOpacity(section.name.isNotEmpty ? 1 : 0.5),
+                            fontWeight: FontWeight.w100)))),
+            SizedBox(width: 3),
+            Opacity(opacity: 1, child: BeatsBadge(beats: section.beatCount)),
+            SizedBox(width: 3),
+          ]),
+          Opacity(
+              opacity: 1,
+              child: SectionPreview(
+                  score: score,
+                  section: section,
+                  scale: scale,
+                  height: height)),
+        ],
       ),
-      enabled: true //melody.instrumentType == widget.part?.instrument?.type,
-      );
+    ),
+  );
 }
 
 PopupMenuItem<Part> partMenuItem(Score score, Part part, Section section,
     Function(Object) onSelected, bool isSelected) {
-  final backgroundColor = part.isDrum ? Colors.brown : Colors.grey;
-  final foregroundColor = Colors.white;
   return PopupMenuItem(
       value: part,
       mouseCursor: SystemMouseCursors.basic,
       padding: EdgeInsets.zero,
-      child: Material(
-        color: backgroundColor,
-        child: InkWell(
-          mouseCursor: SystemMouseCursors.basic,
-          onTap: () {
-            onSelected(part);
-          },
-          child: Column(
-            children: [
-              SizedBox(height: 3),
-              Row(children: [
-                SizedBox(
-                  width: 16,
-                  child: isSelected
-                      ? Transform.translate(
-                          offset: Offset(1, 1),
-                          child: Icon(Icons.chevron_right,
-                              size: 14, color: foregroundColor))
-                      : null,
-                ),
-                Expanded(
-                    child: Opacity(
-                        opacity: 1,
-                        child: Text(part.midiName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: foregroundColor,
-                                fontWeight: FontWeight.w900)))),
+      child: partPreview(score, part, section, onSelected, isSelected),
+      enabled: true);
+}
 
-                // Padding(
-                //     padding: EdgeInsets.symmetric(vertical: 2),
-                //     child: Icon(Icons.add)),
-                // if (!isDuplicate &&
-                //     widget.part?.instrument?.type == melody.instrumentType)
-                SizedBox(width: 3),
-              ]),
-              Opacity(
-                  opacity: 1,
-                  child: PartPreview(
-                    score: score,
-                    section: section,
-                    part: part,
-                  )),
-            ],
-          ),
-        ),
+Material partPreview(Score score, Part part, Section section,
+    Function(Object) onSelected, bool isSelected) {
+  final backgroundColor = part.isDrum ? Colors.brown : Colors.grey;
+  final foregroundColor = Colors.white;
+  return Material(
+    color: backgroundColor,
+    child: InkWell(
+      mouseCursor: SystemMouseCursors.basic,
+      onTap: () {
+        onSelected(part);
+      },
+      child: Column(
+        children: [
+          SizedBox(height: 3),
+          Row(children: [
+            SizedBox(
+              width: 16,
+              child: isSelected
+                  ? Transform.translate(
+                      offset: Offset(1, 1),
+                      child: Icon(Icons.chevron_right,
+                          size: 14, color: foregroundColor))
+                  : null,
+            ),
+            Expanded(
+                child: Opacity(
+                    opacity: 1,
+                    child: Text(part.midiName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: foregroundColor,
+                            fontWeight: FontWeight.w900)))),
+
+            // Padding(
+            //     padding: EdgeInsets.symmetric(vertical: 2),
+            //     child: Icon(Icons.add)),
+            // if (!isDuplicate &&
+            //     widget.part?.instrument?.type == melody.instrumentType)
+            SizedBox(width: 3),
+          ]),
+          Opacity(
+              opacity: 1,
+              child: PartPreview(
+                score: score,
+                section: section,
+                part: part,
+              )),
+        ],
       ),
-      enabled: true //melody.instrumentType == widget.part?.instrument?.type,
-      );
+    ),
+  );
 }
 
 PopupMenuItem<Melody> melodyMenuItem(Score score, Melody melody, Part part,

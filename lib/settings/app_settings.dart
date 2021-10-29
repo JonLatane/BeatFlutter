@@ -73,6 +73,12 @@ class AppSettings {
     _preferences?.setBool("autoSortMusic", value);
   }
 
+  bool get autoZoomAlignMusic =>
+      _preferences?.getBool('autoZoomAlignMusic') ?? true;
+  set autoZoomAlignMusic(bool value) {
+    _preferences?.setBool("autoZoomAlignMusic", value);
+  }
+
   double get musicScale => _preferences?.getDouble('musicScale');
   set musicScale(double value) => _preferences?.setDouble("musicScale", value);
 

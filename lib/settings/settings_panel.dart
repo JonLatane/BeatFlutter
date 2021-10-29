@@ -108,12 +108,14 @@ class _SettingsPanelState extends State<SettingsPanel> {
           if (e is NoteOnEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id].add(e.noteNumber - 60);
+            widget.bluetoothControllerPressedNotes.value[event.device.id]
+                .add(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           } else if (e is NoteOffEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id].remove(e.noteNumber - 60);
+            widget.bluetoothControllerPressedNotes.value[event.device.id]
+                .remove(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           }
         });
@@ -450,29 +452,52 @@ class _SettingsPanelState extends State<SettingsPanel> {
 
 showColors(BuildContext context, Color sectionColor) {
   Widget colorRow(Color color, String name, String symbol) => Row(children: [
-        Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(border: Border.all(), color: color),
-            child: SizedBox()),
-        Expanded(child: SizedBox()),
-        Text(name,
-            style: TextStyle(
-                color: musicForegroundColor, fontWeight: FontWeight.w200)),
-        Expanded(child: SizedBox()),
-        Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              border: Border.all(),
-            ),
-            child: Center(
-                child: Text(symbol,
-                    textAlign: TextAlign.center,
+        Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                Expanded(child: SizedBox()),
+                Container(
+                    width: 60,
+                    height: 40,
+                    decoration:
+                        BoxDecoration(border: Border.all(), color: color),
+                    child: Center(
+                        child: Text(symbol,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: color.textColor(),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600)))),
+                Expanded(child: SizedBox()),
+              ],
+            )),
+        // Expanded(child: SizedBox()),
+        Expanded(
+            flex: 5,
+            child: Row(
+              children: [
+                SizedBox(width: 15),
+                Text(name,
                     style: TextStyle(
                         color: musicForegroundColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600)))),
+                        fontWeight: FontWeight.w200)),
+              ],
+            )),
+        // Expanded(child: SizedBox()),
+        // Container(
+        //     width: 36,
+        //     height: 36,
+        //     decoration: BoxDecoration(
+        //       border: Border.all(),
+        //     ),
+        //     child: Center(
+        //         child: Text(symbol,
+        //             textAlign: TextAlign.center,
+        //             style: TextStyle(
+        //                 color: musicForegroundColor,
+        //                 fontSize: 10,
+        //                 fontWeight: FontWeight.w600)))),
       ]);
   Widget chromaticColumn(int note, Color color) => Container(
       padding: EdgeInsets.symmetric(horizontal: 3),

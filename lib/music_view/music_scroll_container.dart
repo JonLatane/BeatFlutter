@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/settings/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -34,11 +35,10 @@ class MusicScrollContainer extends StatefulWidget {
   final List<MusicStaff> staves;
   final Part focusedPart, keyboardPart, colorboardPart;
   final double height, width;
-  final bool previewMode;
   final bool isCurrentScore;
   final bool isTwoFingerScaling;
   final BSMethod scrollToCurrentBeat, centerCurrentSection, scrollToPart;
-  final bool autoScroll, autoFocus, renderPartNames, isPreview;
+  final AppSettings appSettings;
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier,
       colorboardNotesNotifier;
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
@@ -73,7 +73,6 @@ class MusicScrollContainer extends StatefulWidget {
       this.focusedPart,
       this.width,
       this.height,
-      this.previewMode,
       this.isCurrentScore,
       this.highlightedBeat,
       this.focusedBeat,
@@ -85,10 +84,7 @@ class MusicScrollContainer extends StatefulWidget {
       this.isTwoFingerScaling,
       this.scrollToCurrentBeat,
       this.centerCurrentSection,
-      this.autoScroll,
-      this.autoFocus,
-      this.renderPartNames,
-      this.isPreview,
+      this.appSettings,
       this.notifyXScaleUpdate,
       this.notifyYScaleUpdate,
       this.xScaleNotifier,
@@ -155,25 +151,59 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       ? 30
       : 0;
 
-  double get overallCanvasHeight =>
-      (widget.staves.length * MusicSystemPainter.staffHeight * yScale) +
-      sectionsHeight;
+  double get systemHeight => (((widget.staves.length + 0.5) *
+          MusicSystemPainter.staffHeight *
+          yScale) +
+      sectionsHeight);
 
-  double get maxCanvasHeight =>
+  double get systemRenderAreaWidth =>
+      widget.width - MusicSystemPainter.calculateClefWidth(xScale);
+  double get beatsOnScreenPerSystem =>
+      systemRenderAreaWidth / standardBeatWidth;
+  int get maxSystemsNeeded =>
+      (widget.score.beatCount / beatsOnScreenPerSystem).ceil();
+
+  int get maxSupportedSystems => 5;
+  int get systemsToRender => systemHeight < widget.height
+      ? min(maxSystemsNeeded, maxSupportedSystems)
+      : 1;
+
+  double get calculatedSystemThingy => ((systemsToRender) *
+      ((currentBeat - 2) / (beatsOnScreenPerSystem * systemsToRender)));
+  // In multi-system mode, we select a "target system" for the
+  // currentBeat based on how far into the score currentBeat is.
+  int get currentBeatTargetSystemIndex => max(
+      0,
+      min(systemsToRender - 1,
+          systemsToRender == 1 ? 0 : calculatedSystemThingy.floor()));
+
+  double get currentBeatTargetSystemXOffset =>
+      currentBeatTargetSystemIndex * (systemRenderAreaWidth);
+  double get currentBeatTargetSystemYOffset => min(
+      max(0, overallCanvasHeight - widget.height),
       max(
-          widget.height,
-          widget.staves.length *
-              MusicSystemPainter.staffHeight *
-              MusicScrollContainer.maxScale) +
-      sectionsHeight;
+              0,
+              currentBeatTargetSystemIndex -
+                  0.3 -
+                  (0.4 *
+                      (currentBeatTargetSystemIndex.toDouble() /
+                          systemsToRender))) *
+          (MusicSystemPainter.calculateSystemHeight(
+                  yScale, widget.score.parts.length) +
+              MusicSystemPainter.calculateSystemPadding(yScale)));
+
+  double get overallCanvasHeight => systemsToRender * systemHeight;
+
+  // double get maxCanvasHeight =>
+  //     max(widget.height, overallCanvasHeight) + sectionsHeight;
 
   double get overallCanvasWidth =>
       (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
       targetBeatWidth; // + 20 * xScale; // + 1 for clefs
-  double get maxCanvasWidth =>
-      (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
-      unscaledStandardBeatWidth *
-      MusicScrollContainer.maxScale; // + 20 * xScale; // + 1 for clefs
+  // double get maxCanvasWidth =>
+  //     (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
+  //     unscaledStandardBeatWidth *
+  //     MusicScrollContainer.maxScale; // + 20 * xScale; // + 1 for clefs
   double get targetClefWidth =>
       MusicSystemPainter.extraBeatsSpaceForClefs * targetBeatWidth;
 
@@ -190,15 +220,17 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get marginBeatsForSection =>
       max(0, visibleWidth - targetClefWidth - sectionWidth) / targetBeatWidth;
 
-  Rect get myVisibleRect =>
-      (widget.previewMode) ? visibleRect : melodyRendererVisibleRect;
+  Rect get myVisibleRect => melodyRendererVisibleRect;
+  bool get autoScroll => widget.appSettings.autoScrollMusic;
+  bool get autoSort => widget.appSettings.autoSortMusic;
+  bool get autoZoomAlign => widget.appSettings.autoZoomAlignMusic;
 
   set myVisibleRect(value) {
-    if (widget.previewMode) {
-      visibleRect = value;
-    } else {
-      melodyRendererVisibleRect = value;
-    }
+    // if (widget.previewMode) {
+    //   visibleRect = value;
+    // } else {
+    melodyRendererVisibleRect = value;
+    // }
   }
 
   @override
@@ -260,7 +292,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
             bw1 = unscaledStandardBeatWidth * s1;
         // p2: the target offset
         double p2;
-        if (widget.autoScroll) {
+        if (autoScroll) {
           p2 = p1 * s2 / s1;
           double cb1 = currentBeat * bw1;
           // if cb1 (the current beat) was on screen
@@ -312,17 +344,17 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     //   // timeScrollController.jumpTo(_lastTimeScrollValue);
     // }
     // _lastTimeScrollValue = timeScrollController.offset;
-    double maxScrollExtent = widget.focusedBeat.value != null
-        ? maxCanvasWidth
-        : max(10, overallCanvasWidth - widget.width + 150);
-    if (timeScrollController.offset > maxScrollExtent) {
-      if (timeScrollController.offset > maxScrollExtent + 10) {
-        timeScrollController.animateTo(maxScrollExtent,
-            duration: animationDuration, curve: Curves.ease);
-      } else {
-        timeScrollController.jumpTo(maxScrollExtent);
-      }
-    }
+    // double maxScrollExtent = widget.focusedBeat.value != null
+    //     ? maxCanvasWidth
+    //     : max(10, overallCanvasWidth - widget.width + 150);
+    // if (timeScrollController.offset > maxScrollExtent) {
+    //   if (timeScrollController.offset > maxScrollExtent + 10) {
+    //     timeScrollController.animateTo(maxScrollExtent,
+    //         duration: animationDuration, curve: Curves.ease);
+    //   } else {
+    //     timeScrollController.jumpTo(maxScrollExtent);
+    //   }
+    // }
     Future.delayed(Duration(milliseconds: _autoScrollDelayDuration + 50), () {
       if (_autoScrollDelayDuration <
               DateTime.now().millisecondsSinceEpoch -
@@ -339,21 +371,21 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   _verticalScrollListener() {
     widget.verticalScrollNotifier.value = verticalController.offset;
-    double maxScrollExtent = widget.focusedBeat.value != null
-        ? maxCanvasHeight
-        : max(10, overallCanvasHeight - widget.height);
-    if (verticalController.offset > maxScrollExtent) {
-      if (timeScrollController.offset > maxScrollExtent + 50) {
-        verticalController.animateTo(maxScrollExtent,
-            duration: animationDuration, curve: Curves.ease);
-      } else {
-        verticalController.jumpTo(maxScrollExtent);
-      }
-    }
+    // double maxScrollExtent = widget.focusedBeat.value != null
+    //     ? maxCanvasHeight
+    //     : max(10, overallCanvasHeight - widget.height);
+    // if (verticalController.offset > maxScrollExtent) {
+    //   if (timeScrollController.offset > maxScrollExtent + 50) {
+    //     verticalController.animateTo(maxScrollExtent,
+    //         duration: animationDuration, curve: Curves.ease);
+    //   } else {
+    //     verticalController.jumpTo(maxScrollExtent);
+    //   }
+    // }
   }
 
   _onScrollStopped() {
-    if (widget.autoScroll &&
+    if (autoScroll &&
         !widget.isTwoFingerScaling &&
         (widget.musicViewMode != MusicViewMode.score ||
             !BeatScratchPlugin.playing)) {
@@ -399,53 +431,52 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
     double currentBeat = this.currentBeat;
     String sectionOrder = widget.score.sections.map((e) => e.id).join();
-    if (!widget.isPreview) {
-      if (widget.isTwoFingerScaling) {
-        scrollToFocusedBeat(instant: true);
-      } else if (widget.autoScroll) {
-        if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds >
-            1000) {
-          if (_prevViewMode == MusicViewMode.score &&
-              widget.musicViewMode != MusicViewMode.score &&
-              _prevBeat > widget.currentSection.beatCount - 2) {
-            Future.delayed(slowAnimationDuration, () {
-              scrollToCurrentBeat();
-              _lastAutoScrollTime = DateTime.now();
-            });
-          } else if (_prevSectionId != null &&
-              _prevSectionId != widget.currentSection.id) {
-            scrollToCurrentBeat();
-            _lastAutoScrollTime = DateTime.now();
-          } else if (prevWidth != null && prevWidth != widget.width) {
-            // print("width changed");
-            scrollToCurrentBeat();
-            _lastAutoScrollTime = DateTime.now();
-          } else if (_prevSectionOrder != null &&
-              _prevSectionOrder != sectionOrder) {
-            Future.delayed(animationDuration, () {
-              scrollToCurrentBeat();
-              _lastAutoScrollTime = DateTime.now();
-            });
-          } else if ((BeatScratchPlugin.playing ||
-                  (currentBeat == 0 &&
-                      widget.currentSection.id ==
-                          widget.score.sections.first.id)) &&
-              _hasBuilt &&
-              sectionWidth > visibleAreaForSection &&
-              _prevBeat != currentBeat &&
-              (currentBeat - firstBeatOfSection) %
-                      widget.currentSection.meter.defaultBeatsPerMeasure ==
-                  0 &&
-              !isBeatOnScreen(currentBeat +
-                  widget.currentSection.meter.defaultBeatsPerMeasure)) {
-            scrollToBeat(
-              currentBeat,
-            );
-            _lastAutoScrollTime = DateTime.now();
-          }
-        }
+    if (widget.isTwoFingerScaling) {
+      scrollToFocusedBeat(instant: true);
+    } else if (autoScroll) {
+      // if (DateTime.now().difference(_lastAutoScrollTime).inMilliseconds >
+      //     500) {
+      if (_prevViewMode == MusicViewMode.score &&
+          widget.musicViewMode != MusicViewMode.score &&
+          _prevBeat > widget.currentSection.beatCount - 2) {
+        Future.delayed(slowAnimationDuration, () {
+          scrollToCurrentBeat();
+          _lastAutoScrollTime = DateTime.now();
+        });
+      } else if (_prevSectionId != null &&
+          _prevSectionId != widget.currentSection.id) {
+        scrollToCurrentBeat();
+        _lastAutoScrollTime = DateTime.now();
+      } else if (prevWidth != null && prevWidth != widget.width) {
+        // print("width changed");
+        scrollToCurrentBeat();
+        _lastAutoScrollTime = DateTime.now();
+      } else if (_prevSectionOrder != null &&
+          _prevSectionOrder != sectionOrder) {
+        Future.delayed(animationDuration, () {
+          scrollToCurrentBeat();
+          _lastAutoScrollTime = DateTime.now();
+        });
+      } else if ((BeatScratchPlugin.playing ||
+              (currentBeat == 0 &&
+                  widget.currentSection.id ==
+                      widget.score.sections.first.id)) &&
+          _hasBuilt &&
+          sectionWidth > visibleAreaForSection &&
+          _prevBeat != currentBeat &&
+          (currentBeat - firstBeatOfSection) %
+                  widget.currentSection.meter.defaultBeatsPerMeasure ==
+              0 &&
+          !isBeatOnScreen(currentBeat +
+              widget.currentSection.meter.defaultBeatsPerMeasure)) {
+        scrollToBeat(
+          currentBeat,
+        );
+        _lastAutoScrollTime = DateTime.now();
       }
+      // }
     }
+
     if (_hasBuilt && widget.score != _prevScore) {
       scrollToBeat(0, duration: Duration.zero);
       _prevScore = widget.score;
@@ -463,7 +494,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 //        key: Key(key),
         child: AnimatedContainer(
             duration: animationDuration,
-            height: maxCanvasHeight,
+            height: overallCanvasHeight,
             child: CustomScrollView(
               controller: timeScrollController,
               scrollDirection: Axis.horizontal,
@@ -474,7 +505,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
                   },
                   child: CustomPaint(
 //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
-                    size: Size(maxCanvasWidth, maxCanvasHeight),
+                    size: Size(overallCanvasWidth, overallCanvasHeight),
                     painter: MusicSystemPainter(
                         sectionScaleNotifier: sectionScaleNotifier,
                         score: widget.score,
@@ -504,9 +535,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
                         focusedBeat: widget.focusedBeat,
                         tappedBeat: widget.tappedBeat,
                         firstBeatOfSection: firstBeatOfSection,
-                        renderPartNames: widget.renderPartNames,
-                        isPreview: widget.isPreview,
-                        systemsToRender: 4),
+                        renderPartNames: true,
+                        isPreview: false,
+                        systemsToRender: systemsToRender),
                   ),
 //          child: _MelodyPaint(
 //            score: widget.score,
@@ -533,10 +564,28 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     }
   }
 
+  // double get secondSystemOffset =>
+  //     widget.width - MusicSystemPainter.calculateClefWidth(xScale);
+  // bool showOnSecondSystem(double animationPos) =>
+  //     systemsToRender > 1 && animationPos > secondSystemOffset;
+
   double _animationPos(double currentBeat) {
     // print(
     //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+
+    double animationPos = _singleSystemAnimationPos(currentBeat);
+    animationPos -= currentBeatTargetSystemXOffset;
+    return max(0, animationPos);
+  }
+
+  double _singleSystemAnimationPos(double currentBeat) {
+    // print(
+    //     "_singleSystemAnimationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+
     final beatWidth = targetBeatWidth;
+    if (autoZoomAlign) {
+      currentBeat = currentBeat.floorToDouble();
+    }
     double animationPos = (currentBeat) * beatWidth;
     animationPos = min(animationPos,
         overallCanvasWidth - myVisibleRect.width + 0.62 * targetBeatWidth);
@@ -553,6 +602,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   void scrollToBeat(double currentBeat,
       {Duration duration = animationDuration, Curve curve = Curves.linear}) {
+    // _lastBeatScrolledTo = currentBeat;
     double animationPos = _animationPos(currentBeat);
     // print(
     //     "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.xScale}/$targetXScale");
@@ -576,45 +626,53 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void scrollToPart() {
-    // print("scrollToPart");
-    if (widget.autoFocus) {
-      verticalController.animateTo(0,
-          duration: animationDuration, curve: Curves.ease);
-    } else {
-      if (verticalController.offset > maxVerticalPosition) {
+    // systemsToRender - 1,
+    //           ((systemsToRender - 1) *
+    //                   ((currentBeat - 2) /
+    //                       (beatsOnScreenPerSystem * systemsToRender
+    print(
+        "scrollToPart: target system: $currentBeatTargetSystemIndex; currentBeat=$currentBeat, beatsOnScreenPerSystem=$beatsOnScreenPerSystem, calculatedSystemThingy=$calculatedSystemThingy");
+
+    if (systemsToRender == 1) {
+      if (autoSort) {
+        verticalController.animateTo(0,
+            duration: animationDuration, curve: Curves.ease);
+      } else if (verticalController.offset > maxSystemVerticalPosition) {
         scrollToBottomMostPart();
       }
+    } else {
+      verticalController.animateTo(0 + currentBeatTargetSystemYOffset,
+          duration: animationDuration, curve: Curves.ease);
     }
   }
 
-  void scrollToBottomMostPart() {
-    verticalController.animateTo(maxVerticalPosition,
+  void scrollToBottomMostPart({double positionOffset = 0}) {
+    verticalController.animateTo(maxSystemVerticalPosition + positionOffset,
         duration: animationDuration, curve: Curves.ease);
   }
 
   bool get sectionCanBeCentered =>
       sectionWidth + targetClefWidth <= widget.width;
   int get staffCount => stavesNotifier.value.length;
-  double get maxVerticalPosition => max(
+  double get maxSystemVerticalPosition => max(
       0,
       (staffCount) * MusicSystemPainter.staffHeight * yScale -
           widget.height +
           100);
   void scrollToCurrentBeat() {
-    if (widget.autoFocus) {
-      scrollToPart();
-    } else if (verticalController.offset > maxVerticalPosition) {
-      scrollToBottomMostPart();
-    }
     if (sectionCanBeCentered) {
       _constrainToSectionBounds();
     } else {
-      scrollToBeat(widget.autoScroll
+      scrollToBeat(autoScroll
           ? min(currentBeat, rightMostBeatConstrainedToSection)
           : currentBeat);
     }
-    // if (widget.autoScroll && !widget.isTwoFingerScaling && sectionCanBeCentered) {
-    //   Future.delayed(animationDuration, _constrainToSectionBounds);
+    scrollToPart();
+
+    // if (widget.autoFocus) {
+    //   scrollToPart();
+    // } else if (verticalController.offset > maxSystemVerticalPosition) {
+    //   scrollToBottomMostPart();
     // }
   }
 

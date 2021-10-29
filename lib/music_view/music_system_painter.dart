@@ -63,6 +63,7 @@ class MusicSystemPainter extends CustomPainter {
       .beatCount;
 
   double get standardBeatWidth => calculateStandardBeatWidth(xScale);
+  double get standardClefWidth => calculateClefWidth(xScale);
 
   double get width => standardBeatWidth * numberOfBeats;
 
@@ -185,7 +186,7 @@ class MusicSystemPainter extends CustomPainter {
       _renderStaffLines(canvas,
           !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
       Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
-          visibleRect().left + calculateClefWidth(xScale), top + melodyHeight);
+          visibleRect().left + standardClefWidth, top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
       _renderClefs(canvas, clefBounds, staff);
@@ -241,14 +242,16 @@ class MusicSystemPainter extends CustomPainter {
             topOffset = max(-13, topOffset);
           }
 //        print("fontSize=$fontSize topOffset=$topOffset");
+          double opacityFactor =
+              magicOpacityFactor(Rect.fromLTRB(left, 0, left, 0));
           TextSpan span = TextSpan(
               text: renderingSection.canonicalName,
               style: TextStyle(
                   fontFamily: "VulfSans",
                   fontSize: fontSize,
                   fontWeight: FontWeight.w100,
-                  color: musicForegroundColor.withOpacity(
-                      renderingSection.name.isNotEmpty ? 1 : 0.5)));
+                  color: musicForegroundColor.withOpacity(opacityFactor *
+                      (renderingSection.name.isNotEmpty ? 1 : 0.5))));
           TextPainter tp = TextPainter(
             text: span,
             strutStyle:
@@ -308,8 +311,17 @@ class MusicSystemPainter extends CustomPainter {
 //      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
 //    }
     if (visibleRect().right > left) {
+      double extraWidth = 0;
+      double diff = left - visibleRect().left - standardBeatWidth;
+      if (offsetStart > 0 && diff < standardClefWidth + standardBeatWidth) {
+        extraWidth = standardClefWidth *
+            max(0, (standardClefWidth - diff)) /
+            standardBeatWidth;
+      }
+      // print(
+      //     "standardBeatWidth=$standardBeatWidth, diff=$diff, extraWidth=$extraWidth");
       canvas.drawRect(
-          Rect.fromLTRB(left, visibleRect().top + sectionHeight,
+          Rect.fromLTRB(left - extraWidth, visibleRect().top + sectionHeight,
               visibleRect().right, visibleRect().bottom),
           Paint()..color = musicBackgroundColor);
       // canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
@@ -647,9 +659,29 @@ class MusicSystemPainter extends CustomPainter {
     }
   }
 
+  double magicOpacityFactor(Rect melodyBounds) {
+    double opacityFactor = 1;
+    if (melodyBounds.left < visibleRect().left + (2 * standardBeatWidth)) {
+      double left = melodyBounds.left - visibleRect().left;
+      opacityFactor = max(0, min(1, pow((left) / (2 * standardBeatWidth), 1)));
+
+      // double x = left;
+      // while (x >= 0.5 * standardBeatWidth) x -= standardBeatWidth;
+      // while (x < -0.5 * standardBeatWidth) x += standardBeatWidth;
+      // double ratio = x.abs() / standardBeatWidth;
+      // // print(
+      // //     "left=${melodyBounds.left - visibleRect().left} x=$x, standardBeatWidth=$standardBeatWidth, ratio=$ratio");
+      // print("ratio=$ratio");
+
+      // opacityFactor *= ratio;
+    }
+    return opacityFactor;
+  }
+
   void _renderMeasureLines(Section renderingSection, int renderingSectionBeat,
       Rect melodyBounds, Canvas canvas) {
-    double opacityFactor = 1;
+    double opacityFactor = magicOpacityFactor(melodyBounds);
+
     if (musicViewMode != MusicViewMode.score &&
         renderingSection.id != section.id) {
       int rsIndex =
@@ -700,10 +732,12 @@ class MusicSystemPainter extends CustomPainter {
 
   void _renderHarmonyBeat(Rect harmonyBounds, Section renderingSection,
       int renderingSectionBeat, Canvas canvas) {
+    double opacityFactor = magicOpacityFactor(harmonyBounds);
     HarmonyBeatRenderer()
       ..overallBounds = harmonyBounds
       ..section = renderingSection
       ..beatPosition = renderingSectionBeat
+      ..opacityFactor = opacityFactor
       ..draw(canvas);
   }
 
@@ -717,11 +751,7 @@ class MusicSystemPainter extends CustomPainter {
       double alpha,
       Iterable<Melody> otherMelodiesOnStaff,
       {bool renderLoopStarts = false}) {
-    double opacityFactor = 1;
-    if (melodyBounds.left < visibleRect().left + standardBeatWidth) {
-      opacityFactor = max(0,
-          min(1, (melodyBounds.left - visibleRect().left) / standardBeatWidth));
-    }
+    double opacityFactor = magicOpacityFactor(melodyBounds);
     if (musicViewMode != MusicViewMode.score &&
         renderingSection.id != section.id) {
       opacityFactor *= 0.25;

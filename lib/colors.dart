@@ -11,16 +11,16 @@ import 'generated/protos/protos.dart';
 
 var chromaticSteps = [
   Color(0xFF4DFA90), // "tonic"
-  Color(0xFFA32E6C), // "b2/b9"
-  Color(0xFF80E340), // "2/9"
+  Color(0xFFc64981), // "b2/b9" -
+  Color(0xFF52a15a), // "2/9" -
   Color(0xFF884DF2), // "minor"
   Color(0xFF59F9FF), // "major"
   Color(0xFFF9F652), // "subdominant/perfect"
   Color(0xFFF652F9), // "diminished"
   Color(0xFFF93730), // "dominant/5"
-  Color(0xFF59FFB2), // "augmented"
-  Color(0xFF59A6FF), // "M6"
-  Color(0xFFF9308D), // "b7"
+  Color(0xFF5296ce), // "augmented (or m6)" -
+  Color(0xFF76f014), // "M6" -
+  Color(0xFFfd048f), // "b7" -
   Color(0xFFFFB259), // "M7"
 ];
 

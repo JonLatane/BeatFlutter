@@ -79,6 +79,7 @@ class HarmonyBeatRenderer {
 
   Rect overallBounds = Rect.zero;
   Rect bounds = Rect.zero;
+  double opacityFactor = 1;
 
 //  private val hsv = FloatArray(3)
   draw(Canvas canvas) {
@@ -87,7 +88,7 @@ class HarmonyBeatRenderer {
     bounds = Rect.fromLTRB(overallBounds.left, overallBounds.top,
         overallBounds.right, overallBounds.bottom);
 
-    paint.color = Color(0xFFFFFFFF);
+    paint.color = Color(0xFFFFFFFF).withOpacity(opacityFactor);
     canvas.drawRect(bounds, paint);
     var elementCount = subdivisionRange.length;
     subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
@@ -116,7 +117,7 @@ class HarmonyBeatRenderer {
 
       if (chord.chroma == 2047) {
         paint.color = chromaticSteps[elementPosition % chromaticSteps.length]
-            .withAlpha(127);
+            .withOpacity(0.5 * opacityFactor);
       } else {
         paint.color = chord.uiColor;
       }
