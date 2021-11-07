@@ -603,13 +603,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           setState(() {
             scorePickerMode = ScorePickerMode.none;
             _showScorePicker = false;
-          });
-          Future.delayed(slowAnimationDuration, () {
-            setState(() {
-              if (interactionMode.isEdit && !MyPlatform.isWeb) {
-                showDuplicateScoreWarning = true;
-              }
-            });
+            if (!MyPlatform.isWeb) {
+              showDuplicateScoreWarning = true;
+            }
           });
         } else {
           _closeScorePicker();
@@ -621,8 +617,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           Future.delayed(slowAnimationDuration, () {
             setState(() {
               if (interactionMode.isEdit && !showSections) {
+                verticalSectionList = context.isTabletOrLandscapey;
                 showSections = true;
-                verticalSectionList = false;
               }
             });
           });
@@ -872,32 +868,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     showBeatCounts = false;
     score = widget.initialScore;
     _currentSection = widget.initialScore.sections[0];
-    _scoreManager.doOpenScore = (Score scoreToOpen) {
-      scoreToOpen.migrate();
-      MelodyMenuBrowser.loadScoreData();
-      if (_scoreManager.currentScoreName != ScoreManager.UNIVERSE_SCORE &&
-          interactionMode.isUniverse) {
-        _viewMode();
-      }
-      setState(() {
-        BeatScratchPlugin.createScore(scoreToOpen);
-        score = scoreToOpen;
-        clearMutableCaches();
-        currentSection = scoreToOpen.sections.first;
-        if (interactionMode.isEdit) {
-          musicViewMode = MusicViewMode.section;
-        }
-        selectedMelody = null;
-        selectedPart = null;
-        _prevSelectedMelody = null;
-        _prevSelectedPart = null;
-        keyboardPart = scoreToOpen.parts.first;
-        colorboardPart = scoreToOpen.parts.firstWhere(
-            (Part p) => p.instrument.type != InstrumentType.drum,
-            orElse: null);
-        exportUI.export.score = scoreToOpen;
-      });
-    };
+    _scoreManager.doOpenScore = doOpenScore;
     if (widget.pastebinCode != null) {
       _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
         messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
@@ -988,6 +959,44 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       AppSettings.initializingState = false;
       Future.delayed(
           Duration(seconds: 10), () => MelodyMenuBrowser.loadScoreData());
+    });
+  }
+
+  doOpenScore(Score scoreToOpen) {
+    scoreToOpen.migrate();
+    MelodyMenuBrowser.loadScoreData();
+    if (_scoreManager.currentScoreName != ScoreManager.UNIVERSE_SCORE &&
+        interactionMode.isUniverse) {
+      _viewMode();
+    }
+    setState(() {
+      BeatScratchPlugin.createScore(scoreToOpen);
+      score = scoreToOpen;
+      clearMutableCaches();
+      currentSection = scoreToOpen.sections.first;
+      if (scorePickerMode == ScorePickerMode.create &&
+          scoreToOpen.parts.length == 2 &&
+          scoreToOpen.parts[0].instrument.midiInstrument == 0 &&
+          scoreToOpen.parts[1].isDrum &&
+          scoreToOpen.parts.fold(true,
+              (bool hasNoMelodies, p) => hasNoMelodies && p.melodies.isEmpty)) {
+        interactionMode = InteractionMode.edit;
+        Future.delayed(slowAnimationDuration, () {
+          _selectOrDeselectPart(scoreToOpen.parts[0]);
+        });
+      }
+      if (interactionMode.isEdit) {
+        musicViewMode = MusicViewMode.section;
+      }
+      selectedMelody = null;
+      selectedPart = null;
+      _prevSelectedMelody = null;
+      _prevSelectedPart = null;
+      keyboardPart = scoreToOpen.parts.first;
+      colorboardPart = scoreToOpen.parts.firstWhere(
+          (Part p) => p.instrument.type != InstrumentType.drum,
+          orElse: null);
+      exportUI.export.score = scoreToOpen;
     });
   }
 
@@ -2204,39 +2213,41 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           toggleShowDownloads: () => setState(() {
                 showDownloadLinks = !showDownloadLinks;
               }),
-          editObject: (object) {
-            setState(() {
-              if (object is Melody) {
-                if (!interactionMode.isEdit) {
-                  _editMode();
-                }
-                if (selectedMelody != object) {
-                  _selectOrDeselectMelody(object);
-                }
-              } else if (object is Part) {
-                if (!interactionMode.isEdit) {
-                  _editMode();
-                }
-                if (selectedPart != object) {
-                  _selectOrDeselectPart(object);
-                }
-              } else if (object is Section) {
-                if (selectedMelody != null) {
-                  _selectOrDeselectMelody(selectedMelody);
-                }
-                if (selectedPart != null) {
-                  _selectOrDeselectPart(selectedPart);
-                }
-                musicViewMode = MusicViewMode.section;
-                if (!interactionMode.isEdit) {
-                  _editMode();
-                }
-                if (_musicViewSizeFactor == 0) {
-                  _showMusicView();
-                }
-              }
-            });
-          });
+          editObject: editObject);
+
+  editObject(object) {
+    setState(() {
+      if (object is Melody) {
+        if (!interactionMode.isEdit) {
+          _editMode();
+        }
+        if (selectedMelody != object) {
+          _selectOrDeselectMelody(object);
+        }
+      } else if (object is Part) {
+        if (!interactionMode.isEdit) {
+          _editMode();
+        }
+        if (selectedPart != object) {
+          _selectOrDeselectPart(object);
+        }
+      } else if (object is Section) {
+        if (selectedMelody != null) {
+          _selectOrDeselectMelody(selectedMelody);
+        }
+        if (selectedPart != null) {
+          _selectOrDeselectPart(selectedPart);
+        }
+        musicViewMode = MusicViewMode.section;
+        if (!interactionMode.isEdit) {
+          _editMode();
+        }
+        if (_musicViewSizeFactor == 0) {
+          _showMusicView();
+        }
+      }
+    });
+  }
 
   _doShowScorePicker(mode) {
     setState(() {

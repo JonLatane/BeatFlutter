@@ -554,9 +554,9 @@ class ScorePickerState extends State<ScorePicker> {
       } else {
         _scrollController.animateTo(0,
             duration: animationDuration, curve: Curves.easeInOut);
-        widget.requestMode(ScorePickerMode.show);
         widget.openedScore.reKeyMelodies();
         scoreManager.createScore(nameController.value.text);
+        widget.requestMode(ScorePickerMode.show);
         overwritingScoreName = null;
         Future.delayed(Duration(seconds: 2), widget.close);
       }

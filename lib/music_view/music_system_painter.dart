@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -30,7 +31,8 @@ class MusicSystemPainter extends CustomPainter {
   final Score score;
   final Section section;
   final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
-  Rect Function() visibleRect;
+  final Rect Function() visibleRect;
+  final Rect Function() verticallyVisibleRect;
   final MusicViewMode musicViewMode;
   final ValueNotifier<double> colorblockOpacityNotifier,
       colorGuideOpacityNotifier,
@@ -94,12 +96,14 @@ class MusicSystemPainter extends CustomPainter {
       this.xScaleNotifier,
       this.yScaleNotifier,
       this.visibleRect,
+      this.verticallyVisibleRect,
       this.focusedMelodyId,
       this.colorblockOpacityNotifier,
       this.notationOpacityNotifier,
       this.isCurrentScore,
       this.renderPartNames,
-      this.systemsToRender = 1})
+      this.systemsToRender = 1,
+      List<Listenable> otherListenables = null})
       : super(
             repaint: Listenable.merge([
           colorblockOpacityNotifier,
@@ -118,6 +122,7 @@ class MusicSystemPainter extends CustomPainter {
           BeatScratchPlugin.currentBeat,
           xScaleNotifier,
           yScaleNotifier,
+          if (otherListenables != null) ...otherListenables
         ])) {
     _tickPaint.color = musicForegroundColor;
     _tickPaint.strokeWidth = 2.0;
@@ -146,18 +151,32 @@ class MusicSystemPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    paintSystem(canvas, size);
     canvas.save();
-    for (int i = 1; i < systemsToRender; i++) {
-      canvas.translate(
-          0,
-          calculateSystemHeight(yScale, score.parts.length) +
-              calculateSystemPadding(yScale));
-      paintSystem(canvas, size,
-          offsetStart:
-              (visibleRect().width - calculateClefWidth(xScale)) * (i));
+    double translationTotal = 0;
+    double translationIncrement =
+        calculateSystemHeight(yScale, score.parts.length) +
+            calculateSystemPadding(yScale);
+    print("verticallyVisibleRect=${verticallyVisibleRect()}");
+    for (int i = 0; i < systemsToRender; i++) {
+      if (translationTotal <
+              verticallyVisibleRect().bottom + translationIncrement &&
+          translationTotal + translationIncrement >
+              verticallyVisibleRect().top - translationIncrement) {
+        paintSystem(canvas, size,
+            offsetStart:
+                (visibleRect().width - calculateClefWidth(xScale)) * (i));
+      }
+      translationTotal += translationIncrement;
+      canvas.translate(0, translationIncrement);
     }
     canvas.restore();
+    if (MyPlatform.isDebug)
+      canvas.drawRect(
+          visibleRect(),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 10
+            ..color = musicForegroundColor.withAlpha(255));
   }
 
   void paintSystem(Canvas canvas, Size size, {double offsetStart = 0}) {

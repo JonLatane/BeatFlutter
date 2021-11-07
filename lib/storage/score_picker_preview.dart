@@ -157,6 +157,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
   bool disposed;
 
   Score _previewScore;
+  ScrollController scrollController;
   BSMethod notifyUpdate;
 
   @override
@@ -166,11 +167,13 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     _confirmingDelete = false;
     _confirmingOverwrite = false;
     notifyUpdate = BSMethod();
+    scrollController = ScrollController();
   }
 
   @override
   dispose() {
     disposed = true;
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -319,6 +322,9 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                         color: musicBackgroundColor
                                             .withOpacity(0.7),
                                         child: SingleChildScrollView(
+                                            physics:
+                                                NeverScrollableScrollPhysics(),
+                                            controller: scrollController,
                                             child: previewScore != null
                                                 ? ScorePreview(previewScore,
                                                     scale: previewScale,

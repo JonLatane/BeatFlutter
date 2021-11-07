@@ -61,6 +61,7 @@ class MusicPreviewRenderer {
       colorboardNotesNotifier: ValueNotifier([]),
       keyboardNotesNotifier: ValueNotifier([]),
       visibleRect: () => Rect.fromLTRB(0, 0, width, height),
+      verticallyVisibleRect: () => Rect.fromLTRB(0, 0, width, height),
       keyboardPart: ValueNotifier(null),
       colorboardPart: ValueNotifier(null),
       focusedPart: ValueNotifier(null),
