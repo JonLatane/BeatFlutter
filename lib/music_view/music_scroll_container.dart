@@ -181,31 +181,27 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get currentBeatTargetSystemXOffset =>
       currentBeatTargetSystemIndex * (systemRenderAreaWidth);
+  double get _systemHeightForScrolling =>
+      (MusicSystemPainter.calculateHarmonyHeight(yScale) +
+          MusicSystemPainter.calculateSectionHeight(yScale) +
+          MusicSystemPainter.calculateSystemHeight(
+              yScale, widget.score.parts.length) +
+          0.75 * MusicSystemPainter.calculateSystemPadding(yScale));
+  double get _extraHeightForScrolling =>
+      _systemHeightForScrolling < widget.height
+          ? max(0, (widget.height - _systemHeightForScrolling) / 3)
+          : 0;
   double get currentBeatTargetSystemYOffset => min(
       max(0, overallCanvasHeight - widget.height),
       max(
-              0,
-              currentBeatTargetSystemIndex -
-                  0.3 -
-                  (0.4 *
-                      (currentBeatTargetSystemIndex.toDouble() /
-                          systemsToRender))) *
-          (MusicSystemPainter.calculateSystemHeight(
-                  yScale, widget.score.parts.length) +
-              MusicSystemPainter.calculateSystemPadding(yScale)));
-
-  double get overallCanvasHeight => systemsToRender * systemHeight;
-
-  // double get maxCanvasHeight =>
-  //     max(widget.height, overallCanvasHeight) + sectionsHeight;
+          0,
+          currentBeatTargetSystemIndex * _systemHeightForScrolling -
+              _extraHeightForScrolling));
 
   double get overallCanvasWidth =>
       (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
-      targetBeatWidth; // + 20 * xScale; // + 1 for clefs
-  // double get maxCanvasWidth =>
-  //     (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
-  //     unscaledStandardBeatWidth *
-  //     MusicScrollContainer.maxScale; // + 20 * xScale; // + 1 for clefs
+      targetBeatWidth;
+  double get overallCanvasHeight => systemsToRender * systemHeight;
   double get targetClefWidth =>
       MusicSystemPainter.extraBeatsSpaceForClefs * targetBeatWidth;
 
