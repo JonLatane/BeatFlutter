@@ -151,8 +151,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       ? 30
       : 0;
 
+  // TODO: Eliminate magic "1.2" constant
   double get systemHeight => (((widget.staves.length + 0.5) *
-          MusicSystemPainter.staffHeight *
+          (1.2 * MusicSystemPainter.staffHeight) *
           yScale) +
       sectionsHeight);
 
@@ -163,7 +164,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   int get maxSystemsNeeded =>
       (widget.score.beatCount / beatsOnScreenPerSystem).ceil();
 
-  int get maxSupportedSystems => 5;
+  int get maxSupportedSystems => widget.appSettings.systemsToRender;
   int get systemsToRender => systemHeight < widget.height
       ? min(maxSystemsNeeded, maxSupportedSystems)
       : 1;

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
 import '../music_preview/score_preview.dart';

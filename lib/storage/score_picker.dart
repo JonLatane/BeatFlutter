@@ -651,6 +651,10 @@ class ScorePickerState extends State<ScorePicker> {
                       }
                       break;
                     case ScorePickerMode.universe:
+                      if (BeatScratchPlugin.supportsStorage) {
+                        scoreManager.currentScoreName =
+                            ScoreManager.UNIVERSE_SCORE;
+                      }
                       scoreFuture.loadScore(scoreManager).then((value) {
                         widget.scoreManager.doOpenScore(value);
                         widget.universeManager.currentUniverseScore =

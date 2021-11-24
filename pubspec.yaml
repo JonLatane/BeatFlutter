@@ -2,7 +2,7 @@ name: beatscratch_flutter_redux
 description: BeatScratch for Flutter
 publish_to: none
 
-version: 1.5.0+401
+version: 1.5.0+410
 
 environment:
   sdk: ">=2.6.0 <3.0.0"

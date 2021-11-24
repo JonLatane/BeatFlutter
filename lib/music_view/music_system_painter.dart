@@ -172,7 +172,7 @@ class MusicSystemPainter extends CustomPainter {
     canvas.restore();
     if (MyPlatform.isDebug)
       canvas.drawRect(
-          visibleRect(),
+          verticallyVisibleRect(),
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 10
@@ -682,19 +682,9 @@ class MusicSystemPainter extends CustomPainter {
     double opacityFactor = 1;
     if (melodyBounds.left < visibleRect().left + (2 * standardBeatWidth)) {
       double left = melodyBounds.left - visibleRect().left;
-      opacityFactor = max(0, min(1, pow((left) / (2 * standardBeatWidth), 1)));
-
-      // double x = left;
-      // while (x >= 0.5 * standardBeatWidth) x -= standardBeatWidth;
-      // while (x < -0.5 * standardBeatWidth) x += standardBeatWidth;
-      // double ratio = x.abs() / standardBeatWidth;
-      // // print(
-      // //     "left=${melodyBounds.left - visibleRect().left} x=$x, standardBeatWidth=$standardBeatWidth, ratio=$ratio");
-      // print("ratio=$ratio");
-
-      // opacityFactor *= ratio;
+      opacityFactor = max(0, min(1, (left) / (2 * standardBeatWidth)));
     }
-    return opacityFactor;
+    return opacityFactor * opacityFactor;
   }
 
   void _renderMeasureLines(Section renderingSection, int renderingSectionBeat,

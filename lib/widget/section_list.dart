@@ -209,12 +209,16 @@ class _SectionListState extends State<SectionList> {
   }
 
   Widget getList(BuildContext context) {
+    var items = widget.score?.sections ?? [];
+    if (items.isEmpty) {
+      items = [defaultSection()];
+    }
     return ImplicitlyAnimatedReorderableList<Section>(
       key: ValueKey("SectionList-${widget.scrollDirection}"),
       scrollDirection: widget.scrollDirection,
       spawnIsolate: false,
       controller: _scrollController,
-      items: widget.score.sections,
+      items: items,
       areItemsTheSame: (a, b) => a.id == b.id,
       onReorderFinished: (item, oldIndex, newIndex, newItems) {
         widget.setState(() {

@@ -541,7 +541,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         showDuplicateScoreWarning = false;
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
-          _scoreManager.currentScoreName = ScoreManager.UNIVERSE_SCORE;
         }
         interactionMode = InteractionMode.universe;
         universeViewUI.visible = true;

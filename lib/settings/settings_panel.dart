@@ -247,6 +247,72 @@ class _SettingsPanelState extends State<SettingsPanel> {
         ),
       ),
       SettingsTile(
+        id: "systemsToRender",
+        color: widget.sectionColor,
+        child: Container(
+          child: Column(
+            children: [
+              Text("Systems To Render",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: widget.sectionColor.textColor(),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700)),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    ...range(1, 6).map((systemsToRenderValue) => Container(
+                          height: 25,
+                          child: MyFlatButton(
+                              onPressed: () {
+                                widget.messagesUI.setAppState(() {
+                                  widget.appSettings.systemsToRender =
+                                      systemsToRenderValue;
+                                });
+                              },
+                              padding: EdgeInsets.zero,
+                              color: widget.appSettings.systemsToRender ==
+                                      systemsToRenderValue
+                                  ? widget.sectionColor.textColor()
+                                  : null,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      child: Text(
+                                    "$systemsToRenderValue system${systemsToRenderValue == 1 ? "" : "s"}",
+                                    style: TextStyle(
+                                      color:
+                                          widget.appSettings.systemsToRender ==
+                                                  systemsToRenderValue
+                                              ? widget.sectionColor
+                                                  .textColor()
+                                                  .textColor()
+                                              : widget.sectionColor.textColor(),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  )),
+                                ],
+                              )),
+                        )),
+                  ]),
+                ),
+              ),
+              Row(children: [
+                Expanded(child: SizedBox()),
+                Text("Affects performance.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: widget.sectionColor.textColor(),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w100)),
+                Expanded(child: SizedBox()),
+              ]),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 5),
+        ),
+      ),
+      SettingsTile(
         id: "colors",
         color: Colors.grey,
         child: Column(
