@@ -21,6 +21,7 @@ import '../util/midi_theory.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 
+// Top level for rendering of music to a Canvas.
 class MusicSystemPainter extends CustomPainter {
   static const double extraBeatsSpaceForClefs = 2;
   static const double staffHeight = 500;
@@ -149,10 +150,11 @@ class MusicSystemPainter extends CustomPainter {
 
   double get melodyHeight => staffHeight * yScale;
 
+  double translationTotal = 0;
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
-    double translationTotal = 0;
+    translationTotal = 0;
     double translationIncrement =
         calculateSystemHeight(yScale, score.parts.length) +
             calculateSystemPadding(yScale);
@@ -177,6 +179,13 @@ class MusicSystemPainter extends CustomPainter {
             ..style = PaintingStyle.stroke
             ..strokeWidth = 10
             ..color = musicForegroundColor.withAlpha(255));
+  }
+
+  bool isInBounds(Rect renderingRect) {
+    bool inVerticalBounds = renderingRect.top + translationTotal <
+            verticallyVisibleRect().bottom &&
+        renderingRect.bottom + translationTotal > verticallyVisibleRect().top;
+    return inVerticalBounds;
   }
 
   void paintSystem(Canvas canvas, Size size, {double offsetStart = 0}) {
@@ -284,44 +293,31 @@ class MusicSystemPainter extends CustomPainter {
         }
         top += sectionHeight;
 
-        // Harmony renderingHarmony = renderingSection.harmony;
         right = left + standardBeatWidth;
         String sectionName = renderingSection.name;
         if (sectionName == null || sectionName.isEmpty) {
           sectionName = renderingSection.id;
         }
 
-//      canvas.drawImageRect(filledNotehead, Rect.fromLTRB(0, 0, 24, 24),
-//        Rect.fromLTRB(startOffset, top, startOffset + spacing/2, top + spacing / 2), _tickPaint);
         Rect harmonyBounds = Rect.fromLTRB(
             left, top, left + standardBeatWidth, top + harmonyHeight);
-        _renderHarmonyBeat(
-            harmonyBounds, renderingSection, renderingSectionBeat, canvas);
+        if (isInBounds(harmonyBounds)) {
+          _renderHarmonyBeat(
+              harmonyBounds, renderingSection, renderingSectionBeat, canvas);
+        }
         top = top + harmonyHeight;
 
 //      print("renderingSectionBeat=$renderingSectionBeat");
 
-        if (isPreview) {
-          staves.value.forEach((staff) async => doRenderMelodies(
-              staff,
-              renderingSection,
-              canvas,
-              left,
-              right,
-              top,
-              renderingSectionBeat,
-              renderingBeat));
-        } else {
-          staves.value.forEach((staff) => doRenderMelodies(
-              staff,
-              renderingSection,
-              canvas,
-              left,
-              right,
-              top,
-              renderingSectionBeat,
-              renderingBeat));
-        }
+        staves.value.forEach((staff) async => doRenderMelodies(
+            staff,
+            renderingSection,
+            canvas,
+            left,
+            right,
+            top,
+            renderingSectionBeat,
+            renderingBeat));
       }
       left += standardBeatWidth;
       renderingBeat += 1;
@@ -362,25 +358,22 @@ class MusicSystemPainter extends CustomPainter {
               part.melodies.any((melody) => melody.id == ref.melodyId) as bool)
           .map<Melody>((it) => score.melodyReferencedBy(it))
           .toList(growable: false);
-      //        canvas.save();
-      //        canvas.translate(0, partOffset);
+
       Rect melodyBounds = Rect.fromLTRB(
           left, top + partOffset, right, top + partOffset + melodyHeight);
-      // if (!drawContinuousColorGuide) {
-      //   _renderSubdividedColorGuide(
-      //     renderingHarmony, melodyBounds, renderingSection, renderingSectionBeat, canvas);
-      // }
-      _renderMelodies(
-          part,
-          melodiesToRender,
-          canvas,
-          melodyBounds,
-          renderingSection,
-          renderingSectionBeat,
-          renderingBeat,
-          left,
-          staff,
-          staves.value);
+      if (isInBounds(melodyBounds)) {
+        _renderMelodies(
+            part,
+            melodiesToRender,
+            canvas,
+            melodyBounds,
+            renderingSection,
+            renderingSectionBeat,
+            renderingBeat,
+            left,
+            staff,
+            staves.value);
+      }
       //        canvas.restore();
     });
   }
