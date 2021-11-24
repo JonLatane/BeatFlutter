@@ -297,7 +297,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     if (value == null) {
       value = getBeat(
           Offset(
-              melodyRendererVisibleRect.width /
+              horizontallyVisibleRect.width /
                   (context.isLandscape && widget.splitMode == SplitMode.half
                       ? 4
                       : 2),
@@ -1031,18 +1031,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             (widget.width - MusicSystemPainter.calculateClefWidth(xScale));
     int beat = ((position.dx +
                 systemXOffset +
-                melodyRendererVisibleRect.left -
+                horizontallyVisibleRect.left -
                 2 * unscaledStandardBeatWidth * xScale) /
             (unscaledStandardBeatWidth * (targeted ? xScale : _xScale)))
         .floor();
     // print("beat=$beat");
-    int maxBeat;
-    // if (widget.musicViewMode == MusicViewMode.score) {
-    maxBeat = widget.score.beatCount - 1;
-    // } else {
-    //   maxBeat = widget.currentSection.beatCount - 1;
-    // }
-    beat = max(0, min(beat, maxBeat));
+    beat = max(0, min(beat, widget.score.maxBeat));
     return beat;
   }
 

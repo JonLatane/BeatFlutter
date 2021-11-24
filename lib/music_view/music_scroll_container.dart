@@ -97,7 +97,8 @@ class MusicScrollContainer extends StatefulWidget {
   _MusicScrollContainerState createState() => _MusicScrollContainerState();
 }
 
-Rect melodyRendererVisibleRect = Rect.zero;
+Rect horizontallyVisibleRect = Rect.zero;
+Rect verticallyVisibleRect = Rect.zero;
 
 class _MusicScrollContainerState extends State<MusicScrollContainer>
     with TickerProviderStateMixin {
@@ -210,7 +211,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
 
-  double get visibleWidth => myVisibleRect.width;
+  double get visibleWidth => horizontallyVisibleRect.width;
 
   double get visibleAreaForSection => visibleWidth - targetClefWidth;
 
@@ -221,18 +222,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get marginBeatsForSection =>
       max(0, visibleWidth - targetClefWidth - sectionWidth) / targetBeatWidth;
 
-  Rect get myVisibleRect => melodyRendererVisibleRect;
+  // Rect get horizontallyVisibleRect => horizontallyVisibleRect;
+  // set horizontallyVisibleRect(value) {
+  //   horizontallyVisibleRect = value;
+  // }
+
+  // Rect get verticallyVisibleRect => verticallyVisibleRect;
+  // set verticallyVisibleRect(value) {
+  //   verticallyVisibleRect = value;
+  // }
+
   bool get autoScroll => widget.appSettings.autoScrollMusic;
   bool get autoSort => widget.appSettings.autoSortMusic;
   bool get autoZoomAlign => widget.appSettings.autoZoomAlignMusic;
-
-  set myVisibleRect(value) {
-    // if (widget.previewMode) {
-    //   visibleRect = value;
-    // } else {
-    melodyRendererVisibleRect = value;
-    // }
-  }
 
   @override
   void initState() {
@@ -490,75 +492,78 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevPartId = widget.focusedPart?.id;
     _hasBuilt = true;
 
-    return SingleChildScrollView(
+    return CustomScrollView(
         controller: verticalController,
-//        key: Key(key),
-        child: AnimatedContainer(
-            duration: animationDuration,
-            height: overallCanvasHeight,
-            child: CustomScrollView(
-              controller: timeScrollController,
-              scrollDirection: Axis.horizontal,
-              slivers: [
-                CustomSliverToBoxAdapter(
-                  setVisibleRect: (rect) {
-                    myVisibleRect = rect;
-                  },
-                  child: CustomPaint(
+        scrollDirection: Axis.vertical,
+        slivers: [
+          CustomSliverToBoxAdapter(
+              setVisibleRect: (rect) {
+                verticallyVisibleRect = rect;
+              },
+              child: AnimatedContainer(
+                  duration: animationDuration,
+                  height: overallCanvasHeight,
+                  child: CustomScrollView(
+                    controller: timeScrollController,
+                    scrollDirection: Axis.horizontal,
+                    slivers: [
+                      CustomSliverToBoxAdapter(
+                        setVisibleRect: (rect) {
+                          horizontallyVisibleRect = rect;
+                        },
+                        child: CustomPaint(
 //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
-                      size: Size(overallCanvasWidth, overallCanvasHeight),
-                      painter: MusicSystemPainter(
-                          sectionScaleNotifier: sectionScaleNotifier,
-                          score: widget.score,
-                          section: widget.currentSection,
-                          musicViewMode: widget.musicViewMode,
-                          xScaleNotifier: widget.xScaleNotifier,
-                          yScaleNotifier: widget.yScaleNotifier,
-                          focusedMelodyId: widget.focusedMelody?.id,
-                          staves: stavesNotifier,
-                          partTopOffsets: partTopOffsets,
-                          staffOffsets: staffOffsets,
-                          colorGuideOpacityNotifier: colorGuideOpacityNotifier,
-                          colorblockOpacityNotifier: colorblockOpacityNotifier,
-                          notationOpacityNotifier: notationOpacityNotifier,
-                          colorboardNotesNotifier:
-                              widget.colorboardNotesNotifier,
-                          keyboardNotesNotifier: widget.keyboardNotesNotifier,
-                          bluetoothControllerPressedNotes:
-                              widget.bluetoothControllerPressedNotes,
-                          visibleRect: () => myVisibleRect,
-                          verticallyVisibleRect: () => Rect.fromLTRB(
-                              myVisibleRect.left,
-                              myVisibleRect.top + verticalController.offset,
-                              myVisibleRect.right,
-                              myVisibleRect.top +
-                                  verticalController.offset +
-                                  widget.height),
-                          keyboardPart: keyboardPart,
-                          colorboardPart: colorboardPart,
-                          focusedPart: focusedPart,
-                          tappedPart: widget.tappedPart,
-                          sectionColor: sectionColor,
-                          isCurrentScore: widget.isCurrentScore,
-                          highlightedBeat: widget.highlightedBeat,
-                          focusedBeat: widget.focusedBeat,
-                          tappedBeat: widget.tappedBeat,
-                          firstBeatOfSection: firstBeatOfSection,
-                          renderPartNames: true,
-                          isPreview: false,
-                          systemsToRender: systemsToRender,
-                          otherListenables: [verticalController])),
-//          child: _MelodyPaint(
-//            score: widget.score,
-//            section: widget.section,
-//            xScale: widget.xScale,
-//            yScale: widget.yScale,
-//            visibleRect: () => _visibleRect,
-//            width: width,
-//          ),
-                )
-              ],
-            )));
+                            size: Size(overallCanvasWidth, overallCanvasHeight),
+                            painter: MusicSystemPainter(
+                                sectionScaleNotifier: sectionScaleNotifier,
+                                score: widget.score,
+                                section: widget.currentSection,
+                                musicViewMode: widget.musicViewMode,
+                                xScaleNotifier: widget.xScaleNotifier,
+                                yScaleNotifier: widget.yScaleNotifier,
+                                focusedMelodyId: widget.focusedMelody?.id,
+                                staves: stavesNotifier,
+                                partTopOffsets: partTopOffsets,
+                                staffOffsets: staffOffsets,
+                                colorGuideOpacityNotifier:
+                                    colorGuideOpacityNotifier,
+                                colorblockOpacityNotifier:
+                                    colorblockOpacityNotifier,
+                                notationOpacityNotifier:
+                                    notationOpacityNotifier,
+                                colorboardNotesNotifier:
+                                    widget.colorboardNotesNotifier,
+                                keyboardNotesNotifier:
+                                    widget.keyboardNotesNotifier,
+                                bluetoothControllerPressedNotes:
+                                    widget.bluetoothControllerPressedNotes,
+                                visibleRect: () => horizontallyVisibleRect,
+                                verticallyVisibleRect: () => Rect.fromLTRB(
+                                    horizontallyVisibleRect.left,
+                                    horizontallyVisibleRect.top +
+                                        verticalController.offset,
+                                    horizontallyVisibleRect.right,
+                                    horizontallyVisibleRect.top +
+                                        verticalController.offset +
+                                        widget.height),
+                                keyboardPart: keyboardPart,
+                                colorboardPart: colorboardPart,
+                                focusedPart: focusedPart,
+                                tappedPart: widget.tappedPart,
+                                sectionColor: sectionColor,
+                                isCurrentScore: widget.isCurrentScore,
+                                highlightedBeat: widget.highlightedBeat,
+                                focusedBeat: widget.focusedBeat,
+                                tappedBeat: widget.tappedBeat,
+                                firstBeatOfSection: firstBeatOfSection,
+                                renderPartNames: true,
+                                isPreview: false,
+                                systemsToRender: systemsToRender,
+                                otherListenables: [verticalController])),
+                      )
+                    ],
+                  )))
+        ]);
   }
 
   scrollToFocusedBeat({
@@ -580,7 +585,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double _animationPos(double currentBeat) {
     // print(
-    //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+    //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${horizontallyVisibleRect.width}!");
 
     double animationPos = _singleSystemAnimationPos(currentBeat);
     animationPos -= currentBeatTargetSystemXOffset;
@@ -589,15 +594,18 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double _singleSystemAnimationPos(double currentBeat) {
     // print(
-    //     "_singleSystemAnimationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${myVisibleRect.width}!");
+    //     "_singleSystemAnimationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${horizontallyVisibleRect.width}!");
 
     final beatWidth = targetBeatWidth;
     if (autoZoomAlign) {
       currentBeat = currentBeat.floorToDouble();
     }
     double animationPos = (currentBeat) * beatWidth;
-    animationPos = min(animationPos,
-        overallCanvasWidth - myVisibleRect.width + 0.62 * targetBeatWidth);
+    animationPos = min(
+        animationPos,
+        overallCanvasWidth -
+            horizontallyVisibleRect.width +
+            0.62 * targetBeatWidth);
     animationPos = max(0, animationPos);
     return animationPos;
   }
@@ -689,14 +697,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       firstBeatOfSection +
       2.62 +
       (sectionWidth / targetBeatWidth) -
-      (myVisibleRect.width / targetBeatWidth);
+      (horizontallyVisibleRect.width / targetBeatWidth);
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
     // print("_constrainToSectionBounds");
     try {
       double position = timeScrollController.position.pixels;
       double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
-      double visibleWidth = myVisibleRect.width;
+      double visibleWidth = horizontallyVisibleRect.width;
       if (sectionCanBeCentered) {
         scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
       } else {

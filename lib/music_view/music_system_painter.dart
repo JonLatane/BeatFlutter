@@ -220,21 +220,14 @@ class MusicSystemPainter extends CustomPainter {
       _renderClefs(canvas, clefBounds, staff);
     });
 
-//    left += 2 * standardBeatWidth;
     int renderingBeat =
         startBeat - extraBeatsSpaceForClefs.toInt(); // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
-//     bool keepRenderingBeats = true;
     while (left < visibleRect().right + standardBeatWidth) {
-      // keepRenderingBeats &= DateTime.now().millisecondsSinceEpoch - startTime < 17;
-      // if (!keepRenderingBeats) {
-      //   break;
-      // }
       if (renderingBeat >= 0) {
         // Figure out what beat of what section we're drawing
         int renderingSectionBeat = renderingBeat;
         Section renderingSection = this.section;
-        // if (musicViewMode == MusicViewMode.score) {
         int _beat = 0;
         int sectionIndex = 0;
         Section candidate = score.sections[sectionIndex];
@@ -250,7 +243,6 @@ class MusicSystemPainter extends CustomPainter {
           }
         }
         renderingSection = candidate;
-        // }
         if (renderingSection == null) {
           break;
         }
@@ -307,8 +299,6 @@ class MusicSystemPainter extends CustomPainter {
         }
         top = top + harmonyHeight;
 
-//      print("renderingSectionBeat=$renderingSectionBeat");
-
         staves.value.forEach((staff) async => doRenderMelodies(
             staff,
             renderingSection,
@@ -322,9 +312,7 @@ class MusicSystemPainter extends CustomPainter {
       left += standardBeatWidth;
       renderingBeat += 1;
     }
-//    if (drawContinuousColorGuide) {
-//      this.drawContinuousColorGuide(canvas, visibleRect().top, visibleRect().bottom);
-//    }
+
     if (visibleRect().right > left) {
       double extraWidth = 0;
       double diff = left - visibleRect().left - standardBeatWidth;
@@ -333,17 +321,12 @@ class MusicSystemPainter extends CustomPainter {
             max(0, (standardClefWidth - diff)) /
             standardBeatWidth;
       }
-      // print(
-      //     "standardBeatWidth=$standardBeatWidth, diff=$diff, extraWidth=$extraWidth");
+
       canvas.drawRect(
           Rect.fromLTRB(left - extraWidth, visibleRect().top + sectionHeight,
               visibleRect().right, visibleRect().bottom),
           Paint()..color = musicBackgroundColor);
-      // canvas.drawRect(Rect.fromLTRB(left, visibleRect().top + sectionHeight, visibleRect().right, visibleRect().bottom),
-      //   Paint()..color=Colors.black12);
     }
-    // final endTime = DateTime.now().millisecondsSinceEpoch;
-//    print("MelodyPainter draw time from beat $startBeat, : ${endTime - startTime}ms");
   }
 
   doRenderMelodies(staff, renderingSection, canvas, left, right, top,

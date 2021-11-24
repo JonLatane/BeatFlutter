@@ -379,6 +379,7 @@ extension PartTheory on Part {
 extension ScoreTheory on Score {
   double get realBeatCount => sections.fold(0, (p, s) => p + s.realBeatCount);
   int get beatCount => sections.fold(0, (p, s) => p + s.beatCount);
+  int get maxBeat => beatCount - 1;
 
   Melody melodyReferencedBy(MelodyReference ref) => parts.fold(
       null,
