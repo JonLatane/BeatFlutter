@@ -1740,7 +1740,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool isDisplayed = (!vertical && !bottom && _tapInBarHeight != 0) ||
         (vertical && _landscapeTapInBarWidth != 0) ||
         (bottom && _bottomTapInBarHeight != 0);
-    final double tapInFirstSize = !playing && tapInBeat == null ? 42 : 0;
+    final double tapInFirstSize =
+        !playing && (vertical || tapInBeat == null) ? 42 : 0;
     final double tapInSecondSize =
         !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2)
             ? 42
@@ -1828,7 +1829,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           duration: animationDuration,
           opacity: tapInFirstSize != 0 && showTapInBar && isDisplayed ? 1 : 0,
           child: AnimatedContainer(
-              duration: Duration(milliseconds: 35),
+              duration: animationDuration,
               padding:
                   vertical ? EdgeInsets.only(top: 3) : EdgeInsets.only(left: 5),
               height: vertical ? tapInFirstSize : null,
@@ -1873,16 +1874,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.only(left: 7),
                   child: tapInBarInstructions(withText: !_portraitPhoneUI))),
         if (vertical)
-          Container(height: 20, child: tapInBarInstructions(withText: false))
+          Container(
+              height: 36,
+              child: Stack(
+                children: [
+                  Center(
+                      child: Transform.translate(
+                          offset: Offset(7, -3),
+                          child: tapInBarInstructions(withText: false))),
+                  Center(
+                      child: Transform.translate(
+                          offset: Offset(0, 8),
+                          child: Text("Tap",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w100))))
+                ],
+              ))
       ];
 
       return Listener(
           onPointerDown: (event) {
-            if (!hasStartedTapIn()) {
+            if (!playing && !hasStartedTapIn()) {
+              // print("onFirstTap");
               onFirstTap();
             } else if (!playing) {
+              // print("onSecondTap");
               onSecondTap();
             } else {
+              // print("pausing");
               BeatScratchPlugin.pause();
             }
           },
@@ -1899,7 +1920,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final contents = [
       if (!vertical) Expanded(flex: 2, child: tapInBarTapArea()),
       if (vertical) tapInBarTapArea(),
-      if (vertical) SizedBox(height: 15),
+      // if (vertical) SizedBox(height: 15),
       if (vertical)
         Expanded(
             flex: 2,
