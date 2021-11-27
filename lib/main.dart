@@ -691,6 +691,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
+  bool _wasLandscapeUI = false;
   bool get _landscapePhoneUI => context.isLandscape && context.isPhone;
   bool _wasLandscapePhoneUI = false;
 
@@ -1135,6 +1136,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _bottomTapInBar = false;
     }
     _wasLandscapePhoneUI = _landscapePhoneUI;
+    // if (showSections) {
+    if (context.isLandscape && !_wasLandscapeUI) {
+      verticalSectionList = true;
+    } else if (!context.isLandscape && _wasLandscapeUI) {
+      verticalSectionList = false;
+    }
+    // }
+    _wasLandscapeUI = context.isLandscape;
 //    var top = MediaQuery.of(context).size.height - _colorboardHeight - _keyboardHeight;
 //    var bottom = MediaQuery.of(context).size.height;
 //    var right = MediaQuery.of(context).size.width;
@@ -1570,21 +1579,33 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     SizedBox(width: 2),
                     Container(
                         height: 36,
-                        width: 36,
+                        width: context.isTablet ? null : 36,
                         child: MyFlatButton(
                           color: chromaticSteps[5],
-                          padding: EdgeInsets.zero,
+                          padding: context.isTablet
+                              ? EdgeInsets.only(left: 2, right: 4)
+                              : EdgeInsets.zero,
                           onPressed: () {
                             setState(() {
                               showDuplicateScoreWarning = false;
                             });
                           },
-                          child:
-                              // SizedBox(width: 5),
-                              Transform.translate(
+                          child: context.isTablet
+                              ? Row(children: [
+                                  // SizedBox(width: 5),
+                                  Transform.translate(
+                                      offset: Offset(0, 0),
+                                      child: Icon(Icons.close,
+                                          color: Colors.black)),
+
+                                  Text("Okay",
+                                      style: TextStyle(color: Colors.black))
+                                ])
+                              : Transform.translate(
                                   offset: Offset(0, 0),
                                   child:
                                       Icon(Icons.close, color: Colors.black)),
+                          // SizedBox(width: 5),
                         )),
                     SizedBox(width: 4),
                   ],
@@ -1726,7 +1747,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             : 0;
     final audioButtonColor =
         BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey;
-    tapInBarInstructions({bool withText = true, bool withIcon = true}) =>
+    Widget tapInBarInstructions({bool withText = true, bool withIcon = true}) =>
         Stack(children: [
           AnimatedOpacity(
               duration: animationDuration,
@@ -1778,84 +1799,110 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           color: Colors.white, fontWeight: FontWeight.w100))
               ]))
         ]);
+    Widget tapInBarTapArea() {
+      onFirstTap() {
+        BeatScratchPlugin.countIn(-2);
+        setState(() {
+          _tapInBeat = -2;
+          HapticFeedback.lightImpact();
+        });
+        Future.delayed(Duration(seconds: 3), () {
+          setState(() {
+            _tapInBeat = null;
+          });
+        });
+      }
+
+      onSecondTap() {
+        BeatScratchPlugin.countIn(-1);
+        HapticFeedback.lightImpact();
+        setState(() {
+          _tapInBeat = null;
+        });
+      }
+
+      bool hasStartedTapIn() => _tapInBeat == -2;
+
+      final contents = [
+        AnimatedOpacity(
+          duration: animationDuration,
+          opacity: tapInFirstSize != 0 && showTapInBar && isDisplayed ? 1 : 0,
+          child: AnimatedContainer(
+              duration: Duration(milliseconds: 35),
+              padding:
+                  vertical ? EdgeInsets.only(top: 3) : EdgeInsets.only(left: 5),
+              height: vertical ? tapInFirstSize : null,
+              width: vertical ? null : tapInFirstSize,
+              child: MyRaisedButton(
+                color: buttonBackgroundColor,
+                child: Text(
+                    !playing && tapInBeat == null
+                        ? (currentSection.meter.defaultBeatsPerMeasure - 1)
+                            .toString()
+                        : "",
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                onPressed:
+                    tapInBeat == null && BeatScratchPlugin.supportsPlayback
+                        ? () {}
+                        : null,
+                padding: EdgeInsets.zero,
+              )),
+        ),
+        AnimatedOpacity(
+          duration: animationDuration,
+          opacity: tapInSecondSize != 0 && showTapInBar ? 1 : 0,
+          child: AnimatedContainer(
+              duration: Duration(milliseconds: 35),
+              padding:
+                  vertical ? EdgeInsets.only(top: 5) : EdgeInsets.only(left: 5),
+              height: vertical ? tapInSecondSize : null,
+              width: vertical ? null : tapInSecondSize,
+              child: MyRaisedButton(
+                color: buttonBackgroundColor,
+                child: Text(
+                    currentSection.meter.defaultBeatsPerMeasure.toString(),
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                onPressed: hasStartedTapIn() ? () {} : null,
+                padding: EdgeInsets.zero,
+              )),
+        ),
+        if (!vertical)
+          Expanded(
+              flex: 1,
+              child: Padding(
+                  padding: EdgeInsets.only(left: 7),
+                  child: tapInBarInstructions(withText: !_portraitPhoneUI))),
+        if (vertical)
+          Container(height: 20, child: tapInBarInstructions(withText: false))
+      ];
+
+      return Listener(
+          onPointerDown: (event) {
+            if (!hasStartedTapIn()) {
+              onFirstTap();
+            } else if (!playing) {
+              onSecondTap();
+            } else {
+              BeatScratchPlugin.pause();
+            }
+          },
+          child: MyFlatButton(
+              onPressed: () {},
+              lightHighlight: true,
+              padding: EdgeInsets.zero,
+              child: IgnorePointer(
+                  child: vertical
+                      ? Column(children: contents)
+                      : Row(children: contents))));
+    }
+
     final contents = [
-      AnimatedOpacity(
-        duration: animationDuration,
-        opacity: tapInFirstSize != 0 && showTapInBar && isDisplayed ? 1 : 0,
-        child: AnimatedContainer(
-            duration: Duration(milliseconds: 35),
-            padding:
-                vertical ? EdgeInsets.only(top: 3) : EdgeInsets.only(left: 5),
-            height: vertical ? tapInFirstSize : null,
-            width: vertical ? null : tapInFirstSize,
-            child: Listener(
-                onPointerDown: (event) {
-                  BeatScratchPlugin.countIn(-2);
-                  setState(() {
-                    _tapInBeat = -2;
-                    HapticFeedback.lightImpact();
-                  });
-                  Future.delayed(Duration(seconds: 3), () {
-                    setState(() {
-                      _tapInBeat = null;
-                    });
-                  });
-                },
-                child: MyRaisedButton(
-                  color: buttonBackgroundColor,
-                  child: Text(
-                      !playing && tapInBeat == null
-                          ? (currentSection.meter.defaultBeatsPerMeasure - 1)
-                              .toString()
-                          : "",
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                  onPressed:
-                      tapInBeat == null && BeatScratchPlugin.supportsPlayback
-                          ? () {}
-                          : null,
-                  padding: EdgeInsets.zero,
-                ))),
-      ),
-      AnimatedOpacity(
-        duration: animationDuration,
-        opacity: tapInSecondSize != 0 && showTapInBar ? 1 : 0,
-        child: AnimatedContainer(
-            duration: Duration(milliseconds: 35),
-            padding:
-                vertical ? EdgeInsets.only(top: 5) : EdgeInsets.only(left: 5),
-            height: vertical ? tapInSecondSize : null,
-            width: vertical ? null : tapInSecondSize,
-            child: Listener(
-                onPointerDown: (event) {
-                  BeatScratchPlugin.countIn(-1);
-                  HapticFeedback.lightImpact();
-                  setState(() {
-                    _tapInBeat = null;
-                  });
-//              Future.delayed(Duration(seconds: 3), () {
-//                setState(() {
-//                  _tapInBeat = null;
-//                });
-//              });
-                },
-                child: MyRaisedButton(
-                  color: buttonBackgroundColor,
-                  child: Text(
-                      currentSection.meter.defaultBeatsPerMeasure.toString(),
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                  onPressed: _tapInBeat == -2 ? () {} : null,
-                  padding: EdgeInsets.zero,
-                ))),
-      ),
-      if (!vertical)
-        Expanded(
-            flex: 1,
-            child: Padding(
-                padding: EdgeInsets.only(left: 7),
-                child: tapInBarInstructions(withText: !_portraitPhoneUI))),
+      if (!vertical) Expanded(flex: 2, child: tapInBarTapArea()),
+      if (vertical) tapInBarTapArea(),
       if (vertical) SizedBox(height: 15),
       if (vertical)
         Expanded(
+            flex: 2,
             child: AnimatedOpacity(
                 duration: animationDuration,
                 opacity: isDisplayed ? 1 : 0,
@@ -1868,7 +1915,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             child: _tempoConfigurationBar(context)),
       if (_portraitPhoneUI && !vertical)
         Expanded(
-          flex: 5,
+          flex: 3,
           child: AnimatedOpacity(
               duration: animationDuration,
               opacity: isDisplayed ? 1 : 0,
@@ -1936,6 +1983,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget _tempoConfigurationBar(BuildContext context, {bool vertical = false}) {
     final minValue = min(0.1, BeatScratchPlugin.bpmMultiplier);
     final maxValue = max(2.0, BeatScratchPlugin.bpmMultiplier);
+    final buttonWidth = 30.0;
     return RotatedBox(
         quarterTurns: vertical ? 3 : 0,
         child: AnimatedOpacity(
@@ -1951,7 +1999,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: Row(children: [
                   if (!_scalableUI) SizedBox(width: 5),
                   Container(
-                      width: 25,
+                      width: buttonWidth,
                       child: MyRaisedButton(
                           color: buttonBackgroundColor,
                           padding: EdgeInsets.all(0),
@@ -1982,7 +2030,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             BeatScratchPlugin.onSynthesizerStatusChange();
                           })),
                   Container(
-                      width: 25,
+                      width: buttonWidth,
                       child: MyRaisedButton(
                           color: buttonBackgroundColor,
                           padding: EdgeInsets.all(0),
@@ -2003,7 +2051,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               : null)),
                   SizedBox(width: 5),
                   Container(
-                      width: 25,
+                      width: buttonWidth,
                       child: MyRaisedButton(
                           color: buttonBackgroundColor,
                           padding: EdgeInsets.all(0),
@@ -2598,177 +2646,180 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Widget _musicView(BuildContext context, double width, double height) {
     return MusicView(
-      key: ValueKey("main-melody-view"),
-      appSettings: _appSettings,
-      enableColorboard: enableColorboard,
-      superSetState: setState,
-      melodyViewSizeFactor: _musicViewSizeFactor,
-      musicViewMode: musicViewMode,
-      score: score,
-      currentSection: currentSection,
-      colorboardNotesNotifier: colorboardNotesNotifier,
-      keyboardNotesNotifier: keyboardNotesNotifier,
-      bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
-      melody: selectedMelody,
-      part: selectedPart,
-      sectionColor: sectionColor,
-      splitMode: splitMode,
-      renderingMode: renderingMode,
-      toggleSplitMode: toggleMelodyViewDisplayMode,
-      closeMelodyView: _hideMusicView,
-      toggleMelodyReference: _toggleReferenceDisabled,
-      setReferenceVolume: _setReferenceVolume,
-      recordingMelody: recordingMelody,
-      toggleRecording: () {
-        setState(() {
-          recordingMelody = !recordingMelody;
-        });
-      },
-      setPartVolume: _setPartVolume,
-      setMelodyName: _setMelodyName,
-      setSectionName: _setSectionName,
-      setKeyboardPart: _setKeyboardPart,
-      setColorboardPart: _setColorboardPart,
-      colorboardPart: colorboardPart,
-      keyboardPart: keyboardPart,
-      height: height,
-      width: width,
-      scrollToCurrentBeat: scrollToCurrentBeat,
-      deletePart: (part) {
-        setState(() {
-          _selectSection(currentSection);
-          score.parts.remove(part);
-          if (part == this.keyboardPart) {
-            this.keyboardPart = score.parts.first;
-          }
-          if (part == this.colorboardPart) {
-            this.colorboardPart = null;
-          }
-          score.sections.forEach((section) {
-            section.melodies.removeWhere(
-                (ref) => part.melodies.any((m) => m.id == ref.melodyId));
-          });
-          selectedPart = null;
-          _prevSelectedPart = null;
-          BeatScratchPlugin.deletePart(part);
-        });
-      },
-      deleteMelody: (melody) {
-        setState(() {
-          Part part = this.score.parts.firstWhere(
-              (part) => part.melodies.any((m) => m.id == melody.id));
-          _selectOrDeselectPart(part);
-        });
-        Future.delayed(slowAnimationDuration, () {
+        key: ValueKey("main-melody-view"),
+        appSettings: _appSettings,
+        enableColorboard: enableColorboard,
+        superSetState: setState,
+        melodyViewSizeFactor: _musicViewSizeFactor,
+        musicViewMode: musicViewMode,
+        score: score,
+        currentSection: currentSection,
+        colorboardNotesNotifier: colorboardNotesNotifier,
+        keyboardNotesNotifier: keyboardNotesNotifier,
+        bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
+        melody: selectedMelody,
+        part: selectedPart,
+        sectionColor: sectionColor,
+        splitMode: splitMode,
+        renderingMode: renderingMode,
+        toggleSplitMode: toggleMelodyViewDisplayMode,
+        closeMelodyView: _hideMusicView,
+        toggleMelodyReference: _toggleReferenceDisabled,
+        setReferenceVolume: _setReferenceVolume,
+        recordingMelody: recordingMelody,
+        toggleRecording: () {
           setState(() {
-            BeatScratchPlugin.deleteMelody(melody);
-            score.parts.forEach((part) {
-              part.melodies.removeWhere((m) => m.id == melody.id);
-            });
+            recordingMelody = !recordingMelody;
+          });
+        },
+        setPartVolume: _setPartVolume,
+        setMelodyName: _setMelodyName,
+        setSectionName: _setSectionName,
+        setKeyboardPart: _setKeyboardPart,
+        setColorboardPart: _setColorboardPart,
+        colorboardPart: colorboardPart,
+        keyboardPart: keyboardPart,
+        height: height,
+        width: width,
+        scrollToCurrentBeat: scrollToCurrentBeat,
+        deletePart: (part) {
+          setState(() {
+            _selectSection(currentSection);
+            score.parts.remove(part);
+            if (part == this.keyboardPart) {
+              this.keyboardPart = score.parts.first;
+            }
+            if (part == this.colorboardPart) {
+              this.colorboardPart = null;
+            }
             score.sections.forEach((section) {
-              section.melodies.removeWhere((ref) => ref.melodyId == melody.id);
+              section.melodies.removeWhere(
+                  (ref) => part.melodies.any((m) => m.id == ref.melodyId));
+            });
+            selectedPart = null;
+            _prevSelectedPart = null;
+            BeatScratchPlugin.deletePart(part);
+          });
+        },
+        deleteMelody: (melody) {
+          setState(() {
+            Part part = this.score.parts.firstWhere(
+                (part) => part.melodies.any((m) => m.id == melody.id));
+            _selectOrDeselectPart(part);
+          });
+          Future.delayed(slowAnimationDuration, () {
+            setState(() {
+              BeatScratchPlugin.deleteMelody(melody);
+              score.parts.forEach((part) {
+                part.melodies.removeWhere((m) => m.id == melody.id);
+              });
+              score.sections.forEach((section) {
+                section.melodies
+                    .removeWhere((ref) => ref.melodyId == melody.id);
+              });
             });
           });
-        });
-      },
-      deleteSection: (section) {
-        setState(() {
-          if (section.id == this.currentSection.id) {
-            int index =
-                this.score.sections.indexWhere((s) => s.id == section.id);
-            if (index > 0) {
-              index = index - 1;
-            } else {
-              index = index + 1;
+        },
+        deleteSection: (section) {
+          setState(() {
+            if (section.id == this.currentSection.id) {
+              int index =
+                  this.score.sections.indexWhere((s) => s.id == section.id);
+              if (index > 0) {
+                index = index - 1;
+              } else {
+                index = index + 1;
+              }
+              this.currentSection = this.score.sections[index];
             }
-            this.currentSection = this.score.sections[index];
-          }
-          score.sections.removeWhere((s) => s.id == section.id);
-        });
-        BeatScratchPlugin.updateSections(score);
-      },
-      selectBeat: (beat) {
-        // if (interactionMode.isView) {
-        int seekingBeat = 0;
-        int sectionIndex = 0;
-        Section section = score.sections[sectionIndex++];
-        while (beat - seekingBeat >= section.beatCount) {
-          seekingBeat += section.beatCount;
-          section = score.sections[sectionIndex++];
-        }
-//          print("Setting section to $section and beat to ${beat - seekingBeat}");
-        setState(() {
-          currentSection = section;
-        });
-        BeatScratchPlugin.setBeat(beat - seekingBeat);
-        // } else {
-        //   BeatScratchPlugin.setBeat(beat);
-        // }
-      },
-      addPart: score.parts.length < 5 &&
-              (!context.isLandscapePhone || splitMode != SplitMode.half)
-          ? () {
-              Part part = newPartFor(score);
-              score.parts.insert(0, part);
-              BeatScratchPlugin.createPart(part);
-              keyboardPart = part;
-              _selectOrDeselectPart(part);
-            }
-          : null,
-      cloneCurrentSection: () {
-        if (currentSection.name == null || currentSection.name.trim().isEmpty) {
-          String prefix = "Section";
-          while (score.sections.any((s) => s.name.startsWith("$prefix "))) {
-            prefix = "$prefix'";
-          }
-          currentSection.name = "$prefix 1";
-        }
-        Section section = currentSection.bsCopy();
-        section.id = uuid.v4();
-        final match = RegExp(
-          r"^(.*?)(\d*)\s*$",
-        ).allMatches(section.name).first;
-        String prefix = match.group(1);
-        prefix = prefix.trim();
-        int number = int.tryParse(match.group(2)) ?? 1;
-        while (score.sections.any((s) => s.name == section.name)) {
-          section.name = "$prefix ${++number}";
-        }
-        section.melodies.clear();
-        section.melodies.addAll(currentSection.melodies.map((e) => e.bsCopy()));
-        _insertSection(section);
-        section.tempo = Tempo()..bpm = currentSection.tempo.bpm;
-      },
-      requestRenderingMode: (mode) {
-        setState(() {
-          renderingMode = mode;
-        });
-      },
-      showViewOptions: showViewOptions,
-      selectOrDeselectPart: (part) {
-        _selectOrDeselectPart(part, hideMusicOnDeselect: false);
-      },
-      selectOrDeselectMelody: (melody) {
-        _selectOrDeselectMelody(melody);
-      },
-      showBeatCounts: showBeatCounts,
-      createMelody: (part, newMelody, andRecord) {
-        setState(() {
-          //final newMelody = defaultMelody(sectionBeats: currentSection.beatCount);
-          part.melodies.insert(0, newMelody);
-          BeatScratchPlugin.createMelody(part, newMelody);
-          final reference = currentSection.referenceTo(newMelody);
-          _toggleReferenceDisabled(reference);
-          BeatScratchPlugin.updateSections(score);
-          Future.delayed(slowAnimationDuration, () {
-            if (andRecord) {
-              recordingMelody = true;
-            }
-            _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
+            score.sections.removeWhere((s) => s.id == section.id);
           });
-        });
-      },
-    );
+          BeatScratchPlugin.updateSections(score);
+        },
+        selectBeat: (beat) {
+          // if (interactionMode.isView) {
+          int seekingBeat = 0;
+          int sectionIndex = 0;
+          Section section = score.sections[sectionIndex++];
+          while (beat - seekingBeat >= section.beatCount) {
+            seekingBeat += section.beatCount;
+            section = score.sections[sectionIndex++];
+          }
+//          print("Setting section to $section and beat to ${beat - seekingBeat}");
+          setState(() {
+            currentSection = section;
+          });
+          BeatScratchPlugin.setBeat(beat - seekingBeat);
+          // } else {
+          //   BeatScratchPlugin.setBeat(beat);
+          // }
+        },
+        addPart: score.parts.length < 5 &&
+                (!context.isLandscapePhone || splitMode != SplitMode.half)
+            ? () {
+                Part part = newPartFor(score);
+                score.parts.insert(0, part);
+                BeatScratchPlugin.createPart(part);
+                keyboardPart = part;
+                _selectOrDeselectPart(part);
+              }
+            : null,
+        cloneCurrentSection: () {
+          if (currentSection.name == null ||
+              currentSection.name.trim().isEmpty) {
+            String prefix = "Section";
+            while (score.sections.any((s) => s.name.startsWith("$prefix "))) {
+              prefix = "$prefix'";
+            }
+            currentSection.name = "$prefix 1";
+          }
+          Section section = currentSection.bsCopy();
+          section.id = uuid.v4();
+          final match = RegExp(
+            r"^(.*?)(\d*)\s*$",
+          ).allMatches(section.name).first;
+          String prefix = match.group(1);
+          prefix = prefix.trim();
+          int number = int.tryParse(match.group(2)) ?? 1;
+          while (score.sections.any((s) => s.name == section.name)) {
+            section.name = "$prefix ${++number}";
+          }
+          section.melodies.clear();
+          section.melodies
+              .addAll(currentSection.melodies.map((e) => e.bsCopy()));
+          _insertSection(section);
+          section.tempo = Tempo()..bpm = currentSection.tempo.bpm;
+        },
+        requestRenderingMode: (mode) {
+          setState(() {
+            renderingMode = mode;
+          });
+        },
+        showViewOptions: showViewOptions,
+        selectOrDeselectPart: (part) {
+          _selectOrDeselectPart(part, hideMusicOnDeselect: false);
+        },
+        selectOrDeselectMelody: (melody) {
+          _selectOrDeselectMelody(melody);
+        },
+        showBeatCounts: showBeatCounts,
+        createMelody: (part, newMelody, andRecord) {
+          setState(() {
+            //final newMelody = defaultMelody(sectionBeats: currentSection.beatCount);
+            part.melodies.insert(0, newMelody);
+            BeatScratchPlugin.createMelody(part, newMelody);
+            final reference = currentSection.referenceTo(newMelody);
+            _toggleReferenceDisabled(reference);
+            BeatScratchPlugin.updateSections(score);
+            Future.delayed(slowAnimationDuration, () {
+              if (andRecord) {
+                recordingMelody = true;
+              }
+              _selectOrDeselectMelody(newMelody, hideMusicOnDeselect: false);
+            });
+          });
+        },
+        showingSectionList: showSections);
   }
 
   _insertSection(Section newSection, {bool withNewColor = false}) {

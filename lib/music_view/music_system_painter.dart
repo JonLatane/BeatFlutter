@@ -158,7 +158,7 @@ class MusicSystemPainter extends CustomPainter {
     double translationIncrement =
         calculateSystemHeight(yScale, score.parts.length) +
             calculateSystemPadding(yScale);
-    print("verticallyVisibleRect=${verticallyVisibleRect()}");
+    // print("verticallyVisibleRect=${verticallyVisibleRect()}");
     for (int i = 0; i < systemsToRender; i++) {
       if (translationTotal <
               verticallyVisibleRect().bottom + translationIncrement &&

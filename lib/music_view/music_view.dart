@@ -69,6 +69,7 @@ class MusicView extends StatefulWidget {
   final bool isCurrentScore;
   final bool showViewOptions;
   final bool showBeatCounts;
+  final bool showingSectionList;
   final BSMethod scrollToCurrentBeat;
 
   MusicView(
@@ -117,7 +118,8 @@ class MusicView extends StatefulWidget {
       this.backgroundColor = Colors.white,
       this.showBeatCounts,
       this.createMelody,
-      this.scrollToCurrentBeat})
+      this.scrollToCurrentBeat,
+      this.showingSectionList})
       : super(key: key);
 
   @override
@@ -1163,10 +1165,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         }
       }
 
-      int beat = getBeat(localPosition);
-      print(
-          "pointerDown: ${localPosition} -> beat: $beat; x/t: $_xScale/$targetedXScale");
-
       if (showViewOptions) {
         if (localPosition.dx > widget.width - 104 &&
             localPosition.dy > widget.height - 156) {
@@ -1187,6 +1185,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           return;
         }
       }
+
+      int beat = getBeat(localPosition);
+      print(
+          "pointerDown: ${localPosition} -> beat: $beat; x/t: $_xScale/$targetedXScale");
 
       tappedBeat.value = beat;
       double partIndexY = verticalScrollingPosition.value + localPosition.dy;
@@ -1309,44 +1311,44 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             },
             child: Stack(children: [
               MusicScrollContainer(
-                musicViewMode: widget.musicViewMode,
-                score: widget.score,
-                currentSection: widget.currentSection,
-                sectionColor: widget.sectionColor,
-                colorboardNotesNotifier: widget.colorboardNotesNotifier,
-                keyboardNotesNotifier: widget.keyboardNotesNotifier,
-                bluetoothControllerPressedNotes:
-                    widget.bluetoothControllerPressedNotes,
-                focusedMelody: widget.melody,
-                renderingMode: widget.renderingMode,
-                xScale: _xScale,
-                yScale: _xScale,
-                staves: staves,
-                focusedPart: mainPart,
-                keyboardPart: widget.keyboardPart,
-                colorboardPart: widget.colorboardPart,
-                height: widget.height - removedHeight,
-                width: widget.width,
-                isCurrentScore: widget.isCurrentScore,
-                highlightedBeat: highlightedBeat,
-                focusedBeat: focusedBeat,
-                tappedBeat: tappedBeat,
-                tappedPart: tappedPart,
-                verticalScrollNotifier: verticalScrollingPosition,
-                requestedScrollOffsetForScale: requestedScrollOffsetForScale,
-                targetXScaleNotifier: _targetedXScale,
-                targetYScaleNotifier: _targetedYScale,
-                scrollToFocusedBeat: scrollToFocusedBeat,
-                isTwoFingerScaling: _isTwoFingerScaling,
-                scrollToCurrentBeat: widget.scrollToCurrentBeat,
-                scrollToPart: scrollToPart,
-                centerCurrentSection: centerCurrentSection,
-                appSettings: widget.appSettings,
-                notifyXScaleUpdate: _xScaleUpdate,
-                notifyYScaleUpdate: _yScaleUpdate,
-                xScaleNotifier: xScaleNotifier,
-                yScaleNotifier: yScaleNotifier,
-              ),
+                  musicViewMode: widget.musicViewMode,
+                  score: widget.score,
+                  currentSection: widget.currentSection,
+                  sectionColor: widget.sectionColor,
+                  colorboardNotesNotifier: widget.colorboardNotesNotifier,
+                  keyboardNotesNotifier: widget.keyboardNotesNotifier,
+                  bluetoothControllerPressedNotes:
+                      widget.bluetoothControllerPressedNotes,
+                  focusedMelody: widget.melody,
+                  renderingMode: widget.renderingMode,
+                  xScale: _xScale,
+                  yScale: _xScale,
+                  staves: staves,
+                  focusedPart: mainPart,
+                  keyboardPart: widget.keyboardPart,
+                  colorboardPart: widget.colorboardPart,
+                  height: widget.height - removedHeight,
+                  width: widget.width,
+                  isCurrentScore: widget.isCurrentScore,
+                  highlightedBeat: highlightedBeat,
+                  focusedBeat: focusedBeat,
+                  tappedBeat: tappedBeat,
+                  tappedPart: tappedPart,
+                  verticalScrollNotifier: verticalScrollingPosition,
+                  requestedScrollOffsetForScale: requestedScrollOffsetForScale,
+                  targetXScaleNotifier: _targetedXScale,
+                  targetYScaleNotifier: _targetedYScale,
+                  scrollToFocusedBeat: scrollToFocusedBeat,
+                  isTwoFingerScaling: _isTwoFingerScaling,
+                  scrollToCurrentBeat: widget.scrollToCurrentBeat,
+                  scrollToPart: scrollToPart,
+                  centerCurrentSection: centerCurrentSection,
+                  appSettings: widget.appSettings,
+                  notifyXScaleUpdate: _xScaleUpdate,
+                  notifyYScaleUpdate: _yScaleUpdate,
+                  xScaleNotifier: xScaleNotifier,
+                  yScaleNotifier: yScaleNotifier,
+                  showingSectionList: widget.showingSectionList),
               Row(children: [
                 Expanded(child: SizedBox()),
                 Row(children: [
@@ -1540,7 +1542,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               _partAligned = false;
               _preButtonScale();
               alignVertically();
-              _lineUpAfterSizeChange();
+              Future.delayed(animationDuration, () {
+                widget.scrollToCurrentBeat();
+              });
             });
           }
         : (xScale > minScale || yScale > minScale)
@@ -1561,6 +1565,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               _preButtonScale();
               alignVertically();
               _lineUpAfterSizeChange();
+              Future.delayed(animationDuration, () {
+                widget.scrollToCurrentBeat();
+              });
             });
           }
         : (xScale < partAlignedScale || yScale < partAlignedScale) &&

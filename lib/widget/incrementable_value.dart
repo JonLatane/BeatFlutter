@@ -91,7 +91,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
   Widget build(BuildContext context) {
     bool showButtons = !widget.collapsing ||
         DateTime.now().millisecondsSinceEpoch - lastTouchTimeMs < _msDelay;
-    double buttonWidth = showButtons ? 28 : 0;
+    double buttonWidth = showButtons ? 32 : 0;
 
     onPointerDown(event) {
       widget.onPointerDownCallback?.call();

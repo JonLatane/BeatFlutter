@@ -91,7 +91,8 @@ class MyRaisedButton extends ElevatedButton {
           style: ElevatedButton.styleFrom(
               primary: color,
               padding: padding,
-              enabledMouseCursor: SystemMouseCursors.basic),
+              enabledMouseCursor: SystemMouseCursors.basic,
+              disabledMouseCursor: SystemMouseCursors.basic),
           clipBehavior: clipBehavior,
           focusNode: focusNode,
           autofocus: autofocus,

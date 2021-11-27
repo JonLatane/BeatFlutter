@@ -52,6 +52,7 @@ class MusicScrollContainer extends StatefulWidget {
       targetYScaleNotifier;
   final ValueNotifier<double> verticalScrollNotifier;
   final BSMethod scrollToFocusedBeat;
+  final bool showingSectionList;
 
   const MusicScrollContainer(
       {Key key,
@@ -90,7 +91,8 @@ class MusicScrollContainer extends StatefulWidget {
       this.xScaleNotifier,
       this.yScaleNotifier,
       this.verticalScrollNotifier,
-      this.scrollToPart})
+      this.scrollToPart,
+      this.showingSectionList})
       : super(key: key);
 
   @override
@@ -148,7 +150,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
   double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
-          xScale < 2 * MusicScrollContainer.minScale
+          xScale < 2 * MusicScrollContainer.minScale ||
+          !widget.showingSectionList
       ? 30
       : 0;
 
@@ -182,11 +185,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get currentBeatTargetSystemXOffset =>
       currentBeatTargetSystemIndex * (systemRenderAreaWidth);
   double get _systemHeightForScrolling =>
-      (MusicSystemPainter.calculateHarmonyHeight(yScale) +
-          MusicSystemPainter.calculateSectionHeight(yScale) +
-          MusicSystemPainter.calculateSystemHeight(
-              yScale, widget.score.parts.length) +
-          0.75 * MusicSystemPainter.calculateSystemPadding(yScale));
+      MusicSystemPainter.calculateSystemHeight(
+          yScale, widget.score.parts.length) +
+      MusicSystemPainter.calculateSystemPadding(yScale);
   double get _extraHeightForScrolling =>
       _systemHeightForScrolling < widget.height
           ? max(0, (widget.height - _systemHeightForScrolling) / 3)
@@ -644,25 +645,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     //                   ((currentBeat - 2) /
     //                       (beatsOnScreenPerSystem * systemsToRender
     print(
-        "scrollToPart: target system: $currentBeatTargetSystemIndex; currentBeat=$currentBeat, beatsOnScreenPerSystem=$beatsOnScreenPerSystem, calculatedSystemThingy=$calculatedSystemThingy");
+        "scrollToPart: target system: $currentBeatTargetSystemIndex; currentBeat=$currentBeat, beatsOnScreenPerSystem=$beatsOnScreenPerSystem, calculatedSystemThingy=$calculatedSystemThingy, currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex,_systemHeightForScrolling=$_systemHeightForScrolling, _extraHeightForScrolling=$_extraHeightForScrolling");
 
-    if (systemsToRender == 1) {
-      if (autoSort) {
-        verticalController.animateTo(0,
-            duration: animationDuration, curve: Curves.ease);
-      } else if (verticalController.offset > maxSystemVerticalPosition) {
-        scrollToBottomMostPart();
-      }
-    } else {
-      verticalController.animateTo(0 + currentBeatTargetSystemYOffset,
-          duration: animationDuration, curve: Curves.ease);
-    }
-  }
-
-  void scrollToBottomMostPart({double positionOffset = 0}) {
-    verticalController.animateTo(maxSystemVerticalPosition + positionOffset,
+    // if (systemsToRender == 1) {
+    //   if (autoSort) {
+    //     verticalController.animateTo(0,
+    //         duration: animationDuration, curve: Curves.ease);
+    //   } else if (verticalController.offset > maxSystemVerticalPosition) {
+    //     scrollToBottomMostPart();
+    //   }
+    // } else {
+    verticalController.animateTo(0 + currentBeatTargetSystemYOffset,
         duration: animationDuration, curve: Curves.ease);
+    // }
   }
+
+  // void scrollToBottomMostPart({double positionOffset = 0}) {
+  //   verticalController.animateTo(maxSystemVerticalPosition + positionOffset,
+  //       duration: animationDuration, curve: Curves.ease);
+  // }
 
   bool get sectionCanBeCentered =>
       sectionWidth + targetClefWidth <= widget.width;
