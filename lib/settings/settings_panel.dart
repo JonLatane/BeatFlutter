@@ -261,6 +261,35 @@ class _SettingsPanelState extends State<SettingsPanel> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(children: [
+                    Container(
+                      height: 25,
+                      child: MyFlatButton(
+                          onPressed: () {
+                            widget.messagesUI.setAppState(() {
+                              widget.appSettings.systemsToRender = 0;
+                            });
+                          },
+                          padding: EdgeInsets.zero,
+                          color: widget.appSettings.systemsToRender == 0
+                              ? widget.sectionColor.textColor()
+                              : null,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                "Unlimited systems",
+                                style: TextStyle(
+                                  color: widget.appSettings.systemsToRender < 1
+                                      ? widget.sectionColor
+                                          .textColor()
+                                          .textColor()
+                                      : widget.sectionColor.textColor(),
+                                ),
+                                textAlign: TextAlign.center,
+                              )),
+                            ],
+                          )),
+                    ),
                     ...range(1, 6).map((systemsToRenderValue) => Container(
                           height: 25,
                           child: MyFlatButton(

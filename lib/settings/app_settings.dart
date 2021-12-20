@@ -134,7 +134,7 @@ class AppSettings {
     _preferences?.setBool("showWebDownloadLinks", value);
   }
 
-  int get systemsToRender => _preferences?.getInt('systemsToRender') ?? 3;
+  int get systemsToRender => _preferences?.getInt('systemsToRender') ?? 0;
   set systemsToRender(int value) =>
       _preferences?.setInt("systemsToRender", value);
 }

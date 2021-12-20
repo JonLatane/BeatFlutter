@@ -168,10 +168,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   int get maxSystemsNeeded =>
       (widget.score.beatCount / beatsOnScreenPerSystem).ceil();
 
-  int get maxSupportedSystems => widget.appSettings.systemsToRender;
-  int get systemsToRender => /*systemHeight < widget.height*/ true
-      ? min(maxSystemsNeeded, maxSupportedSystems)
-      : 1;
+  int get maxSupportedSystems => widget.appSettings.systemsToRender < 1
+      ? 999999999999
+      : widget.appSettings.systemsToRender;
+  int get systemsToRender => min(maxSystemsNeeded, maxSupportedSystems);
 
   double get calculatedSystemThingy => ((systemsToRender) *
       ((currentBeat - 2) / (beatsOnScreenPerSystem * systemsToRender)));
