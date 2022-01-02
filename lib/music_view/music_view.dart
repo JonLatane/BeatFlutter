@@ -140,6 +140,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   bool isBrowsingPartMelodies;
   bool isEditingSection;
   bool _isTwoFingerScaling = false;
+  TransformationController transformationController =
+      TransformationController();
 
   // Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
@@ -169,33 +171,27 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   bool get showViewOptions => widget.showViewOptions || forceShowViewOptions;
 
-  ValueNotifier<double> xScaleNotifier,
-      yScaleNotifier,
-      verticalScrollingPosition;
+  // ValueNotifier<double> xScaleNotifier,
+  //     yScaleNotifier,
+  //     verticalScrollingPosition;
 
   BSMethod scrollToFocusedBeat;
 
-  /// Always immediately updated; the return values of [xScale] and [yScale].
-  ValueNotifier<double> _targetedXScale, _targetedYScale;
-  double get targetedXScale => _targetedXScale.value;
-  set targetedXScale(double v) {
-    _targetedXScale.value = v;
+  /// Always immediately updated; the return values of [targetedScale] and [scale].
+  ValueNotifier<double> _targetedScale;
+  double get targetedScale => _targetedScale.value;
+  set targetedScale(double v) {
+    _targetedScale.value = v;
     widget.appSettings.musicScale = v;
   }
 
-  double get targetedYScale => _targetedYScale.value;
-  set targetedYScale(double v) {
-    _targetedYScale.value = v;
-    widget.appSettings.musicScale = v;
-  }
-
-  /// Used to maintain a locking mechanism as we animate from [_xScale] to [targetedXScale] in the setter for [xScale].
+  /// Used to maintain a locking mechanism as we animate from [_xScale] to [targetedScale] in the setter for [targetedScale].
   DateTime _xScaleLock, _yScaleLock;
   List<AnimationController> _xScaleAnimationControllers,
       _yScaleAnimationControllers;
 
-  /// Used to notify the [MusicScrollContainer] as we animate [_xScale] to [targetedXScale] in the setter for [xScale].
-  BSValueMethod<ScaleUpdate> _xScaleUpdate, _yScaleUpdate;
+  /// Used to notify the [MusicScrollContainer] as we animate [_xScale] to [targetedScale] in the setter for [targetedScale].
+  // BSValueMethod<ScaleUpdate> _xScaleUpdate, _yScaleUpdate;
 
   Map<MusicViewMode, List<SwipeTutorial>> _swipeTutorialsSeen;
   SwipeTutorial _currentSwipeTutorial;
@@ -268,7 +264,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
       controllers.add(scaleAnimationController);
       Animation animation;
-      // print("animating xScale to $value");
+      // print("animating targetedScale to $value");
       // print("Tween params: begin: $currentValue, end: $value");
       animation = Tween<double>(begin: currentValue(), end: value())
           .animate(scaleAnimationController)
@@ -343,7 +339,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     @required double Function() currentValue,
     @required Function(double) applyAnimatedValue,
     @required List<AnimationController> controllers,
-    @required BSValueMethod<ScaleUpdate> notifyUpdate,
   }) {
     if (value() == currentValue()) {
       return;
@@ -363,7 +358,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           currentValue: currentValue,
           applyAnimatedValue: (v) {
             applyAnimatedValue(v);
-            notifyUpdate(ScaleUpdate(prevValue, v));
+            // notifyUpdate(ScaleUpdate(prevValue, v));
             prevValue = v;
           },
           controllers: controllers,
@@ -372,7 +367,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             _animateScaleAtomically(
               getLockTime: getLockTime,
               setLockTime: setLockTime,
-              notifyUpdate: notifyUpdate,
+              // notifyUpdate: notifyUpdate,
               value: value,
               currentValue: currentValue,
               applyAnimatedValue: applyAnimatedValue,
@@ -405,31 +400,26 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     }
   }
 
-  double get _xScale => xScaleNotifier.value;
+  double get dx =>
+      MatrixUtils.getAsTranslation(transformationController.value).dx;
+  double get dy =>
+      MatrixUtils.getAsTranslation(transformationController.value).dy;
+  double get scale => transformationController.value.getMaxScaleOnAxis();
+  set scale(value) => transformationController.value.scale(value / scale);
 
-  set _xScale(value) => xScaleNotifier.value = value;
-
-  double get _yScale => yScaleNotifier.value;
-
-  set _yScale(value) => yScaleNotifier.value = value;
-
-  double get xScale => targetedXScale;
-
-  double get yScale => targetedYScale;
-
-  set xScale(double value) {
+  _targetedScaleAnimationListener(double value) {
     value = max(0, min(maxScale, value));
-    targetedXScale = value;
+    targetedScale = value;
     _animateScaleAtomically(
-      value: () => xScale,
-      currentValue: () => _xScale,
-      applyAnimatedValue: (value) => _xScale = value,
+      value: () => targetedScale,
+      currentValue: () => scale,
+      applyAnimatedValue: (value) => scale = value,
       controllers: _xScaleAnimationControllers,
       setLockTime: (it) {
         _xScaleLock = it;
       },
       getLockTime: () => _xScaleLock,
-      notifyUpdate: _xScaleUpdate,
+      // notifyUpdate: _xScaleUpdate,
     );
     // if (autoScroll) {
     //   widget.scrollToCurrentBeat();
@@ -438,37 +428,37 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     // }
   }
 
-  set rawXScale(double value) {
-    value = max(minScale, min(maxScale, value));
-    final oldValue = _xScale;
-    targetedXScale = value;
-    _xScale = value;
-    _xScaleUpdate(ScaleUpdate(oldValue, value));
-  }
+  // set rawXScale(double value) {
+  //   value = max(minScale, min(maxScale, value));
+  //   final oldValue = _xScale;
+  //   targetedScale = value;
+  //   _xScale = value;
+  //   // _xScaleUpdate(ScaleUpdate(oldValue, value));
+  // }
 
-  set yScale(double value) {
-    value = max(minScale, min(maxScale, value));
-    targetedYScale = value;
-    _animateScaleAtomically(
-      value: () => yScale,
-      currentValue: () => _yScale,
-      applyAnimatedValue: (value) => _yScale = value,
-      controllers: _yScaleAnimationControllers,
-      setLockTime: (it) {
-        _yScaleLock = it;
-      },
-      getLockTime: () => _yScaleLock,
-      notifyUpdate: _yScaleUpdate,
-    );
-  }
+  // set scale(double value) {
+  //   value = max(minScale, min(maxScale, value));
+  //   targetedScale = value;
+  //   _animateScaleAtomically(
+  //     value: () => scale,
+  //     currentValue: () => _yScale,
+  //     applyAnimatedValue: (value) => _yScale = value,
+  //     controllers: _yScaleAnimationControllers,
+  //     setLockTime: (it) {
+  //       _yScaleLock = it;
+  //     },
+  //     getLockTime: () => _yScaleLock,
+  //     // notifyUpdate: _yScaleUpdate,
+  //   );
+  // }
 
-  set rawYScale(double value) {
-    value = max(minScale, min(maxScale, value));
-    final oldValue = _yScale;
-    targetedYScale = value;
-    _yScale = value;
-    _yScaleUpdate(ScaleUpdate(oldValue, value));
-  }
+  // set rawYScale(double value) {
+  //   value = max(minScale, min(maxScale, value));
+  //   final oldValue = _yScale;
+  //   targetedScale = value;
+  //   _yScale = value;
+  //   _yScaleUpdate(ScaleUpdate(oldValue, value));
+  // }
 
   @override
   void initState() {
@@ -479,9 +469,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     tappedBeat = new ValueNotifier(null);
     tappedPart = new ValueNotifier(null);
     scrollToFocusedBeat = BSMethod();
-    _targetedXScale = ValueNotifier(null);
-    _targetedYScale = ValueNotifier(null);
-    verticalScrollingPosition = new ValueNotifier(0);
+    _targetedScale = ValueNotifier(null);
     requestedScrollOffsetForScale = ValueNotifier(null);
     _swipeTutorialsSeen = {
       MusicViewMode.melody: [],
@@ -491,8 +479,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     _xScaleAnimationControllers = [];
     _yScaleAnimationControllers = [];
     centerCurrentSection = BSMethod();
-    _xScaleUpdate = BSValueMethod(null);
-    _yScaleUpdate = BSValueMethod(null);
     centerCurrentSection = BSMethod();
     scrollToPart = BSMethod();
 
@@ -501,8 +487,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     isEditingSection = true;
     _aligned = true;
     _partAligned = false;
-    xScaleNotifier = ValueNotifier(null);
-    yScaleNotifier = ValueNotifier(null);
     widget.scrollToCurrentBeat.addListener(handleZoomAlign);
   }
 
@@ -525,6 +509,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     highlightedBeat.dispose();
     centerCurrentSection.dispose();
     widget.scrollToCurrentBeat.removeListener(handleZoomAlign);
+    transformationController.dispose();
     super.dispose();
   }
 
@@ -553,35 +538,33 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   @override
   Widget build(context) {
-    if (_xScale == null) {
+    if (scale == null || targetedScale == null) {
       final musicScale = widget.appSettings.musicScale;
       if (musicScale == null) {
         if (context.isTablet) {
-          _xScale = 0.33;
+          scale = 0.33;
         } else {
-          _xScale = 0.22;
+          scale = 0.22;
         }
       } else {
-        _xScale = musicScale;
+        scale = musicScale;
       }
-      _yScale = _xScale;
-      targetedXScale = _xScale;
-      targetedYScale = _yScale;
+      targetedScale = scale;
     }
-    if (targetedXScale != null &&
-        (_xScale.notRoughlyEquals(targetedXScale) ||
-            _yScale.notRoughlyEquals(targetedYScale))) {
-      xScale = xScale;
-      yScale = yScale;
-    }
+    // if (targetedScale != null &&
+    //     (_xScale.notRoughlyEquals(targetedScale) ||
+    //         _yScale.notRoughlyEquals(targetedScale))) {
+    //   targetedScale = targetedScale;
+    //   scale = scale;
+    // }
     if (_partAligned &&
         (widget.musicViewMode == MusicViewMode.part ||
             widget.musicViewMode == MusicViewMode.melody ||
             widget.musicViewMode == MusicViewMode.score)) {
-      if (xScale.notRoughlyEquals(partAlignedScale)) {
+      if (targetedScale.notRoughlyEquals(partAlignedScale)) {
         partAlignVertically();
       }
-    } else if (_aligned && xScale.notRoughlyEquals(alignedScale)) {
+    } else if (_aligned && targetedScale.notRoughlyEquals(alignedScale)) {
       alignVertically();
     }
     _previousSplitMode = widget.splitMode;
@@ -694,6 +677,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                         )),
                   Expanded(
                       child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
                           onVerticalDragUpdate: context.isPortrait
                               ? (details) {
                                   if (ignoreDragEvents) return;
@@ -976,7 +960,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       if (MyPlatform.isDebug && true)
         IgnorePointer(
             child: Container(
-          width: 2 * xScale * unscaledStandardBeatWidth,
+          width: 2 * targetedScale * unscaledStandardBeatWidth,
           height: widget.height,
           decoration: BoxDecoration(
               color: Colors.black12,
@@ -1025,17 +1009,18 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   getBeat(Offset position, {bool targeted = true}) {
     double systemHeight = MusicSystemPainter.calculateSystemHeight(
-            yScale, widget.score.parts.length) +
-        MusicSystemPainter.calculateSystemPadding(yScale);
+            scale, widget.score.parts.length) +
+        MusicSystemPainter.calculateSystemPadding(scale);
     double systemXOffset =
-        ((position.dy + verticalScrollingPosition.value) / systemHeight)
+        ((position.dy /*+ verticalScrollingPosition.value*/) / systemHeight)
                 .floor() *
-            (widget.width - MusicSystemPainter.calculateClefWidth(xScale));
+            (widget.width -
+                MusicSystemPainter.calculateClefWidth(targetedScale));
     int beat = ((position.dx +
                 systemXOffset +
                 horizontallyVisibleRect.left -
-                2 * unscaledStandardBeatWidth * xScale) /
-            (unscaledStandardBeatWidth * (targeted ? xScale : _xScale)))
+                2 * unscaledStandardBeatWidth * targetedScale) /
+            (unscaledStandardBeatWidth * (targeted ? targetedScale : scale)))
         .floor();
     // print("beat=$beat");
     beat = max(0, min(beat, widget.score.maxBeat));
@@ -1118,10 +1103,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
             widget.musicViewMode == MusicViewMode.score) &&
         (focusedPartIsNotFirst || focusedMelodyIsNotFirst) &&
         showViewOptions;
-    bool showMinimizeButton = xScale != minScale;
-    bool showExpandButton = xScale != alignedScale;
+    bool showMinimizeButton = targetedScale != minScale;
+    bool showExpandButton = targetedScale != alignedScale;
     bool showExpandPartButton = (!showExpandButton || !showMinimizeButton) &&
-        xScale != partAlignedScale &&
+        targetedScale != partAlignedScale &&
         (widget.musicViewMode == MusicViewMode.part ||
             widget.musicViewMode == MusicViewMode.score ||
             widget.musicViewMode == MusicViewMode.melody);
@@ -1154,8 +1139,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
     pointerDown(Offset localPosition) {
       double systemHeight = MusicSystemPainter.calculateSystemHeight(
-              yScale, widget.score.parts.length) +
-          MusicSystemPainter.calculateSystemPadding(yScale);
+              scale, widget.score.parts.length) +
+          MusicSystemPainter.calculateSystemPadding(scale);
       if (systemHeight < localPosition.dy) {
         if (autoScroll) {
           setState(() {
@@ -1188,20 +1173,21 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
       int beat = getBeat(localPosition);
       print(
-          "pointerDown: ${localPosition} -> beat: $beat; x/t: $_xScale/$targetedXScale");
+          "pointerDown: ${localPosition} -> beat: $beat; x/t: $scale/$targetedScale");
 
       tappedBeat.value = beat;
-      double partIndexY = verticalScrollingPosition.value + localPosition.dy;
-      partIndexY -= MusicSystemPainter.calculateHarmonyHeight(yScale);
+      double partIndexY = /*verticalScrollingPosition.value +*/ localPosition
+          .dy;
+      partIndexY -= MusicSystemPainter.calculateHarmonyHeight(scale);
       if (widget.musicViewMode == MusicViewMode.score ||
-          xScale < minScale * 2) {
-        partIndexY -= MusicSystemPainter.calculateSectionHeight(yScale);
+          targetedScale < minScale * 2) {
+        partIndexY -= MusicSystemPainter.calculateSectionHeight(scale);
       }
       while (partIndexY > systemHeight) {
         partIndexY -= systemHeight;
       }
       int partIndex =
-          (partIndexY / (yScale * MusicSystemPainter.staffHeight)).floor();
+          (partIndexY / (scale * MusicSystemPainter.staffHeight)).floor();
       print("partIndex=$partIndex");
       print("mainPart=${mainPart?.midiName}");
       if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
@@ -1242,7 +1228,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               }
               int beat = tappedBeat.value;
               print(
-                  "onTapUp: ${details.localPosition} -> beat: $beat; x/t: $_xScale/$targetedXScale");
+                  "onTapUp: ${details.localPosition} -> beat: $beat; x/t: $scale/$targetedScale");
               if (BeatScratchPlugin.playing &&
                   recordingMelody &&
                   highlightedBeat.value != beat) {
@@ -1264,51 +1250,51 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               pointerDown(details.localPosition);
               onLongPress();
             },
-            onScaleStart: (details) => setState(() {
-                  if (_ignoreNextScale) {
-                    return;
-                  }
-                  _aligned = false;
-                  _partAligned = false;
-                  _isTwoFingerScaling = true;
-                  int beat = getBeat(details.focalPoint);
-                  focusedBeat.value = beat;
-                  tappedBeat.value = null;
-                  tappedPart.value = null;
-                  _startScale = xScale;
-                  // _startVerticalScale = yScale;
-                }),
-            onScaleUpdate: (ScaleUpdateDetails details) {
-              if (_ignoreNextScale) {
-                return;
-              }
-              setState(() {
-                if (focusedBeat.value == null) {
-                  int beat = getBeat(details.focalPoint);
-                  focusedBeat.value = beat;
-                }
-                if (details.scale > 0) {
-                  final target = _startScale * details.scale;
-                  rawXScale = target;
-                  _updateFocusedBeatValue(withDelayClear: false);
-                  rawYScale = target;
-                }
-                // if (details.horizontalScale > 0) {
-                //   final target = _startHorizontalScale * details.horizontalScale;
-                //   rawXScale = target;
-                // }
-                // if (details.verticalScale > 0) {
-                //   final target = _startVerticalScale * details.verticalScale;
-                //   rawYScale = target;
-                // }
-              });
-            },
-            onScaleEnd: (ScaleEndDetails details) {
-              _ignoreNextScale = false;
-              _isTwoFingerScaling = false;
-              focusedBeat.value = null;
-              handleZoomAlign();
-            },
+            // onScaleStart: (details) => setState(() {
+            //       if (_ignoreNextScale) {
+            //         return;
+            //       }
+            //       _aligned = false;
+            //       _partAligned = false;
+            //       _isTwoFingerScaling = true;
+            //       int beat = getBeat(details.focalPoint);
+            //       focusedBeat.value = beat;
+            //       tappedBeat.value = null;
+            //       tappedPart.value = null;
+            //       _startScale = targetedScale;
+            //       // _startVerticalScale = scale;
+            //     }),
+            // onScaleUpdate: (ScaleUpdateDetails details) {
+            //   if (_ignoreNextScale) {
+            //     return;
+            //   }
+            //   setState(() {
+            //     if (focusedBeat.value == null) {
+            //       int beat = getBeat(details.focalPoint);
+            //       focusedBeat.value = beat;
+            //     }
+            //     if (details.scale > 0) {
+            //       final target = _startScale * details.scale;
+            //       rawXScale = target;
+            //       _updateFocusedBeatValue(withDelayClear: false);
+            //       rawYScale = target;
+            //     }
+            //     // if (details.horizontalScale > 0) {
+            //     //   final target = _startHorizontalScale * details.horizontalScale;
+            //     //   rawXScale = target;
+            //     // }
+            //     // if (details.verticalScale > 0) {
+            //     //   final target = _startVerticalScale * details.verticalScale;
+            //     //   rawYScale = target;
+            //     // }
+            //   });
+            // },
+            // onScaleEnd: (ScaleEndDetails details) {
+            //   _ignoreNextScale = false;
+            //   _isTwoFingerScaling = false;
+            //   focusedBeat.value = null;
+            //   handleZoomAlign();
+            // },
             child: Stack(children: [
               MusicScrollContainer(
                   musicViewMode: widget.musicViewMode,
@@ -1321,8 +1307,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       widget.bluetoothControllerPressedNotes,
                   focusedMelody: widget.melody,
                   renderingMode: widget.renderingMode,
-                  xScale: _xScale,
-                  yScale: _xScale,
                   staves: staves,
                   focusedPart: mainPart,
                   keyboardPart: widget.keyboardPart,
@@ -1334,20 +1318,15 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   focusedBeat: focusedBeat,
                   tappedBeat: tappedBeat,
                   tappedPart: tappedPart,
-                  verticalScrollNotifier: verticalScrollingPosition,
                   requestedScrollOffsetForScale: requestedScrollOffsetForScale,
-                  targetXScaleNotifier: _targetedXScale,
-                  targetYScaleNotifier: _targetedYScale,
+                  targetScaleNotifier: _targetedScale,
                   scrollToFocusedBeat: scrollToFocusedBeat,
                   isTwoFingerScaling: _isTwoFingerScaling,
                   scrollToCurrentBeat: widget.scrollToCurrentBeat,
                   scrollToPart: scrollToPart,
                   centerCurrentSection: centerCurrentSection,
                   appSettings: widget.appSettings,
-                  notifyXScaleUpdate: _xScaleUpdate,
-                  notifyYScaleUpdate: _yScaleUpdate,
-                  xScaleNotifier: xScaleNotifier,
-                  yScaleNotifier: yScaleNotifier,
+                  transformationController: transformationController,
                   showingSectionList: widget.showingSectionList),
               Row(children: [
                 Expanded(child: SizedBox()),
@@ -1395,16 +1374,17 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   handleZoomAlign() {
+    return;
     if (autoZoomAlign) {
-      final double x = targetedXScale,
-          // y = targetedYScale,
+      final double x = targetedScale,
+          // y = targetedScale,
           w = widget.width,
           numberOfBeatsOnScreen = w / (x * unscaledStandardBeatWidth),
           targetNumberOfBeatsOnScreen = numberOfBeatsOnScreen.roundToDouble(),
           newXScale =
               w / (targetNumberOfBeatsOnScreen * unscaledStandardBeatWidth);
-      xScale = newXScale;
-      yScale = newXScale;
+      targetedScale = newXScale;
+      // scale = newXScale;
     }
   }
 
@@ -1532,57 +1512,61 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   Widget zoomButton() {
     final zoomIncrement = 1.03;
-    final bigDecrementIcon = (xScale > alignedScale || yScale > alignedScale)
-        ? Icons.expand
-        : FontAwesomeIcons.compressArrowsAlt;
-    final bigDecrementAction = (xScale > alignedScale || yScale > alignedScale)
-        ? () {
-            setState(() {
-              _aligned = true;
-              _partAligned = false;
-              _preButtonScale();
-              alignVertically();
-              Future.delayed(animationDuration, () {
-                widget.scrollToCurrentBeat();
-              });
-            });
-          }
-        : (xScale > minScale || yScale > minScale)
-            ? () {
-                setState(() {
-                  minimize();
-                });
-              }
-            : null;
-    final bigIncrementIcon = (xScale >= alignedScale || yScale >= alignedScale)
-        ? FontAwesomeIcons.expandArrowsAlt
-        : Icons.expand;
-    final bigIncrementAction = (xScale < alignedScale || yScale < alignedScale)
-        ? () {
-            setState(() {
-              _aligned = true;
-              _partAligned = false;
-              _preButtonScale();
-              alignVertically();
-              _lineUpAfterSizeChange();
-              Future.delayed(animationDuration, () {
-                widget.scrollToCurrentBeat();
-              });
-            });
-          }
-        : (xScale < partAlignedScale || yScale < partAlignedScale) &&
-                !xScale.roughlyEquals(partAlignedScale) &&
-                widget.musicViewMode != MusicViewMode.section
+    final bigDecrementIcon =
+        (targetedScale > alignedScale || scale > alignedScale)
+            ? Icons.expand
+            : FontAwesomeIcons.compressArrowsAlt;
+    final bigDecrementAction =
+        (targetedScale > alignedScale || scale > alignedScale)
             ? () {
                 setState(() {
                   _aligned = true;
-                  _partAligned = true;
+                  _partAligned = false;
                   _preButtonScale();
-                  partAlignVertically();
-                  _lineUpAfterSizeChange();
+                  alignVertically();
+                  Future.delayed(animationDuration, () {
+                    widget.scrollToCurrentBeat();
+                  });
                 });
               }
-            : null;
+            : (targetedScale > minScale || scale > minScale)
+                ? () {
+                    setState(() {
+                      minimize();
+                    });
+                  }
+                : null;
+    final bigIncrementIcon =
+        (targetedScale >= alignedScale || scale >= alignedScale)
+            ? FontAwesomeIcons.expandArrowsAlt
+            : Icons.expand;
+    final bigIncrementAction =
+        (targetedScale < alignedScale || scale < alignedScale)
+            ? () {
+                setState(() {
+                  _aligned = true;
+                  _partAligned = false;
+                  _preButtonScale();
+                  alignVertically();
+                  _lineUpAfterSizeChange();
+                  Future.delayed(animationDuration, () {
+                    widget.scrollToCurrentBeat();
+                  });
+                });
+              }
+            : (targetedScale < partAlignedScale || scale < partAlignedScale) &&
+                    !targetedScale.roughlyEquals(partAlignedScale) &&
+                    widget.musicViewMode != MusicViewMode.section
+                ? () {
+                    setState(() {
+                      _aligned = true;
+                      _partAligned = true;
+                      _preButtonScale();
+                      partAlignVertically();
+                      _lineUpAfterSizeChange();
+                    });
+                  }
+                : null;
     return Container(
         color: Colors.black12,
         padding: EdgeInsets.zero,
@@ -1612,7 +1596,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                     musicForegroundColor.withOpacity(0.54)))),
                     Transform.translate(
                       offset: Offset(2, 20),
-                      child: Text("${(xScale * 100).toStringAsFixed(0)}%",
+                      child: Text(
+                          "${(targetedScale * 100).toStringAsFixed(0)}%",
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
@@ -1634,27 +1619,25 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           incrementIcon: Icons.zoom_in,
           decrementIcon: Icons.zoom_out,
           incrementDistance: 1,
-          onIncrement: (xScale < maxScale || yScale < maxScale)
+          onIncrement: (targetedScale < maxScale || scale < maxScale)
               ? () {
                   _ignoreNextScale = true;
                   _aligned = false;
                   _partAligned = false;
                   setState(() {
-                    rawXScale = min(maxScale, (xScale) * zoomIncrement);
-                    rawYScale = min(maxScale, (yScale) * zoomIncrement);
-                    // print("zoomIn done; xScale=$targetXScale, yScale=$targetYScale");
+                    scale = min(maxScale, (targetedScale) * zoomIncrement);
+                    // print("zoomIn done; targetedScale=$targetXScale, scale=$targetYScale");
                   });
                 }
               : null,
-          onDecrement: (xScale > minScale || yScale > minScale)
+          onDecrement: (targetedScale > minScale || scale > minScale)
               ? () {
                   _ignoreNextScale = true;
                   _aligned = false;
                   _partAligned = false;
                   setState(() {
-                    rawXScale = max(minScale, xScale / zoomIncrement);
-                    rawYScale = max(minScale, yScale / zoomIncrement);
-                    // print("zoomOut done; xScale=$xScale, yScale=$yScale");
+                    scale = max(minScale, targetedScale / zoomIncrement);
+                    // print("zoomOut done; targetedScale=$targetedScale, scale=$scale");
                   });
                 }
               : null,
@@ -1683,8 +1666,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     _aligned = false;
     _partAligned = false;
     _preButtonScale();
-    xScale = minScale;
-    yScale = minScale;
+    targetedScale = minScale;
+    // scale = minScale;
     _lineUpAfterSizeChange();
   }
 
@@ -1803,18 +1786,18 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   alignVertically() {
     final scale = alignedScale;
-    xScale = scale;
-    yScale = scale;
+    targetedScale = scale;
+    // scale = scale;
   }
 
   partAlignVertically() {
     final scale = partAlignedScale;
-    xScale = scale;
-    yScale = scale;
+    targetedScale = scale;
+    // scale = scale;
   }
 
   double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
-          xScale < 2 * MusicScrollContainer.minScale
+          targetedScale < 2 * MusicScrollContainer.minScale
       ? 30
       : 0;
 

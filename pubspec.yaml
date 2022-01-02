@@ -17,7 +17,8 @@ dependencies:
   recase: ^3.0.0
   # vibration: ^1.7.2
   share: ^0.6.5+4
-  flutter_reorderable_list: ^1.1.0
+  flutter_reorderable_list: # ^1.1.0
+    path: ../flutter_reorderable_list
   url_launcher: ^6.0.3
   implicitly_animated_reorderable_list: ^0.4.1
   flutter_keyboard_visibility: ^2.0.0
@@ -44,6 +45,8 @@ dependencies:
   flutter_midi_command: #^0.3.0
    path: ../FlutterMidiCommand
   dcache: ^0.4.0
+  provider: ^6.0.2
+  matrix4_transform: ^2.0.1
 
 dev_dependencies:
   flutter_test:
