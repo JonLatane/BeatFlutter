@@ -16,7 +16,7 @@ import '../util/util.dart';
 import 'music_system_painter.dart';
 
 class MusicScrollContainer extends StatefulWidget {
-  static const double minScale = 0.09;
+  static const double minScale = 0.04;
   static const double maxScale = 1.0;
 
   final MusicViewMode musicViewMode;
@@ -39,6 +39,7 @@ class MusicScrollContainer extends StatefulWidget {
   final ValueNotifier<Part> tappedPart;
   final ValueNotifier<Offset> requestedScrollOffsetForScale;
   final TransformationController transformationController;
+  final ValueNotifier<ScaleUpdateDetails> scaleUpdateNotifier;
   final ValueNotifier<double> targetScaleNotifier;
   final BSMethod scrollToFocusedBeat;
   final bool showingSectionList;
@@ -73,6 +74,7 @@ class MusicScrollContainer extends StatefulWidget {
       this.centerCurrentSection,
       this.appSettings,
       this.transformationController,
+      this.scaleUpdateNotifier,
       this.scrollToPart,
       this.showingSectionList})
       : super(key: key);
@@ -115,6 +117,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   int get numberOfBeats => /*isViewingSection ? widget.currentSection.harmony.beatCount :*/
       widget.score.beatCount;
 
+  TransformationController get transformationController =>
+      widget.transformationController;
+  ValueNotifier<ScaleUpdateDetails> get scaleUpdateNotifier =>
+      widget.scaleUpdateNotifier;
   double get dx =>
       MatrixUtils.getAsTranslation(transformationController.value).dx;
   double get dy =>
@@ -130,16 +136,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
-  double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
-          scale < 2 * MusicScrollContainer.minScale ||
-          !widget.showingSectionList
-      ? 30
-      : 0;
+  bool get showSectionNames =>
+      widget.musicViewMode == MusicViewMode.score ||
+      scale < 2 * MusicScrollContainer.minScale ||
+      !widget.showingSectionList;
+  double get sectionsHeight => showSectionNames ? 30 : 0;
 
-  double get systemHeight => (((widget.staves.length + 0.5) *
-          (MusicSystemPainter.staffHeight) *
-          scale) +
-      sectionsHeight * 2);
+  double get systemHeight =>
+      (((widget.staves.length + 0.5) * (MusicSystemPainter.staffHeight)) +
+          sectionsHeight * 2);
 
   double get systemRenderAreaWidth =>
       widget.width - MusicSystemPainter.calculateClefWidth(scale);
@@ -331,8 +336,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   bool _hasBuilt = false;
   DateTime _lastAutoScrollTime = DateTime(0);
   double prevWidth;
-  TransformationController get transformationController =>
-      widget.transformationController;
 
   @override
   Widget build(BuildContext context) {
@@ -401,13 +404,23 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevSectionId = widget.currentSection.id;
     _prevPartId = widget.focusedPart?.id;
     _hasBuilt = true;
-
+    print("InteractiveViewer overallCanvasHeight=$overallCanvasHeight");
     return InteractiveViewer(
-      // minScale: MusicScrollContainer.minScale,
-      // maxScale: MusicScrollContainer.maxScale,
+      minScale: MusicScrollContainer.minScale,
+      maxScale: MusicScrollContainer.maxScale,
+      boundaryMargin: EdgeInsets.symmetric(
+          horizontal: widget.width / scale, vertical: widget.height / scale),
+      onInteractionUpdate: (ScaleUpdateDetails details) {
+        // scaleUpdateNotifier.value = details;
+        print(
+            "onInteractionUpdate: total scale = ${scale}, focal=${details.focalPoint}"); // print the scale here
+        // print("matrix=${transformationController.value}");
+      },
+      transformationController: transformationController,
       child: CustomPaint(
           //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
-          size: Size(overallCanvasWidth, overallCanvasHeight),
+          size: Size(
+              overallCanvasWidth / scale, 100 * overallCanvasHeight / scale),
           painter: MusicSystemPainter(
               sectionScaleNotifier: sectionScaleNotifier,
               score: widget.score,
@@ -441,13 +454,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               renderPartNames: true,
               isPreview: false,
               systemsToRender: systemsToRender,
-              otherListenables: [])),
+              otherListenables: [transformationController])),
     );
   }
 
-  Rect get transformedRect => MatrixUtils.transformRect(
+  Rect get transformedRect => MatrixUtils.inverseTransformRect(
       transformationController.value,
-      Rect.fromLTRB(0, 0, widget.width / scale, widget.height / scale));
+      Rect.fromLTRB(0, 0, widget.width, widget.height));
 
   scrollToFocusedBeat({
     bool instant = false,

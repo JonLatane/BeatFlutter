@@ -140,8 +140,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   bool isBrowsingPartMelodies;
   bool isEditingSection;
   bool _isTwoFingerScaling = false;
-  TransformationController transformationController =
-      TransformationController();
+  TransformationController transformationController;
+  ValueNotifier<ScaleUpdateDetails> scaleUpdateNotifier =
+      ValueNotifier(ScaleUpdateDetails());
 
   // Offset _previousOffset = Offset.zero;
   bool _ignoreNextScale = false;
@@ -405,7 +406,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   double get dy =>
       MatrixUtils.getAsTranslation(transformationController.value).dy;
   double get scale => transformationController.value.getMaxScaleOnAxis();
-  set scale(value) => transformationController.value.scale(value / scale);
+  set scale(value) =>
+      null; //transformationController.value.scale(value / scale);
 
   _targetedScaleAnimationListener(double value) {
     value = max(0, min(maxScale, value));
@@ -464,6 +466,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _disposed = false;
+    transformationController = TransformationController()
+      ..addListener(_onTransformationChange);
     highlightedBeat = new ValueNotifier(null);
     focusedBeat = new ValueNotifier(null);
     tappedBeat = new ValueNotifier(null);
@@ -509,8 +513,20 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     highlightedBeat.dispose();
     centerCurrentSection.dispose();
     widget.scrollToCurrentBeat.removeListener(handleZoomAlign);
-    transformationController.dispose();
+    transformationController
+      ..removeListener(_onTransformationChange)
+      ..dispose();
     super.dispose();
+  }
+
+  scaleText(double scale) => "${(scale * 100).toStringAsFixed(0)}%";
+
+  double _preTransformationScale = 0;
+  _onTransformationChange() {
+    if (scaleText(scale) != scaleText(_preTransformationScale)) {
+      setState(() {});
+    }
+    _preTransformationScale = scale;
   }
 
   makeFullSize() {
@@ -1327,6 +1343,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   centerCurrentSection: centerCurrentSection,
                   appSettings: widget.appSettings,
                   transformationController: transformationController,
+                  scaleUpdateNotifier: scaleUpdateNotifier,
                   showingSectionList: widget.showingSectionList),
               Row(children: [
                 Expanded(child: SizedBox()),
@@ -1596,8 +1613,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                     musicForegroundColor.withOpacity(0.54)))),
                     Transform.translate(
                       offset: Offset(2, 20),
-                      child: Text(
-                          "${(targetedScale * 100).toStringAsFixed(0)}%",
+                      child: Text(scaleText(scale),
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
