@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/settings/settings.dart';
+import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -17,7 +18,7 @@ import 'music_system_painter.dart';
 
 class MusicScrollContainer extends StatefulWidget {
   static const double minScale = 0.04;
-  static const double maxScale = 1.0;
+  static const double maxScale = 1;
 
   final MusicViewMode musicViewMode;
   final Score score;
@@ -127,12 +128,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       MatrixUtils.getAsTranslation(transformationController.value).dy;
   double get scale => transformationController.value.getMaxScaleOnAxis();
 
-  double get standardBeatWidth => unscaledStandardBeatWidth;
-  double get scaledStandardBeatWidth => unscaledStandardBeatWidth * scale;
+  double get scaledStandardBeatWidth => beatWidth * scale;
 
   double get targetScale => widget.targetScaleNotifier.value;
 
-  double get targetBeatWidth => unscaledStandardBeatWidth;
+  double get targetBeatWidth => beatWidth;
 
   double get canvasHeightMagic => 1.3 - 0.3 * (widget.staves.length) / 5;
 
@@ -143,18 +143,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get sectionsHeight => showSectionNames ? 30 : 0;
 
   double get systemHeight =>
-      (((widget.staves.length + 0.5) * (MusicSystemPainter.staffHeight)) +
-          sectionsHeight * 2);
+      (((widget.staves.length + 0.5) * (staffHeight)) + sectionsHeight * 2);
 
-  double get systemRenderAreaWidth =>
-      widget.width - MusicSystemPainter.calculateClefWidth(scale);
-  double get beatsOnScreenPerSystem =>
-      systemRenderAreaWidth / standardBeatWidth;
+  double get systemRenderAreaWidth => max(0, widget.width - clefWidth);
+  double get beatsOnScreenPerSystem => systemRenderAreaWidth / beatWidth;
   int get maxSystemsNeeded =>
-      (widget.score.beatCount / beatsOnScreenPerSystem).ceil();
+      (widget.score.beatCount / max(0.1, beatsOnScreenPerSystem)).ceil();
 
   int get maxSupportedSystems => widget.appSettings.systemsToRender < 1
-      ? 999999999999
+      ? 9999999
       : widget.appSettings.systemsToRender;
   int get systemsToRender => min(maxSystemsNeeded, maxSupportedSystems);
 
@@ -185,11 +182,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               _extraHeightForScrolling));
 
   double get overallCanvasWidth =>
-      (numberOfBeats + MusicSystemPainter.extraBeatsSpaceForClefs) *
-      targetBeatWidth;
+      (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth;
   double get overallCanvasHeight => systemsToRender * systemHeight;
-  double get targetClefWidth =>
-      MusicSystemPainter.extraBeatsSpaceForClefs * targetBeatWidth;
+  double get targetClefWidth => extraBeatsSpaceForClefs * targetBeatWidth;
 
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
 
@@ -337,6 +332,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   DateTime _lastAutoScrollTime = DateTime(0);
   double prevWidth;
 
+  get minScale => MusicScrollContainer.minScale;
+  get maxScale => MusicScrollContainer.maxScale;
+
   @override
   Widget build(BuildContext context) {
     _animateOpacitiesAndScale();
@@ -404,30 +402,35 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevSectionId = widget.currentSection.id;
     _prevPartId = widget.focusedPart?.id;
     _hasBuilt = true;
-    print("InteractiveViewer overallCanvasHeight=$overallCanvasHeight");
+    print(
+        "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
     return InteractiveViewer(
-      minScale: MusicScrollContainer.minScale,
-      maxScale: MusicScrollContainer.maxScale,
-      boundaryMargin: EdgeInsets.symmetric(
-          horizontal: widget.width / scale, vertical: widget.height / scale),
+      minScale: minScale,
+      maxScale: maxScale,
+      boundaryMargin: EdgeInsets.only(
+          bottom: widget.width / minScale, right: widget.height / scale),
+      // boundaryMargin: EdgeInsets.symmetric(
+      //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // scaleUpdateNotifier.value = details;
+        if (!MyPlatform.isDebug) return;
         print(
             "onInteractionUpdate: total scale = ${scale}, focal=${details.focalPoint}"); // print the scale here
         // print("matrix=${transformationController.value}");
+        print("transformedRect=$transformedRect");
+        print("dims=$overallCanvasWidth x $overallCanvasHeight");
       },
+      constrained: false,
       transformationController: transformationController,
       child: CustomPaint(
           //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
-          size: Size(
-              overallCanvasWidth / scale, 100 * overallCanvasHeight / scale),
+          size: Size(overallCanvasWidth, overallCanvasHeight),
           painter: MusicSystemPainter(
               sectionScaleNotifier: sectionScaleNotifier,
               score: widget.score,
               section: widget.currentSection,
               musicViewMode: widget.musicViewMode,
-              xScaleNotifier: ValueNotifier<double>(scale),
-              yScaleNotifier: ValueNotifier<double>(scale),
+              transformationController: transformationController,
               focusedMelodyId: widget.focusedMelody?.id,
               staves: stavesNotifier,
               partTopOffsets: partTopOffsets,
@@ -454,7 +457,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               renderPartNames: true,
               isPreview: false,
               systemsToRender: systemsToRender,
-              otherListenables: [transformationController])),
+              otherListenables: [])),
     );
   }
 
@@ -475,7 +478,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   // double get secondSystemOffset =>
-  //     widget.width - MusicSystemPainter.calculateClefWidth(scale);
+  //     widget.width - clefWidth;
   // bool showOnSecondSystem(double animationPos) =>
   //     systemsToRender > 1 && animationPos > secondSystemOffset;
 
@@ -570,11 +573,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   bool get sectionCanBeCentered =>
       sectionWidth + targetClefWidth <= widget.width;
   int get staffCount => stavesNotifier.value.length;
-  double get maxSystemVerticalPosition => max(
-      0,
-      (staffCount) * MusicSystemPainter.staffHeight * scale -
-          widget.height +
-          100);
+  double get maxSystemVerticalPosition =>
+      max(0, (staffCount) * staffHeight * scale - widget.height + 100);
   void scrollToCurrentBeat() {
     if (sectionCanBeCentered) {
       _constrainToSectionBounds();
@@ -608,8 +608,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
       } else {
         double sectionStart =
-            (firstBeatOfSection + MusicSystemPainter.extraBeatsSpaceForClefs) *
-                targetBeatWidth;
+            (firstBeatOfSection + extraBeatsSpaceForClefs) * targetBeatWidth;
         final allowedMargin = visibleWidth * 0.2;
         if (dx < sectionStart - allowedMargin) {
           scrollToBeat(firstBeatOfSection);
@@ -646,8 +645,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         });
     });
     widget.staves.asMap().forEach((staffIndex, staff) {
-      double staffPosition =
-          staffIndex * MusicSystemPainter.staffHeight * scale;
+      double staffPosition = staffIndex * staffHeight;
       double initialStaffPosition =
           staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight);
       Animation staffAnimation;

@@ -68,8 +68,8 @@ class _ScorePreviewState extends State<ScorePreview> {
       : thumbnailB = value;
 
   double get maxWidth =>
-      (MusicSystemPainter.extraBeatsSpaceForClefs + widget.score.beatCount) *
-      unscaledStandardBeatWidth *
+      (extraBeatsSpaceForClefs + widget.score.beatCount) *
+      beatWidth *
       widget.scale;
   double get actualWidth => min(maxWidth, widget.width);
 

@@ -187,7 +187,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   /// Used to maintain a locking mechanism as we animate from [_xScale] to [targetedScale] in the setter for [targetedScale].
-  DateTime _xScaleLock, _yScaleLock;
+  DateTime _xScaleLock;
   List<AnimationController> _xScaleAnimationControllers,
       _yScaleAnimationControllers;
 
@@ -976,7 +976,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       if (MyPlatform.isDebug && true)
         IgnorePointer(
             child: Container(
-          width: 2 * targetedScale * unscaledStandardBeatWidth,
+          width: 2 * targetedScale * beatWidth,
           height: widget.height,
           decoration: BoxDecoration(
               color: Colors.black12,
@@ -1030,13 +1030,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     double systemXOffset =
         ((position.dy /*+ verticalScrollingPosition.value*/) / systemHeight)
                 .floor() *
-            (widget.width -
-                MusicSystemPainter.calculateClefWidth(targetedScale));
+            (widget.width - clefWidth);
     int beat = ((position.dx +
                 systemXOffset +
                 horizontallyVisibleRect.left -
-                2 * unscaledStandardBeatWidth * targetedScale) /
-            (unscaledStandardBeatWidth * (targeted ? targetedScale : scale)))
+                2 * beatWidth * targetedScale) /
+            (beatWidth * (targeted ? targetedScale : scale)))
         .floor();
     // print("beat=$beat");
     beat = max(0, min(beat, widget.score.maxBeat));
@@ -1202,8 +1201,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       while (partIndexY > systemHeight) {
         partIndexY -= systemHeight;
       }
-      int partIndex =
-          (partIndexY / (scale * MusicSystemPainter.staffHeight)).floor();
+      int partIndex = (partIndexY / (scale * staffHeight)).floor();
       print("partIndex=$partIndex");
       print("mainPart=${mainPart?.midiName}");
       if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
@@ -1396,10 +1394,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       final double x = targetedScale,
           // y = targetedScale,
           w = widget.width,
-          numberOfBeatsOnScreen = w / (x * unscaledStandardBeatWidth),
+          numberOfBeatsOnScreen = w / (x * beatWidth),
           targetNumberOfBeatsOnScreen = numberOfBeatsOnScreen.roundToDouble(),
-          newXScale =
-              w / (targetNumberOfBeatsOnScreen * unscaledStandardBeatWidth);
+          newXScale = w / (targetNumberOfBeatsOnScreen * beatWidth);
       targetedScale = newXScale;
       // scale = newXScale;
     }
@@ -1818,7 +1815,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       : 0;
 
   double get alignedScale {
-    double result = alignedStaffHeight / MusicSystemPainter.staffHeight;
+    double result = alignedStaffHeight / staffHeight;
     if (sectionsHeight != 0) {
       result *= (widget.height - 0) / (widget.height + sectionsHeight);
     }
@@ -1826,7 +1823,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   double get partAlignedScale {
-    double result = partAlignedStaffHeight / MusicSystemPainter.staffHeight;
+    double result = partAlignedStaffHeight / staffHeight;
     if (sectionsHeight != 0) {
       result *= (widget.height - 0) / (widget.height + sectionsHeight);
     }

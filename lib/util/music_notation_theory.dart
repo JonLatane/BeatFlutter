@@ -2,6 +2,11 @@ import '../generated/protos/music.pb.dart';
 import 'music_theory.dart';
 import 'util.dart';
 
+const double beatWidth = 90.0;
+const double clefWidth = beatWidth * 2;
+const double extraBeatsSpaceForClefs = 2;
+const double staffHeight = 500;
+
 class NoteSpecification {
   final NoteName noteName;
   final int octave;
@@ -149,8 +154,6 @@ extension HeptatonicConversions on int {
     }
   }
 }
-
-const double unscaledStandardBeatWidth = 90.0;
 
 abstract class MusicStaff {
   MusicStaff();
