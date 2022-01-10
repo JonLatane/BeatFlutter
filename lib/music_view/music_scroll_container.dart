@@ -84,8 +84,8 @@ class MusicScrollContainer extends StatefulWidget {
   _MusicScrollContainerState createState() => _MusicScrollContainerState();
 }
 
-Rect horizontallyVisibleRect = Rect.zero;
-Rect verticallyVisibleRect = Rect.zero;
+// Rect horizontallyVisibleRect = Rect.zero;
+// Rect verticallyVisibleRect = Rect.zero;
 
 class _MusicScrollContainerState extends State<MusicScrollContainer>
     with TickerProviderStateMixin {
@@ -188,7 +188,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
 
-  double get visibleWidth => horizontallyVisibleRect.width;
+  double get visibleWidth => widget.width;
 
   double get visibleAreaForSection => visibleWidth - targetClefWidth;
 
@@ -414,11 +414,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // scaleUpdateNotifier.value = details;
         if (!MyPlatform.isDebug) return;
-        print(
-            "onInteractionUpdate: total scale = ${scale}, focal=${details.focalPoint}"); // print the scale here
+        // print(
+        //     "onInteractionUpdate: total scale = ${scale}, focal=${details.focalPoint}"); // print the scale here
         // print("matrix=${transformationController.value}");
-        print("transformedRect=$transformedRect");
-        print("dims=$overallCanvasWidth x $overallCanvasHeight");
+        // print("transformedRect=$transformedRect");
+        // print("dims=$overallCanvasWidth x $overallCanvasHeight");
       },
       constrained: false,
       transformationController: transformationController,
@@ -500,11 +500,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       currentBeat = currentBeat.floorToDouble();
     }
     double animationPos = (currentBeat) * beatWidth;
-    animationPos = min(
-        animationPos,
-        overallCanvasWidth -
-            horizontallyVisibleRect.width +
-            0.62 * targetBeatWidth);
+    animationPos = min(animationPos,
+        overallCanvasWidth - widget.width + 0.62 * targetBeatWidth);
     animationPos = max(0, animationPos);
     return animationPos;
   }
@@ -596,14 +593,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       firstBeatOfSection +
       2.62 +
       (sectionWidth / targetBeatWidth) -
-      (horizontallyVisibleRect.width / targetBeatWidth);
+      (widget.width / targetBeatWidth);
   _constrainToSectionBounds() {
     if (widget.isTwoFingerScaling) return;
     // print("_constrainToSectionBounds");
     try {
       MatrixUtils.getAsTranslation(transformationController.value).dx;
       double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
-      double visibleWidth = horizontallyVisibleRect.width;
+      double visibleWidth = widget.width;
       if (sectionCanBeCentered) {
         scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2));
       } else {

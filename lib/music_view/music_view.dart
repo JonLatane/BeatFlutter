@@ -296,7 +296,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     if (value == null) {
       value = getBeat(
           Offset(
-              horizontallyVisibleRect.width /
+              widget.width /
                   (context.isLandscape && widget.splitMode == SplitMode.half
                       ? 4
                       : 2),
@@ -1023,23 +1023,57 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     return false;
   }
 
+  double get scaledSystemHeight =>
+      MusicSystemPainter.calculateSystemHeight(
+          scale, widget.score.parts.length) +
+      MusicSystemPainter.calculateSystemPadding(scale);
+
+  int systemNumber(transformedPosition) =>
+      max(0, (transformedPosition.dy / scaledSystemHeight).floor());
+
   getBeat(Offset position, {bool targeted = true}) {
-    double systemHeight = MusicSystemPainter.calculateSystemHeight(
-            scale, widget.score.parts.length) +
-        MusicSystemPainter.calculateSystemPadding(scale);
-    double systemXOffset =
-        ((position.dy /*+ verticalScrollingPosition.value*/) / systemHeight)
-                .floor() *
-            (widget.width - clefWidth);
-    int beat = ((position.dx +
-                systemXOffset +
-                horizontallyVisibleRect.left -
-                2 * beatWidth * targetedScale) /
-            (beatWidth * (targeted ? targetedScale : scale)))
-        .floor();
+    final inverse = Matrix4.copy(transformationController.value)..invert();
+    position = MatrixUtils.transformPoint(inverse, position);
+    int systemNumber = this.systemNumber(position);
+    final scaledWidth = widget.width / scale;
+    final scaledAvailableWidth = scaledWidth - clefWidth;
+    double systemXOffset = systemNumber * scaledAvailableWidth;
+    double dx = position.dx + systemXOffset - clefWidth;
+
+    int beat = (dx / beatWidth).floor();
     // print("beat=$beat");
     beat = max(0, min(beat, widget.score.maxBeat));
+    print(
+        "getBeat: $position, width=$scaledWidth, systemNumber=$systemNumber, systemXOffset=$systemXOffset ==> $beat");
     return beat;
+  }
+
+  Part getPart(Offset position, {bool targeted = true}) {
+    final inverse = Matrix4.copy(transformationController.value)..invert();
+    position = MatrixUtils.transformPoint(inverse, position);
+    int systemNumber = this.systemNumber(position);
+    double dy = position.dy;
+    dy -= systemNumber * scaledSystemHeight;
+    dy -= MusicSystemPainter.calculateHarmonyHeight(scale);
+    if (widget.musicViewMode == MusicViewMode.score ||
+        scale < 2 * MusicScrollContainer.minScale ||
+        !widget.showingSectionList) {
+      dy -= MusicSystemPainter.calculateSectionHeight(scale);
+    }
+    int partIndex = (dy / staffHeight).floor();
+    List<Part> parts;
+    if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
+      parts = widget.score.parts;
+    } else {
+      final mainPart = this.mainPart();
+      parts = [mainPart] +
+          widget.score.parts
+              .where((p) => p.id != mainPart?.id)
+              .toList(growable: false);
+    }
+    final part = parts[min(parts.length - 1, partIndex)];
+    // print("getPart: $position, partIndex=$partIndex ==> $part");
+    return part;
   }
 
   /// In View Mode this is the Keyboard Part. In Edit Mode it's the Part that's focused, or the Part of the Melody
@@ -1191,38 +1225,27 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           "pointerDown: ${localPosition} -> beat: $beat; x/t: $scale/$targetedScale");
 
       tappedBeat.value = beat;
-      double partIndexY = /*verticalScrollingPosition.value +*/ localPosition
-          .dy;
-      partIndexY -= MusicSystemPainter.calculateHarmonyHeight(scale);
-      if (widget.musicViewMode == MusicViewMode.score ||
-          targetedScale < minScale * 2) {
-        partIndexY -= MusicSystemPainter.calculateSectionHeight(scale);
-      }
-      while (partIndexY > systemHeight) {
-        partIndexY -= systemHeight;
-      }
-      int partIndex = (partIndexY / (scale * staffHeight)).floor();
-      print("partIndex=$partIndex");
-      print("mainPart=${mainPart?.midiName}");
-      if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
-        // print("not using autofocus");
-        final parts = widget.score.parts;
-        tappedPart.value = parts[min(parts.length - 1, partIndex)];
-      } else {
-        // print(
-        //     "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
-        if (partIndex == 0 || widget.score.parts.length == 1) {
-          // print("using autofocus1");
-          tappedPart.value = mainPart ?? widget.score.parts.first;
-        } else {
-          // print("using autofocus2");
-          final parts = widget.score.parts
-              .where((p) => p.id != mainPart?.id)
-              .toList(growable: false);
-          if (parts.isEmpty) return;
-          tappedPart.value = parts[min(parts.length - 1, --partIndex)];
-        }
-      }
+      final part = getPart(localPosition);
+      tappedPart.value = part;
+      // if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
+      //   // print("not using autofocus");
+      //   final parts = widget.score.parts;
+      //   tappedPart.value = part;
+      // } else {
+      //   // print(
+      //   //     "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
+      //   if (partIndex == 0 || widget.score.parts.length == 1) {
+      //     // print("using autofocus1");
+      //     tappedPart.value = mainPart ?? widget.score.parts.first;
+      //   } else {
+      //     // print("using autofocus2");
+      //     final parts = widget.score.parts
+      //         .where((p) => p.id != mainPart?.id)
+      //         .toList(growable: false);
+      //     if (parts.isEmpty) return;
+      //     tappedPart.value = parts[min(parts.length - 1, --partIndex)];
+      //   }
+      // }
       // Future.delayed(Duration(milliseconds: 800), () {
       //   tappedBeat.value = null;
       //   tappedPart.value = null;

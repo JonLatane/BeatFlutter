@@ -123,14 +123,13 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   static double calculateHarmonyHeight(double scale) => 10 / scale;
-  static double calculateOldHarmonyHeight(double scale) => min(100, 30 * scale);
   static double calculateSectionHeight(double scale) =>
       calculateHarmonyHeight(scale);
   static double calculateSystemHeight(double scale, int partCount) =>
       calculateSectionHeight(scale) +
       calculateHarmonyHeight(scale) +
       (staffHeight * partCount);
-  static double calculateSystemPadding(double yScale) => staffHeight * 0.5;
+  static double calculateSystemPadding(double scale) => staffHeight * 0.5;
 
   double get harmonyHeight => calculateHarmonyHeight(
       transformationController.value.getMaxScaleOnAxis());
@@ -143,22 +142,23 @@ class MusicSystemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
+    final scale = transformationController.value.getMaxScaleOnAxis();
     if (rescale) {
-      canvas.scale(transformationController.value.getMaxScaleOnAxis());
+      canvas.scale(scale);
     }
     translationTotal = -verticallyVisibleRect().top;
     canvas.translate(0, translationTotal);
     double translationIncrement =
-        calculateSystemHeight(yScale, score.parts.length) +
-            calculateSystemPadding(yScale);
-    print(
-        "verticallyVisibleRect=${verticallyVisibleRect()}, translationIncrement=$translationIncrement");
+        calculateSystemHeight(scale, score.parts.length) +
+            calculateSystemPadding(scale);
+    // print(
+    //     "verticallyVisibleRect=${verticallyVisibleRect()}, translationIncrement=$translationIncrement");
     for (int i = 0; i < systemsToRender; i++) {
       if (translationTotal <
               verticallyVisibleRect().bottom + translationIncrement &&
           translationTotal + translationIncrement >
               verticallyVisibleRect().top - translationIncrement) {
-        print("Drawing system $i at $translationTotal");
+        // print("Drawing system $i at $translationTotal");
         paintSystem(canvas, size,
             offsetStart: (visibleRect().width - clefWidth) * (i));
       }
