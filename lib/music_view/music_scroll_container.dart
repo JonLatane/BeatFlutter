@@ -169,7 +169,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get _systemHeightForScrolling =>
       MusicSystemPainter.calculateSystemHeight(
           scale, widget.score.parts.length) +
-      MusicSystemPainter.calculateSystemPadding(scale);
+      systemPadding;
   double get _extraHeightForScrolling =>
       _systemHeightForScrolling < widget.height
           ? max(0, (widget.height - _systemHeightForScrolling) / 3)
@@ -334,6 +334,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   get minScale => MusicScrollContainer.minScale;
   get maxScale => MusicScrollContainer.maxScale;
+  double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
+      scale, widget.score.parts.length);
+
+  int systemNumber(transformedPosition) =>
+      max(0, (transformedPosition.dy / scaledSystemHeight).floor());
 
   @override
   Widget build(BuildContext context) {
@@ -402,8 +407,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevSectionId = widget.currentSection.id;
     _prevPartId = widget.focusedPart?.id;
     _hasBuilt = true;
-    print(
-        "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
+    // print(
+    //     "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
     return InteractiveViewer(
       minScale: minScale,
       maxScale: maxScale,
@@ -413,9 +418,22 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // scaleUpdateNotifier.value = details;
-        if (!MyPlatform.isDebug) return;
-        // print(
-        //     "onInteractionUpdate: total scale = ${scale}, focal=${details.focalPoint}"); // print the scale here
+        if (details.scale != 1) {
+          final focal = inverseTransformPoint(
+              transformationController.value, details.focalPoint);
+          int systemNumber = this.systemNumber(focal);
+          final scaledWidth1 = widget.width / scale;
+          final scaledWidth2 = widget.width / (scale * details.scale);
+          final scaledAvailableWidth1 = scaledWidth1 - clefWidth;
+          final scaledAvailableWidth2 = scaledWidth2 - clefWidth;
+          double systemXOffset1 = systemNumber * scaledAvailableWidth1;
+          double systemXOffset2 = systemNumber * scaledAvailableWidth2;
+          transformationController.value
+              .translate(systemXOffset2 - systemXOffset1, 0, 0);
+
+          if (!MyPlatform.isDebug) return;
+          print("onInteractionUpdate: total scale = ${scale}, focal=$focal");
+        }
         // print("matrix=${transformationController.value}");
         // print("transformedRect=$transformedRect");
         // print("dims=$overallCanvasWidth x $overallCanvasHeight");

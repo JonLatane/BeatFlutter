@@ -8,6 +8,8 @@ const double beatWidth = 90.0;
 const double clefWidth = beatWidth * 2;
 // staffHeight is in the scale of the renderer, not the overlying InteractiveView.
 const double staffHeight = 500;
+// systemPadding is in the scale of the renderer, not the overlying InteractiveView.
+const double systemPadding = staffHeight * 0.5;
 // extraBeatsSpaceForClefs is relative to beatWidth, not any particular scale :)
 const double extraBeatsSpaceForClefs = 2;
 

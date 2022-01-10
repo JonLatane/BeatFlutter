@@ -1023,17 +1023,14 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     return false;
   }
 
-  double get scaledSystemHeight =>
-      MusicSystemPainter.calculateSystemHeight(
-          scale, widget.score.parts.length) +
-      MusicSystemPainter.calculateSystemPadding(scale);
+  double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
+      scale, widget.score.parts.length);
 
   int systemNumber(transformedPosition) =>
       max(0, (transformedPosition.dy / scaledSystemHeight).floor());
 
   getBeat(Offset position, {bool targeted = true}) {
-    final inverse = Matrix4.copy(transformationController.value)..invert();
-    position = MatrixUtils.transformPoint(inverse, position);
+    position = inverseTransformPoint(transformationController.value, position);
     int systemNumber = this.systemNumber(position);
     final scaledWidth = widget.width / scale;
     final scaledAvailableWidth = scaledWidth - clefWidth;
@@ -1043,14 +1040,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     int beat = (dx / beatWidth).floor();
     // print("beat=$beat");
     beat = max(0, min(beat, widget.score.maxBeat));
-    print(
-        "getBeat: $position, width=$scaledWidth, systemNumber=$systemNumber, systemXOffset=$systemXOffset ==> $beat");
+    // print(
+    //     "getBeat: $position, width=$scaledWidth, systemNumber=$systemNumber, systemXOffset=$systemXOffset ==> $beat");
     return beat;
   }
 
   Part getPart(Offset position, {bool targeted = true}) {
-    final inverse = Matrix4.copy(transformationController.value)..invert();
-    position = MatrixUtils.transformPoint(inverse, position);
+    position = inverseTransformPoint(transformationController.value, position);
     int systemNumber = this.systemNumber(position);
     double dy = position.dy;
     dy -= systemNumber * scaledSystemHeight;
@@ -1188,8 +1184,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
     pointerDown(Offset localPosition) {
       double systemHeight = MusicSystemPainter.calculateSystemHeight(
-              scale, widget.score.parts.length) +
-          MusicSystemPainter.calculateSystemPadding(scale);
+          scale, widget.score.parts.length);
       if (systemHeight < localPosition.dy) {
         if (autoScroll) {
           setState(() {
@@ -1227,29 +1222,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       tappedBeat.value = beat;
       final part = getPart(localPosition);
       tappedPart.value = part;
-      // if (!autoSort || widget.musicViewMode == MusicViewMode.section) {
-      //   // print("not using autofocus");
-      //   final parts = widget.score.parts;
-      //   tappedPart.value = part;
-      // } else {
-      //   // print(
-      //   //     "using autofocus; parts = ${widget.score.parts.map((e) => e.midiName)}");
-      //   if (partIndex == 0 || widget.score.parts.length == 1) {
-      //     // print("using autofocus1");
-      //     tappedPart.value = mainPart ?? widget.score.parts.first;
-      //   } else {
-      //     // print("using autofocus2");
-      //     final parts = widget.score.parts
-      //         .where((p) => p.id != mainPart?.id)
-      //         .toList(growable: false);
-      //     if (parts.isEmpty) return;
-      //     tappedPart.value = parts[min(parts.length - 1, --partIndex)];
-      //   }
-      // }
-      // Future.delayed(Duration(milliseconds: 800), () {
-      //   tappedBeat.value = null;
-      //   tappedPart.value = null;
-      // });
     }
 
     return AnimatedContainer(

@@ -54,6 +54,7 @@ class MusicSystemPainter extends CustomPainter {
 
   double get xScale => 1;
   double get yScale => 1;
+  double get scale => transformationController.value.getMaxScaleOnAxis();
 
   Melody get focusedMelody => score.parts
       .expand((p) => p.melodies)
@@ -128,11 +129,10 @@ class MusicSystemPainter extends CustomPainter {
   static double calculateSystemHeight(double scale, int partCount) =>
       calculateSectionHeight(scale) +
       calculateHarmonyHeight(scale) +
-      (staffHeight * partCount);
-  static double calculateSystemPadding(double scale) => staffHeight * 0.5;
+      (staffHeight * partCount) +
+      systemPadding;
 
-  double get harmonyHeight => calculateHarmonyHeight(
-      transformationController.value.getMaxScaleOnAxis());
+  double get harmonyHeight => calculateHarmonyHeight(scale);
   double get idealSectionHeight => 2 * harmonyHeight; //max(22, harmonyHeight);
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
@@ -142,27 +142,28 @@ class MusicSystemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
-    final scale = transformationController.value.getMaxScaleOnAxis();
+    final scale = this.scale;
     if (rescale) {
       canvas.scale(scale);
     }
     translationTotal = -verticallyVisibleRect().top;
     canvas.translate(0, translationTotal);
     double translationIncrement =
-        calculateSystemHeight(scale, score.parts.length) +
-            calculateSystemPadding(scale);
+        calculateSystemHeight(scale, score.parts.length);
     // print(
     //     "verticallyVisibleRect=${verticallyVisibleRect()}, translationIncrement=$translationIncrement");
-    for (int i = 0; i < systemsToRender; i++) {
-      if (translationTotal <
-              verticallyVisibleRect().bottom + translationIncrement &&
-          translationTotal + translationIncrement >
-              verticallyVisibleRect().top - translationIncrement) {
-        // print("Drawing system $i at $translationTotal");
-        paintSystem(canvas, size,
-            offsetStart: (visibleRect().width - clefWidth) * (i));
-      }
+    final int firstSystem =
+        max(0, (verticallyVisibleRect().top / translationIncrement).floor());
+    translationTotal += firstSystem * translationIncrement;
+    canvas.translate(0, firstSystem * translationIncrement);
+    for (int i = firstSystem; i < systemsToRender; i++) {
+      // print("Drawing system $i at $translationTotal");
+      paintSystem(canvas, size,
+          offsetStart: (visibleRect().width - clefWidth) * (i));
       translationTotal += translationIncrement;
+      if (translationTotal > verticallyVisibleRect().bottom) {
+        break;
+      }
       canvas.translate(0, translationIncrement);
     }
     canvas.restore();
@@ -494,6 +495,7 @@ class MusicSystemPainter extends CustomPainter {
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
         ..alphaDrawerPaint = (Paint()
+          ..strokeWidth = 1 / sqrt(scale)
           ..color = musicForegroundColor
               .withAlpha((255 * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
@@ -558,7 +560,7 @@ class MusicSystemPainter extends CustomPainter {
           text: text,
           style: TextStyle(
               fontFamily: "VulfSans",
-              fontSize: max(11, 20 * yScale),
+              fontSize: max(11, 10 / scale),
               fontWeight: FontWeight.w800,
               color: musicForegroundColor.withOpacity(
                   colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1)));
@@ -874,4 +876,10 @@ class MusicSystemPainter extends CustomPainter {
   bool shouldRepaint(MusicSystemPainter oldDelegate) {
     return false;
   }
+}
+
+Offset inverseTransformPoint(Matrix4 transform, Offset point) {
+  if (MatrixUtils.isIdentity(transform)) return point;
+  transform = Matrix4.copy(transform)..invert();
+  return MatrixUtils.transformPoint(transform, point);
 }
