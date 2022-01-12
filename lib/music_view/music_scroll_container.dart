@@ -239,6 +239,16 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToCurrentBeat();
     });
+    interactionStartFocal.addListener(_onInteractionStartFocal);
+  }
+
+  _onInteractionStartFocal() {
+    if (interactionStartFocal.value == null) {
+      interactionStartSystem.value = null;
+    } else {
+      interactionStartSystem.value =
+          max(0, (interactingFocal.dy / scaledSystemHeight).floor());
+    }
   }
 
   DateTime _lastScrollEventSeen = DateTime(0);
@@ -310,7 +320,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   @override
   void dispose() {
     animationController.dispose();
-    transformationController.removeListener(_transformationListener);
     colorblockOpacityNotifier.dispose();
     notationOpacityNotifier.dispose();
     sectionScaleNotifier.dispose();
@@ -321,6 +330,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     colorboardPart.dispose();
     focusedPart.dispose();
     sectionColor.dispose();
+    interactionStartSystem.dispose();
+    interactionStartFocal
+      ..removeListener(_onInteractionStartFocal)
+      ..dispose();
+    transformationController.removeListener(_transformationListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
     widget.scrollToPart.removeListener(scrollToPart);
     widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
@@ -339,6 +353,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   int systemNumber(transformedPosition) =>
       max(0, (transformedPosition.dy / scaledSystemHeight).floor());
+  ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
+  ValueNotifier<Offset> interactionStartFocal = ValueNotifier(null);
+  Offset get interactingFocal => interactionStartFocal.value;
+  int get interactingSystem => interactionStartSystem.value;
 
   @override
   Widget build(BuildContext context) {
@@ -416,23 +434,34 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           bottom: widget.width / minScale, right: widget.height / scale),
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
+      onInteractionStart: (ScaleStartDetails details) {
+        interactionStartFocal.value =
+            transformationController.toScene(details.focalPoint);
+      },
+      onInteractionEnd: (ScaleEndDetails details) {
+        interactionStartFocal.value = null;
+      },
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // scaleUpdateNotifier.value = details;
-        if (details.scale != 1) {
-          final focal = inverseTransformPoint(
-              transformationController.value, details.focalPoint);
-          int systemNumber = this.systemNumber(focal);
-          final scaledWidth1 = widget.width / scale;
-          final scaledWidth2 = widget.width / (scale * details.scale);
+        if (true || details.scale != 1) {
+          int systemNumber = interactingSystem;
+          final scaledWidth1 = widget.width / (scale / details.scale);
+          final scaledWidth2 = widget.width / (scale);
           final scaledAvailableWidth1 = scaledWidth1 - clefWidth;
           final scaledAvailableWidth2 = scaledWidth2 - clefWidth;
           double systemXOffset1 = systemNumber * scaledAvailableWidth1;
           double systemXOffset2 = systemNumber * scaledAvailableWidth2;
-          transformationController.value
-              .translate(systemXOffset2 - systemXOffset1, 0, 0);
-
+          double diff = systemXOffset2 - systemXOffset1;
+          double translationX = transformedRect.left;
           if (!MyPlatform.isDebug) return;
-          print("onInteractionUpdate: total scale = ${scale}, focal=$focal");
+          print(
+              "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
+
+          if (translationX - diff > 0) {
+            transformationController.value.translate(diff, 0, 0);
+          } else {
+            transformationController.value.translate(translationX, 0, 0);
+          }
         }
         // print("matrix=${transformationController.value}");
         // print("transformedRect=$transformedRect");

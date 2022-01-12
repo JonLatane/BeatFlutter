@@ -406,8 +406,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   double get dy =>
       MatrixUtils.getAsTranslation(transformationController.value).dy;
   double get scale => transformationController.value.getMaxScaleOnAxis();
-  set scale(value) =>
-      null; //transformationController.value.scale(value / scale);
+  set scale(value) => // null;
+      transformationController.value.scale(value / scale, value / scale, 1);
 
   _targetedScaleAnimationListener(double value) {
     value = max(0, min(maxScale, value));
@@ -554,17 +554,17 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   @override
   Widget build(context) {
-    if (scale == null || targetedScale == null) {
-      final musicScale = widget.appSettings.musicScale;
-      if (musicScale == null) {
-        if (context.isTablet) {
-          scale = 0.33;
-        } else {
-          scale = 0.22;
-        }
-      } else {
-        scale = musicScale;
-      }
+    if (/*scale == null || */ targetedScale == null) {
+      //   final musicScale = widget.appSettings.musicScale;
+      //   if (musicScale == null) {
+      //     if (context.isTablet) {
+      //       scale = 0.33;
+      //     } else {
+      //       scale = 0.22;
+      //     }
+      //   } else {
+      //     scale = musicScale;
+      //   }
       targetedScale = scale;
     }
     // if (targetedScale != null &&
@@ -1030,7 +1030,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       max(0, (transformedPosition.dy / scaledSystemHeight).floor());
 
   getBeat(Offset position, {bool targeted = true}) {
-    position = inverseTransformPoint(transformationController.value, position);
+    position = transformationController.toScene(position);
     int systemNumber = this.systemNumber(position);
     final scaledWidth = widget.width / scale;
     final scaledAvailableWidth = scaledWidth - clefWidth;
@@ -1046,7 +1046,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   Part getPart(Offset position, {bool targeted = true}) {
-    position = inverseTransformPoint(transformationController.value, position);
+    position = transformationController.toScene(position);
     int systemNumber = this.systemNumber(position);
     double dy = position.dy;
     dy -= systemNumber * scaledSystemHeight;
@@ -1067,7 +1067,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               .where((p) => p.id != mainPart?.id)
               .toList(growable: false);
     }
-    final part = parts[min(parts.length - 1, partIndex)];
+    final part = parts[max(0, min(parts.length - 1, partIndex))];
     // print("getPart: $position, partIndex=$partIndex ==> $part");
     return part;
   }

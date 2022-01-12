@@ -315,8 +315,14 @@ class MusicSystemPainter extends CustomPainter {
       }
 
       canvas.drawRect(
-          Rect.fromLTRB(left - extraWidth, visibleRect().top + sectionHeight,
-              visibleRect().right, visibleRect().bottom),
+          Rect.fromLTRB(
+              left - extraWidth,
+              translationTotal +
+                  visibleRect().top -
+                  translationTotal +
+                  sectionHeight,
+              visibleRect().right,
+              visibleRect().bottom - translationTotal),
           Paint()..color = musicBackgroundColor);
     }
   }
@@ -878,8 +884,8 @@ class MusicSystemPainter extends CustomPainter {
   }
 }
 
+Matrix4 inverse(Matrix4 transform) => Matrix4.copy(transform)..invert();
 Offset inverseTransformPoint(Matrix4 transform, Offset point) {
   if (MatrixUtils.isIdentity(transform)) return point;
-  transform = Matrix4.copy(transform)..invert();
-  return MatrixUtils.transformPoint(transform, point);
+  return MatrixUtils.transformPoint(inverse(transform), point);
 }
