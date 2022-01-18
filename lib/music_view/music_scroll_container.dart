@@ -453,14 +453,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           double systemXOffset2 = systemNumber * scaledAvailableWidth2;
           double diff = systemXOffset2 - systemXOffset1;
           double translationX = transformedRect.left;
-          if (!MyPlatform.isDebug) return;
-          print(
-              "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
+          // if (!MyPlatform.isDebug) return;
+          // print(
+          //     "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
 
           if (translationX - diff > 0) {
             transformationController.value.translate(diff, 0, 0);
-          } else {
-            transformationController.value.translate(translationX, 0, 0);
+          } else if (transformedRect.top < systemHeight) {
+            transformationController.value
+                .translate(diff + scaledAvailableWidth2, -systemHeight, 0);
           }
         }
         // print("matrix=${transformationController.value}");
