@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/generated/i18n.dart';
 import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
 
 import '../colors.dart';
@@ -182,6 +183,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   ValueNotifier<double> _targetedScale;
   double get targetedScale => _targetedScale.value;
   set targetedScale(double v) {
+    print("set targetedScale=$v");
     _targetedScale.value = v;
     widget.appSettings.musicScale = v;
   }
@@ -406,61 +408,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   double get dy =>
       MatrixUtils.getAsTranslation(transformationController.value).dy;
   double get scale => transformationController.value.getMaxScaleOnAxis();
-  set scale(value) => // null;
-      transformationController.value.scale(value / scale, value / scale, 1);
-
-  _targetedScaleAnimationListener(double value) {
-    value = max(0, min(maxScale, value));
-    targetedScale = value;
-    _animateScaleAtomically(
-      value: () => targetedScale,
-      currentValue: () => scale,
-      applyAnimatedValue: (value) => scale = value,
-      controllers: _xScaleAnimationControllers,
-      setLockTime: (it) {
-        _xScaleLock = it;
-      },
-      getLockTime: () => _xScaleLock,
-      // notifyUpdate: _xScaleUpdate,
-    );
-    // if (autoScroll) {
-    //   widget.scrollToCurrentBeat();
-    // } else {
-    //   scrollToFocusedBeat();
-    // }
+  set scale(value) {
+    print(
+        "Setting scale to $value, currently=$scale, scaling by ${value / scale}");
+    transformationController.value
+        .scale(value / scale, value / scale, value / scale);
   }
-
-  // set rawXScale(double value) {
-  //   value = max(minScale, min(maxScale, value));
-  //   final oldValue = _xScale;
-  //   targetedScale = value;
-  //   _xScale = value;
-  //   // _xScaleUpdate(ScaleUpdate(oldValue, value));
-  // }
-
-  // set scale(double value) {
-  //   value = max(minScale, min(maxScale, value));
-  //   targetedScale = value;
-  //   _animateScaleAtomically(
-  //     value: () => scale,
-  //     currentValue: () => _yScale,
-  //     applyAnimatedValue: (value) => _yScale = value,
-  //     controllers: _yScaleAnimationControllers,
-  //     setLockTime: (it) {
-  //       _yScaleLock = it;
-  //     },
-  //     getLockTime: () => _yScaleLock,
-  //     // notifyUpdate: _yScaleUpdate,
-  //   );
-  // }
-
-  // set rawYScale(double value) {
-  //   value = max(minScale, min(maxScale, value));
-  //   final oldValue = _yScale;
-  //   targetedScale = value;
-  //   _yScale = value;
-  //   _yScaleUpdate(ScaleUpdate(oldValue, value));
-  // }
 
   @override
   void initState() {
@@ -554,17 +507,17 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   @override
   Widget build(context) {
-    if (/*scale == null || */ targetedScale == null) {
-      //   final musicScale = widget.appSettings.musicScale;
-      //   if (musicScale == null) {
-      //     if (context.isTablet) {
-      //       scale = 0.33;
-      //     } else {
-      //       scale = 0.22;
-      //     }
-      //   } else {
-      //     scale = musicScale;
-      //   }
+    if (scale == null || targetedScale == null) {
+      final musicScale = widget.appSettings.musicScale;
+      if (musicScale == null) {
+        if (context.isTablet) {
+          scale = 0.33;
+        } else {
+          scale = 0.22;
+        }
+      } else {
+        scale = musicScale;
+      }
       targetedScale = scale;
     }
     // if (targetedScale != null &&
@@ -1605,7 +1558,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                     musicForegroundColor.withOpacity(0.54)))),
                     Transform.translate(
                       offset: Offset(2, 20),
-                      child: Text(scaleText(scale),
+                      child: Text(scaleText(targetedScale),
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
@@ -1633,7 +1586,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   _aligned = false;
                   _partAligned = false;
                   setState(() {
-                    scale = min(maxScale, (targetedScale) * zoomIncrement);
+                    print("zoomIn: scale=$scale, targetedScale=$targetedScale");
+                    targetedScale =
+                        min(maxScale, (targetedScale) * zoomIncrement);
                     // print("zoomIn done; targetedScale=$targetXScale, scale=$targetYScale");
                   });
                 }
@@ -1644,7 +1599,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   _aligned = false;
                   _partAligned = false;
                   setState(() {
-                    scale = max(minScale, targetedScale / zoomIncrement);
+                    print(
+                        "zoomOut: scale=$scale, targetedScale=$targetedScale");
+                    targetedScale =
+                        max(minScale, targetedScale / zoomIncrement);
                     // print("zoomOut done; targetedScale=$targetedScale, scale=$scale");
                   });
                 }
@@ -1793,14 +1751,14 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   alignVertically() {
-    final scale = alignedScale;
-    targetedScale = scale;
+    final newScale = alignedScale;
+    targetedScale = newScale;
     // scale = scale;
   }
 
   partAlignVertically() {
-    final scale = partAlignedScale;
-    targetedScale = scale;
+    final newScale = partAlignedScale;
+    targetedScale = newScale;
     // scale = scale;
   }
 

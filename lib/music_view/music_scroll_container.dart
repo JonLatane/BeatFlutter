@@ -213,12 +213,50 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   bool get autoSort => widget.appSettings.autoSortMusic;
   bool get autoZoomAlign => widget.appSettings.autoZoomAlignMusic;
 
+  Animation<Matrix4> interactiveAnimation;
+  AnimationController interactiveController;
+  void _interactiveAnimationStop() {
+    interactiveController.stop();
+    interactiveAnimation?.removeListener(_onInteractiveAnimation);
+    interactiveAnimation = null;
+    interactiveController.reset();
+  }
+
+  void _onInteractiveAnimation() {
+    transformationController.value = interactiveAnimation.value;
+    if (!interactiveController.isAnimating) {
+      interactiveAnimation.removeListener(_onInteractiveAnimation);
+      interactiveAnimation = null;
+      interactiveController.reset();
+    }
+  }
+
+  bool _animateToTargetedScale = true;
+  void animateToTargetScaleAndPosition() {
+    if (!_animateToTargetedScale) return;
+    _interactiveAnimationStop();
+    // interactiveController.reset();
+    final targetedScale = widget.targetScaleNotifier.value;
+    final targetedMatrix = transformationController.value.clone()
+      ..scale(
+          targetedScale / scale, targetedScale / scale, targetedScale / scale);
+    interactiveAnimation = Matrix4Tween(
+      begin: transformationController.value,
+      end: targetedMatrix,
+    ).animate(interactiveController);
+    interactiveAnimation.addListener(_onInteractiveAnimation);
+    interactiveController.forward();
+  }
+
   @override
   void initState() {
     super.initState();
+    interactiveController =
+        AnimationController(vsync: this, duration: animationDuration);
     widget.scrollToFocusedBeat.addListener(() {
       scrollToFocusedBeat();
     });
+    widget.targetScaleNotifier.addListener(animateToTargetScaleAndPosition);
     animationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: kIsWeb ? 1000 : 500));
     colorblockOpacityNotifier = ValueNotifier(0);
@@ -310,6 +348,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   @override
   void dispose() {
+    widget.targetScaleNotifier.removeListener(animateToTargetScaleAndPosition);
     animationController.dispose();
     colorblockOpacityNotifier.dispose();
     notationOpacityNotifier.dispose();
@@ -434,6 +473,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionStart: (ScaleStartDetails details) {
+        // If the user tries to cause a transformation while the reset animation is
+        // running, cancel the reset animation.
+        if (interactiveController.status == AnimationStatus.forward) {
+          _interactiveAnimationStop();
+        }
         interactionStartFocal.value =
             transformationController.toScene(details.focalPoint);
       },
@@ -441,9 +485,17 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         interactionStartFocal.value = null;
       },
       onInteractionUpdate: (ScaleUpdateDetails details) {
+        // If the user tries to cause a transformation while the reset animation is
+        // running, cancel the reset animation.
+        if (interactiveController.status == AnimationStatus.forward) {
+          _interactiveAnimationStop();
+        }
         // scaleUpdateNotifier.value = details;
         widget.tappedBeat.value = null;
         if (details.scale != 1) {
+          _animateToTargetedScale = false;
+          widget.targetScaleNotifier.value = scale;
+          _animateToTargetedScale = true;
           int systemNumber = interactingSystem;
           final scaledWidth1 = widget.width / (scale / details.scale);
           final scaledWidth2 = widget.width / (scale);

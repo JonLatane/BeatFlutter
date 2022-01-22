@@ -2463,11 +2463,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -
-        universeViewUIHeight -
+        (context.isPortraitPhone ? universeViewUIHeight : 0) -
         downloadLinksHeight -
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
-        // universeScoreTitleHeight -
+        universeScoreTitleHeight -
         duplicateScoreWarningHeight -
         beatScratchToolbarHeight(context);
     // if (context.isPortraitPhone) {
