@@ -239,16 +239,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToCurrentBeat();
     });
-    interactionStartFocal.addListener(_onInteractionStartFocal);
-  }
-
-  _onInteractionStartFocal() {
-    if (interactionStartFocal.value == null) {
-      interactionStartSystem.value = null;
-    } else {
-      interactionStartSystem.value =
-          max(0, (interactingFocal.dy / scaledSystemHeight).floor());
-    }
+    interactionStartFocal.addListener(_deriveStartSystemFromFocal);
   }
 
   DateTime _lastScrollEventSeen = DateTime(0);
@@ -332,7 +323,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     sectionColor.dispose();
     interactionStartSystem.dispose();
     interactionStartFocal
-      ..removeListener(_onInteractionStartFocal)
+      ..removeListener(_deriveStartSystemFromFocal)
       ..dispose();
     transformationController.removeListener(_transformationListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
@@ -351,12 +342,20 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
       scale, widget.score.parts.length);
 
-  int systemNumber(transformedPosition) =>
-      max(0, (transformedPosition.dy / scaledSystemHeight).floor());
-  ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
   ValueNotifier<Offset> interactionStartFocal = ValueNotifier(null);
+  ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
+  _deriveStartSystemFromFocal() {
+    if (interactionStartFocal.value == null) {
+      interactionStartSystem.value = null;
+    } else {
+      interactionStartSystem.value =
+          max(0, (interactingFocal.dy / scaledSystemHeight).floor());
+    }
+  }
+
   Offset get interactingFocal => interactionStartFocal.value;
-  int get interactingSystem => interactionStartSystem.value;
+  int get interactingSystem =>
+      max(0, min(systemsToRender - 1, interactionStartSystem.value));
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +442,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       },
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // scaleUpdateNotifier.value = details;
-        if (true || details.scale != 1) {
+        widget.tappedBeat.value = null;
+        if (details.scale != 1) {
           int systemNumber = interactingSystem;
           final scaledWidth1 = widget.width / (scale / details.scale);
           final scaledWidth2 = widget.width / (scale);
@@ -452,16 +452,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           double systemXOffset1 = systemNumber * scaledAvailableWidth1;
           double systemXOffset2 = systemNumber * scaledAvailableWidth2;
           double diff = systemXOffset2 - systemXOffset1;
-          double translationX = transformedRect.left;
           // if (!MyPlatform.isDebug) return;
           // print(
           //     "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
 
-          if (translationX - diff > 0) {
+          if (transformedRect.left > diff) {
             transformationController.value.translate(diff, 0, 0);
-          } else if (transformedRect.top < systemHeight) {
+          } else if (transformedRect.top > systemHeight) {
             transformationController.value
-                .translate(diff + scaledAvailableWidth2, -systemHeight, 0);
+                .translate(diff + scaledAvailableWidth2, systemHeight, 0);
           }
         }
         // print("matrix=${transformationController.value}");
