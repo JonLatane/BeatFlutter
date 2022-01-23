@@ -248,6 +248,39 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     interactiveController.forward();
   }
 
+  void animateToWithinBounds() {
+    _interactiveAnimationStop();
+    final targetedMatrix = transformationController.value.clone();
+    // Animate to within vertical bounds
+    final scaledWidth = widget.width / (scale);
+    final scaledAvailableWidth = scaledWidth - clefWidth;
+    final endOfLastSystem =
+        overallCanvasWidth - systemsToRender * scaledAvailableWidth;
+    final systemsAwayFromBottom = max(
+        0,
+        ((transformedRect.left - endOfLastSystem) / scaledAvailableWidth)
+            .floor());
+    final systemsRendered = max(0, systemsToRender - systemsAwayFromBottom);
+    final transformedRectMaxTop = max(
+        0,
+        systemsRendered * systemHeight -
+            (widget.height / scale) +
+            staffHeight / 2);
+    if (transformedRect.top >= transformedRectMaxTop) {
+      final untranslate = transformedRect.top - transformedRectMaxTop;
+      print(
+          "animateToWithinBounds: systemsAwayFromBottom=$systemsAwayFromBottom, systemsRendered=$systemsRendered, transformedRectMaxTop=$transformedRectMaxTop");
+      targetedMatrix.translate(0.0, untranslate, 0.0);
+    }
+    // TODO: Animate to within horizontal bounds
+    interactiveAnimation = Matrix4Tween(
+      begin: transformationController.value,
+      end: targetedMatrix,
+    ).animate(interactiveController);
+    interactiveAnimation.addListener(_onInteractiveAnimation);
+    interactiveController.forward();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -483,6 +516,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       },
       onInteractionEnd: (ScaleEndDetails details) {
         interactionStartFocal.value = null;
+        animateToWithinBounds();
       },
       onInteractionUpdate: (ScaleUpdateDetails details) {
         // If the user tries to cause a transformation while the reset animation is

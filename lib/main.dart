@@ -1335,7 +1335,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
-  double get universeScoreTitleHeight => interactionMode.isUniverse ? 40 : 0;
+  double get universeScoreTitleHeight => interactionMode.isUniverse ? 44 : 0;
 
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
@@ -2463,7 +2463,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -
-        (context.isPortraitPhone ? universeViewUIHeight : 0) -
+        (context.isPortraitPhone ? 0 : 0) -
         downloadLinksHeight -
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
