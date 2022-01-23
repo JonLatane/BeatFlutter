@@ -9,7 +9,7 @@ echo "#-----------------------------------------------------------------------" 
 flutter build web --web-renderer canvaskit --release | sed 's/.*/\[Web\] &/' && \
 echo "Copying build..." && \
 cp -r build/web/* ../beatscratch-page/app-staging && \
-echo "Web app built to app-staging! Manually copy to prod app and/or deploy to beatscratch.io" && \
+echo "Web app built to app-staging! Manually copy to prod app and/or deploy to beatscratch.io"
 # flutter build web --dart-define=FLUTTER_WEB_USE_SKIA=true --release | sed 's/.*/\[Web\] &/' && \
 # echo "Copying build..." && \
 # cp -r build/web/* ../beatscratch-page/app-staging-skia && \

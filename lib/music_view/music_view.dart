@@ -415,6 +415,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         .scale(value / scale, value / scale, value / scale);
   }
 
+  _onScaleUpdated() {
+    if (scaleUpdateNotifier.value.scale != 1) {
+      _partAligned = false;
+      _aligned = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -438,7 +445,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     centerCurrentSection = BSMethod();
     centerCurrentSection = BSMethod();
     scrollToPart = BSMethod();
-
+    scaleUpdateNotifier.addListener(_onScaleUpdated);
     isConfiguringPart = false;
     isBrowsingPartMelodies = true;
     isEditingSection = true;
@@ -465,6 +472,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     _yScaleAnimationControllers.clear();
     highlightedBeat.dispose();
     centerCurrentSection.dispose();
+    scaleUpdateNotifier.removeListener(_onScaleUpdated);
     widget.scrollToCurrentBeat.removeListener(handleZoomAlign);
     transformationController
       ..removeListener(_onTransformationChange)

@@ -490,7 +490,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         if (interactiveController.status == AnimationStatus.forward) {
           _interactiveAnimationStop();
         }
-        // scaleUpdateNotifier.value = details;
+        scaleUpdateNotifier.value = details;
         widget.tappedBeat.value = null;
         if (details.scale != 1) {
           _animateToTargetedScale = false;
@@ -508,11 +508,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           // print(
           //     "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
 
+          if (details.scale < 1 &&
+              transformedRect.left < diff &&
+              interactionStartSystem.value > 0) {
+            interactionStartSystem.value -= 1;
+            transformationController.value
+                .translate(-scaledAvailableWidth2, systemHeight, 0);
+          }
           if (transformedRect.left > diff) {
             transformationController.value.translate(diff, 0, 0);
-          } else if (transformedRect.top > systemHeight) {
-            transformationController.value
-                .translate(diff + scaledAvailableWidth2, systemHeight, 0);
           }
         }
         // print("matrix=${transformationController.value}");
