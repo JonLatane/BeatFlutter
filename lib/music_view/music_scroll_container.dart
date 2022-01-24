@@ -264,21 +264,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     final transformedRectMaxTop = max(
         0,
         systemsRendered * systemHeight -
-            (widget.height / scale) +
+            min(staffHeight * scale, (widget.height / scale)) +
             staffHeight / 2);
     if (transformedRect.top >= transformedRectMaxTop) {
       final untranslate = transformedRect.top - transformedRectMaxTop;
       print(
           "animateToWithinBounds: systemsAwayFromBottom=$systemsAwayFromBottom, systemsRendered=$systemsRendered, transformedRectMaxTop=$transformedRectMaxTop");
       targetedMatrix.translate(0.0, untranslate, 0.0);
+    } else if (transformedRect.top < 0) {
+      targetedMatrix.translate(0.0, transformedRect.top, 0.0);
     }
     // TODO: Animate to within horizontal bounds
-    interactiveAnimation = Matrix4Tween(
-      begin: transformationController.value,
-      end: targetedMatrix,
-    ).animate(interactiveController);
-    interactiveAnimation.addListener(_onInteractiveAnimation);
-    interactiveController.forward();
+    if (targetedMatrix != transformationController.value) {
+      interactiveAnimation = Matrix4Tween(
+        begin: transformationController.value,
+        end: targetedMatrix,
+      ).animate(interactiveController);
+      interactiveAnimation.addListener(_onInteractiveAnimation);
+      interactiveController.forward();
+    }
   }
 
   @override
@@ -502,7 +506,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       minScale: minScale,
       maxScale: maxScale,
       boundaryMargin: EdgeInsets.only(
-          bottom: widget.width / minScale, right: widget.height / scale),
+          top: systemHeight,
+          bottom: widget.width / minScale,
+          right: widget.height / scale),
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionStart: (ScaleStartDetails details) {
@@ -542,15 +548,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           // print(
           //     "onInteractionUpdate: scale = ${details.scale}, focal=$interactingFocal, scaledSystemHeight=$scaledSystemHeight, systemNumber=$systemNumber, translationX=${translationX}, diff=$diff, transformedRect=$transformedRect");
 
-          if (details.scale < 1 &&
-              transformedRect.left < diff &&
-              interactionStartSystem.value > 0) {
-            interactionStartSystem.value -= 1;
-            transformationController.value
-                .translate(-scaledAvailableWidth2, systemHeight, 0);
-          }
+          // if (details.scale < 1 &&
+          //     transformedRect.left < diff &&
+          //     interactionStartSystem.value > 0) {
+          //   interactionStartSystem.value -= 1;
+          //   transformationController.value
+          //       .translate(-scaledAvailableWidth2, systemHeight, 0);
+          // }
           if (transformedRect.left > diff) {
             transformationController.value.translate(diff, 0, 0);
+          } else {
+            if (interactionStartSystem.value > 0) {
+              interactionStartSystem.value -= 1;
+              final dx = diff - scaledAvailableWidth2;
+              final dy = systemHeight;
+              // if (transformedRect.top > dy &&
+              //     transformedRect.right + dx < overallCanvasWidth) {
+              transformationController.value.translate(dx, dy, 0);
+              // }
+            }
           }
         }
         // print("matrix=${transformationController.value}");
