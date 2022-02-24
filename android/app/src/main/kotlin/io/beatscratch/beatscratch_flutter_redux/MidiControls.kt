@@ -50,6 +50,6 @@ fun Music.Instrument.sendSelectInstrument() {
 
   byte3[0] = (MidiConstants.CONTROL_CHANGE or channel)
   byte3[1] = MidiConstants.CONTROL_VOLUME
-  byte3[2] = (volume * 127).toByte()
+  byte3[2] = (volume * 127).toInt().toByte()
   sendToStream(byte3)
 }

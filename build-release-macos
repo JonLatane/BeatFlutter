@@ -13,6 +13,6 @@ tar -cavf BeatFlutter.tar.bz2 BeatScratch.app && open . && cd - && \
 echo "macOS app standalone built! Manually upload to Dropbox" && \
 open "https://www.dropbox.com/home" && \
 echo "Archiving macOS app..." && \
-xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner -configuration release archive | sed 's/.*/\[iOS\] &/' && \
+xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner -configuration release archive | sed 's/.*/\[macOS: Archive\] &/' && \
 echo "macOS app archive built! Uploading to the App Store..." && \
 ./build-upload-macos | sed 's/.*/\[macOS: App Store Upload\] &/'

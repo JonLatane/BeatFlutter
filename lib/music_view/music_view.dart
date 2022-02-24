@@ -140,7 +140,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   bool isConfiguringPart;
   bool isBrowsingPartMelodies;
   bool isEditingSection;
-  bool _isTwoFingerScaling = false;
   TransformationController transformationController;
   ValueNotifier<ScaleUpdateDetails> scaleUpdateNotifier =
       ValueNotifier(ScaleUpdateDetails());
@@ -172,12 +171,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   bool get showViewOptions => widget.showViewOptions || forceShowViewOptions;
-
-  // ValueNotifier<double> xScaleNotifier,
-  //     yScaleNotifier,
-  //     verticalScrollingPosition;
-
-  BSMethod scrollToFocusedBeat;
 
   /// Always immediately updated; the return values of [targetedScale] and [scale].
   ValueNotifier<double> _targetedScale;
@@ -254,8 +247,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       VoidCallback onComplete}) {
     if (value() == currentValue()) {
       // print("skipping scale animation: no change (${currentValue()} to ${value()}");
-    } else if (_isTwoFingerScaling) {
-      // print("skipping scale animation: isTwoFingerScaling");
     } else {
       // print("starting scale animation");
       controllers.forEach((controller) {
@@ -432,7 +423,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     focusedBeat = new ValueNotifier(null);
     tappedBeat = new ValueNotifier(null);
     tappedPart = new ValueNotifier(null);
-    scrollToFocusedBeat = BSMethod();
     _targetedScale = ValueNotifier(null);
     requestedScrollOffsetForScale = ValueNotifier(null);
     _swipeTutorialsSeen = {
@@ -1220,51 +1210,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               pointerDown(details.localPosition);
               onLongPress();
             },
-            // onScaleStart: (details) => setState(() {
-            //       if (_ignoreNextScale) {
-            //         return;
-            //       }
-            //       _aligned = false;
-            //       _partAligned = false;
-            //       _isTwoFingerScaling = true;
-            //       int beat = getBeat(details.focalPoint);
-            //       focusedBeat.value = beat;
-            //       tappedBeat.value = null;
-            //       tappedPart.value = null;
-            //       _startScale = targetedScale;
-            //       // _startVerticalScale = scale;
-            //     }),
-            // onScaleUpdate: (ScaleUpdateDetails details) {
-            //   if (_ignoreNextScale) {
-            //     return;
-            //   }
-            //   setState(() {
-            //     if (focusedBeat.value == null) {
-            //       int beat = getBeat(details.focalPoint);
-            //       focusedBeat.value = beat;
-            //     }
-            //     if (details.scale > 0) {
-            //       final target = _startScale * details.scale;
-            //       rawXScale = target;
-            //       _updateFocusedBeatValue(withDelayClear: false);
-            //       rawYScale = target;
-            //     }
-            //     // if (details.horizontalScale > 0) {
-            //     //   final target = _startHorizontalScale * details.horizontalScale;
-            //     //   rawXScale = target;
-            //     // }
-            //     // if (details.verticalScale > 0) {
-            //     //   final target = _startVerticalScale * details.verticalScale;
-            //     //   rawYScale = target;
-            //     // }
-            //   });
-            // },
-            // onScaleEnd: (ScaleEndDetails details) {
-            //   _ignoreNextScale = false;
-            //   _isTwoFingerScaling = false;
-            //   focusedBeat.value = null;
-            //   handleZoomAlign();
-            // },
             child: Stack(children: [
               MusicScrollContainer(
                   musicViewMode: widget.musicViewMode,
@@ -1290,8 +1235,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   tappedPart: tappedPart,
                   requestedScrollOffsetForScale: requestedScrollOffsetForScale,
                   targetScaleNotifier: _targetedScale,
-                  scrollToFocusedBeat: scrollToFocusedBeat,
-                  isTwoFingerScaling: _isTwoFingerScaling,
                   scrollToCurrentBeat: widget.scrollToCurrentBeat,
                   scrollToPart: scrollToPart,
                   centerCurrentSection: centerCurrentSection,
