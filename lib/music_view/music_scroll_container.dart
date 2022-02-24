@@ -18,7 +18,7 @@ import 'music_system_painter.dart';
 
 class MusicScrollContainer extends StatefulWidget {
   static const double minScale = 0.04;
-  static const double maxScale = 1;
+  static const double maxScale = 1.0;
 
   final MusicViewMode musicViewMode;
   final Score score;
@@ -182,15 +182,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           currentBeatTargetSystemIndex * _systemHeightForScrolling -
               _extraHeightForScrolling));
 
-  double get overallCanvasWidth =>
-      (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth;
-  double get overallCanvasHeight => systemsToRender * systemHeight;
+  double get smallerScale => scale * 0.6;
+  double get overallCanvasWidth => max(widget.width / smallerScale,
+      (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth);
+  double get overallCanvasHeight =>
+      max(widget.height / smallerScale, systemsToRender * systemHeight);
+
   double get targetClefWidth => extraBeatsSpaceForClefs * targetBeatWidth;
-
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
-
   double get visibleWidth => widget.width;
-
   double get visibleAreaForSection => visibleWidth - targetClefWidth;
 
   double get marginBeatsForBeat =>
@@ -224,11 +224,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void _onInteractiveAnimation() {
-    transformationController.value = interactiveAnimation.value;
-    if (!interactiveController.isAnimating) {
-      interactiveAnimation.removeListener(_onInteractiveAnimation);
-      interactiveAnimation = null;
-      interactiveController.reset();
+    if (interactiveAnimation != null) {
+      transformationController.value = interactiveAnimation.value;
+      if (!interactiveController.isAnimating) {
+        interactiveAnimation.removeListener(_onInteractiveAnimation);
+        interactiveAnimation = null;
+        interactiveController.reset();
+      }
     }
   }
 
@@ -276,12 +278,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   _animateTo(Matrix4 targetedMatrix) {
-    interactiveAnimation = Matrix4Tween(
-      begin: transformationController.value,
-      end: targetedMatrix,
-    ).animate(interactiveController);
-    interactiveAnimation.addListener(_onInteractiveAnimation);
-    interactiveController.forward();
+    if (targetedMatrix != transformationController.value) {
+      interactiveAnimation = Matrix4Tween(
+        begin: transformationController.value,
+        end: targetedMatrix,
+      ).animate(interactiveController);
+      interactiveAnimation.addListener(_onInteractiveAnimation);
+      interactiveController.forward();
+    }
   }
 
   void animateToWithinBounds() {
@@ -292,16 +296,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     final scaledAvailableWidth = scaledWidth - clefWidth;
     final endOfLastSystem =
         overallCanvasWidth - systemsToRender * scaledAvailableWidth;
-    final systemsAwayFromBottom = max(
-        0,
+    final systemsAwayFromBottom = //max(
+        //0,
         ((transformedRect.left - endOfLastSystem) / scaledAvailableWidth)
-            .floor());
+            .floor(); //);
     final systemsRendered = max(0, systemsToRender - systemsAwayFromBottom);
     final transformedRectMaxTop = max(
         0,
         systemsRendered * systemHeight -
             min(staffHeight * scale, (widget.height / scale)) +
             staffHeight / 2);
+    print(
+        "animateToWithinBounds: systemsAwayFromBottom=$systemsAwayFromBottom, systemsRendered=$systemsRendered, transformedRectMaxTop=$transformedRectMaxTop");
+    return;
     if (transformedRect.top >= transformedRectMaxTop) {
       final untranslate = transformedRect.top - transformedRectMaxTop;
       print(
@@ -310,15 +317,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     } else if (transformedRect.top < 0) {
       targetedMatrix.translate(0.0, transformedRect.top, 0.0);
     }
-    // TODO: Animate to within horizontal bounds
-    if (targetedMatrix != transformationController.value) {
-      interactiveAnimation = Matrix4Tween(
-        begin: transformationController.value,
-        end: targetedMatrix,
-      ).animate(interactiveController);
-      interactiveAnimation.addListener(_onInteractiveAnimation);
-      interactiveController.forward();
-    }
+    _animateTo(targetedMatrix);
   }
 
   @override
@@ -567,12 +566,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     // print(
     //     "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
     return InteractiveViewer(
+      key: ValueKey("music-interactive-viewer"),
       minScale: minScale,
       maxScale: maxScale,
-      boundaryMargin: EdgeInsets.only(
-          top: 0,
-          // bottom: widget.width / minScale,
-          right: 0),
+      constrained: false,
+      transformationController: transformationController,
+      // boundaryMargin: EdgeInsets.only(
+      // top: 0,
+      // bottom: widget.width / minScale,
+      // right: 0),
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionStart: (ScaleStartDetails details) {
@@ -589,14 +591,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         animateToWithinBounds();
       },
       onInteractionUpdate: (ScaleUpdateDetails details) {
+        // return;
         // If the user tries to cause a transformation while the reset animation is
         // running, cancel the reset animation.
         if (interactiveController.status == AnimationStatus.forward) {
           _interactiveAnimationStop();
         }
+        print(
+            "onInteractionUpdate: ${details.scale} ${transformationController.value.getMaxScaleOnAxis()} ${Size(overallCanvasWidth, overallCanvasHeight)}");
         scaleUpdateNotifier.value = details;
         widget.tappedBeat.value = null;
         if (details.scale != 1) {
+          if ((details.scale > 1 &&
+                  transformationController.value.getMaxScaleOnAxis() >=
+                      maxScale - 0.0001) ||
+              (details.scale < 1 &&
+                  transformationController.value.getMaxScaleOnAxis() <=
+                      minScale + 0.0001)) {
+            return;
+          }
           _animateToTargetedScale = false;
           widget.targetScaleNotifier.value = scale;
           _animateToTargetedScale = true;
@@ -607,8 +620,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         // print("transformedRect=$transformedRect");
         // print("dims=$overallCanvasWidth x $overallCanvasHeight");
       },
-      constrained: false,
-      transformationController: transformationController,
       child: CustomPaint(
           //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
           size: Size(overallCanvasWidth, overallCanvasHeight),
@@ -791,7 +802,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     if (widget.isTwoFingerScaling) return;
     // print("_constrainToSectionBounds");
     try {
-      MatrixUtils.getAsTranslation(transformationController.value).dx;
       double sectionWidth = widget.currentSection.beatCount * targetBeatWidth;
       double visibleWidth = widget.width;
       if (sectionCanBeCentered) {

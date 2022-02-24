@@ -482,7 +482,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   scaleText(double scale) => "${(scale * 100).toStringAsFixed(0)}%";
 
-  double _preTransformationScale = 0;
+  double _preTransformationScale = 1;
   _onTransformationChange() {
     if (scaleText(scale) != scaleText(_preTransformationScale)) {
       setState(() {});
