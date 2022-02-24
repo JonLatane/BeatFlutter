@@ -163,7 +163,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   int get currentBeatTargetSystemIndex => max(
       0,
       min(systemsToRender - 1,
-          systemsToRender == 1 ? 0 : calculatedSystemThingy.floor()));
+              systemsToRender == 1 ? 0 : calculatedSystemThingy.floor()) -
+          1);
 
   double get currentBeatTargetSystemXOffset =>
       currentBeatTargetSystemIndex * (systemRenderAreaWidth);
@@ -244,41 +245,43 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       1;
   void animateToTargetScaleAndPosition() {
     if (!_animateToTargetedScale) return;
-    _interactiveAnimationStop();
-    // interactiveController.reset();
-    final targetedScale = widget.targetScaleNotifier.value;
-    final targetedMatrix = transformationController.value.clone();
-    targetedMatrix.scale(
-        targetedScale / scale, targetedScale / scale, targetedScale / scale);
-
-    double scaleChange =
-        targetedScale / transformationController.value.getMaxScaleOnAxis();
-    int focusedSystem = this.focusedSystem;
-    adjustDxForScale(focusedSystem, scaleChange, targetedMatrix,
-        adjustingAfterChange: false);
-
-    double extraDx = 0.5 *
-        (1 - scaleChange) *
-        (transformedRect.left + 0.5 * transformedRect.width);
-    if (transformedRect.left > extraDx) {
-      targetedMatrix.translate(extraDx, 0.0, 0.0);
+    if (widget.appSettings.autoScrollMusic) {
+      scrollToBeat(currentBeat, customScale: targetScale);
     } else {
-      targetedMatrix.translate(transformedRect.left, 0.0, 0.0);
-    }
+      // interactiveController.reset();
+      final targetedMatrix = transformationController.value.clone();
+      targetedMatrix.scale(
+          targetScale / scale, targetScale / scale, targetScale / scale);
 
-    double dy = 0.5 *
-        (-focusedSystem * systemHeight +
-            focusedSystem * systemHeight / scaleChange);
-    if (transformedRect.top > dy) {
-      targetedMatrix.translate(0.0, dy, 0.0);
-    } else {
-      targetedMatrix.translate(0.0, transformedRect.top, 0.0);
+      double scaleChange = targetScale / scale;
+      int focusedSystem = this.focusedSystem;
+      adjustDxForScale(focusedSystem, scaleChange, targetedMatrix,
+          adjustingAfterChange: false);
+
+      double extraDx = 0.5 *
+          (1 - scaleChange) *
+          (transformedRect.left + 0.5 * transformedRect.width);
+      if (transformedRect.left > extraDx) {
+        targetedMatrix.translate(extraDx, 0.0, 0.0);
+      } else {
+        targetedMatrix.translate(transformedRect.left, 0.0, 0.0);
+      }
+
+      double dy = 0.5 *
+          (-focusedSystem * systemHeight +
+              focusedSystem * systemHeight / scaleChange);
+      if (transformedRect.top > dy) {
+        targetedMatrix.translate(0.0, dy, 0.0);
+      } else {
+        targetedMatrix.translate(0.0, transformedRect.top, 0.0);
+      }
+      _animateTo(targetedMatrix);
     }
-    _animateTo(targetedMatrix);
   }
 
   _animateTo(Matrix4 targetedMatrix) {
     if (targetedMatrix != transformationController.value) {
+      _interactiveAnimationStop();
       interactiveAnimation = Matrix4Tween(
         begin: transformationController.value,
         end: targetedMatrix,
@@ -598,16 +601,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           _interactiveAnimationStop();
         }
         print(
-            "onInteractionUpdate: ${details.scale} ${transformationController.value.getMaxScaleOnAxis()} ${Size(overallCanvasWidth, overallCanvasHeight)}");
+            "onInteractionUpdate: ${details.scale} ${scale} ${Size(overallCanvasWidth, overallCanvasHeight)}");
         scaleUpdateNotifier.value = details;
         widget.tappedBeat.value = null;
         if (details.scale != 1) {
-          if ((details.scale > 1 &&
-                  transformationController.value.getMaxScaleOnAxis() >=
-                      maxScale - 0.0001) ||
-              (details.scale < 1 &&
-                  transformationController.value.getMaxScaleOnAxis() <=
-                      minScale + 0.0001)) {
+          if ((details.scale > 1 && scale >= maxScale - 0.0001) ||
+              (details.scale < 1 && scale <= minScale + 0.0001)) {
             return;
           }
           _animateToTargetedScale = false;
@@ -713,7 +712,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void scrollToBeat(double currentBeat,
-      {Duration duration = animationDuration, Curve curve = Curves.linear}) {
+      {Duration duration = animationDuration,
+      Curve curve = Curves.linear,
+      double customScale = null}) {
     //TODO reimplement this!
 
     // _lastBeatScrolledTo = currentBeat;
@@ -721,28 +722,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     final targetedDy =
         max(0.0, (currentBeatTargetSystemIndex - 0.25) * systemHeight);
     final targetedMatrix = Matrix4.identity().clone()
-      ..scale(transformationController.value.getMaxScaleOnAxis())
+      ..scale(customScale ?? scale)
       ..translate(-targetedDx, -targetedDy, 0.0);
     _animateTo(targetedMatrix);
-    // print(
-    //     "scrollToBeat $currentBeat : $animationPos; s/t: ${widget.scale}/$targetScale");
-    // final pixels = timeScrollController.position.pixels;
-    // final offset = timeScrollController.offset;
-    // if (_hasBuilt &&
-    //     animationPos.notRoughlyEquals(timeScrollController.offset)) {
-    //   try {
-    //     animate() {
-    //       if (duration.inMilliseconds > 0) {
-    //         timeScrollController.animateTo(animationPos,
-    //             duration: duration, curve: curve);
-    //       } else {
-    //         timeScrollController.jumpTo(animationPos);
-    //       }
-    //     }
-
-    //     animate();
-    //   } catch (e) {}
-    // }
   }
 
   void scrollToPart() {
