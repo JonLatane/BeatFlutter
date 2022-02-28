@@ -85,8 +85,8 @@ class MusicScrollContainer extends StatefulWidget {
 
 class _MusicScrollContainerState extends State<MusicScrollContainer>
     with TickerProviderStateMixin {
-  static final double scrollTopMarginPercent = 0.0;
-  static final double scrollLeftMarginPercent = 0.0;
+  static final double scrollTopMarginPercent = 0.25;
+  static final double scrollLeftMarginPercent = 0.25;
   AnimationController animationController;
   ValueNotifier<double> colorGuideOpacityNotifier,
       colorblockOpacityNotifier,
@@ -103,6 +103,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   ValueNotifier<Part> focusedPart;
   ValueNotifier<Color> sectionColor;
 
+  MusicViewMode _prevViewMode;
+  bool _hasBuilt = false;
+  DateTime _lastAutoScrollTime = DateTime(0);
+  double prevWidth;
   double _prevBeat;
   String _prevSectionOrder;
   String _prevSectionId;
@@ -189,22 +193,17 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get targetClefWidth => extraBeatsSpaceForClefs * targetBeatWidth;
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
-  double get visibleWidth => widget.width;
+  double get visibleHeight => transformedRect.height;
+  double get visibleWidth => transformedRect.width;
   double get visibleAreaForSection => visibleWidth - targetClefWidth;
-
-  // Rect get horizontallyVisibleRect => horizontallyVisibleRect;
-  // set horizontallyVisibleRect(value) {
-  //   horizontallyVisibleRect = value;
-  // }
-
-  // Rect get verticallyVisibleRect => verticallyVisibleRect;
-  // set verticallyVisibleRect(value) {
-  //   verticallyVisibleRect = value;
-  // }
-
   bool get autoScroll => widget.appSettings.autoScrollMusic;
   bool get autoSort => widget.appSettings.autoSortMusic;
   bool get autoZoomAlign => widget.appSettings.autoZoomAlignMusic;
+
+  get minScale => MusicScrollContainer.minScale;
+  get maxScale => MusicScrollContainer.maxScale;
+  double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
+      scale, widget.score.parts.length);
 
   Animation<Matrix4> interactiveAnimation;
   AnimationController interactiveController;
@@ -336,7 +335,6 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     widget.scrollToCurrentBeat.addListener(scrollToCurrentBeat);
     widget.centerCurrentSection.addListener(_constrainToSectionBounds);
 
-    widget.scrollToPart.addListener(scrollToPart);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToCurrentBeat();
     });
@@ -367,20 +365,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       ..dispose();
     transformationController.removeListener(_transformationListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
-    widget.scrollToPart.removeListener(scrollToPart);
     widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
     super.dispose();
   }
-
-  MusicViewMode _prevViewMode;
-  bool _hasBuilt = false;
-  DateTime _lastAutoScrollTime = DateTime(0);
-  double prevWidth;
-
-  get minScale => MusicScrollContainer.minScale;
-  get maxScale => MusicScrollContainer.maxScale;
-  double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
-      scale, widget.score.parts.length);
 
   ValueNotifier<Offset> interactionStartFocal = ValueNotifier(null);
   ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
@@ -495,10 +482,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       maxScale: maxScale,
       constrained: false,
       transformationController: transformationController,
-      // boundaryMargin: EdgeInsets.only(
-      // top: 0,
-      // bottom: widget.width / minScale,
-      // right: 0),
+      boundaryMargin: EdgeInsets.only(left: widget.width / 2.0
+          // top: 0,
+          // bottom: widget.width / minScale,
+          // right: 0
+          ),
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionStart: (ScaleStartDetails details) {
@@ -629,72 +617,33 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           max(0.0, transformedRect.width - beatWidth - clefWidth);
       targetedDx = max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
     }
-    final marginHeight = max(0.0, transformedRect.height - systemHeight);
-    double targetedDy = max(
-        0.0,
-        currentBeatTargetSystemIndex * systemHeight -
-            scrollTopMarginPercent * marginHeight);
+    final topMarginHeight = max(0.0, visibleHeight - systemHeight);
+    double maxDy = max(0.0,
+        (systemsToRender.toDouble() - 0.85) * systemHeight - visibleHeight);
+    double targetedDy = min(
+        maxDy,
+        max(
+            0.0,
+            systemHeight * currentBeatTargetSystemIndex -
+                scrollTopMarginPercent * topMarginHeight));
+    print(
+        "scrollToBeat, systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
     final targetedMatrix = Matrix4.identity().clone()
       ..scale(customScale ?? scale)
       ..translate(-targetedDx, -targetedDy, 0.0);
     _animateTo(targetedMatrix);
   }
 
-  void scrollToPart() {
-    // systemsToRender - 1,
-    //           ((systemsToRender - 1) *
-    //                   ((currentBeat - 2) /
-    //                       (beatsOnScreenPerSystem * systemsToRender
-    print(
-        "scrollToPart: target system: $currentBeatTargetSystemIndex; currentBeat=$currentBeat, beatsOnScreenPerSystem=$beatsOnScreenPerSystem, calculatedSystemThingy=$calculatedSystemThingy, currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex,_systemHeightForScrolling=$_systemHeightForScrolling, _extraHeightForScrolling=$_extraHeightForScrolling");
-
-    // if (systemsToRender == 1) {
-    //   if (autoSort) {
-    //     verticalController.animateTo(0,
-    //         duration: animationDuration, curve: Curves.ease);
-    //   } else if (verticalController.offset > maxSystemVerticalPosition) {
-    //     scrollToBottomMostPart();
-    //   }
-    // } else {
-    // verticalController.animateTo(0 + currentBeatTargetSystemYOffset,
-    //     duration: animationDuration, curve: Curves.ease);
-    // }
-  }
-
-  // void scrollToBottomMostPart({double positionOffset = 0}) {
-  //   verticalController.animateTo(maxSystemVerticalPosition + positionOffset,
-  //       duration: animationDuration, curve: Curves.ease);
-  // }
-
   bool get sectionCanBeCentered =>
       sectionWidth + targetClefWidth <= transformedRect.width;
   int get staffCount => stavesNotifier.value.length;
-  double get maxSystemVerticalPosition =>
-      max(0, (staffCount) * staffHeight * scale - widget.height + 100);
+
   void scrollToCurrentBeat() {
     if (sectionCanBeCentered) {
       _constrainToSectionBounds();
     } else {
-      // if (autoScroll) {
-      //   final targetBeat = min(currentBeat, rightMostBeatConstrainedToSection);
-      //   if (targetBeat == currentBeat) {
-      //     scrollToBeat(currentBeat);
-      //   } else {
-      //     scrollToBeat(autoScroll
-      //         ? min(currentBeat, rightMostBeatConstrainedToSection)
-      //         : currentBeat);
-      //   }
-      // } else {
       scrollToBeat(currentBeat);
-      // }
     }
-    scrollToPart();
-
-    // if (widget.autoFocus) {
-    //   scrollToPart();
-    // } else if (verticalController.offset > maxSystemVerticalPosition) {
-    //   scrollToBottomMostPart();
-    // }
   }
 
   double get marginBeatsForBeat =>

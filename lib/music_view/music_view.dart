@@ -1424,7 +1424,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   Widget zoomButton() {
-    final zoomIncrement = 1.03;
+    final zoomIncrement = .01;
     final bigDecrementIcon =
         (targetedScale > alignedScale || scale > alignedScale)
             ? Icons.expand
@@ -1539,7 +1539,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   setState(() {
                     print("zoomIn: scale=$scale, targetedScale=$targetedScale");
                     targetedScale =
-                        min(maxScale, (targetedScale) * zoomIncrement);
+                        min(maxScale, targetedScale + zoomIncrement);
                     // print("zoomIn done; targetedScale=$targetXScale, scale=$targetYScale");
                   });
                 }
@@ -1553,7 +1553,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     print(
                         "zoomOut: scale=$scale, targetedScale=$targetedScale");
                     targetedScale =
-                        max(minScale, targetedScale / zoomIncrement);
+                        max(minScale, targetedScale - zoomIncrement);
                     // print("zoomOut done; targetedScale=$targetedScale, scale=$scale");
                   });
                 }
