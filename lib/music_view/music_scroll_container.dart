@@ -85,7 +85,7 @@ class MusicScrollContainer extends StatefulWidget {
 
 class _MusicScrollContainerState extends State<MusicScrollContainer>
     with TickerProviderStateMixin {
-  static final double scrollTopMarginPercent = 0.25;
+  static final double scrollTopMarginPercent = 0.17;
   static final double scrollLeftMarginPercent = 0.25;
   AnimationController animationController;
   ValueNotifier<double> colorGuideOpacityNotifier,
@@ -147,29 +147,47 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get systemHeight =>
       (((widget.staves.length + 0.5) * (staffHeight)) + sectionsHeight * 2);
 
-  double get systemRenderAreaWidth =>
-      max(0, (widget.width / scale) - clefWidth);
-  double get beatsOnScreenPerSystem => systemRenderAreaWidth / beatWidth;
-  int get maxSystemsNeeded =>
-      (widget.score.beatCount / max(0.1, beatsOnScreenPerSystem)).ceil();
-
   int get maxSupportedSystems => widget.appSettings.systemsToRender < 1
       ? 9999999
       : widget.appSettings.systemsToRender;
-  int get systemsToRender => min(maxSystemsNeeded, maxSupportedSystems);
 
-  double get calculatedSystemThingy => ((systemsToRender) *
-      ((currentBeat - 2) / (beatsOnScreenPerSystem * systemsToRender)));
+  double systemRenderAreaWidth({double customScale = null}) =>
+      max(0, (widget.width / (customScale ?? scale)) - clefWidth);
+  double beatsOnScreenPerSystem({double customScale = null}) =>
+      systemRenderAreaWidth(customScale: customScale) / beatWidth;
+  int maxSystemsNeeded({double customScale = null}) => (widget.score.beatCount /
+          max(0.1, beatsOnScreenPerSystem(customScale: customScale)))
+      .ceil();
+
+  int systemsToRender({double customScale = null}) =>
+      min(maxSystemsNeeded(customScale: customScale), maxSupportedSystems);
+
+  double calculatedSystemThingy({double customScale = null}) {
+    final systemsToRender = this.systemsToRender(customScale: customScale);
+    return ((systemsToRender) *
+        ((currentBeat - 2) /
+            (beatsOnScreenPerSystem(customScale: customScale) *
+                systemsToRender)));
+  }
+
   // In multi-system mode, we select a "target system" for the
   // currentBeat based on how far into the score currentBeat is.
-  int get currentBeatTargetSystemIndex => max(
-      0,
-      min(systemsToRender - 1,
-              systemsToRender == 1 ? 0 : calculatedSystemThingy.floor()) -
-          1);
+  int currentBeatTargetSystemIndex({double customScale = null}) {
+    final systemsToRender = this.systemsToRender(customScale: customScale);
+    return max(
+        0,
+        min(
+                systemsToRender - 1,
+                systemsToRender == 1
+                    ? 0
+                    : calculatedSystemThingy(customScale: customScale)
+                        .floor()) -
+            1);
+  }
 
-  double get currentBeatTargetSystemXOffset =>
-      currentBeatTargetSystemIndex * (systemRenderAreaWidth);
+  double currentBeatTargetSystemXOffset({double customScale = null}) =>
+      currentBeatTargetSystemIndex(customScale: customScale) *
+      (systemRenderAreaWidth(customScale: customScale));
   double get _systemHeightForScrolling =>
       MusicSystemPainter.calculateSystemHeight(
           scale, widget.score.parts.length) +
@@ -178,18 +196,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       _systemHeightForScrolling < widget.height
           ? max(0, (widget.height - _systemHeightForScrolling) / 3)
           : 0;
-  double get currentBeatTargetSystemYOffset => min(
-      max(0, overallCanvasHeight - widget.height),
-      max(
-          0,
-          currentBeatTargetSystemIndex * _systemHeightForScrolling -
-              _extraHeightForScrolling));
 
   double get smallerScale => scale * 0.6;
   double get overallCanvasWidth => max(widget.width / smallerScale,
       (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth);
-  double get overallCanvasHeight =>
-      max(widget.height / smallerScale, systemsToRender * systemHeight);
+  double overallCanvasHeight({double customScale = null}) => max(
+      widget.height / smallerScale,
+      systemsToRender(customScale: customScale) * systemHeight);
 
   double get targetClefWidth => extraBeatsSpaceForClefs * targetBeatWidth;
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;
@@ -235,8 +248,9 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       1;
   void animateToTargetScaleAndPosition() {
     if (!_animateToTargetedScale) return;
+
     if (widget.appSettings.autoScrollMusic) {
-      scrollToBeat(currentBeat, customScale: targetScale);
+      scrollToCurrentBeat(customScale: targetScale);
     } else {
       // interactiveController.reset();
       final targetedMatrix = transformationController.value.clone();
@@ -288,12 +302,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     final scaledWidth = widget.width / (scale);
     final scaledAvailableWidth = scaledWidth - clefWidth;
     final endOfLastSystem =
-        overallCanvasWidth - systemsToRender * scaledAvailableWidth;
+        overallCanvasWidth - systemsToRender() * scaledAvailableWidth;
     final systemsAwayFromBottom = //max(
         //0,
         ((transformedRect.left - endOfLastSystem) / scaledAvailableWidth)
             .floor(); //);
-    final systemsRendered = max(0, systemsToRender - systemsAwayFromBottom);
+    final systemsRendered = max(0, systemsToRender() - systemsAwayFromBottom);
     final transformedRectMaxTop = max(
         0,
         systemsRendered * systemHeight -
@@ -333,7 +347,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     focusedPart = ValueNotifier(widget.focusedPart);
     sectionColor = ValueNotifier(widget.sectionColor);
     widget.scrollToCurrentBeat.addListener(scrollToCurrentBeat);
-    widget.centerCurrentSection.addListener(_constrainToSectionBounds);
+    widget.centerCurrentSection.addListener(constrainToSectionBounds);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToCurrentBeat();
@@ -365,7 +379,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       ..dispose();
     transformationController.removeListener(_transformationListener);
     widget.scrollToCurrentBeat.removeListener(scrollToCurrentBeat);
-    widget.centerCurrentSection.removeListener(_constrainToSectionBounds);
+    widget.centerCurrentSection.removeListener(constrainToSectionBounds);
     super.dispose();
   }
 
@@ -382,7 +396,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   Offset get interactingFocal => interactionStartFocal.value;
   int get interactingSystem =>
-      max(0, min(systemsToRender - 1, interactionStartSystem.value));
+      max(0, min(systemsToRender() - 1, interactionStartSystem.value));
 
   adjustDxForScale(int systemNumber, double scaleChange, Matrix4 target,
       {bool adjustingAfterChange = true}) {
@@ -456,9 +470,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               0 &&
           !isBeatOnScreen(currentBeat +
               widget.currentSection.meter.defaultBeatsPerMeasure)) {
-        scrollToBeat(
-          currentBeat,
-        );
+        scrollToCurrentBeat();
         _lastAutoScrollTime = DateTime.now();
       }
     }
@@ -510,7 +522,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           _interactiveAnimationStop();
         }
         print(
-            "onInteractionUpdate: ${details.scale} ${scale} ${Size(overallCanvasWidth, overallCanvasHeight)}");
+            "onInteractionUpdate: ${details.scale} ${scale} ${Size(overallCanvasWidth, overallCanvasHeight())}");
         scaleUpdateNotifier.value = details;
         widget.tappedBeat.value = null;
         if (details.scale != 1) {
@@ -530,7 +542,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       },
       child: CustomPaint(
           //                    key: Key("$overallCanvasWidth-$overallCanvasHeight"),
-          size: Size(overallCanvasWidth, overallCanvasHeight),
+          size: Size(overallCanvasWidth, overallCanvasHeight()),
           painter: MusicSystemPainter(
               sectionScaleNotifier: sectionScaleNotifier,
               score: widget.score,
@@ -562,7 +574,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               firstBeatOfSection: firstBeatOfSection,
               renderPartNames: true,
               isPreview: false,
-              systemsToRender: systemsToRender,
+              systemsToRender: systemsToRender(),
               otherListenables: [])),
     );
   }
@@ -576,12 +588,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   // bool showOnSecondSystem(double animationPos) =>
   //     systemsToRender > 1 && animationPos > secondSystemOffset;
 
-  double _animationPos(double currentBeat) {
+  double _animationPos(double currentBeat, {double customScale = null}) {
     // print(
     //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${horizontallyVisibleRect.width}!");
 
     double animationPos = _singleSystemAnimationPos(currentBeat);
-    animationPos -= currentBeatTargetSystemXOffset;
+    animationPos -= currentBeatTargetSystemXOffset(customScale: customScale);
     return max(0.0, animationPos);
   }
 
@@ -590,12 +602,12 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     //     "_singleSystemAnimationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${horizontallyVisibleRect.width}!");
 
     final beatWidth = targetBeatWidth;
-    if (autoZoomAlign) {
+    if (autoZoomAlign && false) {
       currentBeat = currentBeat.floorToDouble();
     }
     double animationPos = (currentBeat) * beatWidth;
     animationPos = min(animationPos,
-        overallCanvasWidth - widget.width + 0.62 * targetBeatWidth);
+        overallCanvasWidth - widget.width /*+ 0.62 * targetBeatWidth*/);
     animationPos = max(0, animationPos);
     return animationPos;
   }
@@ -608,41 +620,16 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     //     animationPos < currentPos + visibleRect.width - targetClefWidth;
   }
 
-  void scrollToBeat(double currentBeat,
-      {double customScale = null, bool includeMarginX = true}) {
-    // _lastBeatScrolledTo = currentBeat;
-    double targetedDx = _animationPos(currentBeat);
-    if (includeMarginX) {
-      final marginWidth =
-          max(0.0, transformedRect.width - beatWidth - clefWidth);
-      targetedDx = max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
-    }
-    final topMarginHeight = max(0.0, visibleHeight - systemHeight);
-    double maxDy = max(0.0,
-        (systemsToRender.toDouble() - 0.85) * systemHeight - visibleHeight);
-    double targetedDy = min(
-        maxDy,
-        max(
-            0.0,
-            systemHeight * currentBeatTargetSystemIndex -
-                scrollTopMarginPercent * topMarginHeight));
-    print(
-        "scrollToBeat, systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
-    final targetedMatrix = Matrix4.identity().clone()
-      ..scale(customScale ?? scale)
-      ..translate(-targetedDx, -targetedDy, 0.0);
-    _animateTo(targetedMatrix);
-  }
-
   bool get sectionCanBeCentered =>
       sectionWidth + targetClefWidth <= transformedRect.width;
   int get staffCount => stavesNotifier.value.length;
 
-  void scrollToCurrentBeat() {
+  void scrollToCurrentBeat({double customScale = null}) {
+    print("scrollToCurrentBeat, sectionCanBeCentered=$sectionCanBeCentered");
     if (sectionCanBeCentered) {
-      _constrainToSectionBounds();
+      constrainToSectionBounds(customScale: customScale);
     } else {
-      scrollToBeat(currentBeat);
+      scrollToBeat(currentBeat, customScale: customScale);
     }
   }
 
@@ -650,16 +637,50 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       max(0, visibleWidth - 2 * targetClefWidth - targetBeatWidth) /
       targetBeatWidth;
 
-  double get marginBeatsForSection =>
-      max(0.0, visibleWidth - targetClefWidth - sectionWidth) / targetBeatWidth;
-  _constrainToSectionBounds() {
-    // print("_constrainToSectionBounds");
+  constrainToSectionBounds({double customScale = null}) {
+    double ratioScale = (customScale ?? scale) / scale;
+    double marginBeatsForSection =
+        max(0.0, visibleWidth / ratioScale - targetClefWidth - sectionWidth) /
+            targetBeatWidth;
+    double targetBeat = firstBeatOfSection - (marginBeatsForSection / 2.0);
+    print(
+        "constrainToSectionBounds customScale=$customScale, scale=$scale ratioScale=$ratioScale firstBeatOfSection=$firstBeatOfSection marginBeatsForSection=$marginBeatsForSection targetBeat=$targetBeat");
     try {
-      scrollToBeat(firstBeatOfSection - (marginBeatsForSection / 2),
-          includeMarginX: true);
+      scrollToBeat(targetBeat, customScale: customScale, includeMarginX: false);
     } catch (e) {
       print(e);
     }
+  }
+
+  void scrollToBeat(double targetBeat,
+      {double customScale = null, bool includeMarginX = true}) {
+    // _lastBeatScrolledTo = currentBeat;
+    double targetedDx = _animationPos(targetBeat, customScale: customScale);
+    double ratioScale = (customScale ?? scale) / scale;
+    if (includeMarginX) {
+      final marginWidth =
+          max(0.0, visibleWidth / ratioScale - beatWidth - clefWidth);
+      targetedDx = max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
+    }
+    final topMarginHeight = max(0.0, visibleHeight / ratioScale - systemHeight);
+    double maxDy = max(
+        0.0,
+        (systemsToRender(customScale: customScale).toDouble() - 0.85) *
+                systemHeight -
+            visibleHeight / ratioScale);
+    double targetedDy = min(
+        maxDy,
+        max(
+            0.0,
+            systemHeight *
+                    currentBeatTargetSystemIndex(customScale: customScale) -
+                scrollTopMarginPercent * topMarginHeight));
+    print(
+        "scrollToBeat, customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
+    final targetedMatrix = Matrix4.identity().clone()
+      ..scale(customScale ?? scale)
+      ..translate(-targetedDx, -targetedDy, 0.0);
+    _animateTo(targetedMatrix);
   }
 
   double get firstBeatOfSection =>
@@ -687,7 +708,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     widget.staves.asMap().forEach((staffIndex, staff) {
       double staffPosition = staffIndex * staffHeight;
       double initialStaffPosition =
-          staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight);
+          staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight());
       Animation staffAnimation;
       staffAnimation = Tween<double>(
               begin: initialStaffPosition, end: staffPosition)
@@ -701,7 +722,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       staff.getParts(widget.score, widget.staves).forEach((part) {
         double partPosition = staffPosition;
         double initialPartPosition = partTopOffsets.value
-            .putIfAbsent(part.id, () => overallCanvasHeight);
+            .putIfAbsent(part.id, () => overallCanvasHeight());
         Animation partAnimation;
         partAnimation =
             Tween<double>(begin: initialPartPosition, end: partPosition)
