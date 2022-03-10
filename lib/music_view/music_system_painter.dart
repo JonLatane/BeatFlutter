@@ -153,7 +153,7 @@ class MusicSystemPainter extends CustomPainter {
     // print(
     //     "verticallyVisibleRect=${verticallyVisibleRect()}, translationIncrement=$translationIncrement");
     final int firstSystem =
-        max(0, (verticallyVisibleRect().top / translationIncrement).floor());
+        (verticallyVisibleRect().top / translationIncrement).floor();
     translationTotal += firstSystem * translationIncrement;
     canvas.translate(0, firstSystem * translationIncrement);
     for (int i = firstSystem; i < systemsToRender; i++) {
@@ -161,7 +161,7 @@ class MusicSystemPainter extends CustomPainter {
       paintSystem(canvas, size,
           offsetStart: (visibleRect().width - clefWidth) * (i));
       translationTotal += translationIncrement;
-      if (translationTotal > verticallyVisibleRect().bottom) {
+      if (translationTotal * scale > visibleRect().bottom) {
         break;
       }
       canvas.translate(0, translationIncrement);
@@ -202,12 +202,18 @@ class MusicSystemPainter extends CustomPainter {
       double top =
           visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
       Rect staffLineBounds = Rect.fromLTRB(
-          visibleRect().left, top, visibleRect().right, top + melodyHeight);
+          max(-offsetStart, visibleRect().left),
+          top,
+          max(-offsetStart, visibleRect().right),
+          top + melodyHeight);
 //      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
       _renderStaffLines(canvas,
           !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
-      Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
-          visibleRect().left + standardClefWidth, top + melodyHeight);
+      Rect clefBounds = Rect.fromLTRB(
+          max(-offsetStart, visibleRect().left),
+          top,
+          max(-offsetStart, visibleRect().left) + standardClefWidth,
+          top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
       _renderClefs(canvas, clefBounds, staff);

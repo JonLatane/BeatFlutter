@@ -177,12 +177,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     return max(
         0,
         min(
-                systemsToRender - 1,
-                systemsToRender == 1
-                    ? 0
-                    : calculatedSystemThingy(customScale: customScale)
-                        .floor()) -
-            1);
+            systemsToRender - 1,
+            systemsToRender == 1
+                ? 0
+                : calculatedSystemThingy(customScale: customScale).floor()));
   }
 
   double currentBeatTargetSystemXOffset({double customScale = null}) =>
@@ -413,7 +411,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     double diff = systemXOffset2 - systemXOffset1;
     if (transformedRect.left > diff) {
       target.translate(diff, 0.0, 0.0);
-    } else if (adjustingAfterChange && false) {
+    } else if (adjustingAfterChange) {
       if (interactionStartSystem.value > 0) {
         interactionStartSystem.value -= 1;
         final dx = diff - scaledAvailableWidth2;
@@ -494,11 +492,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       maxScale: maxScale,
       constrained: false,
       transformationController: transformationController,
-      boundaryMargin: EdgeInsets.only(left: widget.width / 2.0
-          // top: 0,
-          // bottom: widget.width / minScale,
-          // right: 0
-          ),
+      boundaryMargin: EdgeInsets.only(
+        left: overallCanvasWidth,
+        // left: widget.width / 2.0
+        top: overallCanvasHeight(),
+        // bottom: widget.width / minScale,
+        // right: 0
+      ),
       // boundaryMargin: EdgeInsets.symmetric(
       //     horizontal: widget.width / scale, vertical: widget.height / scale),
       onInteractionStart: (ScaleStartDetails details) {

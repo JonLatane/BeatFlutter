@@ -2397,22 +2397,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
-      appSettings: _appSettings,
-      sectionColor: sectionColor,
-      score: score,
-      setState: setState,
-      scrollDirection: scrollDirection,
-      currentSection: currentSection,
-      selectSection: _selectSection,
-      insertSection: (s) => _insertSection(s, withNewColor: true),
-      showSectionBeatCounts: showBeatCounts,
-      toggleShowSectionBeatCounts: () {
-        setState(() {
-          showBeatCounts = !showBeatCounts;
-        });
-      },
-      allowReordering: interactionMode.isEdit,
-    );
+        appSettings: _appSettings,
+        sectionColor: sectionColor,
+        score: score,
+        setState: setState,
+        scrollDirection: scrollDirection,
+        currentSection: currentSection,
+        selectSection: _selectSection,
+        insertSection: (s) => _insertSection(s, withNewColor: true),
+        showSectionBeatCounts: showBeatCounts,
+        toggleShowSectionBeatCounts: () {
+          setState(() {
+            showBeatCounts = !showBeatCounts;
+          });
+        },
+        allowReordering: interactionMode.isEdit,
+        width:
+            scrollDirection == Axis.horizontal ? musicViewWidth(context) : null,
+        height:
+            scrollDirection == Axis.vertical ? musicViewHeight(context) : null);
     _sectionLists.add(result);
     return result;
   }
@@ -2476,8 +2479,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return result;
   }
 
-  Widget _layersAndMusicView(BuildContext context) {
-    var data = MediaQuery.of(context);
+  double musicViewHeight(BuildContext context) {
     double fullHeight = flexibleAreaHeight(context);
     if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= _scorePickerHeight(context);
@@ -2485,16 +2487,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (context.isPortraitPhone) {
       fullHeight -= universeScoreTitleHeight;
     }
-    double fullWidth = data.size.width -
+    return fullHeight;
+  }
+
+  double flexibleAreaWidth(BuildContext context) {
+    double result = MediaQuery.of(context).size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
         _rightNotchPadding -
         _landscapeTapInBarWidth -
         _landscapePhoneSecondToolbarWidth -
         _landscapePhoneBeatscratchToolbarWidth;
+    return result;
+  }
+
+  double musicViewWidth(BuildContext context) {
+    double fullWidth = flexibleAreaWidth(context);
     if (_scorePickerScrollDirection == Axis.vertical) {
       fullWidth -= _scorePickerWidth(context);
     }
+    return fullWidth;
+  }
+
+  Widget _layersAndMusicView(BuildContext context) {
+    double fullHeight = musicViewHeight(context);
+    double fullWidth = musicViewWidth(context);
 
     final landscapeLayersWidth = fullWidth * (1 - _musicViewSizeFactor);
     final portraitMelodyHeight = fullHeight * _musicViewSizeFactor;
