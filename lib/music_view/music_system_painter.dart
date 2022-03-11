@@ -156,12 +156,13 @@ class MusicSystemPainter extends CustomPainter {
         (verticallyVisibleRect().top / translationIncrement).floor();
     translationTotal += firstSystem * translationIncrement;
     canvas.translate(0, firstSystem * translationIncrement);
-    for (int i = firstSystem; i < systemsToRender; i++) {
+    for (int i = firstSystem; i < systemsToRender + 20; i++) {
       // print("Drawing system $i at $translationTotal");
       paintSystem(canvas, size,
           offsetStart: (visibleRect().width - clefWidth) * (i));
       translationTotal += translationIncrement;
-      if (translationTotal * scale > visibleRect().bottom) {
+      if (translationTotal * scale - translationIncrement >
+          visibleRect().bottom) {
         break;
       }
       canvas.translate(0, translationIncrement);
@@ -504,12 +505,14 @@ class MusicSystemPainter extends CustomPainter {
 
   void _renderStaffLines(
       Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
+    double alphaModifier = max(0.0,
+        min(1.0, (visibleRect().right - bounds.left - clefWidth) / beatWidth));
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
         ..alphaDrawerPaint = (Paint()
           ..strokeWidth = 1 / sqrt(scale)
-          ..color = musicForegroundColor
-              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
+          ..color = musicForegroundColor.withAlpha(
+              (255 * alphaModifier * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..draw(canvas);
     }
@@ -520,6 +523,8 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
+    double alphaModifier = max(0.0,
+        min(1.0, (visibleRect().right - bounds.left - clefWidth) / beatWidth));
     if (notationOpacityNotifier.value > 0) {
       var clefs =
           (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
@@ -529,8 +534,8 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = musicForegroundColor
-              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
+          ..color = musicForegroundColor.withAlpha(
+              (255 * notationOpacityNotifier.value * alphaModifier).toInt()))
         ..bounds = bounds
         ..clefs = clefs
         ..draw(canvas);
@@ -540,8 +545,8 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = musicForegroundColor
-              .withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
+          ..color = musicForegroundColor.withAlpha(
+              255 * alphaModifier * colorblockOpacityNotifier.value ~/ 3))
         ..bounds = bounds
         ..draw(canvas);
     }
@@ -555,7 +560,10 @@ class MusicSystemPainter extends CustomPainter {
           bounds.bottomRight.translate(
               0, notationOpacityNotifier.value * -bounds.height / 10));
       canvas.drawRect(
-          highlight, Paint()..color = sectionColor.value.withAlpha(127));
+          highlight,
+          Paint()
+            ..color =
+                sectionColor.value.withAlpha((127 * alphaModifier).toInt()));
     }
 
     if (renderPartNames) {
@@ -568,14 +576,15 @@ class MusicSystemPainter extends CustomPainter {
         text = "Drums";
       }
 
+      double textOpacity = colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1;
       TextSpan span = new TextSpan(
           text: text,
           style: TextStyle(
               fontFamily: "VulfSans",
               fontSize: max(11, 10 / scale),
               fontWeight: FontWeight.w800,
-              color: musicForegroundColor.withOpacity(
-                  colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1)));
+              color: musicForegroundColor
+                  .withOpacity(alphaModifier * textOpacity)));
       TextPainter tp = new TextPainter(
         text: span,
         textAlign: TextAlign.left,

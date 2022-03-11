@@ -978,7 +978,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       scale, widget.score.parts.length);
 
   int systemNumber(transformedPosition) =>
-      max(0, (transformedPosition.dy / scaledSystemHeight).floor());
+      (transformedPosition.dy / scaledSystemHeight).floor();
 
   getBeat(Offset position, {bool targeted = true}) {
     position = transformationController.toScene(position);

@@ -409,19 +409,23 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     double systemXOffset1 = systemNumber * scaledAvailableWidth1;
     double systemXOffset2 = systemNumber * scaledAvailableWidth2;
     double diff = systemXOffset2 - systemXOffset1;
-    if (transformedRect.left > diff) {
+    if (transformedRect.left > -scaledAvailableWidth2) {
       target.translate(diff, 0.0, 0.0);
-    } else if (adjustingAfterChange) {
-      if (interactionStartSystem.value > 0) {
-        interactionStartSystem.value -= 1;
-        final dx = diff - scaledAvailableWidth2;
-        final dy = systemHeight;
-        // if (transformedRect.top > dy &&
-        //     transformedRect.right + dx < overallCanvasWidth) {
-        target.translate(dx, dy, 0);
-        // }
-      }
+    } else {
+      interactionStartSystem.value -= 1;
+      target.translate(diff - scaledAvailableWidth2, systemHeight, 0.0);
     }
+    // } else if (adjustingAfterChange) {
+    //   if (interactionStartSystem.value > 0) {
+    //     interactionStartSystem.value -= 1;
+    //     final dx = diff - scaledAvailableWidth2;
+    //     final dy = systemHeight;
+    //     // if (transformedRect.top > dy &&
+    //     //     transformedRect.right + dx < overallCanvasWidth) {
+    //     target.translate(dx, dy, 0);
+    //     // }
+    //   }
+    // }
   }
 
   @override
@@ -535,6 +539,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           _animateToTargetedScale = true;
           adjustDxForScale(
               interactingSystem, details.scale, transformationController.value);
+        } else {
+          final scaledWidth = widget.width / (scale);
+          final scaledAvailableWidth = scaledWidth - clefWidth;
+          if (transformedRect.top < -systemHeight) {
+            transformationController.value
+                .translate(scaledAvailableWidth, -systemHeight, 0.0);
+          } else if (transformedRect.left < -scaledAvailableWidth) {
+            if (interactionStartSystem.value != null) {
+              interactionStartSystem.value -= 1;
+            }
+            transformationController.value
+                .translate(-scaledAvailableWidth, systemHeight, 0.0);
+          }
         }
         // print("matrix=${transformationController.value}");
         // print("transformedRect=$transformedRect");
@@ -654,33 +671,48 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   void scrollToBeat(double targetBeat,
       {double customScale = null, bool includeMarginX = true}) {
-    // _lastBeatScrolledTo = currentBeat;
-    double targetedDx = _animationPos(targetBeat, customScale: customScale);
     double ratioScale = (customScale ?? scale) / scale;
-    if (includeMarginX) {
-      final marginWidth =
-          max(0.0, visibleWidth / ratioScale - beatWidth - clefWidth);
-      targetedDx = max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
+    double scoreWidth = widget.score.beatCount * beatWidth + clefWidth;
+    bool entireScoreFitsHorizontally = visibleWidth / ratioScale >= scoreWidth;
+    if (entireScoreFitsHorizontally) {
+      final marginWidth = max(0.0, visibleWidth / ratioScale - scoreWidth);
+      final topMarginHeight =
+          max(0.0, visibleHeight / ratioScale - systemHeight);
+      final targetedMatrix = Matrix4.identity().clone()
+        ..scale(customScale ?? scale)
+        ..translate(marginWidth / 2.0, topMarginHeight / 2.0, 0.0);
+      _animateTo(targetedMatrix);
+    } else {
+      // _lastBeatScrolledTo = currentBeat;
+      double targetedDx = _animationPos(targetBeat, customScale: customScale);
+      if (includeMarginX) {
+        final marginWidth =
+            max(0.0, visibleWidth / ratioScale - beatWidth - clefWidth);
+        targetedDx =
+            max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
+      }
+      final topMarginHeight =
+          max(0.0, visibleHeight / ratioScale - systemHeight);
+      double systemCount = systemsToRender(customScale: customScale).toDouble();
+      double maxDy = max(0.0,
+          (systemCount - 0.85) * systemHeight - visibleHeight / ratioScale);
+      double topMargin = scrollTopMarginPercent * topMarginHeight;
+      bool entireScoreFitsVertically =
+          systemHeight * systemCount < transformedRect.height;
+      double targetedDy = min(
+          maxDy,
+          max(
+              entireScoreFitsVertically ? -topMargin : 0.0,
+              systemHeight *
+                      currentBeatTargetSystemIndex(customScale: customScale) -
+                  topMargin));
+      print(
+          "scrollToBeat, entireScoreFitsVertically=$entireScoreFitsVertically customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
+      final targetedMatrix = Matrix4.identity().clone()
+        ..scale(customScale ?? scale)
+        ..translate(-targetedDx, -targetedDy, 0.0);
+      _animateTo(targetedMatrix);
     }
-    final topMarginHeight = max(0.0, visibleHeight / ratioScale - systemHeight);
-    double maxDy = max(
-        0.0,
-        (systemsToRender(customScale: customScale).toDouble() - 0.85) *
-                systemHeight -
-            visibleHeight / ratioScale);
-    double targetedDy = min(
-        maxDy,
-        max(
-            0.0,
-            systemHeight *
-                    currentBeatTargetSystemIndex(customScale: customScale) -
-                scrollTopMarginPercent * topMarginHeight));
-    print(
-        "scrollToBeat, customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
-    final targetedMatrix = Matrix4.identity().clone()
-      ..scale(customScale ?? scale)
-      ..translate(-targetedDx, -targetedDy, 0.0);
-    _animateTo(targetedMatrix);
   }
 
   double get firstBeatOfSection =>
