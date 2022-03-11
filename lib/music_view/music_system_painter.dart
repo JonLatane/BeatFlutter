@@ -769,7 +769,7 @@ class MusicSystemPainter extends CustomPainter {
       try {
         if (colorblockOpacityNotifier.value > 0) {
           ColorblockMusicRenderer()
-            ..uiScale = xScale
+            ..uiScale = scale
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat

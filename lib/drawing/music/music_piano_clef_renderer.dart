@@ -7,9 +7,6 @@ import '../../widget/keyboard.dart';
 
 class MelodyPianoClefRenderer extends BaseMusicRenderer {
   @override
-  bool showSteps = true;
-
-  @override
   double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
 
   draw(Canvas canvas) {

@@ -42,9 +42,6 @@ class CanvasToneDrawer {
   double get halfStepWidth => axisLength / halfStepsOnScreen;
   double get diatonicStepWidth => halfStepWidth * 12 / 7;
 
-  //  dip(value: double): Int
-  //fun dip(value: Int): Int
-  bool showSteps;
   Chord chord = Chord()
     ..rootNote = NoteName()
     ..chroma = 2047;

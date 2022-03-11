@@ -697,15 +697,18 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       double maxDy = max(0.0,
           (systemCount - 0.85) * systemHeight - visibleHeight / ratioScale);
       double topMargin = scrollTopMarginPercent * topMarginHeight;
-      bool entireScoreFitsVertically =
-          systemHeight * systemCount < transformedRect.height;
-      double targetedDy = min(
-          maxDy,
-          max(
-              entireScoreFitsVertically ? -topMargin : 0.0,
-              systemHeight *
-                      currentBeatTargetSystemIndex(customScale: customScale) -
-                  topMargin));
+      double scoreHeight = systemHeight * systemCount;
+      bool entireScoreFitsVertically = scoreHeight < transformedRect.height;
+      double targetedDy = entireScoreFitsVertically
+          ? -0.5 * (visibleHeight / ratioScale - scoreHeight)
+          : min(
+              maxDy,
+              max(
+                  targetedDx == 0.0 ? 0.0 : -topMargin,
+                  systemHeight *
+                          currentBeatTargetSystemIndex(
+                              customScale: customScale) -
+                      topMargin));
       print(
           "scrollToBeat, entireScoreFitsVertically=$entireScoreFitsVertically customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
       final targetedMatrix = Matrix4.identity().clone()
