@@ -545,10 +545,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           if (transformedRect.top < -systemHeight) {
             transformationController.value
                 .translate(scaledAvailableWidth, -systemHeight, 0.0);
-          } else if (transformedRect.left < -scaledAvailableWidth) {
-            if (interactionStartSystem.value != null) {
-              interactionStartSystem.value -= 1;
-            }
+          } else if (transformedRect.left < -scaledAvailableWidth ||
+              transformedRect.top > 2 * systemHeight) {
             transformationController.value
                 .translate(-scaledAvailableWidth, systemHeight, 0.0);
           }
@@ -611,7 +609,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
     double animationPos = _singleSystemAnimationPos(currentBeat);
     animationPos -= currentBeatTargetSystemXOffset(customScale: customScale);
-    return max(0.0, animationPos);
+    if (currentBeat == 0.0) {
+      return max(0.0, animationPos);
+    }
+    return animationPos;
   }
 
   double _singleSystemAnimationPos(double currentBeat) {
@@ -623,9 +624,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       currentBeat = currentBeat.floorToDouble();
     }
     double animationPos = (currentBeat) * beatWidth;
-    animationPos = min(animationPos,
-        overallCanvasWidth - widget.width /*+ 0.62 * targetBeatWidth*/);
-    animationPos = max(0, animationPos);
+    animationPos = min(animationPos, overallCanvasWidth - visibleWidth);
+    animationPos = animationPos;
     return animationPos;
   }
 
@@ -670,7 +670,10 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void scrollToBeat(double targetBeat,
-      {double customScale = null, bool includeMarginX = true}) {
+      {double customScale = null,
+      bool includeMarginX = true,
+      bool scrollHorizontally = true}) {
+    final scale = this.scale;
     double ratioScale = (customScale ?? scale) / scale;
     double scoreWidth = widget.score.beatCount * beatWidth + clefWidth;
     bool entireScoreFitsHorizontally = visibleWidth / ratioScale >= scoreWidth;
@@ -688,14 +691,13 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       if (includeMarginX) {
         final marginWidth =
             max(0.0, visibleWidth / ratioScale - beatWidth - clefWidth);
-        targetedDx =
-            max(0.0, targetedDx - scrollLeftMarginPercent * marginWidth);
+        targetedDx -= scrollLeftMarginPercent * marginWidth;
       }
       final topMarginHeight =
           max(0.0, visibleHeight / ratioScale - systemHeight);
       double systemCount = systemsToRender(customScale: customScale).toDouble();
-      double maxDy = max(0.0,
-          (systemCount - 0.85) * systemHeight - visibleHeight / ratioScale);
+      double maxDy =
+          max(0.0, (systemCount) * systemHeight - visibleHeight / ratioScale);
       double topMargin = scrollTopMarginPercent * topMarginHeight;
       double scoreHeight = systemHeight * systemCount;
       bool entireScoreFitsVertically = scoreHeight < transformedRect.height;
@@ -706,17 +708,42 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               max(
                   targetedDx == 0.0 ? 0.0 : -topMargin,
                   systemHeight *
-                          currentBeatTargetSystemIndex(
-                              customScale: customScale) -
-                      topMargin));
+                      currentBeatTargetSystemIndex(customScale: customScale)));
       print(
-          "scrollToBeat, entireScoreFitsVertically=$entireScoreFitsVertically customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
+          "scrollToBeat, targetedDx=$targetedDx entireScoreFitsVertically=$entireScoreFitsVertically customScale=$customScale, scale=$scale ratioScale=$ratioScale systemsToRender=$systemsToRender currentBeatTargetSystemIndex=$currentBeatTargetSystemIndex, systemHeight=$systemHeight visibleHeight=$visibleHeight topMarginHeight=$topMarginHeight maxDy=$maxDy targetedDy=$targetedDy");
+      // "Scrolling ideally" means horizontally when going forward/down
+      bool goDownLeft =
+          (targetedDy > transformedRect.top + 0.5 * transformedRect.height);
+      print(
+          "stb: goDownLeft=$goDownLeft, targetedDy=$targetedDy, transformedRect.top=${transformedRect.top}, transformedRect.bottom=${transformedRect.bottom}, transformedRect.height=${transformedRect.height} ");
+      if (scrollHorizontally && goDownLeft) {
+        translateDownLeft();
+      }
+      // Compensate for scale chanegs
+      if (customScale != scale) {
+        int currentSystem = currentBeatTargetSystemIndex(customScale: scale);
+        int newSystem = currentBeatTargetSystemIndex(customScale: customScale);
+        while (currentSystem < newSystem) {
+          translateDownLeft();
+          currentSystem++;
+        }
+        while (currentSystem > newSystem) {
+          translateUpRight();
+          currentSystem--;
+        }
+      }
       final targetedMatrix = Matrix4.identity().clone()
         ..scale(customScale ?? scale)
         ..translate(-targetedDx, -targetedDy, 0.0);
       _animateTo(targetedMatrix);
     }
   }
+
+  translateDownLeft() => transformationController.value
+      .translate((visibleWidth - clefWidth), -systemHeight, 0);
+
+  translateUpRight() => transformationController.value
+      .translate(-(visibleWidth - clefWidth), systemHeight, 0);
 
   double get firstBeatOfSection =>
       widget.score.firstBeatOfSection(widget.currentSection).toDouble();
