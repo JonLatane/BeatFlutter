@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
       key: Key('BeatScratch'),
       title: 'BeatScratch',
       onGenerateTitle: (context) => 'BeatScratch',
-      debugShowCheckedModeBanner: false,
+      // debugShowCheckedModeBanner: false,
       theme: ThemeData(
           textSelectionTheme: TextSelectionThemeData(
               selectionColor: chromaticSteps[0].withOpacity(0.5),
