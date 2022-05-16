@@ -895,6 +895,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     };
     BeatScratchPlugin.onOpenUrlFromSystem = onOpenUrlFromSystem;
     BeatScratchPlugin.onCountInInitiated = () {
+      print("onCountInInitiated in main");
       setState(() {
         _tapInBeat = -2;
         _forceShowTapInBar = true;

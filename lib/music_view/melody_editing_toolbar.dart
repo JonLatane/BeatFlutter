@@ -20,6 +20,7 @@ class MelodyEditingToolbar extends StatefulWidget {
   final bool visible;
   final ValueNotifier<int> highlightedBeat;
   final Function(MelodyReference, double) setReferenceVolume;
+  final VoidCallback toggleRecording;
 
   Melody get melody => score.parts
       .expand((p) => p.melodies)
@@ -34,7 +35,8 @@ class MelodyEditingToolbar extends StatefulWidget {
       @required this.highlightedBeat,
       @required this.setReferenceVolume,
       @required this.recordingMelody,
-      @required this.visible})
+      @required this.visible,
+      @required this.toggleRecording})
       : super(key: key);
 
   @override
@@ -100,8 +102,68 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
         BeatScratchPlugin.playing &&
         widget.recordingMelody;
     final melodyReference = widget.currentSection.referenceTo(widget.melody);
+    bool playingOrCountingIn =
+        BeatScratchPlugin.playing || BeatScratchPlugin.countInInitiated;
+    bool showGo = widget.recordingMelody &&
+        !playingOrCountingIn &&
+        BeatScratchPlugin.supportsPlayback;
     return Row(children: [
       SizedBox(width: 5),
+      MyFlatButton(
+          padding: EdgeInsets.zero,
+          onPressed: widget.toggleRecording,
+          child: Column(children: [
+            Expanded(child: SizedBox()),
+            Transform.translate(
+                offset: Offset(0, 5),
+                child: Icon(Icons.fiber_manual_record, color: recordingColor)),
+            Text(
+                widget.recordingMelody
+                    ? BeatScratchPlugin.playing
+                        ? 'Recording\n'
+                        : 'Recording\nOn'
+                    : 'Recording\nOff',
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontWeight: FontWeight.w100,
+                    fontSize: 8,
+                    color: recordingColor)),
+            Expanded(child: SizedBox()),
+          ])),
+      AnimatedOpacity(
+          duration: animationDuration,
+          opacity: showGo ? 1 : 0,
+          child: AnimatedContainer(
+              duration: animationDuration,
+              width: showGo ? 30 : 0,
+              child: MyFlatButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: showGo
+                      ? () {
+                          if (BeatScratchPlugin.playing) {
+                            BeatScratchPlugin.pause();
+                          } else {
+                            BeatScratchPlugin.play();
+                          }
+                        }
+                      : null,
+                  child: Column(children: [
+                    Expanded(child: SizedBox()),
+                    Transform.translate(
+                        offset: Offset(0, 5),
+                        child: Icon(Icons.double_arrow,
+                            color: !showGo ? Colors.grey : chromaticSteps[0])),
+                    Text('Go!\n',
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w100,
+                            fontSize: 8,
+                            color: !showGo ? Colors.grey : chromaticSteps[7])),
+                    Expanded(child: SizedBox()),
+                  ])))),
+      SizedBox(width: 7),
       IncrementableValue(
         collapsing: true,
         onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
@@ -173,7 +235,10 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
         opacity: widget.melody != null && widget.visible ? 1 : 0,
         child: MySlider(
             value: melodyReference?.volume ?? 0,
-            activeColor: widget.sectionColor,
+            activeColor: melodyReference?.playbackType ==
+                    MelodyReference_PlaybackType.playback_indefinitely
+                ? widget.sectionColor
+                : widget.sectionColor.withOpacity(0.5),
             onChanged: (widget.melody != null && widget.visible)
                 ? (value) {
                     widget.setReferenceVolume(melodyReference, value);
@@ -366,19 +431,6 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
                           ))
                     ],
                   )))),
-      SizedBox(width: 7),
-      Column(children: [
-        SizedBox(height: 1),
-        Transform.translate(
-            offset: Offset(0, 5),
-            child: Icon(Icons.fiber_manual_record, color: recordingColor)),
-        Text('Recording',
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.w100,
-                fontSize: 10,
-                color: recordingColor)),
-      ]),
       SizedBox(width: 7),
     ]);
   }

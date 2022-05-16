@@ -28,6 +28,8 @@ class BeatScratchPlugin {
   static bool _playbackForceDisabled = false;
   static bool get supportsPlayback =>
       _supportsPlayback && !_playbackForceDisabled;
+  static bool _countInInitiated = false;
+  static bool get countInInitiated => _countInInitiated;
 
   static MethodChannel _channel = MethodChannel('BeatScratchPlugin')
     ..setMethodCallHandler((call) {
@@ -48,6 +50,7 @@ class BeatScratchPlugin {
           break;
         case "notifyPlayingBeat":
           _notifyPlayingBeat(call.arguments);
+          _countInInitiated = false;
           return Future.value(null);
           break;
         case "notifyPaused":
@@ -57,6 +60,7 @@ class BeatScratchPlugin {
           break;
         case "notifyCountInInitiated":
           _playing = false;
+          _countInInitiated = true;
           onCountInInitiated?.call();
           return Future.value(null);
           break;
@@ -440,6 +444,7 @@ class BeatScratchPlugin {
   /// Starts the playback thread
   static void play() {
     _playing = true;
+    _countInInitiated = false;
     _play();
   }
 

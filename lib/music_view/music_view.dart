@@ -858,6 +858,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       currentSection: widget.currentSection,
                       highlightedBeat: highlightedBeat,
                       setReferenceVolume: widget.setReferenceVolume,
+                      toggleRecording: widget.toggleRecording,
                     ))),
             AnimatedOpacity(
               duration: animationDuration,
@@ -924,7 +925,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           Expanded(child: _mainMelody(context))
         ],
       ),
-      if (MyPlatform.isDebug && true)
+      if (MyPlatform.isDebug && false)
         IgnorePointer(
             child: Container(
           width: 2 * targetedScale * beatWidth,
@@ -936,7 +937,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               ),
               borderRadius: BorderRadius.all(Radius.circular(5))),
         )),
-      if (MyPlatform.isDebug && true)
+      if (MyPlatform.isDebug && false)
         IgnorePointer(
             child: Container(
           width: widget.width,
