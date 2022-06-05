@@ -29,6 +29,7 @@ class SectionList extends StatefulWidget {
   final VoidCallback toggleShowSectionBeatCounts;
   final bool allowReordering;
   final AppSettings appSettings;
+  final double width, height;
 
   const SectionList(
       {Key key,
@@ -42,7 +43,9 @@ class SectionList extends StatefulWidget {
       this.showSectionBeatCounts,
       this.toggleShowSectionBeatCounts,
       this.allowReordering,
-      this.appSettings})
+      this.appSettings,
+      this.width,
+      this.height})
       : super(key: key);
 
   @override
@@ -187,20 +190,15 @@ class _SectionListState extends State<SectionList> {
   _animateToCurrentSection() {
     int index = widget.score.sections.indexOf(widget.currentSection);
     if (widget.scrollDirection == Axis.horizontal) {
-      double marginSections = context.isTablet
-          ? 2.62
-          : context.isLandscapePhone
-              ? 1.38
-              : .38;
-      double position = _Section.width * (index - marginSections);
+      double margin = max(0.0, widget.width - _Section.width);
+      double position = _Section.width * (index) - margin * 0.25;
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
       _scrollController.animateTo(position,
           duration: animationDuration, curve: Curves.easeInOut);
     } else {
-      double marginSections =
-          context.isTablet || context.isPortraitPhone ? 3.62 : 1.62;
-      double position = _Section.height * (index - marginSections);
+      double margin = max(0.0, widget.height - _Section.height);
+      double position = _Section.height * (index) - margin * 0.25;
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
       _scrollController.animateTo(position,

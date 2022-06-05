@@ -47,13 +47,6 @@ class _RenderInstructions {
 }
 
 class NotationMusicRenderer extends BaseMusicRenderer {
-  @override
-  bool showSteps = true;
-  @override
-  double normalizedDevicePitch = 0;
-//  @override
-//  double get axisLength => bounds.height / xScale;
-
   Iterable<Melody> otherMelodiesOnStaff = [];
   double notationAlpha = 1;
   bool stemsUp = true;

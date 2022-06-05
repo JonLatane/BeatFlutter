@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
       key: Key('BeatScratch'),
       title: 'BeatScratch',
       onGenerateTitle: (context) => 'BeatScratch',
-      debugShowCheckedModeBanner: false,
+      // debugShowCheckedModeBanner: false,
       theme: ThemeData(
           textSelectionTheme: TextSelectionThemeData(
               selectionColor: chromaticSteps[0].withOpacity(0.5),
@@ -537,7 +537,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       if (interactionMode != InteractionMode.universe) {
-        // showSections = false;
+        showSections = false;
         showDuplicateScoreWarning = false;
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
@@ -857,7 +857,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     universeViewUI = UniverseViewUI(setState, _universeManager)
       ..messagesUI = messagesUI
       ..refreshUniverseData = refreshUniverseData
-      ..refreshUniverseData = refreshUniverseData;
+      ..switchToLocalScores = MyPlatform.isWeb
+          ? null
+          : () {
+              _doShowScorePicker(ScorePickerMode.open, doDirectly: true);
+            };
     _universeManager
       ..refreshUniverseData = refreshUniverseData
       ..messagesUI = messagesUI
@@ -895,6 +899,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     };
     BeatScratchPlugin.onOpenUrlFromSystem = onOpenUrlFromSystem;
     BeatScratchPlugin.onCountInInitiated = () {
+      print("onCountInInitiated in main");
       setState(() {
         _tapInBeat = -2;
         _forceShowTapInBar = true;
@@ -1170,6 +1175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           sectionColor: sectionColor,
                           keyboardHeight: _keyboardHeight,
                           settingsHeight: _midiSettingsHeight,
+                          scorePickerWidth: _scorePickerWidth(context),
                           showDownloads: ((MyPlatform.isWeb) &&
                                   !showDownloadLinks)
                               ? () => setState(() => showDownloadLinks = true)
@@ -1193,6 +1199,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                         sectionColor: sectionColor,
                                         keyboardHeight: _keyboardHeight,
                                         settingsHeight: _midiSettingsHeight,
+                                        scorePickerWidth:
+                                            _scorePickerWidth(context),
                                         showDownloads: ((MyPlatform.isWeb) &&
                                                 !showDownloadLinks)
                                             ? () => setState(
@@ -1214,6 +1222,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           ),
                         Expanded(
                             child: Column(children: [
+                          _universeScoreTitle(),
                           _downloadBanner(context),
                           if (_scorePickerScrollDirection == Axis.horizontal)
                             _scorePicker(context),
@@ -1221,7 +1230,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               context: context,
                               setState: setState,
                               currentSection: currentSection),
-                          _universeScoreTitle(),
                           _horizontalSectionList(),
                           Expanded(
                               child: Row(children: [
@@ -1335,7 +1343,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
-  double get universeScoreTitleHeight => interactionMode.isUniverse ? 40 : 0;
+  double get universeScoreTitleHeight => interactionMode.isUniverse ||
+          (_scoreManager.currentScoreName == ScoreManager.UNIVERSE_SCORE &&
+              !interactionMode.isEdit &&
+              (!context.isPortraitPhone ||
+                  !scorePickerMode.isLocalOperationMode))
+      ? 44
+      : 0;
 
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
@@ -1876,16 +1890,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (vertical)
           Container(
               height: 36,
+              width: 48,
               child: Stack(
                 children: [
                   Center(
                       child: Transform.translate(
-                          offset: Offset(7, -3),
+                          offset: Offset(9, -5),
                           child: tapInBarInstructions(withText: false))),
                   Center(
                       child: Transform.translate(
-                          offset: Offset(0, 8),
+                          offset: Offset(0, 10),
                           child: Text("Tap",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -2317,11 +2335,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  _doShowScorePicker(mode) {
+  _doShowScorePicker(ScorePickerMode mode, {bool doDirectly: false}) {
     setState(() {
-      if ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
-          (interactionMode != InteractionMode.view &&
-              mode != ScorePickerMode.show)) {
+      if (!doDirectly &&
+          ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
+              (interactionMode != InteractionMode.view &&
+                  mode != ScorePickerMode.show))) {
         scorePickerMode = ScorePickerMode.none;
         _viewMode();
         Future.delayed(slowAnimationDuration, () {
@@ -2333,6 +2352,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       } else {
         scorePickerMode = mode;
         showScorePicker = true;
+        if (mode == ScorePickerMode.open && !interactionMode.isView) {
+          interactionMode = InteractionMode.view;
+          universeViewUI.visible = false;
+        }
+        if (mode == ScorePickerMode.universe && !interactionMode.isUniverse) {
+          interactionMode = InteractionMode.universe;
+        }
       }
     });
   }
@@ -2397,22 +2423,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   SectionList createSectionList({Axis scrollDirection = Axis.horizontal}) {
     SectionList result = SectionList(
-      appSettings: _appSettings,
-      sectionColor: sectionColor,
-      score: score,
-      setState: setState,
-      scrollDirection: scrollDirection,
-      currentSection: currentSection,
-      selectSection: _selectSection,
-      insertSection: (s) => _insertSection(s, withNewColor: true),
-      showSectionBeatCounts: showBeatCounts,
-      toggleShowSectionBeatCounts: () {
-        setState(() {
-          showBeatCounts = !showBeatCounts;
-        });
-      },
-      allowReordering: interactionMode.isEdit,
-    );
+        appSettings: _appSettings,
+        sectionColor: sectionColor,
+        score: score,
+        setState: setState,
+        scrollDirection: scrollDirection,
+        currentSection: currentSection,
+        selectSection: _selectSection,
+        insertSection: (s) => _insertSection(s, withNewColor: true),
+        showSectionBeatCounts: showBeatCounts,
+        toggleShowSectionBeatCounts: () {
+          setState(() {
+            showBeatCounts = !showBeatCounts;
+          });
+        },
+        allowReordering: interactionMode.isEdit,
+        width:
+            scrollDirection == Axis.horizontal ? musicViewWidth(context) : null,
+        height:
+            scrollDirection == Axis.vertical ? musicViewHeight(context) : null);
     _sectionLists.add(result);
     return result;
   }
@@ -2463,21 +2492,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         webWarningHeight -
         _bottomNotchPadding -
         exportUI.height -
-        universeViewUIHeight -
+        (context.isPortraitPhone ? 0 : 0) -
         downloadLinksHeight -
         _topNotchPaddingReal -
         _bottomTapInBarHeight -
-        // universeScoreTitleHeight -
+        universeScoreTitleHeight -
         duplicateScoreWarningHeight -
         beatScratchToolbarHeight(context);
-    // if (context.isPortraitPhone) {
-    //   result -= universeScoreTitleHeight;
-    // }
+    if (context.isPortraitPhone && !interactionMode.isUniverse) {
+      result += universeScoreTitleHeight;
+    }
     return result;
   }
 
-  Widget _layersAndMusicView(BuildContext context) {
-    var data = MediaQuery.of(context);
+  double musicViewHeight(BuildContext context) {
     double fullHeight = flexibleAreaHeight(context);
     if (_scorePickerScrollDirection == Axis.horizontal) {
       fullHeight -= _scorePickerHeight(context);
@@ -2485,16 +2513,31 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (context.isPortraitPhone) {
       fullHeight -= universeScoreTitleHeight;
     }
-    double fullWidth = data.size.width -
+    return fullHeight;
+  }
+
+  double flexibleAreaWidth(BuildContext context) {
+    double result = MediaQuery.of(context).size.width -
         verticalSectionListWidth -
         _leftNotchPadding -
         _rightNotchPadding -
         _landscapeTapInBarWidth -
         _landscapePhoneSecondToolbarWidth -
         _landscapePhoneBeatscratchToolbarWidth;
+    return result;
+  }
+
+  double musicViewWidth(BuildContext context) {
+    double fullWidth = flexibleAreaWidth(context);
     if (_scorePickerScrollDirection == Axis.vertical) {
       fullWidth -= _scorePickerWidth(context);
     }
+    return fullWidth;
+  }
+
+  Widget _layersAndMusicView(BuildContext context) {
+    double fullHeight = musicViewHeight(context);
+    double fullWidth = musicViewWidth(context);
 
     final landscapeLayersWidth = fullWidth * (1 - _musicViewSizeFactor);
     final portraitMelodyHeight = fullHeight * _musicViewSizeFactor;
@@ -2974,6 +3017,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           requestMode: (mode) {
             setState(() {
               scorePickerMode = mode;
+            });
+          },
+          goToUniverse: () {
+            setState(() {
+              scorePickerMode = ScorePickerMode.universe;
+              interactionMode = InteractionMode.universe;
+              universeViewUI.visible = true;
             });
           },
           close: () => _closeScorePicker(waitForSave: true),

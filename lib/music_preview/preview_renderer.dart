@@ -38,18 +38,17 @@ class MusicPreviewRenderer {
     final parts = score.parts;
     final staves = parts.map((part) => PartStaff(part)).toList(growable: false);
     final partTopOffsets = Map<String, double>.fromIterable(parts.asMap().keys,
-        key: (index) => parts[index].id,
-        value: (index) => index * scale * MusicSystemPainter.staffHeight);
+        key: (index) => parts[index].id, value: (index) => index * staffHeight);
     final staffOffsets = Map<String, double>.fromIterable(staves.asMap().keys,
         key: (index) => staves[index].id,
-        value: (index) => index * scale * MusicSystemPainter.staffHeight);
+        value: (index) => index * staffHeight);
     return MusicSystemPainter(
       sectionScaleNotifier: ValueNotifier(renderSections ? 1 : 0),
       score: score,
       section: score.sections.first,
       musicViewMode: musicViewMode,
-      xScaleNotifier: ValueNotifier(scale),
-      yScaleNotifier: ValueNotifier(scale),
+      transformationController: TransformationController()..value.scale(scale),
+      rescale: true,
       staves: ValueNotifier(staves),
       partTopOffsets: ValueNotifier(partTopOffsets),
       staffOffsets: ValueNotifier(staffOffsets),
@@ -60,8 +59,9 @@ class MusicPreviewRenderer {
           AppSettings.globalRenderingMode == RenderingMode.notation ? 1 : 0),
       colorboardNotesNotifier: ValueNotifier([]),
       keyboardNotesNotifier: ValueNotifier([]),
-      visibleRect: () => Rect.fromLTRB(0, 0, width, height),
-      verticallyVisibleRect: () => Rect.fromLTRB(0, 0, width, height),
+      visibleRect: () => Rect.fromLTRB(0, 0, width / scale, height / scale),
+      verticallyVisibleRect: () =>
+          Rect.fromLTRB(0, 0, width / scale, height / scale),
       keyboardPart: ValueNotifier(null),
       colorboardPart: ValueNotifier(null),
       focusedPart: ValueNotifier(null),
@@ -76,9 +76,7 @@ class MusicPreviewRenderer {
   }
 
   double get maxWidth =>
-      (MusicSystemPainter.extraBeatsSpaceForClefs + score.beatCount) *
-      unscaledStandardBeatWidth *
-      scale;
+      (extraBeatsSpaceForClefs + score.beatCount) * beatWidth * scale;
   double get actualWidth => min(maxWidth, width);
   Future<ui.Image> get renderedScoreImage async {
     if (height < 1 || width < 1) {

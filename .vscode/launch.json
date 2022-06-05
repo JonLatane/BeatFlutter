@@ -48,38 +48,20 @@
             "deviceId": "emulator-5554"
         },
         {
-            "name": "iPhone SE (2nd generation) (mobile)",
+            "name": "iPhone 13 (mobile)",
             "request": "launch",
             "type": "dart",
-            "deviceId": "B74B1F44-56AD-4D14-B1FD-6F685C8BB7C2"
-        },
-        {
-            "name": "iPhone 12 (mobile)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "7182391C-3F76-4577-9A48-CDDD0EE66DFB"
-        },
-        {
-            "name": "iPad Pro (12.9-inch) (2nd generation) (mobile)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "086D2D71-E736-4291-A91F-C575C0B5C060"
-        },
-        {
-            "name": "iPad Pro (12.9-inch) (4th generation) (mobile)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "47D83A08-59A9-4E80-A6FD-7805D9F9BA52"
+            "deviceId": "77171629-E070-4F03-9FD7-0898D08E2DEA"
         },
     ],
     "compounds": [
         {
             "name": "iOS Screenshot Devices",
             "configurations": [
-                "iPad Pro (12.9-inch) (4th generation) (mobile)",
-                "iPhone SE (2nd generation) (mobile)",
-                "iPhone 12 (mobile)",
-                "iPad Pro (12.9-inch) (2nd generation) (mobile)"
+                // "iPad Pro (12.9-inch) (4th generation) (mobile)",
+                // "iPhone SE (2nd generation) (mobile)",
+                // "iPhone 12 (mobile)",
+                // "iPad Pro (12.9-inch) (2nd generation) (mobile)"
             ],
         }
     ]

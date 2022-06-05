@@ -112,41 +112,41 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                         hintText: (melodySelected) ? widget.melody.idName : "",
                       ))
                   : Text(""))),
-      AnimatedContainer(
-          duration: animationDuration,
-          width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
-          height: 36,
-          padding: EdgeInsets.only(right: showVolume ? 0 : 5),
-          child: MyRaisedButton(
-            color: (widget.editingMelody)
-                ? widget.sectionColor == chromaticSteps[7]
-                    ? Colors.white
-                    : widget.sectionColor
-                : null,
-            onPressed: (melodyEnabled)
-                ? () {
-                    widget.toggleRecording();
-                  }
-                : null,
-            padding: EdgeInsets.all(0),
-            child: AnimatedOpacity(
-                duration: animationDuration,
-                opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
-                child:
-                    /*Stack(children: [
-                  Align(
-                      alignment: Alignment.bottomRight,
-                      child: */
-                    Icon(Icons.fiber_manual_record,
-                        color: chromaticSteps[
-                            7])), /*,
-                  Align(
-                      alignment: Alignment.topLeft,
-                      child: Icon(
-                        Icons.edit,
-                      ))
-                ])),*/
-          )),
+      // AnimatedContainer(
+      //     duration: animationDuration,
+      //     width: (melodyEnabled && !isConfirmingDelete) ? 40 : 0,
+      //     height: 36,
+      //     padding: EdgeInsets.only(right: showVolume ? 0 : 5),
+      //     child: MyRaisedButton(
+      //       color: (widget.editingMelody)
+      //           ? widget.sectionColor == chromaticSteps[7]
+      //               ? Colors.white
+      //               : widget.sectionColor
+      //           : null,
+      //       onPressed: (melodyEnabled)
+      //           ? () {
+      //               widget.toggleRecording();
+      //             }
+      //           : null,
+      //       padding: EdgeInsets.all(0),
+      //       child: AnimatedOpacity(
+      //           duration: animationDuration,
+      //           opacity: (melodyEnabled && !isConfirmingDelete) ? 1 : 0,
+      //           child:
+      //               /*Stack(children: [
+      //             Align(
+      //                 alignment: Alignment.bottomRight,
+      //                 child: */
+      //               Icon(Icons.fiber_manual_record,
+      //                   color: chromaticSteps[
+      //                       7])), /*,
+      //             Align(
+      //                 alignment: Alignment.topLeft,
+      //                 child: Icon(
+      //                   Icons.edit,
+      //                 ))
+      //           ])),*/
+      //     )),
       AnimatedOpacity(
         opacity: (showVolume) ? 1 : 0,
         duration: animationDuration,

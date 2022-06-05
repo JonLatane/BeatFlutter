@@ -23,15 +23,13 @@ import '../util/music_theory.dart';
 
 // Top level for rendering of music to a Canvas.
 class MusicSystemPainter extends CustomPainter {
-  static const double extraBeatsSpaceForClefs = 2;
-  static const double staffHeight = 500;
-
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
   final String focusedMelodyId;
   final Score score;
   final Section section;
-  final ValueNotifier<double> xScaleNotifier, yScaleNotifier;
+  final TransformationController transformationController;
+  final bool rescale;
   final Rect Function() visibleRect;
   final Rect Function() verticallyVisibleRect;
   final MusicViewMode musicViewMode;
@@ -54,9 +52,9 @@ class MusicSystemPainter extends CustomPainter {
   final double firstBeatOfSection;
   final int systemsToRender;
 
-  double get xScale => xScaleNotifier.value;
-
-  double get yScale => yScaleNotifier.value;
+  double get xScale => 1;
+  double get yScale => 1;
+  double get scale => transformationController.value.getMaxScaleOnAxis();
 
   Melody get focusedMelody => score.parts
       .expand((p) => p.melodies)
@@ -65,10 +63,7 @@ class MusicSystemPainter extends CustomPainter {
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/ score
       .beatCount;
 
-  double get standardBeatWidth => calculateStandardBeatWidth(xScale);
-  double get standardClefWidth => calculateClefWidth(xScale);
-
-  double get width => standardBeatWidth * numberOfBeats;
+  double get standardClefWidth => clefWidth;
 
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
@@ -94,8 +89,8 @@ class MusicSystemPainter extends CustomPainter {
       this.bluetoothControllerPressedNotes,
       this.score,
       this.section,
-      this.xScaleNotifier,
-      this.yScaleNotifier,
+      this.transformationController,
+      this.rescale = false,
       this.visibleRect,
       this.verticallyVisibleRect,
       this.focusedMelodyId,
@@ -121,31 +116,24 @@ class MusicSystemPainter extends CustomPainter {
           tappedBeat,
           BeatScratchPlugin.pressedMidiControllerNotes,
           BeatScratchPlugin.currentBeat,
-          xScaleNotifier,
-          yScaleNotifier,
+          transformationController,
           if (otherListenables != null) ...otherListenables
         ])) {
     _tickPaint.color = musicForegroundColor;
     _tickPaint.strokeWidth = 2.0;
   }
 
-  static double calculateHarmonyHeight(double yScale) => min(100, 30 * yScale);
-  static double calculateSectionHeight(double yScale) =>
-      max(22, calculateHarmonyHeight(yScale));
-  static double calculateMelodyHeight(double yScale) => staffHeight * yScale;
-  static double calculateSystemHeight(double yScale, int partCount) =>
-      calculateSectionHeight(yScale) +
-      calculateHarmonyHeight(yScale) +
-      (calculateMelodyHeight(yScale) * partCount);
-  static double calculateSystemPadding(double yScale) =>
-      calculateMelodyHeight(yScale) * 0.5;
-  static double calculateStandardBeatWidth(double xScale) =>
-      unscaledStandardBeatWidth * xScale;
-  static double calculateClefWidth(double xScale) =>
-      calculateStandardBeatWidth(xScale) * 2;
+  static double calculateHarmonyHeight(double scale) => 10 / scale;
+  static double calculateSectionHeight(double scale) =>
+      calculateHarmonyHeight(scale);
+  static double calculateSystemHeight(double scale, int partCount) =>
+      calculateSectionHeight(scale) +
+      calculateHarmonyHeight(scale) +
+      (staffHeight * partCount) +
+      systemPadding;
 
-  double get harmonyHeight => calculateHarmonyHeight(yScale);
-  double get idealSectionHeight => max(22, harmonyHeight);
+  double get harmonyHeight => calculateHarmonyHeight(scale);
+  double get idealSectionHeight => 2 * harmonyHeight; //max(22, harmonyHeight);
   double get sectionHeight => idealSectionHeight * sectionScaleNotifier.value;
 
   double get melodyHeight => staffHeight * yScale;
@@ -154,21 +142,29 @@ class MusicSystemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
-    translationTotal = 0;
+    final scale = this.scale;
+    if (rescale) {
+      canvas.scale(scale);
+    }
+    translationTotal = -verticallyVisibleRect().top;
+    canvas.translate(0, translationTotal);
     double translationIncrement =
-        calculateSystemHeight(yScale, score.parts.length) +
-            calculateSystemPadding(yScale);
-    // print("verticallyVisibleRect=${verticallyVisibleRect()}");
-    for (int i = 0; i < systemsToRender; i++) {
-      if (translationTotal <
-              verticallyVisibleRect().bottom + translationIncrement &&
-          translationTotal + translationIncrement >
-              verticallyVisibleRect().top - translationIncrement) {
-        paintSystem(canvas, size,
-            offsetStart:
-                (visibleRect().width - calculateClefWidth(xScale)) * (i));
-      }
+        calculateSystemHeight(scale, score.parts.length);
+    // print(
+    //     "verticallyVisibleRect=${verticallyVisibleRect()}, translationIncrement=$translationIncrement");
+    final int firstSystem =
+        (verticallyVisibleRect().top / translationIncrement).floor();
+    translationTotal += firstSystem * translationIncrement;
+    canvas.translate(0, firstSystem * translationIncrement);
+    for (int i = firstSystem; i < systemsToRender + 20; i++) {
+      // print("Drawing system $i at $translationTotal");
+      paintSystem(canvas, size,
+          offsetStart: (visibleRect().width - clefWidth) * (i));
       translationTotal += translationIncrement;
+      if (translationTotal * scale - translationIncrement >
+          visibleRect().bottom) {
+        break;
+      }
       canvas.translate(0, translationIncrement);
     }
     canvas.restore();
@@ -195,13 +191,11 @@ class MusicSystemPainter extends CustomPainter {
 //    canvas.clipRect(Offset.zero & size);
 
     // Calculate from which beat we should start drawing
-    int startBeat = ((visibleRect().left + offsetStart - standardBeatWidth) /
-            standardBeatWidth)
-        .floor();
+    int startBeat =
+        ((visibleRect().left + offsetStart - beatWidth) / beatWidth).floor();
 
-    // ignore: unused_local_variable
     double top, left, right, bottom;
-    left = startBeat * standardBeatWidth - offsetStart;
+    left = startBeat * beatWidth - offsetStart;
 //    canvas.drawRect(visibleRect(), Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
     staves.value.forEach((staff) {
@@ -209,12 +203,18 @@ class MusicSystemPainter extends CustomPainter {
       double top =
           visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
       Rect staffLineBounds = Rect.fromLTRB(
-          visibleRect().left, top, visibleRect().right, top + melodyHeight);
+          max(-offsetStart, visibleRect().left),
+          top,
+          max(-offsetStart, visibleRect().right),
+          top + melodyHeight);
 //      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
       _renderStaffLines(canvas,
           !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
-      Rect clefBounds = Rect.fromLTRB(visibleRect().left, top,
-          visibleRect().left + standardClefWidth, top + melodyHeight);
+      Rect clefBounds = Rect.fromLTRB(
+          max(-offsetStart, visibleRect().left),
+          top,
+          max(-offsetStart, visibleRect().left) + standardClefWidth,
+          top + melodyHeight);
 //      canvas.drawRect(clefBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
 
       _renderClefs(canvas, clefBounds, staff);
@@ -223,7 +223,7 @@ class MusicSystemPainter extends CustomPainter {
     int renderingBeat =
         startBeat - extraBeatsSpaceForClefs.toInt(); // To make room for clefs
 //    print("Drawing frame from beat=$renderingBeat. Colorblock alpha is ${colorblockOpacityNotifier.value}. Notation alpha is ${notationOpacityNotifier.value}");
-    while (left < visibleRect().right + standardBeatWidth) {
+    while (left < visibleRect().right + beatWidth) {
       if (renderingBeat >= 0) {
         // Figure out what beat of what section we're drawing
         int renderingSectionBeat = renderingBeat;
@@ -280,19 +280,19 @@ class MusicSystemPainter extends CustomPainter {
             textDirection: TextDirection.ltr,
           );
           tp.layout();
-          tp.paint(canvas,
-              new Offset(left + standardBeatWidth * 0.08, top + topOffset));
+          tp.paint(
+              canvas, new Offset(left + beatWidth * 0.08, top + topOffset));
         }
         top += sectionHeight;
 
-        right = left + standardBeatWidth;
+        right = left + beatWidth;
         String sectionName = renderingSection.name;
         if (sectionName == null || sectionName.isEmpty) {
           sectionName = renderingSection.id;
         }
 
-        Rect harmonyBounds = Rect.fromLTRB(
-            left, top, left + standardBeatWidth, top + harmonyHeight);
+        Rect harmonyBounds =
+            Rect.fromLTRB(left, top, left + beatWidth, top + harmonyHeight);
         if (isInBounds(harmonyBounds)) {
           _renderHarmonyBeat(
               harmonyBounds, renderingSection, renderingSectionBeat, canvas);
@@ -309,22 +309,27 @@ class MusicSystemPainter extends CustomPainter {
             renderingSectionBeat,
             renderingBeat));
       }
-      left += standardBeatWidth;
+      left += beatWidth;
       renderingBeat += 1;
     }
 
     if (visibleRect().right > left) {
       double extraWidth = 0;
-      double diff = left - visibleRect().left - standardBeatWidth;
-      if (offsetStart > 0 && diff < standardClefWidth + standardBeatWidth) {
-        extraWidth = standardClefWidth *
-            max(0, (standardClefWidth - diff)) /
-            standardBeatWidth;
+      double diff = left - visibleRect().left - beatWidth;
+      if (offsetStart > 0 && diff < standardClefWidth + beatWidth) {
+        extraWidth =
+            standardClefWidth * max(0, (standardClefWidth - diff)) / beatWidth;
       }
 
       canvas.drawRect(
-          Rect.fromLTRB(left - extraWidth, visibleRect().top + sectionHeight,
-              visibleRect().right, visibleRect().bottom),
+          Rect.fromLTRB(
+              left - extraWidth,
+              translationTotal +
+                  visibleRect().top -
+                  translationTotal +
+                  sectionHeight,
+              visibleRect().right,
+              visibleRect().bottom - translationTotal),
           Paint()..color = musicBackgroundColor);
     }
   }
@@ -500,11 +505,14 @@ class MusicSystemPainter extends CustomPainter {
 
   void _renderStaffLines(
       Canvas canvas, bool drawContinuousColorGuide, Rect bounds) {
+    double alphaModifier = max(0.0,
+        min(1.0, (visibleRect().right - bounds.left - clefWidth) / beatWidth));
     if (notationOpacityNotifier.value > 0) {
       MelodyStaffLinesRenderer()
         ..alphaDrawerPaint = (Paint()
-          ..color = musicForegroundColor
-              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
+          ..strokeWidth = 1 / sqrt(scale)
+          ..color = musicForegroundColor.withAlpha(
+              (255 * alphaModifier * notationOpacityNotifier.value).toInt()))
         ..bounds = bounds
         ..draw(canvas);
     }
@@ -515,6 +523,8 @@ class MusicSystemPainter extends CustomPainter {
   }
 
   void _renderClefs(Canvas canvas, Rect bounds, MusicStaff staff) {
+    double alphaModifier = max(0.0,
+        min(1.0, (visibleRect().right - bounds.left - clefWidth) / beatWidth));
     if (notationOpacityNotifier.value > 0) {
       var clefs =
           (staff is DrumStaff || (staff is PartStaff && staff.part.isDrum))
@@ -524,8 +534,8 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = musicForegroundColor
-              .withAlpha((255 * notationOpacityNotifier.value).toInt()))
+          ..color = musicForegroundColor.withAlpha(
+              (255 * notationOpacityNotifier.value * alphaModifier).toInt()))
         ..bounds = bounds
         ..clefs = clefs
         ..draw(canvas);
@@ -535,8 +545,8 @@ class MusicSystemPainter extends CustomPainter {
         ..xScale = xScale
         ..yScale = yScale
         ..alphaDrawerPaint = (Paint()
-          ..color = musicForegroundColor
-              .withAlpha(255 * colorblockOpacityNotifier.value ~/ 3))
+          ..color = musicForegroundColor.withAlpha(
+              255 * alphaModifier * colorblockOpacityNotifier.value ~/ 3))
         ..bounds = bounds
         ..draw(canvas);
     }
@@ -550,7 +560,10 @@ class MusicSystemPainter extends CustomPainter {
           bounds.bottomRight.translate(
               0, notationOpacityNotifier.value * -bounds.height / 10));
       canvas.drawRect(
-          highlight, Paint()..color = sectionColor.value.withAlpha(127));
+          highlight,
+          Paint()
+            ..color =
+                sectionColor.value.withAlpha((127 * alphaModifier).toInt()));
     }
 
     if (renderPartNames) {
@@ -563,14 +576,15 @@ class MusicSystemPainter extends CustomPainter {
         text = "Drums";
       }
 
+      double textOpacity = colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1;
       TextSpan span = new TextSpan(
           text: text,
           style: TextStyle(
               fontFamily: "VulfSans",
-              fontSize: max(11, 20 * yScale),
+              fontSize: max(11, 10 / scale),
               fontWeight: FontWeight.w800,
-              color: musicForegroundColor.withOpacity(
-                  colorblockOpacityNotifier.value > 0.5 ? 0.8 : 1)));
+              color: musicForegroundColor
+                  .withOpacity(alphaModifier * textOpacity)));
       TextPainter tp = new TextPainter(
         text: span,
         textAlign: TextAlign.left,
@@ -656,9 +670,9 @@ class MusicSystemPainter extends CustomPainter {
 
   double magicOpacityFactor(Rect melodyBounds) {
     double opacityFactor = 1;
-    if (melodyBounds.left < visibleRect().left + (2 * standardBeatWidth)) {
+    if (melodyBounds.left < visibleRect().left + (2 * beatWidth)) {
       double left = melodyBounds.left - visibleRect().left;
-      opacityFactor = max(0, min(1, (left) / (2 * standardBeatWidth)));
+      opacityFactor = max(0, min(1, (left) / (2 * beatWidth)));
     }
     return opacityFactor * opacityFactor;
   }
@@ -755,7 +769,7 @@ class MusicSystemPainter extends CustomPainter {
       try {
         if (colorblockOpacityNotifier.value > 0) {
           ColorblockMusicRenderer()
-            ..uiScale = xScale
+            ..uiScale = scale
             ..overallBounds = melodyBounds
             ..section = renderingSection
             ..beatPosition = renderingSectionBeat
@@ -799,17 +813,16 @@ class MusicSystemPainter extends CustomPainter {
   drawContinuousColorGuide(Canvas canvas, double top, double bottom) {
     // Calculate from which beat we should start drawing
     int renderingBeat =
-        ((visibleRect().left - standardBeatWidth) / standardBeatWidth).floor() -
-            2;
+        ((visibleRect().left - beatWidth) / beatWidth).floor() - 2;
 
-    final double startOffset = renderingBeat * standardBeatWidth;
+    final double startOffset = renderingBeat * beatWidth;
     double left = startOffset;
     double chordLeft = left;
     Chord renderingChord;
 
-    while (left < visibleRect().right + standardBeatWidth) {
+    while (left < visibleRect().right + beatWidth) {
       if (renderingBeat < 0) {
-        left += standardBeatWidth;
+        left += beatWidth;
         renderingBeat += 1;
         continue;
       }
@@ -856,9 +869,9 @@ class MusicSystemPainter extends CustomPainter {
           chordLeft = left;
         }
         renderingChord = chordAtSubdivision;
-        left += standardBeatWidth / renderingHarmony.subdivisionsPerBeat;
+        left += beatWidth / renderingHarmony.subdivisionsPerBeat;
       }
-      left = beatLeft + standardBeatWidth;
+      left = beatLeft + beatWidth;
       renderingBeat += 1;
     }
     Rect renderingRect =
@@ -884,4 +897,10 @@ class MusicSystemPainter extends CustomPainter {
   bool shouldRepaint(MusicSystemPainter oldDelegate) {
     return false;
   }
+}
+
+Matrix4 inverse(Matrix4 transform) => Matrix4.copy(transform)..invert();
+Offset inverseTransformPoint(Matrix4 transform, Offset point) {
+  if (MatrixUtils.isIdentity(transform)) return point;
+  return MatrixUtils.transformPoint(inverse(transform), point);
 }

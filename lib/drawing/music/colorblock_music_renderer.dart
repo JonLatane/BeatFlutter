@@ -10,17 +10,16 @@ import '../../util/music_theory.dart';
 class ColorblockMusicRenderer extends BaseMusicRenderer {
   double uiScale = 1;
   @override
-  bool showSteps = true;
-  @override
   double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
   double colorblockAlpha;
+  static double stepLineScaleThreshold = 0.7;
 
   draw(Canvas canvas) {
     alphaDrawerPaint.strokeWidth = 0;
     bounds = overallBounds;
     canvas.save();
     canvas.translate(0, bounds.top);
-    if (uiScale > 0.7) {
+    if (uiScale > stepLineScaleThreshold) {
       _renderSteps(canvas);
     }
     double alphaMultiplier = (isMelodyReferenceEnabled) ? 1.0 : 2.0 / 3;
@@ -36,18 +35,16 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
   _renderSteps(Canvas canvas) {
     alphaDrawerPaint.color =
         Colors.black87.withAlpha((colorblockAlpha * 255 * 0.8).toInt());
-    if (showSteps) {
-      var linePosition = startPoint; // - 12 * halfStepWidth;
-      while (linePosition < axisLength) {
-        if (renderVertically) {
-          canvas.drawLine(Offset(bounds.left, linePosition),
-              Offset(bounds.right, linePosition), alphaDrawerPaint);
-        } else {
-          canvas.drawLine(Offset(linePosition, bounds.top),
-              Offset(linePosition, bounds.bottom), alphaDrawerPaint);
-        }
-        linePosition += halfStepWidth;
+    var linePosition = startPoint; // - 12 * halfStepWidth;
+    while (linePosition < axisLength) {
+      if (renderVertically) {
+        canvas.drawLine(Offset(bounds.left, linePosition),
+            Offset(bounds.right, linePosition), alphaDrawerPaint);
+      } else {
+        canvas.drawLine(Offset(linePosition, bounds.top),
+            Offset(linePosition, bounds.bottom), alphaDrawerPaint);
       }
+      linePosition += halfStepWidth;
     }
   }
 
@@ -97,6 +94,14 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
             bounds.height - bounds.height * (realTone - lowestPitch) / 88;
         double bottom =
             bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
+        if (uiScale < stepLineScaleThreshold) {
+          double height = top - bottom;
+          double extraHeight =
+              1.5 * height * (stepLineScaleThreshold - uiScale);
+          print("extraHeight=$extraHeight");
+          top += extraHeight;
+          bottom -= extraHeight;
+        }
         canvas.drawRect(
             Rect.fromLTRB(bounds.left + leftMargin, top,
                 bounds.right - rightMargin, bottom),
@@ -104,6 +109,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
       });
     }
 
+// Render note offs
     if (uiScale > highResUiScale) {
       tones = melody.noteOffsAt(elementPosition % melody.length).toList();
 

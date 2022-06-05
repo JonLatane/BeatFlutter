@@ -8,8 +8,6 @@ import 'music_staff_lines_renderer.dart';
 
 class MelodyMeasureLinesRenderer extends BaseMusicRenderer {
   @override
-  bool showSteps = true;
-  @override
   double normalizedDevicePitch = 0;
   double notationAlpha = 0;
   double colorblockAlpha = 0;

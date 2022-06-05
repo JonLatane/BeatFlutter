@@ -16,7 +16,7 @@ data class NoteOnEvent(
 ): MidiEvent {
   override val eventByteCount get() = 3
   override fun withChannelOverride(newChannel: Byte) = NoteOnEvent(midiNote, velocity, newChannel)
-  override fun withVelocityMultiplier(velocityMultiplier: Float) = NoteOnEvent(midiNote, (velocity * velocityMultiplier).toByte(), channel)
+  override fun withVelocityMultiplier(velocityMultiplier: Float) = NoteOnEvent(midiNote, (velocity * velocityMultiplier).toInt().toByte(), channel)
   override fun send(immediately: Boolean, record: Boolean) {
     AndroidMidi.playNote(midiNote, velocity, channel, immediately, record)
   }
@@ -29,7 +29,7 @@ data class NoteOffEvent(
 ): MidiEvent {
   override val eventByteCount get() = 3
   override fun withChannelOverride(newChannel: Byte) = NoteOffEvent(midiNote, velocity, newChannel)
-  override fun withVelocityMultiplier(velocityMultiplier: Float) = NoteOffEvent(midiNote, (velocity * velocityMultiplier).toByte(), channel)
+  override fun withVelocityMultiplier(velocityMultiplier: Float) = NoteOffEvent(midiNote, (velocity * velocityMultiplier).toInt().toByte(), channel)
   override fun send(immediately: Boolean, record: Boolean) {
     AndroidMidi.stopNote(midiNote, channel, immediately, record)
   }

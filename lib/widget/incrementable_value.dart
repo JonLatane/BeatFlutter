@@ -209,7 +209,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
         //   Column(children: [Expanded(child: SizedBox())])
         // )),]),
         Listener(
-          child: Container(
+          child: Center(
               child: Row(children: [
             AnimatedContainer(
                 width: showBigDecrement ? buttonWidth : 0,
@@ -230,7 +230,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                           widget.onBigDecrement();
                         }
                       : null,
-                  padding: EdgeInsets.all(0),
+                  padding: EdgeInsets.zero,
                 )),
             AnimatedContainer(
                 width: buttonWidth,

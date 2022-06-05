@@ -2,6 +2,17 @@ import '../generated/protos/music.pb.dart';
 import 'music_theory.dart';
 import 'util.dart';
 
+// beatWidth is in the scale of the renderer, not the overlying InteractiveView.
+const double beatWidth = 90.0;
+// clefWidth is in the scale of the renderer, not the overlying InteractiveView.
+const double clefWidth = beatWidth * 2;
+// staffHeight is in the scale of the renderer, not the overlying InteractiveView.
+const double staffHeight = 500;
+// systemPadding is in the scale of the renderer, not the overlying InteractiveView.
+const double systemPadding = staffHeight * 0.5;
+// extraBeatsSpaceForClefs is relative to beatWidth, not any particular scale :)
+const double extraBeatsSpaceForClefs = 2;
+
 class NoteSpecification {
   final NoteName noteName;
   final int octave;
@@ -149,8 +160,6 @@ extension HeptatonicConversions on int {
     }
   }
 }
-
-const double unscaledStandardBeatWidth = 90.0;
 
 abstract class MusicStaff {
   MusicStaff();

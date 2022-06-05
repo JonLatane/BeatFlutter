@@ -78,29 +78,48 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
                 child: AnimatedOpacity(
                     duration: animationDuration,
                     opacity: widget.browsingMelodies ? 1 : 0,
-                    child: Stack(
-                      children: [
-                        Align(
-                            alignment: Alignment.center,
-                            child: Icon(Icons.fiber_manual_record,
-                                color: chromaticSteps[7])),
-                        Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.only(right: 1, bottom: 0),
-                              child: Transform.translate(
-                                  offset: Offset(0, 0),
-                                  child: Text(
-                                    "Record",
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w400),
-                                  )),
-                            ))
-                      ],
-                    ))),
+                    child: Stack(children: [
+                      Center(
+                          child: Transform.translate(
+                              offset: Offset(0, -5),
+                              child: Icon(Icons.fiber_manual_record,
+                                  color: chromaticSteps[7]))),
+                      Center(
+                          child: Transform.translate(
+                              offset: Offset(0, 10),
+                              child: Text("New\nMelody",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 8,
+                                      height: 0.9,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400)))),
+                    ])
+                    // Stack(
+                    //   children: [
+                    //     Align(
+                    //         alignment: Alignment.center,
+                    //         child: Icon(Icons.fiber_manual_record,
+                    //             color: chromaticSteps[7])),
+                    //     Align(
+                    //         alignment: Alignment.bottomCenter,
+                    //         child: Padding(
+                    //           padding:
+                    //               const EdgeInsets.only(right: 1, bottom: 0),
+                    //           child: Transform.translate(
+                    //               offset: Offset(0, 0),
+                    //               child: Text(
+                    //                 "New Melody",
+                    //                 textAlign: TextAlign.center,
+                    //                 style: TextStyle(
+                    //                     fontSize: 8,
+                    //                     color: Colors.white,
+                    //                     fontWeight: FontWeight.w400),
+                    //               )),
+                    //         ))
+                    //   ],
+                    // )
+                    )),
           )),
       Expanded(child: getList(context)),
       SizedBox(width: 3),

@@ -102,8 +102,6 @@ extension ClefNotes on Clef {
 
 class MelodyStaffLinesRenderer extends BaseMusicRenderer {
   @override
-  bool showSteps = true;
-  @override
   double normalizedDevicePitch = 0;
 
   @override

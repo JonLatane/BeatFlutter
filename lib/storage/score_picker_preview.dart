@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
+import 'package:beatscratch_flutter_redux/util/music_notation_theory.dart';
 import 'package:beatscratch_flutter_redux/util/util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -334,8 +335,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                                         widget.height,
                                                         36 +
                                                             previewScale *
-                                                                MusicSystemPainter
-                                                                    .staffHeight *
+                                                                staffHeight *
                                                                 previewScore
                                                                     .parts
                                                                     .length),
