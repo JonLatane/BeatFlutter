@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:beatscratch_flutter_redux/storage/url_conversions.dart';
+import 'package:beatscratch_flutter_redux/universe_view/universe_icon.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
@@ -52,6 +53,7 @@ class ScorePicker extends StatefulWidget {
   final Color sectionColor;
   final Function(VoidCallback) setState;
   final VoidCallback close;
+  final VoidCallback goToUniverse;
   final ScorePickerMode mode;
   final Function(ScorePickerMode) requestMode;
   final Score openedScore;
@@ -77,7 +79,8 @@ class ScorePicker extends StatefulWidget {
       this.requestMode,
       this.width,
       this.height,
-      this.refreshUniverseData})
+      this.refreshUniverseData,
+      this.goToUniverse})
       : super(key: key);
 
   @override
@@ -96,6 +99,7 @@ class ScorePickerState extends State<ScorePicker> {
   ScorePickerMode previousMode;
   String deletingScoreName;
   String overwritingScoreName;
+  BSMethod universeAnimation = BSMethod();
 
   bool get wasShowingScoreNameEntry =>
       previousMode?.showScoreNameEntry ?? false;
@@ -136,6 +140,7 @@ class ScorePickerState extends State<ScorePicker> {
     nameFocus.dispose();
     widget.refreshUniverseData.removeListener(_refreshUniverseData);
     disposed = true;
+    universeAnimation.dispose();
     super.dispose();
   }
 
@@ -336,6 +341,24 @@ class ScorePickerState extends State<ScorePicker> {
                                   style: TextStyle(
                                       color: ChordColor.dominant.color
                                           .textColor()))),
+                        ),
+                        AnimatedContainer(
+                          duration: animationDuration,
+                          width: widget.mode == ScorePickerMode.open ? 42 : 0,
+                          padding: EdgeInsets.only(right: 5),
+                          child: MyFlatButton(
+                              lightHighlight: true,
+                              color: Colors.transparent,
+                              onPressed: () {
+                                setState(() {
+                                  universeAnimation();
+                                });
+                                widget.goToUniverse();
+                              },
+                              padding: EdgeInsets.zero,
+                              child: UniverseIcon(
+                                animateIcon: universeAnimation,
+                              )),
                         ),
                         AnimatedContainer(
                           duration: animationDuration,

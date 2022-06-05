@@ -537,7 +537,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.score);
     setState(() {
       if (interactionMode != InteractionMode.universe) {
-        // showSections = false;
+        showSections = false;
         showDuplicateScoreWarning = false;
         if (BeatScratchPlugin.supportsStorage) {
           saveCurrentScore(delay: slowAnimationDuration * 2);
@@ -857,7 +857,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     universeViewUI = UniverseViewUI(setState, _universeManager)
       ..messagesUI = messagesUI
       ..refreshUniverseData = refreshUniverseData
-      ..refreshUniverseData = refreshUniverseData;
+      ..switchToLocalScores = MyPlatform.isWeb
+          ? null
+          : () {
+              _doShowScorePicker(ScorePickerMode.open, doDirectly: true);
+            };
     _universeManager
       ..refreshUniverseData = refreshUniverseData
       ..messagesUI = messagesUI
@@ -1171,6 +1175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           sectionColor: sectionColor,
                           keyboardHeight: _keyboardHeight,
                           settingsHeight: _midiSettingsHeight,
+                          scorePickerWidth: _scorePickerWidth(context),
                           showDownloads: ((MyPlatform.isWeb) &&
                                   !showDownloadLinks)
                               ? () => setState(() => showDownloadLinks = true)
@@ -1194,6 +1199,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                         sectionColor: sectionColor,
                                         keyboardHeight: _keyboardHeight,
                                         settingsHeight: _midiSettingsHeight,
+                                        scorePickerWidth:
+                                            _scorePickerWidth(context),
                                         showDownloads: ((MyPlatform.isWeb) &&
                                                 !showDownloadLinks)
                                             ? () => setState(
@@ -1215,6 +1222,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           ),
                         Expanded(
                             child: Column(children: [
+                          _universeScoreTitle(),
                           _downloadBanner(context),
                           if (_scorePickerScrollDirection == Axis.horizontal)
                             _scorePicker(context),
@@ -1222,7 +1230,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               context: context,
                               setState: setState,
                               currentSection: currentSection),
-                          _universeScoreTitle(),
                           _horizontalSectionList(),
                           Expanded(
                               child: Row(children: [
@@ -1336,7 +1343,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ))));
   }
 
-  double get universeScoreTitleHeight => interactionMode.isUniverse ? 44 : 0;
+  double get universeScoreTitleHeight => interactionMode.isUniverse ||
+          (_scoreManager.currentScoreName == ScoreManager.UNIVERSE_SCORE &&
+              !interactionMode.isEdit &&
+              (!context.isPortraitPhone ||
+                  !scorePickerMode.isLocalOperationMode))
+      ? 44
+      : 0;
 
   AnimatedContainer _universeScoreTitle() {
     Color foregroundColor, backgroundColor;
@@ -1877,16 +1890,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         if (vertical)
           Container(
               height: 36,
+              width: 48,
               child: Stack(
                 children: [
                   Center(
                       child: Transform.translate(
-                          offset: Offset(7, -3),
+                          offset: Offset(9, -5),
                           child: tapInBarInstructions(withText: false))),
                   Center(
                       child: Transform.translate(
-                          offset: Offset(0, 8),
+                          offset: Offset(0, 10),
                           child: Text("Tap",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -2318,11 +2335,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  _doShowScorePicker(mode) {
+  _doShowScorePicker(ScorePickerMode mode, {bool doDirectly: false}) {
     setState(() {
-      if ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
-          (interactionMode != InteractionMode.view &&
-              mode != ScorePickerMode.show)) {
+      if (!doDirectly &&
+          ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
+              (interactionMode != InteractionMode.view &&
+                  mode != ScorePickerMode.show))) {
         scorePickerMode = ScorePickerMode.none;
         _viewMode();
         Future.delayed(slowAnimationDuration, () {
@@ -2334,6 +2352,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       } else {
         scorePickerMode = mode;
         showScorePicker = true;
+        if (mode == ScorePickerMode.open && !interactionMode.isView) {
+          interactionMode = InteractionMode.view;
+          universeViewUI.visible = false;
+        }
+        if (mode == ScorePickerMode.universe && !interactionMode.isUniverse) {
+          interactionMode = InteractionMode.universe;
+        }
       }
     });
   }
@@ -2474,9 +2499,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         universeScoreTitleHeight -
         duplicateScoreWarningHeight -
         beatScratchToolbarHeight(context);
-    // if (context.isPortraitPhone) {
-    //   result -= universeScoreTitleHeight;
-    // }
+    if (context.isPortraitPhone && !interactionMode.isUniverse) {
+      result += universeScoreTitleHeight;
+    }
     return result;
   }
 
@@ -2992,6 +3017,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           requestMode: (mode) {
             setState(() {
               scorePickerMode = mode;
+            });
+          },
+          goToUniverse: () {
+            setState(() {
+              scorePickerMode = ScorePickerMode.universe;
+              interactionMode = InteractionMode.universe;
+              universeViewUI.visible = true;
             });
           },
           close: () => _closeScorePicker(waitForSave: true),

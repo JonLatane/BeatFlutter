@@ -109,28 +109,56 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
         BeatScratchPlugin.supportsPlayback;
     return Row(children: [
       SizedBox(width: 5),
-      MyFlatButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.toggleRecording,
-          child: Column(children: [
-            Expanded(child: SizedBox()),
-            Transform.translate(
-                offset: Offset(0, 5),
-                child: Icon(Icons.fiber_manual_record, color: recordingColor)),
-            Text(
-                widget.recordingMelody
-                    ? BeatScratchPlugin.playing
-                        ? 'Recording\n'
-                        : 'Recording\nOn'
-                    : 'Recording\nOff',
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.w100,
-                    fontSize: 8,
-                    color: recordingColor)),
-            Expanded(child: SizedBox()),
-          ])),
+      Container(
+        width: 48,
+        child: MyFlatButton(
+            padding: EdgeInsets.zero,
+            onPressed: widget.toggleRecording,
+            child: Stack(children: [
+              Center(
+                  child: Transform.translate(
+                      offset: Offset(0, -5),
+                      child: Icon(Icons.fiber_manual_record,
+                          color: recordingColor))),
+              Center(
+                  child: Transform.translate(
+                      offset: Offset(0, 10),
+                      child: Text(
+                          widget.recordingMelody
+                              ? BeatScratchPlugin.playing
+                                  ? 'Recording\n'
+                                  : 'Recording\nOn'
+                              : 'Recording\nOff',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              height: 0.9,
+                              fontWeight: FontWeight.w100,
+                              fontSize: 8,
+                              color: recordingColor)))),
+            ])),
+      ),
+
+      /// child: Column(children: [
+      ///   Expanded(child: SizedBox()),
+      ///   Transform.translate(
+      ///       offset: Offset(0, 0),
+      ///       child: Icon(Icons.fiber_manual_record, color: recordingColor)),
+      ///   Text(
+      ///       widget.recordingMelody
+      ///           ? BeatScratchPlugin.playing
+      ///               ? 'Recording\n'
+      ///               : 'Recording\nOn'
+      ///           : 'Recording\nOff',
+      ///       overflow: TextOverflow.ellipsis,
+      ///       textAlign: TextAlign.center,
+      ///       style: TextStyle(
+      ///           height: 0.9,
+      ///           fontWeight: FontWeight.w100,
+      ///           fontSize: 8,
+      ///           color: recordingColor)),
+      ///   Expanded(child: SizedBox()),
+      /// ])),
       AnimatedOpacity(
           duration: animationDuration,
           opacity: showGo ? 1 : 0,
@@ -148,21 +176,44 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
                           }
                         }
                       : null,
-                  child: Column(children: [
-                    Expanded(child: SizedBox()),
-                    Transform.translate(
-                        offset: Offset(0, 5),
-                        child: Icon(Icons.double_arrow,
-                            color: !showGo ? Colors.grey : chromaticSteps[0])),
-                    Text('Go!\n',
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w100,
-                            fontSize: 8,
-                            color: !showGo ? Colors.grey : chromaticSteps[7])),
-                    Expanded(child: SizedBox()),
-                  ])))),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Transform.translate(
+                            offset: Offset(0, -5),
+                            child: Icon(Icons.double_arrow,
+                                color:
+                                    !showGo ? Colors.grey : chromaticSteps[0])),
+                      ),
+                      Center(
+                          child: Transform.translate(
+                              offset: Offset(0, 15),
+                              child: Text('Go!\n',
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 8,
+                                      color: !showGo
+                                          ? Colors.grey
+                                          : chromaticSteps[7]))))
+                    ],
+                  )))),
+      // Column(children: [
+      //   Expanded(child: SizedBox()),
+      //   Transform.translate(
+      //       offset: Offset(0, 5),
+      //       child: Icon(Icons.double_arrow,
+      //           color: !showGo ? Colors.grey : chromaticSteps[0])),
+      //   Text('Go!\n',
+      //       overflow: TextOverflow.ellipsis,
+      //       textAlign: TextAlign.center,
+      //       style: TextStyle(
+      //           fontWeight: FontWeight.w100,
+      //           fontSize: 8,
+      //           color: !showGo ? Colors.grey : chromaticSteps[7])),
+      //   Expanded(child: SizedBox()),
+      // ])))),
       SizedBox(width: 7),
       IncrementableValue(
         collapsing: true,

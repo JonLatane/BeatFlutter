@@ -23,6 +23,7 @@ import '../widget/my_platform.dart';
 
 class UniverseViewUI {
   BSMethod refreshUniverseData;
+  VoidCallback switchToLocalScores;
   MessagesUI messagesUI;
   bool visible = true;
   final UniverseManager universeManager;
@@ -57,7 +58,9 @@ class UniverseViewUI {
       @required Color sectionColor,
       @required double keyboardHeight,
       @required double settingsHeight,
-      @required VoidCallback showDownloads}) {
+      @required VoidCallback showDownloads,
+      @required double scorePickerWidth}) {
+    double abbreviateAtWidth = 340;
     return AnimatedOpacity(
         duration: animationDuration,
         opacity: visible ? 1 : 0,
@@ -104,28 +107,31 @@ class UniverseViewUI {
                                     color: Colors.white,
                                     fontSize: 22,
                                     fontWeight: FontWeight.w100)),
-                            SizedBox(width: 7),
-                            Stack(
-                              children: [
-                                Transform.translate(
-                                    offset: Offset(0, -6),
-                                    child: Text(
-                                        MyPlatform.isWeb ? "Web" : "Universe",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400))),
-                                if (MyPlatform.isWeb)
+                            if (scorePickerWidth > abbreviateAtWidth)
+                              SizedBox(width: 7),
+                            if (scorePickerWidth > abbreviateAtWidth)
+                              Stack(
+                                children: [
                                   Transform.translate(
-                                      offset: Offset(0, 6),
-                                      child: Text("BETA",
+                                      offset: Offset(0, -6),
+                                      child: Text(
+                                          MyPlatform.isWeb ? "Web" : "Universe",
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 14,
-                                              fontWeight: FontWeight.w800))),
-                              ],
-                            ),
-                            SizedBox(width: 2.5),
+                                              fontWeight: FontWeight.w400))),
+                                  if (MyPlatform.isWeb)
+                                    Transform.translate(
+                                        offset: Offset(0, 6),
+                                        child: Text("BETA",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w800))),
+                                ],
+                              ),
+                            if (scorePickerWidth > abbreviateAtWidth)
+                              SizedBox(width: 2.5),
                           ]),
                           // Expanded(child: Container(child: SizedBox()))
                         ],
@@ -135,6 +141,20 @@ class UniverseViewUI {
                 ),
                 Expanded(child: SizedBox()),
 
+                AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: switchToLocalScores != null ? 1 : 0,
+                  child: AnimatedContainer(
+                      duration: animationDuration,
+                      width: switchToLocalScores != null ? 42 : 0,
+                      // height: showDownloads != null ? 40 : 0,
+                      child: MyFlatButton(
+                        lightHighlight: true,
+                        padding: EdgeInsets.symmetric(vertical: 3),
+                        child: Icon(Icons.folder_open, color: Colors.white),
+                        onPressed: switchToLocalScores,
+                      )),
+                ),
                 AnimatedOpacity(
                   duration: animationDuration,
                   opacity: showDownloads != null ? 1 : 0,

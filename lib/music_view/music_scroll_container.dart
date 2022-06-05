@@ -662,7 +662,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     double marginBeatsForSection =
         max(0.0, visibleWidth / ratioScale - targetClefWidth - sectionWidth) /
             targetBeatWidth;
-    double targetBeat = firstBeatOfSection - (marginBeatsForSection / 2.0);
+    double targetBeat =
+        max(0.0, firstBeatOfSection - (marginBeatsForSection / 2.0));
     print(
         "constrainToSectionBounds customScale=$customScale, scale=$scale ratioScale=$ratioScale firstBeatOfSection=$firstBeatOfSection marginBeatsForSection=$marginBeatsForSection targetBeat=$targetBeat");
     try {
@@ -692,9 +693,15 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       // _lastBeatScrolledTo = currentBeat;
       double targetedDx = _animationPos(targetBeat, customScale: customScale);
       if (includeMarginX) {
-        final marginWidth =
-            max(0.0, visibleWidth / ratioScale - beatWidth - clefWidth);
+        final marginWidth = max(
+            0.0,
+            min(targetBeat * beatWidth,
+                visibleWidth / ratioScale - beatWidth - clefWidth));
+        print(
+            "includeMarginX: marginWidth=$marginWidth, targetBeat=$targetBeat");
         targetedDx -= scrollLeftMarginPercent * marginWidth;
+      } else {
+        print("includeMarginX FALSE, targetBeat=$targetBeat");
       }
       final topMarginHeight =
           max(0.0, visibleHeight / ratioScale - systemHeight);

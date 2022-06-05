@@ -172,7 +172,6 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
             : null,
         child: Container(
             width: 36,
-            padding: EdgeInsets.only(top: 0, bottom: 5),
             child: Stack(children: [
               Align(
                 alignment: Alignment.center,
