@@ -613,14 +613,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           exportUI.visible = false;
         }
         if (!showSections) {
-          Future.delayed(slowAnimationDuration, () {
-            setState(() {
-              if (interactionMode.isEdit && !showSections) {
-                verticalSectionList = context.isTabletOrLandscapey;
-                showSections = true;
-              }
-            });
-          });
+          // Future.delayed(slowAnimationDuration, () {
+          //   setState(() {
+          if (interactionMode.isEdit && !showSections) {
+            verticalSectionList = context.isTabletOrLandscapey;
+            showSections = true;
+          }
+          //   });
+          // });
         }
         if (_prevSelectedMelody != null) {
           _selectOrDeselectMelody(_prevSelectedMelody);
@@ -749,7 +749,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ? _scorePickerScrollDirection == Axis.horizontal
           ? MediaQuery.of(context).size.width
           : min(
-              max(interactionMode.isUniverse ? 305 : 365,
+              max(
+                  (interactionMode.isUniverse ||
+                          scorePickerMode.isOpen ||
+                          scorePickerMode.isNone)
+                      ? 305
+                      : 365,
                   MediaQuery.of(context).size.width / 4),
               450)
       : 0.0;
@@ -860,7 +865,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ..switchToLocalScores = MyPlatform.isWeb
           ? null
           : () {
-              _doShowScorePicker(ScorePickerMode.open, doDirectly: true);
+              setState(() {
+                interactionMode = InteractionMode.view;
+                universeViewUI.visible = false;
+
+                scorePickerMode = ScorePickerMode.none;
+                Future.delayed(animationDuration, () {
+                  setState(() {
+                    scorePickerMode = ScorePickerMode.open;
+                  });
+                });
+              });
             };
     _universeManager
       ..refreshUniverseData = refreshUniverseData
@@ -2335,15 +2350,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  _doShowScorePicker(ScorePickerMode mode, {bool doDirectly: false}) {
+  _doShowScorePicker(ScorePickerMode mode) {
     setState(() {
-      if (!doDirectly &&
-          ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
-              (interactionMode != InteractionMode.view &&
-                  mode != ScorePickerMode.show))) {
+      if ((interactionMode.isUniverse && mode != ScorePickerMode.universe) ||
+          (interactionMode != InteractionMode.view &&
+              mode != ScorePickerMode.show)) {
         scorePickerMode = ScorePickerMode.none;
         _viewMode();
-        Future.delayed(slowAnimationDuration, () {
+        Future.delayed(animationDuration, () {
           setState(() {
             scorePickerMode = mode;
             showScorePicker = true;
@@ -2352,13 +2366,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       } else {
         scorePickerMode = mode;
         showScorePicker = true;
-        if (mode == ScorePickerMode.open && !interactionMode.isView) {
-          interactionMode = InteractionMode.view;
-          universeViewUI.visible = false;
-        }
-        if (mode == ScorePickerMode.universe && !interactionMode.isUniverse) {
-          interactionMode = InteractionMode.universe;
-        }
       }
     });
   }
@@ -3019,11 +3026,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               scorePickerMode = mode;
             });
           },
-          goToUniverse: () {
+          switchToUniverse: () {
             setState(() {
-              scorePickerMode = ScorePickerMode.universe;
               interactionMode = InteractionMode.universe;
               universeViewUI.visible = true;
+
+              scorePickerMode = ScorePickerMode.none;
+              Future.delayed(animationDuration, () {
+                setState(() {
+                  scorePickerMode = ScorePickerMode.universe;
+                });
+              });
             });
           },
           close: () => _closeScorePicker(waitForSave: true),

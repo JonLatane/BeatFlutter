@@ -72,6 +72,20 @@ class UniverseViewUI {
                 keyboardHeight: keyboardHeight, settingsHeight: settingsHeight),
             child: Row(
               children: [
+                AnimatedOpacity(
+                  duration: animationDuration,
+                  opacity: switchToLocalScores != null ? 1 : 0,
+                  child: AnimatedContainer(
+                      duration: animationDuration,
+                      width: switchToLocalScores != null ? 42 : 0,
+                      // height: showDownloads != null ? 40 : 0,
+                      child: MyFlatButton(
+                        lightHighlight: true,
+                        padding: EdgeInsets.symmetric(vertical: 3),
+                        child: Icon(Icons.folder_open, color: Colors.white),
+                        onPressed: switchToLocalScores,
+                      )),
+                ),
                 SizedBox(width: 3),
                 Transform.translate(
                   offset: Offset(0, 0),
@@ -97,41 +111,43 @@ class UniverseViewUI {
                                   animateIcon: refreshUniverseData,
                                 )),
                             SizedBox(width: 8),
-                            Text("Beat",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900)),
-                            Text("Scratch",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w100)),
-                            if (scorePickerWidth > abbreviateAtWidth)
-                              SizedBox(width: 7),
-                            if (scorePickerWidth > abbreviateAtWidth)
-                              Stack(
-                                children: [
+                            Stack(
+                              children: [
+                                Transform.translate(
+                                    offset: Offset(0, -7),
+                                    child: Row(
+                                      children: [
+                                        Text("Beat",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w900)),
+                                        Text("Scratch",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.w100)),
+                                      ],
+                                    )),
+                                Transform.translate(
+                                    offset: Offset(0, 15),
+                                    child: Text(
+                                        MyPlatform.isWeb ? "Web" : "Universe",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400))),
+                                if (MyPlatform.isWeb)
                                   Transform.translate(
-                                      offset: Offset(0, -6),
-                                      child: Text(
-                                          MyPlatform.isWeb ? "Web" : "Universe",
+                                      offset: Offset(40, 15),
+                                      child: Text("BETA",
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 14,
-                                              fontWeight: FontWeight.w400))),
-                                  if (MyPlatform.isWeb)
-                                    Transform.translate(
-                                        offset: Offset(0, 6),
-                                        child: Text("BETA",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w800))),
-                                ],
-                              ),
-                            if (scorePickerWidth > abbreviateAtWidth)
-                              SizedBox(width: 2.5),
+                                              fontWeight: FontWeight.w800))),
+                              ],
+                            ),
+                            SizedBox(width: 2.5),
                           ]),
                           // Expanded(child: Container(child: SizedBox()))
                         ],
@@ -140,21 +156,6 @@ class UniverseViewUI {
                   ),
                 ),
                 Expanded(child: SizedBox()),
-
-                AnimatedOpacity(
-                  duration: animationDuration,
-                  opacity: switchToLocalScores != null ? 1 : 0,
-                  child: AnimatedContainer(
-                      duration: animationDuration,
-                      width: switchToLocalScores != null ? 42 : 0,
-                      // height: showDownloads != null ? 40 : 0,
-                      child: MyFlatButton(
-                        lightHighlight: true,
-                        padding: EdgeInsets.symmetric(vertical: 3),
-                        child: Icon(Icons.folder_open, color: Colors.white),
-                        onPressed: switchToLocalScores,
-                      )),
-                ),
                 AnimatedOpacity(
                   duration: animationDuration,
                   opacity: showDownloads != null ? 1 : 0,

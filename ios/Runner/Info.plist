@@ -63,5 +63,9 @@
 	<string>BeatScratch needs Location access to connect to BLE MIDI controllers.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BeatScratch needs Location access to connect to BLE MIDI controllers.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

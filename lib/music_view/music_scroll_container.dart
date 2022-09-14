@@ -199,11 +199,11 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get overallCanvasWidth =>
       max(widget.width / smallerScale,
           (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth) *
-      1.5;
+      3;
   double overallCanvasHeight({double customScale = null}) =>
       max(widget.height / smallerScale,
           systemsToRender(customScale: customScale) * systemHeight) *
-      1.5;
+      3;
 
   double get targetClefWidth => extraBeatsSpaceForClefs * targetBeatWidth;
   double get sectionWidth => widget.currentSection.beatCount * targetBeatWidth;

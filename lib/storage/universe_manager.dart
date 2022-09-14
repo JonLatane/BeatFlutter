@@ -157,7 +157,7 @@ class UniverseManager {
   }
 
   static final Map<String, String> BASE_REQUEST_HEADERS = {
-    'User-Agent': MyPlatform.userAgent,
+    if (!MyPlatform.isWeb) 'User-Agent': MyPlatform.userAgent,
     // 'Content-Type': 'application/json',
     'Accept': 'application/json',
   };

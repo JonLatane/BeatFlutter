@@ -40,12 +40,14 @@ enum ScorePickerMode {
 }
 
 extension ShowScoreNameEntry on ScorePickerMode {
+  bool get isNone => this == ScorePickerMode.none;
+  bool get isOpen => this == ScorePickerMode.open;
+  bool get isDuplicate => this == ScorePickerMode.duplicate;
+  bool get isCreate => this == ScorePickerMode.create;
+  bool get isUniverse => this == ScorePickerMode.universe;
   bool get showScoreNameEntry =>
       this == ScorePickerMode.duplicate || this == ScorePickerMode.create;
-  bool get isLocalOperationMode =>
-      this == ScorePickerMode.duplicate ||
-      this == ScorePickerMode.create ||
-      this == ScorePickerMode.open;
+  bool get isLocalOperationMode => isDuplicate || isCreate || isOpen;
 }
 
 class ScorePicker extends StatefulWidget {
@@ -53,7 +55,7 @@ class ScorePicker extends StatefulWidget {
   final Color sectionColor;
   final Function(VoidCallback) setState;
   final VoidCallback close;
-  final VoidCallback goToUniverse;
+  final VoidCallback switchToUniverse;
   final ScorePickerMode mode;
   final Function(ScorePickerMode) requestMode;
   final Score openedScore;
@@ -80,7 +82,7 @@ class ScorePicker extends StatefulWidget {
       this.width,
       this.height,
       this.refreshUniverseData,
-      this.goToUniverse})
+      this.switchToUniverse})
       : super(key: key);
 
   @override
@@ -238,6 +240,29 @@ class ScorePickerState extends State<ScorePicker> {
                     Expanded(child: SizedBox()),
                     Row(
                       children: [
+                        AnimatedOpacity(
+                            duration: animationDuration,
+                            opacity: widget.mode.isOpen ? 1 : 0,
+                            child: AnimatedContainer(
+                              duration: animationDuration,
+                              width: widget.mode.isOpen ? 42.0 + 3 + 5 : 0,
+                              padding: EdgeInsets.only(left: 3, right: 5),
+                              child: MyFlatButton(
+                                  lightHighlight: true,
+                                  color: Colors.transparent,
+                                  onPressed: widget.mode.isOpen
+                                      ? () {
+                                          setState(() {
+                                            universeAnimation();
+                                          });
+                                          widget.switchToUniverse();
+                                        }
+                                      : null,
+                                  padding: EdgeInsets.zero,
+                                  child: UniverseIcon(
+                                    animateIcon: universeAnimation,
+                                  )),
+                            )),
                         if (icon != null && operationText.isNotEmpty)
                           MyFlatButton(
                               padding: EdgeInsets.zero,
@@ -341,24 +366,6 @@ class ScorePickerState extends State<ScorePicker> {
                                   style: TextStyle(
                                       color: ChordColor.dominant.color
                                           .textColor()))),
-                        ),
-                        AnimatedContainer(
-                          duration: animationDuration,
-                          width: widget.mode == ScorePickerMode.open ? 42 : 0,
-                          padding: EdgeInsets.only(right: 5),
-                          child: MyFlatButton(
-                              lightHighlight: true,
-                              color: Colors.transparent,
-                              onPressed: () {
-                                setState(() {
-                                  universeAnimation();
-                                });
-                                widget.goToUniverse();
-                              },
-                              padding: EdgeInsets.zero,
-                              child: UniverseIcon(
-                                animateIcon: universeAnimation,
-                              )),
                         ),
                         AnimatedContainer(
                           duration: animationDuration,
@@ -618,9 +625,7 @@ class ScorePickerState extends State<ScorePicker> {
     } else if (widget.mode == ScorePickerMode.universe) {
       return widget.universeManager.cachedUniverseData;
     } else {
-      List<FileSystemEntity> scoreFiles;
-      scoreFiles = scoreManager.scoreFiles;
-      return scoreFiles.map((scoreFile) {
+      return scoreManager.scoreFiles.map((scoreFile) {
         Future<Score> loadScore() async {
           if (scoreFile == null) {
             return Future.value(defaultScore());
@@ -739,6 +744,7 @@ class ScorePickerState extends State<ScorePicker> {
                 bottom: widget.scrollDirection == Axis.vertical ? 10 : 0),
             child: tile);
         return SizeFadeTransition(
+            key: ValueKey("ScorePickerTile-${scoreFuture?.identity}"),
             sizeFraction: 0.7,
             curve: Curves.easeInOut,
             axis: widget.scrollDirection,
