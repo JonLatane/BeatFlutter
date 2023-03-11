@@ -158,7 +158,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Score score;
-  InteractionMode interactionMode = InteractionMode.universe;
+  InteractionMode interactionMode = InteractionMode.view;
   SplitMode _splitMode;
 
   SplitMode get splitMode => _splitMode;
@@ -3087,7 +3087,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               _landscapePhoneSecondToolbarWidth -
               _landscapeTapInBarWidth,
           appSettings: _appSettings,
-          leftMargin: /*_landscapePhoneBeatscratchToolbarWidth + */ _leftNotchPadding,
+          leftMargin: /*_landscapePhoneBeatscratchToolbarWidth + */
+              _leftNotchPadding,
           part: keyboardPart,
           height: _keyboardHeight,
           showConfiguration: _showKeyboardConfiguration,

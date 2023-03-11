@@ -25,7 +25,7 @@ _launchAndroidApp(BuildContext context, String packageName) async {
   AppAvailability.launchApp(packageName).then((_) {
     print("App $packageName launched!");
   }).catchError((err) {
-    Scaffold.of(context)
+    ScaffoldMessenger.of(context)
         // ignore: deprecated_member_use
         .showSnackBar(SnackBar(content: Text("App $packageName not found!")));
     print(err);
@@ -51,7 +51,6 @@ Future<void> getApps() async {
         "com.mobileer.example.midibtlepairing");
 
     // Returns: true
-
   }
   // else if (Platform.isIOS) {
   //   // iOS doesn't allow to get installed apps.

@@ -2,7 +2,7 @@ name: beatscratch_flutter_redux
 description: BeatScratch for Flutter
 publish_to: none
 
-version: 1.7.1+478
+version: 1.7.5+480
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -17,8 +17,8 @@ dependencies:
   recase: ^3.0.0
   # vibration: ^1.7.2
   share: ^0.6.5+4
-  flutter_reorderable_list: # ^1.1.0
-    path: ../flutter_reorderable_list
+  flutter_reorderable_list: ^1.2.0
+    # path: ../flutter_reorderable_list
   url_launcher: ^6.0.3
   implicitly_animated_reorderable_list: ^0.4.1
   flutter_keyboard_visibility: ^2.0.0
