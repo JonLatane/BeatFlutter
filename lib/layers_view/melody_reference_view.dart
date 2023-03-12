@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
-import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:animated_list_plus/transitions.dart';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';

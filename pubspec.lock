@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.7"
+  animated_list_plus:
+    dependency: "direct main"
+    description:
+      name: animated_list_plus
+      sha256: f276e3c42a78a76c295186c4723e206dee7660741bd4e9592f9c5530511b7589
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   archive:
     dependency: "direct main"
     description:
@@ -231,14 +239,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
-  implicitly_animated_reorderable_list:
-    dependency: "direct main"
-    description:
-      name: implicitly_animated_reorderable_list
-      sha256: efe990eb011dfbc147ca6f7398f8b2ef7d7b2d89a599c590eac7525f0ea81970
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.2"
   js:
     dependency: transitive
     description:
@@ -750,4 +750,4 @@ packages:
     version: "0.2.0+3"
 sdks:
   dart: ">=2.19.0 <3.0.0"
-  flutter: ">=3.0.0"
+  flutter: ">=3.7.0"
