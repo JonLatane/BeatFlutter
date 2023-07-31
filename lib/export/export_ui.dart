@@ -3,7 +3,7 @@ import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import '../messages/messages_ui.dart';
 import '../util/dummydata.dart';
-import 'package:share/share.dart';
+// import 'package:share/share.dart';
 
 import '../util/util.dart';
 
@@ -24,7 +24,7 @@ class ExportUI {
   static final double _baseHeight = 220;
   static final double _progressHeight = 30;
 
-  static Widget exportIcon({double size = 24, Color color}) =>
+  static Widget exportIcon({double size = 24, Color? color}) =>
       Transform.translate(
         offset: Offset(size * 2 / 24, 0),
         child: Icon(MyPlatform.isAppleOS ? CupertinoIcons.share : Icons.share,
@@ -44,9 +44,9 @@ class ExportUI {
   double get height => baseHeight + progressHeight;
 
   Widget build(
-      {@required BuildContext context,
-      @required Function(VoidCallback) setState,
-      @required Section currentSection}) {
+      {required BuildContext context,
+      required Function(VoidCallback) setState,
+      required Section currentSection}) {
     return AnimatedContainer(
       duration: animationDuration,
       height: height,
@@ -269,9 +269,9 @@ class ExportUI {
       EdgeInsets.only(left: 5, top: 5, bottom: 5);
 
   SingleChildScrollView exportOptions(
-      {@required BuildContext context,
-      @required Function(VoidCallback) setState,
-      @required Section currentSection}) {
+      {required BuildContext context,
+      required Function(VoidCallback) setState,
+      required Section currentSection}) {
     double width = MediaQuery.of(context).size.width;
     double scrollContainerWidth = width - 44;
     double exportTypeWidth = 100;

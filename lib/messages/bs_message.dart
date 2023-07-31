@@ -8,9 +8,9 @@ class BSMessage {
   bool visible = false;
 
   BSMessage({
-    @required this.id,
-    @required this.message,
+    required this.id,
+    required this.message,
     this.timeout = const Duration(milliseconds: 500),
-    @required this.icon,
+    required this.icon,
   });
 }

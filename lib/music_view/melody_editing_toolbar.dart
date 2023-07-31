@@ -28,15 +28,15 @@ class MelodyEditingToolbar extends StatefulWidget {
 
   const MelodyEditingToolbar(
       {Key key,
-      @required this.melodyId,
-      @required this.sectionColor,
-      @required this.score,
-      @required this.currentSection,
-      @required this.highlightedBeat,
-      @required this.setReferenceVolume,
-      @required this.recordingMelody,
-      @required this.visible,
-      @required this.toggleRecording})
+      required this.melodyId,
+      required this.sectionColor,
+      required this.score,
+      required this.currentSection,
+      required this.highlightedBeat,
+      required this.setReferenceVolume,
+      required this.recordingMelody,
+      required this.visible,
+      required this.toggleRecording})
       : super(key: key);
 
   @override

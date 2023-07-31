@@ -10,11 +10,11 @@ import 'generated/protos/protos.dart';
 import 'widget/my_platform.dart';
 
 Future<String> showMainMenu(
-    {@required BuildContext context,
-    @required RelativeRect position,
-    @required bool showDownloads,
-    @required Score currentScore,
-    @required String currentScoreName}) async {
+    {required BuildContext context,
+    required RelativeRect position,
+    required bool showDownloads,
+    required Score currentScore,
+    required String currentScoreName}) async {
   PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
   return showMenu(

@@ -10,14 +10,14 @@ import 'ui_models.dart';
 import 'widget/beats_badge.dart';
 
 Future<Object> showEditMenu(
-    {@required BuildContext context,
-    @required RelativeRect position,
-    @required Score score,
-    @required Part part,
-    @required Melody selectedMelody,
-    @required MusicViewMode musicViewMode,
-    @required Section section,
-    @required Function(Object) editObject}) async {
+    {required BuildContext context,
+    required RelativeRect position,
+    required Score score,
+    required Part part,
+    required Melody selectedMelody,
+    required MusicViewMode musicViewMode,
+    required Section section,
+    required Function(Object) editObject}) async {
   onSelected(Object object) {
     Navigator.pop(context);
     editObject(object);

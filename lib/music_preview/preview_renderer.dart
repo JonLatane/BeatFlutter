@@ -23,13 +23,13 @@ class MusicPreviewRenderer {
   Score get score => Score.fromBuffer(scoreData);
 
   MusicPreviewRenderer(
-      {@required this.scoreData,
-      @required this.scale,
-      @required this.width,
-      @required this.height,
-      @required this.renderSections,
-      @required this.renderPartNames,
-      @required this.musicViewMode,
+      {required this.scoreData,
+      required this.scale,
+      required this.width,
+      required this.height,
+      required this.renderSections,
+      required this.renderPartNames,
+      required this.musicViewMode,
       this.renderColor});
 
   MusicSystemPainter get painter {

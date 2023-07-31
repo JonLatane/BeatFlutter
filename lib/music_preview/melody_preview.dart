@@ -30,9 +30,9 @@ class MelodyPreview extends StatefulWidget {
 
   static Gradient generateVolumeDecoration(
       MelodyReference reference, Section section,
-      {@required bool isSelectedMelody,
-      @required Color bgColor,
-      @required Color sectionColor}) {
+      {required bool isSelectedMelody,
+      required Color bgColor,
+      required Color sectionColor}) {
     if (reference.isEnabled) {
       Color volumeColor = isSelectedMelody
           ? Colors.white

@@ -146,7 +146,7 @@ class _PopupMenuDividerState extends State<PopupMenuDivider> {
 class _MenuItem extends SingleChildRenderObjectWidget {
   const _MenuItem({
     Key key,
-    @required this.onLayout,
+    required this.onLayout,
     Widget child,
   })  : assert(onLayout != null),
         super(key: key, child: child);
@@ -238,7 +238,7 @@ class PopupMenuItem<T> extends PopupMenuEntry<T> {
     this.height = kMinInteractiveDimension,
     this.textStyle,
     this.mouseCursor,
-    @required this.child,
+    required this.child,
   })  : assert(enabled != null),
         assert(height != null),
         super(key: key);
@@ -298,7 +298,7 @@ class MyPopupMenuItem<T> extends PopupMenuItem<T> {
     double height = kMinInteractiveDimension,
     TextStyle textStyle,
     MouseCursor mouseCursor = SystemMouseCursors.basic,
-    @required Widget child,
+    required Widget child,
   }) : super(
           key: key,
           value: value,
@@ -887,9 +887,9 @@ class _PopupMenuRoute<T> extends PopupRoute<T> {
 ///  * [SemanticsConfiguration.namesRoute], for a description of edge triggered
 ///    semantics.
 Future<T> showMenu<T>({
-  @required BuildContext context,
-  @required RelativeRect position,
-  @required List<PopupMenuEntry<T>> items,
+  required BuildContext context,
+  required RelativeRect position,
+  required List<PopupMenuEntry<T>> items,
   T initialValue,
   double elevation,
   String semanticLabel,
@@ -1015,7 +1015,7 @@ class MyPopupMenuButton<T> extends StatefulWidget {
   /// The [itemBuilder] argument must not be null.
   const MyPopupMenuButton({
     Key key,
-    @required this.itemBuilder,
+    required this.itemBuilder,
     this.initialValue,
     this.onSelected,
     this.onCanceled,

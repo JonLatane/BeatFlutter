@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class MyFlatButton extends TextButton {
   MyFlatButton({
     Key key,
-    @required VoidCallback onPressed,
+    required VoidCallback onPressed,
     VoidCallback onLongPress,
     ValueChanged<bool> onHighlightChanged,
     MouseCursor mouseCursor = SystemMouseCursors.basic,
@@ -15,7 +15,7 @@ class MyFlatButton extends TextButton {
     bool autofocus = false,
     ButtonStyle style,
     bool lightHighlight = false,
-    @required Widget child,
+    required Widget child,
   })  : assert(clipBehavior != null),
         assert(autofocus != null),
         super(
@@ -46,7 +46,7 @@ class MyFlatButton extends TextButton {
 class MyRaisedButton extends ElevatedButton {
   MyRaisedButton({
     Key key,
-    @required VoidCallback onPressed,
+    required VoidCallback onPressed,
     VoidCallback onLongPress,
     ValueChanged<bool> onHighlightChanged,
     MouseCursor mouseCursor = SystemMouseCursors.basic,
@@ -102,8 +102,8 @@ class MyRaisedButton extends ElevatedButton {
 class MySlider extends Slider {
   const MySlider({
     Key key,
-    @required double value,
-    @required ValueChanged<double> onChanged,
+    required double value,
+    required ValueChanged<double> onChanged,
     ValueChanged<double> onChangeStart,
     ValueChanged<double> onChangeEnd,
     double min = 0.0,

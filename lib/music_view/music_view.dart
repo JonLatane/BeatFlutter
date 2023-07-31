@@ -237,10 +237,10 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   _startValueAnimation(
-      {@required double Function() value,
-      @required double Function() currentValue,
-      @required Function(double) applyAnimatedValue,
-      @required List<AnimationController> controllers,
+      {required double Function() value,
+      required double Function() currentValue,
+      required Function(double) applyAnimatedValue,
+      required List<AnimationController> controllers,
       VoidCallback onComplete}) {
     if (value() == currentValue()) {
       // print("skipping scale animation: no change (${currentValue()} to ${value()}");
@@ -324,12 +324,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   _animateScaleAtomically({
-    @required DateTime Function() getLockTime,
-    @required Function(DateTime) setLockTime,
-    @required double Function() value,
-    @required double Function() currentValue,
-    @required Function(double) applyAnimatedValue,
-    @required List<AnimationController> controllers,
+    required DateTime Function() getLockTime,
+    required Function(DateTime) setLockTime,
+    required double Function() value,
+    required double Function() currentValue,
+    required Function(double) applyAnimatedValue,
+    required List<AnimationController> controllers,
   }) {
     if (value() == currentValue()) {
       return;
@@ -1606,7 +1606,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     }
   }
 
-  Widget autoScrollButton({@required bool visible}) {
+  Widget autoScrollButton({required bool visible}) {
     return MusicActionButton(
       child: Stack(children: [
         Transform.translate(
@@ -1645,7 +1645,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     );
   }
 
-  Widget nightModeButton({@required bool visible}) {
+  Widget nightModeButton({required bool visible}) {
     return MusicActionButton(
       child: Icon(FontAwesomeIcons.solidMoon, color: musicForegroundColor),
       color: musicBackgroundColor.withOpacity(0.12),
@@ -1657,7 +1657,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     );
   }
 
-  Widget colorblockButton({@required bool visible}) {
+  Widget colorblockButton({required bool visible}) {
     return MusicActionButton(
       child: Stack(children: [
         AnimatedOpacity(

@@ -18,7 +18,7 @@ class MessagesUI {
       messages.where((m) => m.visible).length * _messageHeight(context);
 
   BSMessage sendMessage({
-    @required message,
+    required message,
     icon,
     color,
     timeout = const Duration(milliseconds: 5500),
@@ -62,8 +62,8 @@ class MessagesUI {
 
   _removeMessage(
     BSMessage bsMessage, {
-    @required icon,
-    @required message,
+    required icon,
+    required message,
   }) {
     setAppState(() {
       bsMessage.visible = false;
@@ -75,7 +75,7 @@ class MessagesUI {
     });
   }
 
-  Widget build({@required BuildContext context}) {
+  Widget build({required BuildContext context}) {
     return Column(
         children: messages
             .map((m) => buildMessage(m, context: context))
@@ -84,7 +84,7 @@ class MessagesUI {
 
   Widget buildMessage(
     BSMessage message, {
-    @required BuildContext context,
+    required BuildContext context,
   }) {
     return AnimatedContainer(
         duration: animationDuration,

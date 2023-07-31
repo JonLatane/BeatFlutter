@@ -13,43 +13,61 @@ class MusicActionButton extends StatelessWidget {
   final Color color;
 
   MusicActionButton(
-    {Key key, this.visible = true, this.width = 48, this.height = 48, @required this.child, @required this.onPressed, this.color = Colors.black26})
-    : super(key: key);
+      {Key key,
+      this.visible = true,
+      this.width = 48,
+      this.height = 48,
+      required this.child,
+      required this.onPressed,
+      this.color = Colors.black26})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     double width = this.width, height = this.height;
-    if (!visible && width != null && height != null && width != 0 && height != 0) {
+    if (!visible &&
+        width != null &&
+        height != null &&
+        width != 0 &&
+        height != 0) {
       width = 0;
       height = 0;
     }
     return AnimatedOpacity(
-      duration: animationDuration,
-      opacity: visible ? 1 : 0,
-      child: Stack(children: [
-        AnimatedContainer(
-          duration: animationDuration, height: height, width: width, child: SizedBox()),
-        Positioned(
-          top: .1,
-          left: 0,
-          width: width,
-          height: height,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: IgnorePointer(
-              ignoring: !visible,
-              child: AnimatedContainer(
-                duration: animationDuration,
-                color: color,
-                height: height,
-                width: width,
-                child: SizedBox())))),
-        AnimatedContainer(
-          duration: animationDuration,
-          color: color,
-          height: height,
-          width: width,
-          child: onPressed == null ? child : MyFlatButton(onPressed: onPressed, padding: EdgeInsets.zero, child: child))
-      ]));
+        duration: animationDuration,
+        opacity: visible ? 1 : 0,
+        child: Stack(children: [
+          AnimatedContainer(
+              duration: animationDuration,
+              height: height,
+              width: width,
+              child: SizedBox()),
+          Positioned(
+              top: .1,
+              left: 0,
+              width: width,
+              height: height,
+              child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: IgnorePointer(
+                      ignoring: !visible,
+                      child: AnimatedContainer(
+                          duration: animationDuration,
+                          color: color,
+                          height: height,
+                          width: width,
+                          child: SizedBox())))),
+          AnimatedContainer(
+              duration: animationDuration,
+              color: color,
+              height: height,
+              width: width,
+              child: onPressed == null
+                  ? child
+                  : MyFlatButton(
+                      onPressed: onPressed,
+                      padding: EdgeInsets.zero,
+                      child: child))
+        ]));
   }
 }

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../ui_models.dart';
@@ -16,17 +15,16 @@ class BluetoothDeviceTile extends StatefulWidget {
   final VoidCallback onConnect, onDisconnect;
   final Color sectionColor;
   final bool connected;
-  final ValueNotifier<Map<String, List<int>>>
-      bluetoothControllerPressedNotes;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
 
   const BluetoothDeviceTile(
       {Key key,
-      @required this.connected,
-      @required this.device,
-      @required this.sectionColor,
-      @required this.onConnect,
-      @required this.onDisconnect,
-      @required this.bluetoothControllerPressedNotes})
+      required this.connected,
+      required this.device,
+      required this.sectionColor,
+      required this.onConnect,
+      required this.onDisconnect,
+      required this.bluetoothControllerPressedNotes})
       : super(key: key);
 
   @override

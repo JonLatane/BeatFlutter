@@ -36,25 +36,25 @@ class UniverseViewUI {
   }
 
   double toolbarHeight(BuildContext context,
-          {@required double keyboardHeight, @required double settingsHeight}) =>
+          {required double keyboardHeight, required double settingsHeight}) =>
       visible ? 44 : 0;
   double authFormHeight(BuildContext context,
-          {@required double keyboardHeight, @required double settingsHeight}) =>
+          {required double keyboardHeight, required double settingsHeight}) =>
       visible && signingIn ? 200 : 0;
   double height(BuildContext context,
-          {@required double keyboardHeight, @required double settingsHeight}) =>
+          {required double keyboardHeight, required double settingsHeight}) =>
       toolbarHeight(context,
           keyboardHeight: keyboardHeight, settingsHeight: settingsHeight) +
       authFormHeight(context,
           keyboardHeight: keyboardHeight, settingsHeight: settingsHeight);
 
   Widget build(
-      {@required BuildContext context,
-      @required Color sectionColor,
-      @required double keyboardHeight,
-      @required double settingsHeight,
-      @required VoidCallback showDownloads,
-      @required double scorePickerWidth}) {
+      {required BuildContext context,
+      required Color sectionColor,
+      required double keyboardHeight,
+      required double settingsHeight,
+      required VoidCallback showDownloads,
+      required double scorePickerWidth}) {
     double abbreviateAtWidth = 340;
     return AnimatedOpacity(
         duration: animationDuration,

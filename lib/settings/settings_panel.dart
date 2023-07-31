@@ -46,19 +46,19 @@ class SettingsPanel extends StatefulWidget {
 
   const SettingsPanel(
       {Key key,
-      @required this.appSettings,
-      @required this.universeManager,
-      @required this.sectionColor,
-      @required this.close,
-      @required this.enableColorboard,
-      @required this.setColorboardEnabled,
-      @required this.toggleKeyboardConfig,
-      @required this.toggleColorboardConfig,
-      @required this.bluetoothScan,
-      @required this.visible,
-      @required this.messagesUI,
-      @required this.bluetoothControllerPressedNotes,
-      @required this.keyboardPart})
+      required this.appSettings,
+      required this.universeManager,
+      required this.sectionColor,
+      required this.close,
+      required this.enableColorboard,
+      required this.setColorboardEnabled,
+      required this.toggleKeyboardConfig,
+      required this.toggleColorboardConfig,
+      required this.bluetoothScan,
+      required this.visible,
+      required this.messagesUI,
+      required this.bluetoothControllerPressedNotes,
+      required this.keyboardPart})
       : super(key: key);
 
   @override
