@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:dart_midi/dart_midi.dart';
 import 'package:dart_midi/src/byte_writer.dart';
 
 import '../messages/messages_ui.dart';
 import 'tile_bluetooth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';
@@ -16,14 +13,12 @@ import 'package:animated_list_plus/transitions.dart';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
-import '../generated/protos/protobeats_plugin.pb.dart';
 import '../generated/protos/protos.dart';
 import '../music_preview/melody_preview.dart';
 import 'app_settings.dart';
 import '../storage/universe_manager.dart';
 import '../ui_models.dart';
 import '../universe_view/universe_icon.dart';
-import '../util/bs_methods.dart';
 import '../util/dummydata.dart';
 import '../util/midi_theory.dart';
 import '../util/util.dart';

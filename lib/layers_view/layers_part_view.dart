@@ -1,8 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';

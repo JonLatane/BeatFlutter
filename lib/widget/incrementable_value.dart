@@ -5,12 +5,10 @@ import 'package:beatscratch_flutter_redux/colors.dart';
 import '../music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/rendering.dart';
 
 import 'dart:async';
 
 import 'my_buttons.dart';
-import 'my_platform.dart';
 import '../ui_models.dart';
 
 class IncrementableValue extends StatefulWidget {

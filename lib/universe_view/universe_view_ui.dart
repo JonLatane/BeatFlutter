@@ -8,12 +8,7 @@ import '../widget/my_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../colors.dart';
 import '../ui_models.dart';

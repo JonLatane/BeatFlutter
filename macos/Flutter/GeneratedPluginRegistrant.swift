@@ -6,7 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import flutter_midi_command
-import package_info_plus_macos
+import package_info_plus
 import path_provider_foundation
 import shared_preferences_foundation
 import url_launcher_macos

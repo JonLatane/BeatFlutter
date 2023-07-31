@@ -5,19 +5,13 @@ import 'package:beatscratch_flutter_redux/util/util.dart';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../util/dummydata.dart';
-import '../util/proto_utils.dart';
 import '../widget/my_platform.dart';
 import 'url_conversions.dart';
 

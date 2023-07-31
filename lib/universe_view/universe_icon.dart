@@ -14,8 +14,8 @@ class UniverseIcon extends StatefulWidget {
 
   const UniverseIcon(
       {Key key,
-      this.sectionColor: Colors.white,
-      this.interactionMode: InteractionMode.view,
+      this.sectionColor = Colors.white,
+      this.interactionMode = InteractionMode.view,
       this.animateIcon})
       : super(key: key);
 

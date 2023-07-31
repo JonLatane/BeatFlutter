@@ -1,20 +1,13 @@
 import 'package:beatscratch_flutter_redux/util/music_theory.dart';
-import 'package:beatscratch_flutter_redux/util/ui_utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-import 'beatscratch_plugin.dart';
 import 'colors.dart';
-import 'export/export_ui.dart';
 import 'generated/protos/protos.dart';
 import 'music_preview/melody_preview.dart';
 import 'music_preview/part_preview.dart';
 import 'music_preview/section_preview.dart';
 import 'ui_models.dart';
 import 'widget/beats_badge.dart';
-import 'widget/my_platform.dart';
 
 Future<Object> showEditMenu(
     {@required BuildContext context,

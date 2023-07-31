@@ -1,6 +1,5 @@
 import '../drawing/canvas_tone_drawer.dart';
 import '../drawing/color_guide.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../beatscratch_plugin.dart';
 import 'package:aeyrium_sensor/aeyrium_sensor.dart';

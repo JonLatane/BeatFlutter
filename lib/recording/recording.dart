@@ -3,7 +3,6 @@ import 'dart:collection';
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import '../generated/protos/protobeats_plugin.pb.dart';
-import '../util/bs_methods.dart';
 import '../util/util.dart';
 import '../util/proto_utils.dart';
 import '../util/music_theory.dart';

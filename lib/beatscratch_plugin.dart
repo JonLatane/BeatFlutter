@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:dart_midi/dart_midi.dart';
 // ignore: implementation_imports
@@ -9,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'generated/protos/protos.dart';
 import 'messages/messages_ui.dart';
 import 'recording/recording.dart';
-import 'settings/settings_panel.dart';
 import 'settings/settings_common.dart';
 import 'util/fake_js.dart' if (dart.library.js) 'dart:js';
 import 'util/music_utils.dart';

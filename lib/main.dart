@@ -9,9 +9,7 @@ import 'universe_view/universe_view.dart';
 
 import 'recording/recording.dart';
 import 'package:fluro/fluro.dart' as Fluro;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
@@ -32,7 +30,6 @@ import 'storage/score_manager.dart';
 import 'storage/score_picker.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
-import 'util/bs_methods.dart';
 import 'util/dummydata.dart';
 import 'util/music_theory.dart';
 import 'util/proto_utils.dart';
@@ -419,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Color get sectionColor => currentSection.color.color;
 
-  _selectOrDeselectMelody(Melody melody, {bool hideMusicOnDeselect: true}) {
+  _selectOrDeselectMelody(Melody melody, {bool hideMusicOnDeselect = true}) {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
@@ -444,7 +441,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  _selectOrDeselectPart(Part part, {bool hideMusicOnDeselect: true}) {
+  _selectOrDeselectPart(Part part, {bool hideMusicOnDeselect = true}) {
     setState(() {
       print("yay");
       if (selectedPart != part) {
@@ -1140,9 +1137,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     //   verticalSectionList = context.isLandscape;
     // }
     if (context.isLandscape) {
-      SystemChrome.setEnabledSystemUIOverlays([]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     } else {
-      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     }
     if (BeatScratchPlugin.playing) {
       _tapInBeat = null;

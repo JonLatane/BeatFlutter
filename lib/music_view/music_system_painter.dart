@@ -1,10 +1,7 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
 
 import '../util/util.dart';
 import '../beatscratch_plugin.dart';
@@ -12,8 +9,6 @@ import '../colors.dart';
 import '../drawing/color_guide.dart';
 import '../drawing/harmony_beat_renderer.dart';
 import '../drawing/music/music.dart';
-import '../drawing/music/music_clef_renderer.dart';
-import '../drawing/music/music_staff_lines_renderer.dart';
 import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';

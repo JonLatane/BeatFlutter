@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import '../colors.dart';
 
 class MyFlatButton extends TextButton {
   MyFlatButton({
@@ -89,7 +86,7 @@ class MyRaisedButton extends ElevatedButton {
           onPressed: onPressed,
           onLongPress: onLongPress,
           style: ElevatedButton.styleFrom(
-              primary: color,
+              backgroundColor: color,
               padding: padding,
               enabledMouseCursor: SystemMouseCursors.basic,
               disabledMouseCursor: SystemMouseCursors.basic),

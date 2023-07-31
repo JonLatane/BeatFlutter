@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_appavailability/flutter_appavailability.dart';
 
 import '../beatscratch_plugin.dart';

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import '../util/util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +11,6 @@ import '../music_preview/melody_preview.dart';
 import '../storage/score_manager.dart';
 import '../util/dummydata.dart';
 import '../util/music_theory.dart';
-import '../util/bs_methods.dart';
 import '../widget/my_popup_menu.dart';
 import '../widget/my_popup_menu.dart' as myPopup;
 import '../widget/beats_badge.dart';

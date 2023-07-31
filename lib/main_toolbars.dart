@@ -1,22 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/edit_menu.dart';
 import 'package:beatscratch_flutter_redux/main_menu.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_view.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
 import 'colors.dart';
-import 'export/export.dart';
 import 'generated/protos/music.pb.dart';
 import 'messages/messages_ui.dart';
 import 'settings/app_settings.dart';
@@ -25,7 +20,6 @@ import 'storage/score_picker.dart';
 import 'storage/universe_manager.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
-import 'util/bs_methods.dart';
 import 'util/music_theory.dart';
 import 'util/util.dart';
 import 'widget/my_buttons.dart';

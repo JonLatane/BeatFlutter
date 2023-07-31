@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,14 +7,11 @@ import 'package:dcache/dcache.dart';
 
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../music_view/music_system_painter.dart';
 import '../settings/app_settings.dart';
 import '../ui_models.dart';
-import '../util/bs_methods.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
-import '../widget/my_platform.dart';
 import 'preview_renderer.dart';
 
 class ScorePreview extends StatefulWidget {

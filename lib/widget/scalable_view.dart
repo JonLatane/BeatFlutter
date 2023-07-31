@@ -1,9 +1,6 @@
 import '../colors.dart';
 import '../music_view/music_action_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'incrementable_value.dart';
 import '../ui_models.dart';

@@ -1,7 +1,5 @@
 import 'dart:math';
-import 'dart:ui';
 
-import 'package:beatscratch_flutter_redux/generated/i18n.dart';
 import 'package:beatscratch_flutter_redux/widget/color_filtered_image_asset.dart';
 
 import '../colors.dart';
@@ -18,7 +16,6 @@ import '../generated/protos/music.pb.dart';
 import '../ui_models.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
-import '../util/bs_methods.dart';
 import '../util/util.dart';
 import '../widget/incrementable_value.dart';
 import '../widget/my_buttons.dart';

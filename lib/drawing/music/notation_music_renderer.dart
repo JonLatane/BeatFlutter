@@ -29,8 +29,7 @@ class _NoteheadInstruction {
       this.noteheadLeft,
       this.ledgerLines,
       this.noteheadTop,
-      this.staggered,
-      this.hadStaggeredNotes});
+      this.staggered});
 }
 
 class _StemInstruction {

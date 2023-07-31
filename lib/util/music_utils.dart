@@ -7,7 +7,7 @@ import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
 extension ScoreReKey on Score {
-  reKeyMelodies({bool andParts: true}) {
+  reKeyMelodies({bool andParts = true}) {
     parts.forEach((part) {
       if (andParts) {
         part.id = uuid.v4();

@@ -6,7 +6,6 @@ import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:flutter/services.dart';
 import '../drawing/canvas_tone_drawer.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../beatscratch_plugin.dart';

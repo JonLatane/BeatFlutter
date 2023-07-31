@@ -1,30 +1,23 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:beatscratch_flutter_redux/storage/url_conversions.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_icon.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
-import 'package:beatscratch_flutter_redux/music_view/music_system_painter.dart';
 import 'package:beatscratch_flutter_redux/storage/score_picker_preview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'dart:convert';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../ui_models.dart';
 import '../util/dummydata.dart';
 import '../util/bs_methods.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 
 import '../generated/protos/music.pb.dart';
 import '../generated/protos/protobeats_plugin.pb.dart';
-import '../music_preview/score_preview.dart';
 import '../util/music_utils.dart';
 import '../widget/my_buttons.dart';
 import 'score_manager.dart';
