@@ -22,7 +22,7 @@ class ScalableView extends StatefulWidget {
   final bool shiftUpZoomControls;
 
   const ScalableView(
-      {Key key,
+      {Key? key,
       this.onScaleDown,
       this.onScaleUp,
       this.child,
@@ -57,7 +57,7 @@ class _ScalableViewState extends State<ScalableView> {
             SizedBox(width: 2),
             Column(children: [
               Expanded(child: SizedBox()),
-              if (widget.autoScroll != null && widget.toggleAutoScroll != null)
+              if (widget.toggleAutoScroll != null)
                 MusicActionButton(
                   visible: widget.visible && widget.showViewOptions,
                   onPressed: widget.toggleAutoScroll,
@@ -155,16 +155,13 @@ class _ScalableViewState extends State<ScalableView> {
       onScaleUpdate: (details) {
         final scale = details.scale;
         // print("scale: $scale");
-        if (widget.onMicroScaleUp != null && scale - lastUpdatedScale >= .01) {
+        if (scale - lastUpdatedScale >= .01) {
           widget.onMicroScaleUp();
-        } else if (widget.onMicroScaleDown != null &&
-            scale - lastUpdatedScale <= -.01) {
+        } else if (scale - lastUpdatedScale <= -.01) {
           widget.onMicroScaleDown();
-        } else if (widget.onScaleUp != null &&
-            scale - lastUpdatedScale >= .09) {
+        } else if (scale - lastUpdatedScale >= .09) {
           widget.onScaleUp();
-        } else if (widget.onScaleDown != null &&
-            scale - lastUpdatedScale <= -.09) {
+        } else if (scale - lastUpdatedScale <= -.09) {
           widget.onScaleDown();
         }
       },

@@ -222,8 +222,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   SwipeTutorial get currentSwipeTutorial => _currentSwipeTutorial;
 
   set currentSwipeTutorial(SwipeTutorial value) {
-    if (value == null ||
-        _swipeTutorialsSeen[widget.musicViewMode].contains(value)) {
+    if (_swipeTutorialsSeen[widget.musicViewMode].contains(value)) {
       _currentSwipeTutorial = null;
       return;
     }
@@ -271,7 +270,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         if (status == AnimationStatus.completed) {
           Future.delayed(animationDuration, () {
             // print("_startValueAnimation onComplete");
-            onComplete?.call();
+            onComplete.call();
           });
         }
       });
@@ -283,18 +282,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   _updateFocusedBeatValue(
       {int value, bool withDelayClear = true, bool force = false}) {
-    if (value == null) {
-      value = getBeat(
-          Offset(
-              widget.width /
-                  (context.isLandscape && widget.splitMode == SplitMode.half
-                      ? 4
-                      : 2),
-              0),
-          targeted: false);
-    }
     if (force ||
-        focusedBeat.value == null ||
         DateTime.now().difference(focusedBeatUpdated).inMilliseconds >
             focusTimeout) {
       focusedBeat.value = value;
@@ -368,8 +356,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       // notifyUpdate(ScaleUpdate(currentValue(), value()));
     }
 
-    if (getLockTime() == null ||
-        DateTime.now().difference(getLockTime()).inMilliseconds > 500) {
+    if (DateTime.now().difference(getLockTime()).inMilliseconds > 500) {
       if (lock()) {
         // print("unlocked");
         startAnimation();
@@ -502,17 +489,9 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   @override
   Widget build(context) {
-    if (scale == null || targetedScale == null) {
+    if (targetedScale == null) {
       final musicScale = widget.appSettings.musicScale;
-      if (musicScale == null) {
-        if (context.isTablet) {
-          scale = 0.33;
-        } else {
-          scale = 0.22;
-        }
-      } else {
-        scale = musicScale;
-      }
+      scale = musicScale;
       targetedScale = scale;
     }
     // if (targetedScale != null &&
@@ -533,9 +512,6 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     }
     _previousSplitMode = widget.splitMode;
     _previousMusicViewMode = widget.musicViewMode;
-    if (widget.part == null) {
-      // isConfiguringPart = false;
-    }
     if (widget.musicViewMode != MusicViewMode.section) {
       // isEditingSection = false;
     }
@@ -562,9 +538,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   : (widget.musicViewMode == MusicViewMode.melody)
                       ? Colors.white
                       : (widget.musicViewMode == MusicViewMode.part)
-                          ? ((widget.part != null &&
-                                  widget.part.instrument.type ==
-                                      InstrumentType.drum)
+                          ? ((widget.part.instrument.type ==
+                                  InstrumentType.drum)
                               ? Colors.brown
                               : Colors.grey)
                           : Colors.black,
@@ -783,18 +758,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                 child: Align(
                                     alignment: Alignment.center,
                                     child: AnimatedOpacity(
-                                      opacity: currentSwipeTutorial == null ||
-                                              MyPlatform.isMacOS ||
-                                              MyPlatform.isWeb
-                                          ? 0
-                                          : 0.8,
+                                      opacity:
+                                          MyPlatform.isMacOS || MyPlatform.isWeb
+                                              ? 0
+                                              : 0.8,
                                       duration: animationDuration,
                                       child: AnimatedContainer(
-                                          height:
-                                              currentSwipeTutorial == null ||
-                                                      _hasSwipedClosed
-                                                  ? 0
-                                                  : 36,
+                                          height: _hasSwipedClosed ? 0 : 36,
                                           duration: animationDuration,
                                           padding: EdgeInsets.symmetric(
                                               horizontal: 10),
@@ -851,7 +821,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       recordingMelody: recordingMelody,
                       sectionColor: widget.sectionColor,
                       score: widget.score,
-                      melodyId: widget.melody?.id,
+                      melodyId: widget.melody.id,
                       currentSection: widget.currentSection,
                       highlightedBeat: highlightedBeat,
                       setReferenceVolume: widget.setReferenceVolume,
@@ -861,8 +831,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               duration: animationDuration,
               opacity: widget.musicViewMode == MusicViewMode.part ? 1 : 0,
               child: AnimatedContainer(
-                  color: widget.part != null &&
-                          widget.part.instrument.type == InstrumentType.drum
+                  color: widget.part.instrument.type == InstrumentType.drum
                       ? Colors.brown
                       : Colors.grey,
                   duration: animationDuration,
@@ -888,8 +857,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     : 0,
                 child: AnimatedContainer(
                     duration: animationDuration,
-                    color: widget.part != null &&
-                            widget.part.instrument.type == InstrumentType.drum
+                    color: widget.part.instrument.type == InstrumentType.drum
                         ? Colors.brown
                         : Colors.grey,
                     height: (widget.musicViewMode == MusicViewMode.part &&
@@ -1013,7 +981,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       final mainPart = this.mainPart();
       parts = [mainPart] +
           widget.score.parts
-              .where((p) => p.id != mainPart?.id)
+              .where((p) => p.id != mainPart.id)
               .toList(growable: false);
     }
     final part = parts[max(0, min(parts.length - 1, partIndex))];
@@ -1065,13 +1033,13 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
       staves = [];
 
       // print("mainPart=$mainPart");
-      if (mainPart != null && mainPart.isHarmonic) {
+      if (mainPart.isHarmonic) {
         staves.add(PartStaff(mainPart));
-      } else if (mainPart != null && mainPart.isDrum) {
+      } else if (mainPart.isDrum) {
         staves.add(DrumStaff());
       }
       staves.addAll(widget.score.parts
-          .where((part) => part.id != mainPart?.id)
+          .where((part) => part.id != mainPart.id)
           .map((part) => (part.isDrum) ? DrumStaff() : PartStaff(part))
           .toList(growable: false));
 //      if (widget.score.parts.any((part) => part.isHarmonic && part != mainPart)) {
@@ -1086,12 +1054,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           .toList(growable: false);
     }
 
-    bool focusedPartIsNotFirst = mainPart != null &&
+    bool focusedPartIsNotFirst =
         widget.score.parts.indexWhere((it) => it.id == mainPart.id) != 0;
-    bool focusedMelodyIsNotFirst = widget.melody != null &&
-        widget.score.parts.indexWhere(
-                (p) => p.melodies.any((m) => m.id == widget.melody.id)) !=
-            0;
+    bool focusedMelodyIsNotFirst = widget.score.parts.indexWhere(
+            (p) => p.melodies.any((m) => m.id == widget.melody.id)) !=
+        0;
     bool showAutoFocusButton = (widget.musicViewMode == MusicViewMode.part ||
             widget.musicViewMode == MusicViewMode.melody ||
             widget.musicViewMode == MusicViewMode.score) &&
@@ -1107,11 +1074,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     bool isPartOrMelodyView = widget.musicViewMode == MusicViewMode.part ||
         widget.musicViewMode == MusicViewMode.melody;
     onLongPress() {
-      if (widget.score.parts.isEmpty ||
-          tappedPart.value == null ||
-          tappedBeat.value == null) return;
+      if (widget.score.parts.isEmpty) return;
       final part = tappedPart.value;
-      if (part == null) return;
       HapticFeedback.lightImpact();
       if (widget.musicViewMode == MusicViewMode.score) {
         widget.setKeyboardPart(part);
@@ -1181,7 +1145,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               pointerDown(details.localPosition);
             },
             onTapUp: (details) {
-              if (ignoreNextTap || tappedBeat.value == null) {
+              if (ignoreNextTap) {
                 return;
               }
               int beat = tappedBeat.value;

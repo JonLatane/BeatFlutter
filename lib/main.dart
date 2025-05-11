@@ -267,9 +267,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set keyboardPart(Part part) {
     _keyboardPart = part;
-    if (part == null) {
-      showKeyboard = false;
-    }
     BeatScratchPlugin.setKeyboardPart(part);
   }
 
@@ -279,9 +276,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set colorboardPart(Part part) {
     _colorboardPart = part;
-    if (part == null) {
-      showColorboard = false;
-    }
 //    BeatScratchPlugin.setColorboardPart(part);
   }
 
@@ -323,9 +317,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       _musicViewSizeFactor = 0;
       _prevSelectedMelody = selectedMelody;
-      if (_prevSelectedMelody == null) {
-        _prevSelectedPart = selectedPart;
-      }
       selectedMelody = null;
       recordingMelody = false;
       selectedPart = null;
@@ -355,9 +346,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       bool wasAssignedByPartCreation = keyboardPart == null;
       keyboardPart = part;
-      if (part != null &&
-          !wasAssignedByPartCreation &&
-          !hasPrioritizedMIDIController) {
+      if (!wasAssignedByPartCreation && !hasPrioritizedMIDIController) {
         showKeyboard = true;
       }
     });
@@ -367,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     setState(() {
       bool wasAssignedByPartCreation = colorboardPart == null;
       colorboardPart = part;
-      if (part != null && !wasAssignedByPartCreation) {
+      if (!wasAssignedByPartCreation) {
         showColorboard = true;
       }
     });
@@ -379,14 +368,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set selectedMelody(Melody selectedMelody) {
     _selectedMelody = selectedMelody;
-    if (selectedMelody != null) {
-      Part part = score.parts
-          .firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
-      if (part != null) {
-        keyboardPart = part;
-      }
-    } else {
-      recordingMelody = false;
+    Part part = score.parts
+        .firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
+    if (part != null) {
+      keyboardPart = part;
     }
   }
 
@@ -396,9 +381,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set selectedPart(Part selectedPart) {
     _selectedPart = selectedPart;
-    if (selectedPart != null) {
-      keyboardPart = selectedPart;
-    }
+    keyboardPart = selectedPart;
   }
 
   Part _viewingPart;
@@ -407,9 +390,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set viewingPart(Part viewingPart) {
     _viewingPart = viewingPart;
-    if (viewingPart != null) {
-      keyboardPart = viewingPart;
-    }
+    keyboardPart = viewingPart;
   }
 
   List<SectionList> _sectionLists = [];
@@ -476,9 +457,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     } else {
       setState(() {
         ref.playbackType = MelodyReference_PlaybackType.disabled;
-        if (selectedMelody != null &&
-            ref != null &&
-            ref.melodyId == selectedMelody.id) {
+        if (ref != null && ref.melodyId == selectedMelody.id) {
           recordingMelody = false;
         }
       });
@@ -571,27 +550,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       // _universeManager.currentUniverseScore = "";
       universeViewUI.visible = false;
       if (interactionMode.isEdit) {
-        if (selectedMelody != null) {
-          _prevSelectedMelody = selectedMelody;
-          _prevSelectedPart = null;
-          _hideMusicView();
-        } else if (selectedPart != null) {
-          _prevSelectedMelody = null;
-          _prevSelectedPart = selectedPart;
-          _hideMusicView();
-        } else if (musicViewMode == MusicViewMode.section) {
-          _prevSelectedMelody = null;
-          _prevSelectedPart = null;
-          _hideMusicView();
-        } else {
-          if (_prevSelectedMelody != null) {
-            _selectOrDeselectMelody(_prevSelectedMelody);
-          } else if (_prevSelectedPart != null) {
-            _selectOrDeselectPart(_prevSelectedPart);
-          } else {
-            _selectSection(currentSection);
-          }
-        }
+        _prevSelectedMelody = selectedMelody;
+        _prevSelectedPart = null;
+        _hideMusicView();
       } else {
         if (_scoreManager.currentScoreName == ScoreManager.UNIVERSE_SCORE ||
             _scoreManager.currentScoreName == ScoreManager.WEB_SCORE ||
@@ -619,13 +580,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           //   });
           // });
         }
-        if (_prevSelectedMelody != null) {
-          _selectOrDeselectMelody(_prevSelectedMelody);
-        } else if (_prevSelectedPart != null) {
-          _selectOrDeselectPart(_prevSelectedPart);
-        } else {
-          musicViewMode = MusicViewMode.section;
-        }
+        _selectOrDeselectMelody(_prevSelectedMelody);
         interactionMode = InteractionMode.edit;
         // showSections = true;
         _showMusicView();
@@ -885,13 +840,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     score = widget.initialScore;
     _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = doOpenScore;
-    if (widget.pastebinCode != null) {
-      _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
-        messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
-      });
-    } else if (MyPlatform.isWeb) {
-      BeatScratchPlugin.createScore(score);
-    }
+    _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
+      messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
+    });
     if (MyPlatform.isMobile) {
       KeyboardVisibility.onChange.listen((bool visible) {
         setState(() {
@@ -1124,10 +1075,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (splitMode == null) {
-      splitMode = (context.isTablet) ? SplitMode.half : SplitMode.full;
-      verticalSectionList = context.isTablet || context.isLandscapePhone;
-    }
     if (hasPrioritizedMIDIController && !hadPriotizedMIDIController) {
       showKeyboard = false;
     }
@@ -1139,7 +1086,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (context.isLandscape) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+          overlays: SystemUiOverlay.values);
     }
     if (BeatScratchPlugin.playing) {
       _tapInBeat = null;
@@ -1389,23 +1337,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                   onPressed: _universeManager.redditUsername.isNotEmpty
                       ? () {
-                          bool oldValue = _universeManager
-                              .currentUniverseScoreFuture?.likes;
+                          bool oldValue =
+                              _universeManager.currentUniverseScoreFuture.likes;
                           setState(() {
                             if (oldValue == true) {
-                              scoreFuture?.likes = null;
-                              scoreFuture?.voteCount -= 1;
+                              scoreFuture.likes = null;
+                              scoreFuture.voteCount -= 1;
                             } else {
-                              scoreFuture?.likes = true;
-                              scoreFuture?.voteCount +=
-                                  oldValue == null ? 1 : 2;
+                              scoreFuture.likes = true;
+                              scoreFuture.voteCount += oldValue == null ? 1 : 2;
                             }
                             _universeManager.vote(
-                                scoreFuture?.fullName, scoreFuture?.likes);
+                                scoreFuture.fullName, scoreFuture.likes);
                           });
                         }
                       : null,
-                  color: scoreFuture?.likes == true
+                  color: scoreFuture.likes == true
                       ? chromaticSteps[11]
                       : Colors.transparent,
                   child: Align(
@@ -1415,7 +1362,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           duration: animationDuration,
                           child: Icon(Icons.arrow_upward,
                               color: _universeManager.isAuthenticated
-                                  ? scoreFuture?.likes == true
+                                  ? scoreFuture.likes == true
                                       ? chromaticSteps[11].textColor()
                                       : chromaticSteps[11]
                                   : musicForegroundColor.withOpacity(0.5)))),
@@ -1425,7 +1372,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 duration: animationDuration,
                 child: Align(
                     alignment: Alignment.center,
-                    child: Text(scoreFuture?.voteCount?.toString() ?? '',
+                    child: Text(scoreFuture.voteCount.toString() ?? '',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: musicForegroundColor,
@@ -1437,22 +1384,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                   onPressed: _universeManager.redditUsername.isNotEmpty
                       ? () {
-                          bool oldValue = _universeManager
-                              .currentUniverseScoreFuture?.likes;
+                          bool oldValue =
+                              _universeManager.currentUniverseScoreFuture.likes;
                           setState(() {
                             if (oldValue == false) {
-                              scoreFuture?.likes = null;
+                              scoreFuture.likes = null;
                               scoreFuture.voteCount += 1;
                             } else {
-                              scoreFuture?.likes = false;
+                              scoreFuture.likes = false;
                               scoreFuture.voteCount -= oldValue == null ? 1 : 2;
                             }
                             _universeManager.vote(
-                                scoreFuture?.fullName, scoreFuture?.likes);
+                                scoreFuture.fullName, scoreFuture.likes);
                           });
                         }
                       : null,
-                  color: scoreFuture?.likes == false
+                  color: scoreFuture.likes == false
                       ? chromaticSteps[10]
                       : Colors.transparent,
                   child: Align(
@@ -1462,7 +1409,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           duration: animationDuration,
                           child: Icon(Icons.arrow_downward,
                               color: _universeManager.isAuthenticated
-                                  ? scoreFuture?.likes == false
+                                  ? scoreFuture.likes == false
                                       ? chromaticSteps[10].textColor()
                                       : chromaticSteps[10]
                                   : musicForegroundColor.withOpacity(0.5)))),
@@ -1766,12 +1713,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool isDisplayed = (!vertical && !bottom && _tapInBarHeight != 0) ||
         (vertical && _landscapeTapInBarWidth != 0) ||
         (bottom && _bottomTapInBarHeight != 0);
-    final double tapInFirstSize =
-        !playing && (vertical || tapInBeat == null) ? 42 : 0;
+    final double tapInFirstSize = !playing && (vertical) ? 42 : 0;
     final double tapInSecondSize =
-        !BeatScratchPlugin.playing && (_tapInBeat == null || _tapInBeat <= -2)
-            ? 42
-            : 0;
+        !BeatScratchPlugin.playing && (_tapInBeat <= -2) ? 42 : 0;
     final audioButtonColor =
         BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey;
     Widget tapInBarInstructions({bool withText = true, bool withIcon = true}) =>
@@ -2242,12 +2186,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   showViewOptions;
               showMidiConfiguration = true;
               showViewOptions = true;
-              if (keyboardPart != null && showKeyboard) {
+              if (showKeyboard) {
                 _showKeyboardConfiguration = true;
               }
-              if (_enableColorboard &&
-                  colorboardPart != null &&
-                  showColorboard) {
+              if (_enableColorboard && showColorboard) {
                 _showColorboardConfiguration = true;
               }
             });
@@ -2261,12 +2203,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           saveCurrentScore: saveCurrentScore,
           pasteScore: () async {
             ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
-            if (data == null) {
-              setState(() {
-                pasteFailed = true;
-              });
-              return;
-            }
             String scoreUrl = data.text;
             _scoreManager.loadFromScoreUrl(scoreUrl,
                 currentScoreToSave: this.score, onFail: () {
@@ -2330,12 +2266,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _selectOrDeselectPart(object);
         }
       } else if (object is Section) {
-        if (selectedMelody != null) {
-          _selectOrDeselectMelody(selectedMelody);
-        }
-        if (selectedPart != null) {
-          _selectOrDeselectPart(selectedPart);
-        }
+        _selectOrDeselectMelody(selectedMelody);
+        _selectOrDeselectPart(selectedPart);
         musicViewMode = MusicViewMode.section;
         if (!interactionMode.isEdit) {
           _editMode();
@@ -2404,9 +2336,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         });
       },
       showTempoConfiguration: _showTapInBar,
-      visible: (_secondToolbarHeight != null && _secondToolbarHeight != 0) ||
-          (_landscapePhoneSecondToolbarWidth != null &&
-              _landscapePhoneSecondToolbarWidth != 0) ||
+      visible: (_secondToolbarHeight != 0) ||
+          (_landscapePhoneSecondToolbarWidth != 0) ||
           _scalableUI,
       tempoLongPress: _landscapePhoneUI
           ? () {
@@ -2469,11 +2400,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               }));
     }
 
-    if (delay == null) {
-      Future.microtask(doSave);
-    } else {
-      Future.delayed(delay, doSave);
-    }
+    Future.delayed(delay, doSave);
   }
 
   double beatScratchToolbarHeight(BuildContext context) =>
@@ -2833,8 +2760,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               }
             : null,
         cloneCurrentSection: () {
-          if (currentSection.name == null ||
-              currentSection.name.trim().isEmpty) {
+          if (currentSection.name.trim().isEmpty) {
             String prefix = "Section";
             while (score.sections.any((s) => s.name.startsWith("$prefix "))) {
               prefix = "$prefix'";

@@ -30,10 +30,7 @@ clearMutableCachesForMelody(String melodyId,
       (key, value) => (key.arguments[0] as String).contains(melodyId));
   NotationMusicRenderer.playbackNoteCache
       .removeWhere((key, value) => key.arguments[0] == melodyId);
-  if (sectionId == null ||
-      beat == null ||
-      sectionLengthBeats == null ||
-      melodyLengthBeats == null) {
+  if (beat == null) {
     NotationMusicRenderer.notationRenderingCache.removeWhere((key, value) =>
         key.arguments[0] == melodyId ||
         (key.arguments[1] as String).contains(melodyId));

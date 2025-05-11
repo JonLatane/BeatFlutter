@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:dart_midi/dart_midi.dart';
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
 
 import '../messages/messages_ui.dart';
 import 'tile_bluetooth.dart';
@@ -45,7 +45,7 @@ class SettingsPanel extends StatefulWidget {
   final Part keyboardPart;
 
   const SettingsPanel(
-      {Key key,
+      {Key? key,
       required this.appSettings,
       required this.universeManager,
       required this.sectionColor,
@@ -71,15 +71,15 @@ class _SettingsPanelState extends State<SettingsPanel> {
       BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> get midiSynthesizers =>
       BeatScratchPlugin.midiSynthesizers;
-  List<MidiDevice> observedDevices;
-  List<String> connectedDeviceIds;
-  StreamSubscription<MidiPacket> midiCommandSubscription;
+  late List<MidiDevice> observedDevices;
+  late List<String> connectedDeviceIds;
+  late StreamSubscription<MidiPacket>? midiCommandSubscription;
 
   _startBluetoothScanLoop() async {
     MidiCommand().devices.then((results) {
-      observedDevices = results.where((r) => r.type == "BLE").toList();
+      observedDevices = results?.where((r) => r.type == "BLE").toList() ?? [];
       connectedDeviceIds
-          .removeWhere((id) => !observedDevices.any((d) => d.id == id));
+          .removeWhere((id) => !observedDevices!.any((d) => d.id == id));
       Future.delayed(
           Duration(seconds: widget.visible ? 5 : 15), _startBluetoothScanLoop);
     });
@@ -103,13 +103,13 @@ class _SettingsPanelState extends State<SettingsPanel> {
           if (e is NoteOnEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id]
+            widget.bluetoothControllerPressedNotes.value[event.device.id]!
                 .add(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           } else if (e is NoteOffEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id]
+            widget.bluetoothControllerPressedNotes.value[event.device.id]!
                 .remove(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           }
@@ -167,7 +167,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
         BeatScratchPlugin.supportsSynthesizerConfig
             ? this.midiSynthesizers.toList()
             : [this.midiSynthesizers.toList().first];
-    List<dynamic> appSettings = [
+    List<Identifiable> appSettings = [
       SeparatorTile(text: "App Settings", id: "app-settings"),
       SettingsTile(
         id: "pasteeIntegration",
@@ -479,7 +479,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
       ...appSettings,
       ...features,
     ];
-    return ImplicitlyAnimatedList<dynamic>(
+    return ImplicitlyAnimatedList<Identifiable>(
       key: ValueKey("MidiSettingsList"),
       scrollDirection: Axis.horizontal,
       spawnIsolate: false,
@@ -493,7 +493,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
           return SizedBox();
         }
         final dynamic item = items[index];
-        Widget tile;
+        Widget? tile;
         if (item is MidiController) {
           tile = MidiControllerTile(
             appSettings: widget.appSettings,
@@ -702,4 +702,8 @@ showColors(BuildContext context, Color sectionColor) {
       // ],
     ),
   );
+}
+
+abstract class Identifiable {
+  String get id;
 }

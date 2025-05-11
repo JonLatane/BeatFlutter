@@ -14,7 +14,7 @@ Future<Object> showEditMenu(
     required RelativeRect position,
     required Score score,
     required Part part,
-    required Melody selectedMelody,
+    Melody? selectedMelody,
     required MusicViewMode musicViewMode,
     required Section section,
     required Function(Object) editObject}) async {
@@ -23,7 +23,8 @@ Future<Object> showEditMenu(
     editObject(object);
   }
 
-  final melodies = part.melodies.where((m) => section.referenceTo(m).isEnabled);
+  final melodies =
+      part.melodies.where((m) => section.referenceTo(m)?.isEnabled == true);
   return showMenu(
       context: context,
       position: position,
@@ -31,6 +32,7 @@ Future<Object> showEditMenu(
       color: (musicBackgroundColor.luminance < 0.5
               ? subBackgroundColor
               : musicBackgroundColor)
+          // .withAlpha(240)
           .withOpacity(0.95),
       items: [
         PopupMenuItem(

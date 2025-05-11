@@ -16,7 +16,7 @@ class RecordedSegmentQueue {
 
   /// Should be set in [State.initState] and [State.dispose] for
   static Function(Melody) updateRecordingMelody;
-  static Melody get recordingMelody => getRecordingMelody?.call();
+  static Melody get recordingMelody => getRecordingMelody.call();
   // static set recordingMelody(Melody melody) => updateRecordingMelody(melody);
   static final Queue<RecordedSegment> segments = ListQueue<RecordedSegment>();
   static final BSValueMethod<bool> enabled = BSValueMethod(false)
@@ -48,20 +48,18 @@ class RecordedSegmentQueue {
   static _processSegment(RecordedSegment segment) {
     if (segment.recordedData.isEmpty) return;
     final melody = recordingMelody;
-    if (melody != null) {
-      RecordedSegment_RecordedBeat firstBeat =
-          segment.beats.minBy((rb) => rb.timestamp.toInt());
-      RecordedSegment_RecordedBeat secondBeat =
-          segment.beats.maxBy((rb) => rb.timestamp.toInt());
-      segment.recordedData.forEach((data) {
-        _processSegmentData(segment, data, melody, firstBeat, secondBeat);
-      });
-      print("applying PostProcessing: separateNoteOnAndOffs()");
-      melody.separateNoteOnAndOffs();
-      print("updateRecordingMelody?.call: ${melody.logString}");
-      updateRecordingMelody?.call(melody);
-      BeatScratchPlugin.updateMelody(melody);
-    }
+    RecordedSegment_RecordedBeat firstBeat =
+        segment.beats.minBy((rb) => rb.timestamp.toInt());
+    RecordedSegment_RecordedBeat secondBeat =
+        segment.beats.maxBy((rb) => rb.timestamp.toInt());
+    segment.recordedData.forEach((data) {
+      _processSegmentData(segment, data, melody, firstBeat, secondBeat);
+    });
+    print("applying PostProcessing: separateNoteOnAndOffs()");
+    melody.separateNoteOnAndOffs();
+    print("updateRecordingMelody?.call: ${melody.logString}");
+    updateRecordingMelody?.call(melody);
+    BeatScratchPlugin.updateMelody(melody);
   }
 
   static _processSegmentData(

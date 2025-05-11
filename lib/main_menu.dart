@@ -9,7 +9,7 @@ import 'export/export_ui.dart';
 import 'generated/protos/protos.dart';
 import 'widget/my_platform.dart';
 
-Future<String> showMainMenu(
+Future<String?> showMainMenu(
     {required BuildContext context,
     required RelativeRect position,
     required bool showDownloads,
@@ -44,21 +44,21 @@ Future<String> showMainMenu(
               Expanded(
                 child: SizedBox(),
               ),
-              if (packageInfo?.version != null)
-                Text('v${packageInfo?.version}',
+              if (packageInfo.version != null)
+                Text('v${packageInfo.version}',
                     style: TextStyle(
                         color: musicForegroundColor.withOpacity(0.5),
                         fontWeight: FontWeight.w500,
                         fontSize: 10)),
-              if (packageInfo?.version != null) SizedBox(width: 3),
-              if (packageInfo?.version != null)
-                Text('(${packageInfo?.buildNumber})',
+              if (packageInfo.version != null) SizedBox(width: 3),
+              if (packageInfo.version != null)
+                Text('(${packageInfo.buildNumber})',
                     style: TextStyle(
                         color: musicForegroundColor.withOpacity(0.5),
                         fontWeight: FontWeight.w100,
                         fontSize: 10)),
-              if (packageInfo?.version == null)
-                Text('(build ${packageInfo?.buildNumber})',
+              if (packageInfo.version == null)
+                Text('(build ${packageInfo.buildNumber})',
                     style: TextStyle(
                         color: musicForegroundColor.withOpacity(0.5),
                         fontWeight: FontWeight.w100,

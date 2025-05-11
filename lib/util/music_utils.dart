@@ -1,8 +1,7 @@
-import '../util/midi_theory.dart';
-import 'package:dart_midi/dart_midi.dart';
-//ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
 
+import '../util/midi_theory.dart';
 import '../generated/protos/music.pb.dart';
 import 'util.dart';
 
@@ -37,8 +36,8 @@ extension ScoreReKey on Score {
 extension DeleteNotes on Melody {
   deleteMidiNote(int midiNote, int subdivision) {
     // First delete the NoteOnEvent here
-    midiData.data[subdivision].midiEvents = midiData
-        .data[subdivision].midiEvents
+    midiData.data[subdivision]!.midiEvents = midiData
+        .data[subdivision]!.midiEvents
         .withoutNoteOnEvents(midiNote)
         .toList();
 
@@ -49,11 +48,9 @@ extension DeleteNotes on Melody {
       var midiChange = midiData.data[s];
       if (midiChange != null) {
         final midiEvents = midiChange.midiEvents;
-        if (midiEvents.hasNoteOnEvent(midiNote) != null) {
-          midiChange.midiEvents =
-              midiEvents.withoutNoteOffEvents(midiNote).toList();
-          foundNoteOff = true;
-        }
+        midiChange.midiEvents =
+            midiEvents.withoutNoteOffEvents(midiNote).toList();
+        foundNoteOff = true;
       }
       if (foundNoteOff) {
         break;
@@ -80,9 +77,9 @@ extension DeleteNotes on Melody {
 extension SeparateNoteOnAndOff on Melody {
   bool separateNoteOnAndOffs() {
     bool madeChanges = false;
-    if (type == MelodyType.midi && false) {
+    if (type == MelodyType.midi) {
       midiData.data.keys.forEach((index) {
-        MidiChange midiChange = midiData.data[index];
+        MidiChange midiChange = midiData.data[index]!;
         int nextIndex = (index < midiData.data.length - 1) ? index + 1 : 0;
         MidiChange nextMidiChange = midiData.data[nextIndex] ?? MidiChange();
 
@@ -105,7 +102,7 @@ extension SeparateNoteOnAndOff on Melody {
           }
         });
 
-        nextWriter.buffer.addAll(nextMidiChange.data ?? []);
+        nextWriter.buffer.addAll(nextMidiChange.data);
         midiChange.data = writer.buffer;
         nextMidiChange.data = nextWriter.buffer;
       });

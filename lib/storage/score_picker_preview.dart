@@ -56,30 +56,21 @@ class ScoreFuture {
 
   String get identity => filePath ?? "//universe-score://$scoreUrl";
   FileSystemEntity get file {
-    if (filePath != null) {
-      try {
-        return File(filePath);
-      } catch (e) {
-        print("Error loading score from file: $e");
-      }
+    try {
+      return File(filePath);
+    } catch (e) {
+      print("Error loading score from file: $e");
     }
     return null;
   }
 
   Future<Score> loadScore(ScoreManager scoreManager) async {
-    if (this.file != null) {
-      return loadScoreFromFile();
-    } else {
-      return loadScoreFromUniverse(scoreManager);
-    }
+    return loadScoreFromFile();
   }
 
   Future<Score> loadScoreFromFile() async {
-    if (file == null) {
-      return Future.value(defaultScore());
-    }
     try {
-      final data = await File(file?.path).readAsBytes();
+      final data = await File(file.path).readAsBytes();
 
       return Score.fromBuffer(data);
     } catch (e) {
@@ -94,9 +85,6 @@ class ScoreFuture {
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
     try {
       final score = scoreFromUrlHashValue(scoreUrl);
-      if (score == null) {
-        throw "failed to load";
-      }
       return score..name = title;
     } catch (e) {
       try {
@@ -175,9 +163,9 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
   }
 
   String get unloadedScoreName =>
-      widget.scoreFuture?.title ?? widget.scoreFuture?.file?.scoreName ?? "";
+      widget.scoreFuture.title ?? widget.scoreFuture.file.scoreName ?? "";
 
-  bool get isUniverse => widget.scoreFuture?.voteCount != null;
+  bool get isUniverse => widget.scoreFuture.voteCount != null;
   @override
   Widget build(BuildContext context) {
     final scoreName = unloadedScoreName;
@@ -185,7 +173,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
         ? widget.scoreFuture.identity ==
             widget.universeManager.currentUniverseScore
         : unloadedScoreName == widget.scoreManager.currentScoreName;
-    if (widget.scoreKey != _lastScoreKey && widget.scoreFuture != null) {
+    if (widget.scoreKey != _lastScoreKey) {
       _confirmingDelete = false;
       _confirmingOverwrite = false;
       _previewScore = null;
@@ -222,7 +210,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     // if (previewScore == null) {
     //   previewScore = defaultScore();
     // }
-    if (previewScore?.sections?.isEmpty == true) {
+    if (previewScore.sections.isEmpty == true) {
       previewScore.sections.add(defaultSection());
     }
     final actualScoreName = isUniverse
@@ -239,8 +227,8 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     return Row(children: [
       AnimatedContainer(
           duration: animationDuration,
-          width: /*widget.scoreFuture?.loadScore != null ? */ widget
-              .width /*: 0*/,
+          width: /*widget.scoreFuture?.loadScore != null ? */
+              widget.width /*: 0*/,
           height: widget.height,
           color: backgroundColor,
           padding: EdgeInsets.zero,
@@ -440,7 +428,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                   alignment: Alignment.bottomLeft,
                   child: AnimatedOpacity(
                       duration: animationDuration,
-                      opacity: widget.scoreFuture?.author != null ? 1 : 0,
+                      opacity: widget.scoreFuture.author != null ? 1 : 0,
                       child: Container(
                           height: 36,
                           padding: EdgeInsets.all(5),
@@ -459,7 +447,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                       fontSize: 8))
                             ]),
                             SizedBox(width: 5),
-                            Text(widget.scoreFuture?.author ?? "",
+                            Text(widget.scoreFuture.author ?? "",
                                 style: TextStyle(
                                     color: musicForegroundColor,
                                     fontWeight: FontWeight.w700))
@@ -477,70 +465,70 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
               child: Column(
                 children: [
                   MyFlatButton(
-                      color: widget.scoreFuture?.likes == true
+                      color: widget.scoreFuture.likes == true
                           ? chromaticSteps[11]
                           : Colors.transparent,
                       padding: EdgeInsets.symmetric(vertical: 5),
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
                               ? () {
-                                  bool oldValue = widget.scoreFuture?.likes;
+                                  bool oldValue = widget.scoreFuture.likes;
                                   setState(() {
                                     if (oldValue == true) {
-                                      widget.scoreFuture?.likes = null;
+                                      widget.scoreFuture.likes = null;
                                       widget.scoreFuture.voteCount -= 1;
                                     } else {
-                                      widget.scoreFuture?.likes = true;
+                                      widget.scoreFuture.likes = true;
                                       widget.scoreFuture.voteCount +=
                                           oldValue == null ? 1 : 2;
                                     }
                                     widget.universeManager.vote(
-                                        widget.scoreFuture?.fullName,
-                                        widget.scoreFuture?.likes);
+                                        widget.scoreFuture.fullName,
+                                        widget.scoreFuture.likes);
                                   });
                                 }
                               : null,
                       child: Icon(Icons.arrow_upward,
                           color: widget.universeManager.isAuthenticated
-                              ? widget.scoreFuture?.likes == true
+                              ? widget.scoreFuture.likes == true
                                   ? chromaticSteps[11].textColor()
                                   : chromaticSteps[11]
                               : musicForegroundColor.withOpacity(0.5))),
                   Row(children: [
                     Expanded(child: SizedBox()),
-                    Text(widget.scoreFuture?.voteCount?.toString() ?? '',
+                    Text(widget.scoreFuture.voteCount.toString() ?? '',
                         style: TextStyle(
                             color: musicForegroundColor,
                             fontWeight: FontWeight.w800)),
                     Expanded(child: SizedBox()),
                   ]),
                   MyFlatButton(
-                      color: widget.scoreFuture?.likes == false
+                      color: widget.scoreFuture.likes == false
                           ? chromaticSteps[10]
                           : Colors.transparent,
                       padding: EdgeInsets.symmetric(vertical: 5),
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
                               ? () {
-                                  bool oldValue = widget.scoreFuture?.likes;
+                                  bool oldValue = widget.scoreFuture.likes;
                                   setState(() {
                                     if (oldValue == false) {
-                                      widget.scoreFuture?.likes = null;
+                                      widget.scoreFuture.likes = null;
                                       widget.scoreFuture.voteCount += 1;
                                     } else {
-                                      widget.scoreFuture?.likes = false;
+                                      widget.scoreFuture.likes = false;
                                       widget.scoreFuture.voteCount -=
                                           oldValue == null ? 1 : 2;
                                     }
                                     widget.universeManager.vote(
-                                        widget.scoreFuture?.fullName,
-                                        widget.scoreFuture?.likes);
+                                        widget.scoreFuture.fullName,
+                                        widget.scoreFuture.likes);
                                   });
                                 }
                               : null,
                       child: Icon(Icons.arrow_downward,
                           color: widget.universeManager.isAuthenticated
-                              ? widget.scoreFuture?.likes == false
+                              ? widget.scoreFuture.likes == false
                                   ? chromaticSteps[10].textColor()
                                   : chromaticSteps[10]
                               : musicForegroundColor.withOpacity(0.5))),

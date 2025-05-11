@@ -1,18 +1,18 @@
-
+import 'package:beatscratch_flutter_redux/settings/settings.dart';
 import 'package:flutter/material.dart';
 
 import '../ui_models.dart';
 import '../widget/my_buttons.dart';
 
-class SettingsTile extends StatelessWidget {
+class SettingsTile extends StatelessWidget implements Identifiable {
   final String id;
-  final Widget child;
-  final Color color;
-  final VoidCallback onPressed;
+  final Widget? child;
+  final Color? color;
+  final VoidCallback? onPressed;
 
   const SettingsTile({
-    Key key,
-    this.id,
+    Key? key,
+    required this.id,
     this.child,
     this.color,
     this.onPressed,
@@ -36,14 +36,14 @@ class SettingsTile extends StatelessWidget {
   }
 }
 
-class SeparatorTile extends StatelessWidget {
+class SeparatorTile extends StatelessWidget implements Identifiable {
   final String text;
   final String id;
 
   const SeparatorTile({
-    Key key,
-    this.text,
-    this.id,
+    Key? key,
+    required this.text,
+    required this.id,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {

@@ -4,9 +4,6 @@ import '../ui_models.dart';
 
 double beatsBadgeWidth(int beats) {
   double width = 30;
-  if (beats == null) {
-    beats = 9999;
-  }
   if (beats > 99) width = 40;
   if (beats > 999) width = 50;
   if (beats > 9999) width = 60;
@@ -21,8 +18,8 @@ class BeatsBadge extends StatelessWidget {
   final bool isPerBeat;
 
   const BeatsBadge(
-      {Key key,
-      this.beats,
+      {Key? key,
+      required this.beats,
       this.show = true,
       this.opacity = 0.5,
       this.isPerBeat = false})

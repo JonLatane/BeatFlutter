@@ -95,12 +95,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       recordingColor = Colors.grey;
     }
     int beats;
-    if (widget.melody != null) {
-      beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
-    }
-    bool hasHighlightedBeat = widget.highlightedBeat.value != null &&
-        BeatScratchPlugin.playing &&
-        widget.recordingMelody;
+    beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
+    bool hasHighlightedBeat =
+        BeatScratchPlugin.playing && widget.recordingMelody;
     final melodyReference = widget.currentSection.referenceTo(widget.melody);
     bool playingOrCountingIn =
         BeatScratchPlugin.playing || BeatScratchPlugin.countInInitiated;
@@ -217,9 +214,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       SizedBox(width: 7),
       IncrementableValue(
         collapsing: true,
-        onDecrement: (widget.melody != null && widget.melody.beatCount > 1)
+        onDecrement: (widget.melody.beatCount > 1)
             ? () {
-                if (widget.melody != null && widget.melody.beatCount > 1) {
+                if (widget.melody.beatCount > 1) {
                   widget.melody.length -= widget.melody.subdivisionsPerBeat;
                   BeatScratchPlugin.onSynthesizerStatusChange();
                   clearMutableCachesForMelody(widget.melody.id);
@@ -227,9 +224,9 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
                 }
               }
             : null,
-        onIncrement: (widget.melody != null && widget.melody.beatCount <= 999)
+        onIncrement: (widget.melody.beatCount <= 999)
             ? () {
-                if (widget.melody != null && widget.melody.beatCount <= 999) {
+                if (widget.melody.beatCount <= 999) {
                   widget.melody.length += widget.melody.subdivisionsPerBeat;
                   BeatScratchPlugin.onSynthesizerStatusChange();
                   clearMutableCachesForMelody(widget.melody.id);
@@ -246,10 +243,10 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       SizedBox(width: 5),
       IncrementableValue(
         collapsing: true,
-        onDecrement: (widget.melody?.subdivisionsPerBeat ?? -1) > 1
+        onDecrement: (widget.melody.subdivisionsPerBeat ?? -1) > 1
             ? () {
-                if ((widget.melody?.subdivisionsPerBeat ?? -1) > 1) {
-                  widget.melody?.subdivisionsPerBeat -= 1;
+                if ((widget.melody.subdivisionsPerBeat ?? -1) > 1) {
+                  widget.melody.subdivisionsPerBeat -= 1;
                   widget.melody.length =
                       beats * widget.melody.subdivisionsPerBeat;
                   clearMutableCachesForMelody(widget.melody.id);
@@ -259,10 +256,10 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
                 }
               }
             : null,
-        onIncrement: (widget.melody?.subdivisionsPerBeat ?? -1) < 24
+        onIncrement: (widget.melody.subdivisionsPerBeat ?? -1) < 24
             ? () {
-                if ((widget.melody?.subdivisionsPerBeat ?? -1) < 24) {
-                  widget.melody?.subdivisionsPerBeat += 1;
+                if ((widget.melody.subdivisionsPerBeat ?? -1) < 24) {
+                  widget.melody.subdivisionsPerBeat += 1;
                   widget.melody.length =
                       beats * widget.melody.subdivisionsPerBeat;
                   clearMutableCachesForMelody(widget.melody.id);
@@ -275,7 +272,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
         child: Padding(
             padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
             child: BeatsBadge(
-              beats: widget.melody?.subdivisionsPerBeat,
+              beats: widget.melody.subdivisionsPerBeat,
               isPerBeat: true,
             )),
       ),
@@ -283,14 +280,14 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       Expanded(
           child: AnimatedOpacity(
         duration: animationDuration,
-        opacity: widget.melody != null && widget.visible ? 1 : 0,
+        opacity: widget.visible ? 1 : 0,
         child: MySlider(
-            value: melodyReference?.volume ?? 0,
-            activeColor: melodyReference?.playbackType ==
+            value: melodyReference.volume ?? 0,
+            activeColor: melodyReference.playbackType ==
                     MelodyReference_PlaybackType.playback_indefinitely
                 ? widget.sectionColor
                 : widget.sectionColor.withOpacity(0.5),
-            onChanged: (widget.melody != null && widget.visible)
+            onChanged: (widget.visible)
                 ? (value) {
                     widget.setReferenceVolume(melodyReference, value);
                   }
@@ -303,7 +300,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
           padding: EdgeInsets.only(left: 5),
           child: AnimatedOpacity(
               duration: animationDuration,
-              opacity: widget.melody != null && showHoldToClear ? 1 : 0,
+              opacity: showHoldToClear ? 1 : 0,
               child: Stack(children: [
                 Transform.translate(
                     offset: Offset(0, -7),
@@ -337,7 +334,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
           padding: EdgeInsets.only(left: 5),
           child: AnimatedOpacity(
               duration: animationDuration,
-              opacity: widget.melody != null && showDataCleared ? 1 : 0,
+              opacity: showDataCleared ? 1 : 0,
               child: Stack(children: [
                 // Transform.translate(offset: Offset(0, -7), child: Align(alignment: Alignment.center, child:
                 // Text("Data", maxLines: 1, overflow: TextOverflow.visible, style: TextStyle(fontSize: 10)))),
@@ -422,11 +419,7 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
                   ? () {
                       print("clearing single beat");
                       int beatToDelete = widget.highlightedBeat.value;
-                      if (beatToDelete == null) {
-                        beatToDelete = BeatScratchPlugin.currentBeat.value;
-                      } else {
-                        beatToDelete -= firstBeatOfSection;
-                      }
+                      beatToDelete -= firstBeatOfSection;
                       widget.melody.deleteBeat(beatToDelete);
                       clearMutableCachesForMelody(widget.melody.id);
                       BeatScratchPlugin.onSynthesizerStatusChange();

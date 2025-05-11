@@ -16,13 +16,13 @@ extension Migrations on Score {
   _setBpmsOnSections() {
     double firstSeenBpm;
     for (Section section in sections) {
-      if (section.tempo != null && section.tempo.bpm != null) {
+      if (section.tempo.bpm != null) {
         firstSeenBpm = section.tempo.bpm;
         break;
       }
     }
     sections.forEach((section) {
-      if (section.tempo == null || section.tempo.bpm == null) {
+      if (section.tempo.bpm == null) {
         section.tempo = Tempo()..bpm = firstSeenBpm ?? 123;
       }
     });

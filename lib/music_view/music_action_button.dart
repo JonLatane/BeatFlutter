@@ -25,11 +25,7 @@ class MusicActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double width = this.width, height = this.height;
-    if (!visible &&
-        width != null &&
-        height != null &&
-        width != 0 &&
-        height != 0) {
+    if (!visible && width != 0 && height != 0) {
       width = 0;
       height = 0;
     }

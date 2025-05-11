@@ -220,19 +220,17 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   AnimationController interactiveController;
   void _interactiveAnimationStop() {
     interactiveController.stop();
-    interactiveAnimation?.removeListener(_onInteractiveAnimation);
+    interactiveAnimation.removeListener(_onInteractiveAnimation);
     interactiveAnimation = null;
     interactiveController.reset();
   }
 
   void _onInteractiveAnimation() {
-    if (interactiveAnimation != null) {
-      transformationController.value = interactiveAnimation.value;
-      if (!interactiveController.isAnimating) {
-        interactiveAnimation.removeListener(_onInteractiveAnimation);
-        interactiveAnimation = null;
-        interactiveController.reset();
-      }
+    transformationController.value = interactiveAnimation.value;
+    if (!interactiveController.isAnimating) {
+      interactiveAnimation.removeListener(_onInteractiveAnimation);
+      interactiveAnimation = null;
+      interactiveController.reset();
     }
   }
 
@@ -384,12 +382,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   ValueNotifier<Offset> interactionStartFocal = ValueNotifier(null);
   ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
   _deriveStartSystemFromFocal() {
-    if (interactionStartFocal.value == null) {
-      interactionStartSystem.value = null;
-    } else {
-      interactionStartSystem.value =
-          max(0, (interactingFocal.dy / scaledSystemHeight).floor());
-    }
+    interactionStartSystem.value =
+        max(0, (interactingFocal.dy / scaledSystemHeight).floor());
   }
 
   Offset get interactingFocal => interactionStartFocal.value;
@@ -446,16 +440,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
           scrollToCurrentBeat();
           _lastAutoScrollTime = DateTime.now();
         });
-      } else if (_prevSectionId != null &&
-          _prevSectionId != widget.currentSection.id) {
+      } else if (_prevSectionId != widget.currentSection.id) {
         scrollToCurrentBeat();
         _lastAutoScrollTime = DateTime.now();
-      } else if (prevWidth != null && prevWidth != widget.width) {
+      } else if (prevWidth != widget.width) {
         // print("width changed");
         scrollToCurrentBeat();
         _lastAutoScrollTime = DateTime.now();
-      } else if (_prevSectionOrder != null &&
-          _prevSectionOrder != sectionOrder) {
+      } else if (_prevSectionOrder != sectionOrder) {
         Future.delayed(animationDuration, () {
           scrollToCurrentBeat();
           _lastAutoScrollTime = DateTime.now();
@@ -486,7 +478,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevBeat = currentBeat;
     _prevSectionOrder = sectionOrder;
     _prevSectionId = widget.currentSection.id;
-    _prevPartId = widget.focusedPart?.id;
+    _prevPartId = widget.focusedPart.id;
     _hasBuilt = true;
     // print(
     //     "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
@@ -564,7 +556,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               section: widget.currentSection,
               musicViewMode: widget.musicViewMode,
               transformationController: transformationController,
-              focusedMelodyId: widget.focusedMelody?.id,
+              focusedMelodyId: widget.focusedMelody.id,
               staves: stavesNotifier,
               partTopOffsets: partTopOffsets,
               staffOffsets: staffOffsets,
@@ -850,7 +842,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
 extension CloseComparison on double {
   bool roughlyEquals(double x, {double precision = 0.005}) =>
-      x != null && (this - x).abs() < precision;
+      (this - x).abs() < precision;
 
   bool notRoughlyEquals(double x, {double precision = 0.005}) =>
       !roughlyEquals(x, precision: precision);

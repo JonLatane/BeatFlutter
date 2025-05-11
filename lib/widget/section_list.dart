@@ -28,21 +28,21 @@ class SectionList extends StatefulWidget {
   final VoidCallback toggleShowSectionBeatCounts;
   final bool allowReordering;
   final AppSettings appSettings;
-  final double width, height;
+  final double? width, height;
 
   const SectionList(
-      {Key key,
-      this.scrollDirection,
-      this.score,
-      this.currentSection,
-      this.selectSection,
-      this.insertSection,
-      this.sectionColor,
-      this.setState,
-      this.showSectionBeatCounts,
-      this.toggleShowSectionBeatCounts,
-      this.allowReordering,
-      this.appSettings,
+      {Key? key,
+      required this.scrollDirection,
+      required this.score,
+      required this.currentSection,
+      required this.selectSection,
+      required this.insertSection,
+      required this.sectionColor,
+      required this.setState,
+      required this.showSectionBeatCounts,
+      required this.toggleShowSectionBeatCounts,
+      required this.allowReordering,
+      required this.appSettings,
       this.width,
       this.height})
       : super(key: key);
@@ -174,12 +174,12 @@ class _SectionListState extends State<SectionList> {
           ]);
   }
 
-  Section _previousSection;
+  Section? _previousSection;
 
   _animateToNewlySelectedSection() {
     try {
       if (_previousSection != null &&
-          _previousSection.id != widget.currentSection.id) {
+          _previousSection!.id != widget.currentSection.id) {
         _animateToCurrentSection();
       }
     } catch (any) {}
@@ -189,14 +189,14 @@ class _SectionListState extends State<SectionList> {
   _animateToCurrentSection() {
     int index = widget.score.sections.indexOf(widget.currentSection);
     if (widget.scrollDirection == Axis.horizontal) {
-      double margin = max(0.0, widget.width - _Section.width);
+      double margin = max(0.0, (widget.width ?? 0.0) - _Section.width);
       double position = _Section.width * (index) - margin * 0.25;
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
       _scrollController.animateTo(position,
           duration: animationDuration, curve: Curves.easeInOut);
     } else {
-      double margin = max(0.0, widget.height - _Section.height);
+      double margin = max(0.0, (widget.height ?? 0.0) - _Section.height);
       double position = _Section.height * (index) - margin * 0.25;
       position = min(_scrollController.position.maxScrollExtent, position);
       position = max(0, position);
@@ -206,7 +206,7 @@ class _SectionListState extends State<SectionList> {
   }
 
   Widget getList(BuildContext context) {
-    var items = widget.score?.sections ?? [];
+    var items = widget.score.sections ?? [];
     if (items.isEmpty) {
       items = [defaultSection()];
     }
@@ -292,14 +292,14 @@ class _Section extends StatefulWidget {
   final bool allowReordering;
 
   const _Section(
-      {Key key,
-      this.section,
-      this.selectSection,
-      this.currentSection,
-      this.sectionColor,
-      this.scrollDirection,
-      this.showBeatCount,
-      this.allowReordering})
+      {Key? key,
+      required this.section,
+      required this.selectSection,
+      required this.currentSection,
+      required this.sectionColor,
+      required this.scrollDirection,
+      required this.showBeatCount,
+      required this.allowReordering})
       : super(key: key);
 
   @override

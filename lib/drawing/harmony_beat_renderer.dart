@@ -67,8 +67,8 @@ extension _HarmonyColor on Chord {
 class HarmonyBeatRenderer {
   Section section;
 
-  Harmony get harmony => section?.harmony;
-  Meter get meter => section?.meter;
+  Harmony get harmony => section.harmony;
+  Meter get meter => section.meter;
   int beatPosition = 0;
 
   Iterable<int> get subdivisionRange => range(

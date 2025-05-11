@@ -49,34 +49,34 @@ class LayersView extends StatefulWidget {
   final bool shiftUpZoomControls;
 
   LayersView(
-      {this.musicViewMode,
-      this.superSetState,
-      this.appSettings,
-      this.score,
-      this.sectionColor,
-      this.currentSection,
-      this.selectedMelody,
-      this.selectMelody,
-      this.colorboardPart,
-      this.keyboardPart,
-      this.setKeyboardPart,
-      this.setColorboardPart,
-      this.selectPart,
-      this.toggleMelodyReference,
-      this.setReferenceVolume,
-      this.setPartVolume,
-      this.editingMelody,
-      this.toggleEditingMelody,
-      this.hideMelodyView,
-      this.availableWidth,
-      this.selectedPart,
-      this.enableColorboard,
-      this.showBeatCounts,
-      this.height,
-      Key key,
-      this.showViewOptions,
-      this.scoreManager,
-      this.shiftUpZoomControls})
+      {Key? key,
+      required this.musicViewMode,
+      required this.superSetState,
+      required this.appSettings,
+      required this.score,
+      required this.sectionColor,
+      required this.currentSection,
+      required this.selectedMelody,
+      required this.selectMelody,
+      required this.colorboardPart,
+      required this.keyboardPart,
+      required this.setKeyboardPart,
+      required this.setColorboardPart,
+      required this.selectPart,
+      required this.toggleMelodyReference,
+      required this.setReferenceVolume,
+      required this.setPartVolume,
+      required this.editingMelody,
+      required this.toggleEditingMelody,
+      required this.hideMelodyView,
+      required this.availableWidth,
+      required this.selectedPart,
+      required this.enableColorboard,
+      required this.showBeatCounts,
+      required this.height,
+      required this.showViewOptions,
+      required this.scoreManager,
+      required this.shiftUpZoomControls})
       : super(key: key);
 
   @override
@@ -142,10 +142,6 @@ class _LayersViewState extends State<LayersView> {
                             Part part = newDrumPart();
                             widget.score.parts.add(part);
                             BeatScratchPlugin.createPart(part);
-//                          BeatScratchPlugin.pushPart(part);
-                            if (widget.keyboardPart == null) {
-                              widget.setKeyboardPart(part);
-                            }
                             widget.selectPart(part);
                           });
                         });
@@ -198,12 +194,6 @@ class _LayersViewState extends State<LayersView> {
                           widget.score.parts.add(part);
                         }
                         BeatScratchPlugin.createPart(part);
-                        if (widget.keyboardPart == null) {
-                          widget.setKeyboardPart(part);
-                        }
-                        if (widget.colorboardPart == null) {
-                          widget.setColorboardPart(part);
-                        }
                         widget.selectPart(part);
                       });
                     });

@@ -51,7 +51,7 @@ class _UniverseIconState extends State<UniverseIcon>
       end: -2 * pi,
     ).animate(atomRotationController);
 
-    widget.animateIcon?.addListener(() {
+    widget.animateIcon.addListener(() {
       if (widget.interactionMode != InteractionMode.universe) {
         orbitRotationController.forward().then(
             (_) => (!disposed) ? orbitRotationController.reverse() : null);

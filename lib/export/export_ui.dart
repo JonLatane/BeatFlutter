@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
 import '../messages/messages_ui.dart';
@@ -35,7 +37,7 @@ class ExportUI {
   bool exporting = false;
   final BSExport export = BSExport(score: defaultScore());
   ExportManager exportManager = ExportManager();
-  MessagesUI messagesUI;
+  MessagesUI? messagesUI;
 
   double get baseHeight => visible ? _baseHeight : 0.0;
 
@@ -104,7 +106,7 @@ class ExportUI {
                           Expanded(child: SizedBox()),
                           Transform.translate(
                             offset: Offset(0, 3),
-                            child: Text(export?.score?.name ?? "null",
+                            child: Text(export.score.name ?? "null",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -193,7 +195,7 @@ class ExportUI {
                                   exporting = true;
                                   visible = false;
                                   Future.microtask(() {
-                                    File file;
+                                    File? file;
                                     bool success = false;
                                     try {
                                       file = export(exportManager);
@@ -204,7 +206,7 @@ class ExportUI {
                                         print(e.stackTrace);
                                       }
 
-                                      messagesUI.sendMessage(
+                                      messagesUI?.sendMessage(
                                           message: "MIDI Export failed!",
                                           isError: true);
                                     }
@@ -214,35 +216,45 @@ class ExportUI {
                                       });
                                       if (success) {
                                         if (MyPlatform.isMacOS) {
-                                          messagesUI.sendMessage(
+                                          messagesUI?.sendMessage(
                                               message:
                                                   "Opening exports directory in Finder...");
                                           Future.delayed(Duration(seconds: 1),
                                               () {
                                             launchURL(
                                                 "file://${exportManager.exportsDirectory.path}");
-                                            messagesUI.sendMessage(
+                                            messagesUI?.sendMessage(
                                                 message: "Export complete!");
                                           });
                                         } else if (MyPlatform.isIOS) {
-                                          messagesUI.sendMessage(
+                                          messagesUI?.sendMessage(
                                               message:
                                                   "Opening exports directory in Files...");
                                           Future.delayed(Duration(seconds: 1),
                                               () {
                                             launchURL(
                                                 "shareddocuments://${exportManager.exportsDirectory.path}");
-                                            messagesUI.sendMessage(
+                                            messagesUI?.sendMessage(
                                                 message: "Export complete!");
                                           });
                                         } else if (MyPlatform.isMobile) {
-                                          messagesUI.sendMessage(
+                                          messagesUI?.sendMessage(
                                               message: "Sharing MIDI file...");
                                           Future.delayed(Duration(seconds: 1),
                                               () {
-                                            Share.shareFiles([file.path],
-                                                text: export.score.name);
-                                            messagesUI.sendMessage(
+                                            SharePlus.instance
+                                                .share(ShareParams(
+                                              files: [
+                                                XFile(file!.path),
+                                              ],
+                                              // sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+                                              // fileNameOverrides: [fileName],
+                                              downloadFallbackEnabled: true,
+                                            ));
+
+                                            // [file.path],
+                                            // text: export.score.name);
+                                            messagesUI?.sendMessage(
                                                 message: "Export complete!");
                                           });
                                         }
@@ -287,13 +299,10 @@ class ExportUI {
         List<String> disabledValues,
         Widget customValue,
         Function(String) selectValue}) {
-      if (disabledValues == null) {
-        disabledValues = [];
-      }
-      if (values == null || values.isEmpty) {
+      if (values.isEmpty) {
         values = [value];
       }
-      if (value != null && !values.contains(value)) {
+      if (!values.contains(value)) {
         values = values + [value];
       }
       values = values.toSet().toList();
@@ -301,7 +310,7 @@ class ExportUI {
       Widget column = Column(children: [
         // if (usesFlex) Expanded(child:SizedBox()),
         ...values.map((v) {
-          final clickable = selectValue != null && !disabledValues.contains(v);
+          final clickable = !disabledValues.contains(v);
           return MyFlatButton(
               color: v == value ? Colors.white : Colors.black12,
               padding: EdgeInsets.all(5),
@@ -316,7 +325,7 @@ class ExportUI {
                             : Colors.white,
                   )));
         }).toList(),
-        if (customValue != null) customValue,
+        customValue,
         // if (usesFlex) Expanded(child:SizedBox())
       ]);
       // if (!usesFlex) {
@@ -341,8 +350,7 @@ class ExportUI {
       }
     }
 
-    if (export.score == null ||
-        !export.score.sections.any((s) => s.id == export.sectionId)) {
+    if (!export.score.sections.any((s) => s.id == export.sectionId)) {
       export.sectionId = null;
     }
     export.partIds.removeWhere(
@@ -378,7 +386,7 @@ class ExportUI {
               ? "Entire Score"
               : export.score.sections
                       .firstWhere((s) => s.id == export.sectionId)
-                      ?.canonicalName ??
+                      .canonicalName ??
                   "NULL",
           sectionWidth,
           chromaticSteps[3],

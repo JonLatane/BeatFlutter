@@ -31,9 +31,6 @@ class MessagesUI {
           ? Icon(Icons.warning, size: 18, color: color ?? chromaticSteps[7])
           : Icon(Icons.info, size: 18, color: color ?? chromaticSteps[0]);
     }
-    if (messageId == null) {
-      messageId = uuid.v4();
-    }
     final bsMessage = BSMessage(
       id: messageId,
       message: message,

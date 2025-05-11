@@ -94,9 +94,7 @@ class MusicPreviewRenderer {
     canvas.scale(_overSampleScale);
     // await () async {
     final originalForegroundColor = musicForegroundColor;
-    if (renderColor != null) {
-      musicForegroundColor = renderColor;
-    }
+    musicForegroundColor = renderColor;
     painter.paint(canvas, size);
     musicForegroundColor = originalForegroundColor;
     // };
@@ -109,9 +107,6 @@ class MusicPreviewRenderer {
 
   Future<Uint8List> get renderedScoreImageData async {
     final image = await renderedScoreImage;
-    if (image == null) {
-      return null;
-    }
     return Uint8List.sublistView(
         await image.toByteData(format: ui.ImageByteFormat.png));
   }

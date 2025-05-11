@@ -82,7 +82,7 @@ class _MelodyPreviewState extends State<MelodyPreview> {
   BSMethod notifyUpdate;
 
   String get previewKey =>
-      "${widget.melody.id}-${widget.melody.hashCode}|${widget.part?.id ?? "null"}|" +
+      "${widget.melody.id}-${widget.melody.hashCode}|${widget.part.id ?? "null"}|" +
       "${widget.section.id}-${widget.section.hashCode}";
 
   @override

@@ -286,17 +286,16 @@ class _LayersPartViewState extends State<LayersPartView> {
       backgroundColor = isSelectedPart ? Colors.white : Colors.grey;
       textColor = isSelectedPart ? Colors.grey : Colors.white;
     }
-    if (lastSelectedMelodyId != null &&
-        selectedMelody != null &&
+    if (selectedMelody != null &&
         lastSelectedMelodyId != selectedMelody.id &&
         widget.autoScroll) {
       int indexOfMelody =
-          part.melodies.indexWhere((m) => m.id == selectedMelody?.id);
+          part.melodies.indexWhere((m) => m.id == selectedMelody.id);
       if (indexOfMelody >= 0) {
         requestScrollToTop(indexOfMelody);
       }
     }
-    lastSelectedMelodyId = selectedMelody?.id;
+    lastSelectedMelodyId = selectedMelody.id;
     setScrollToTopTimeout();
     return frl.ReorderableList(
         onReorder: this._reorderCallback,
@@ -443,7 +442,7 @@ class _LayersPartViewState extends State<LayersPartView> {
                 })),
               ),
             ),
-            if (part.instrument.type == selectedMelody?.instrumentType)
+            if (part.instrument.type == selectedMelody.instrumentType)
               buildDuplicateButton(
                 backgroundColor,
                 textColor,
@@ -624,7 +623,7 @@ class _LayersPartViewState extends State<LayersPartView> {
                             maxLines: 1,
                             overflow: TextOverflow.fade,
                             style: TextStyle(
-                                color: selectedMelody.name?.isNotEmpty ?? false
+                                color: selectedMelody.name.isNotEmpty ?? false
                                     ? textColor
                                     : textColor.withOpacity(0.5),
                                 fontWeight: FontWeight.w300),

@@ -70,7 +70,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final BSMethod refreshUniverseData;
   final Function(Object) editObject;
   const BeatScratchToolbar(
-      {Key key,
+      {Key? key,
       required this.appSettings,
       required this.universeManager,
       required this.interactionMode,
@@ -121,20 +121,19 @@ class BeatScratchToolbar extends StatefulWidget {
 
 class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     with TickerProviderStateMixin {
-  AnimationController sectionRotationController;
-  Animation<double> sectionOrPlayRotation;
-  AnimationController editController;
-  Animation<double> editRotation;
-  Animation<double> editTranslation;
-  Animation<double> editScale;
-  AnimationController editRotationOnlyController;
-  Animation<double> editRotationOnlyRotation;
+  late AnimationController sectionRotationController;
+  late Animation<double> sectionOrPlayRotation;
+  late AnimationController editController;
+  late Animation<double> editRotation;
+  late Animation<double> editTranslation;
+  late Animation<double> editScale;
+  late AnimationController editRotationOnlyController;
+  late Animation<double> editRotationOnlyRotation;
 
   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
-  bool get hasPart =>
-      !hasMelody && widget.openPart != null || widget.prevPart != null;
+  bool get hasPart => !hasMelody || widget.prevPart != null;
   bool get hasDrumPart =>
-      hasPart && (widget.openPart?.isDrum ?? widget.prevPart?.isDrum ?? false);
+      hasPart && (widget.openPart.isDrum ?? widget.prevPart.isDrum ?? false);
 
   @override
   void initState() {
@@ -190,7 +189,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     // clipboardTriggerTime.cancel();
   }
 
-  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+  Widget columnOrRow(BuildContext context, {required List<Widget> children}) {
     if (widget.vertical) {
       return Column(children: children);
     } else {
@@ -565,8 +564,9 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 class _EditButton extends StatelessWidget {
   final Score score;
   final Section currentSection;
-  final Part currentPart, openPart, prevPart;
-  final Melody openMelody, prevMelody;
+  final Part currentPart;
+  final Part? openPart, prevPart;
+  final Melody? openMelody, prevMelody;
   final InteractionMode interactionMode;
   final MusicViewMode musicViewMode;
   final VoidCallback editMode;
@@ -581,31 +581,31 @@ class _EditButton extends StatelessWidget {
   final Function(Object) editObject;
 
   const _EditButton({
-    Key key,
-    this.score,
-    this.currentSection,
-    this.currentPart,
+    Key? key,
+    required this.score,
+    required this.currentSection,
+    required this.currentPart,
     this.openPart,
     this.prevPart,
-    this.openMelody,
-    this.prevMelody,
-    this.interactionMode,
-    this.musicViewMode,
-    this.editMode,
-    this.sectionColor,
-    this.editController,
-    this.vertical,
-    this.isMelodyViewOpen,
-    this.editRotation,
-    this.editTranslation,
-    this.editScale,
-    this.editRotationOnlyController,
-    this.editRotationOnlyRotation,
-    this.editObject,
+    required this.openMelody,
+    required this.prevMelody,
+    required this.interactionMode,
+    required this.musicViewMode,
+    required this.editMode,
+    required this.sectionColor,
+    required this.editController,
+    required this.vertical,
+    required this.isMelodyViewOpen,
+    required this.editRotation,
+    required this.editTranslation,
+    required this.editScale,
+    required this.editRotationOnlyController,
+    required this.editRotationOnlyRotation,
+    required this.editObject,
   }) : super(key: key);
 
   bool get hasMelody => openMelody != null || prevMelody != null;
-  bool get hasPart => !hasMelody && openPart != null || prevPart != null;
+  bool get hasPart => !hasMelody || prevPart != null;
   bool get hasDrumPart =>
       hasPart && (openPart?.isDrum ?? prevPart?.isDrum ?? false);
 
@@ -728,17 +728,17 @@ class _EditButton extends StatelessWidget {
                                 width: vertical ? 44 : 60,
                                 child: Text(
                                     openMelody != null
-                                        ? openMelody.canonicalName
+                                        ? openMelody!.canonicalName
                                         : openPart != null
-                                            ? openPart.midiName
+                                            ? openPart!.midiName
                                             : isMelodyViewOpen ||
                                                     (prevPart == null &&
                                                         prevMelody == null)
                                                 ? currentSection.canonicalName
                                                 : prevMelody != null
-                                                    ? prevMelody.canonicalName
+                                                    ? prevMelody!.canonicalName
                                                     : prevPart != null
-                                                        ? prevPart.midiName
+                                                        ? prevPart!.midiName
                                                         : "Oops",
                                     textAlign: TextAlign.center,
                                     maxLines: vertical ? 2 : 2,
@@ -795,28 +795,28 @@ class SecondToolbar extends StatefulWidget {
   final Function(VoidCallback) setAppState;
 
   const SecondToolbar({
-    Key key,
-    this.appSettings,
-    this.toggleKeyboard,
-    this.toggleColorboard,
-    this.showKeyboard,
-    this.showColorboard,
-    this.interactionMode,
-    this.showViewOptions,
-    this.showKeyboardConfiguration,
-    this.showColorboardConfiguration,
-    this.toggleKeyboardConfiguration,
-    this.toggleColorboardConfiguration,
-    this.sectionColor,
-    this.enableColorboard,
-    this.recordingMelody,
-    this.toggleTempoConfiguration,
-    this.showTempoConfiguration,
-    this.vertical,
-    this.visible,
-    this.tempoLongPress,
-    this.rewind,
-    this.setAppState,
+    Key? key,
+    required this.appSettings,
+    required this.toggleKeyboard,
+    required this.toggleColorboard,
+    required this.showKeyboard,
+    required this.showColorboard,
+    required this.interactionMode,
+    required this.showViewOptions,
+    required this.showKeyboardConfiguration,
+    required this.showColorboardConfiguration,
+    required this.toggleKeyboardConfiguration,
+    required this.toggleColorboardConfiguration,
+    required this.sectionColor,
+    required this.enableColorboard,
+    required this.recordingMelody,
+    required this.toggleTempoConfiguration,
+    required this.showTempoConfiguration,
+    required this.vertical,
+    required this.visible,
+    required this.tempoLongPress,
+    required this.rewind,
+    required this.setAppState,
   }) : super(key: key);
 
   @override
@@ -825,9 +825,9 @@ class SecondToolbar extends StatefulWidget {
 
 class _SecondToolbarState extends State<SecondToolbar> {
   DateTime lastMetronomeAudioToggleTime = DateTime(0);
-  double tempoButtonGestureStartMultiplier;
-  double tempoButtonGestureStartPosition;
-  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+  double? tempoButtonGestureStartMultiplier;
+  double? tempoButtonGestureStartPosition;
+  Widget columnOrRow(BuildContext context, {List<Widget> children = const []}) {
     if (widget.vertical) {
       return Column(children: children);
     } else {
@@ -849,7 +849,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
     if (widget.enableColorboard) {
       numberOfButtons += 1;
     }
-    Widget createPlayIcon(IconData icon, {bool visible, Color color}) {
+    Widget createPlayIcon(IconData icon, {bool visible = true, Color? color}) {
       return AnimatedOpacity(
           opacity: visible ? 1 : 0,
           duration: animationDuration,
@@ -1022,7 +1022,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
         ]));
   }
 
-  Widget tempoButton(BuildContext context, {Color backgroundColor}) {
+  Widget tempoButton(BuildContext context, {required Color backgroundColor}) {
     double sensitivity = 7;
     tempoDragStart(DragStartDetails details) {
       tempoButtonGestureStartPosition =
@@ -1032,13 +1032,14 @@ class _SecondToolbarState extends State<SecondToolbar> {
 
     tempoDragUpdate(DragUpdateDetails details) {
       final change = widget.vertical
-          ? -(details.localPosition.dy - tempoButtonGestureStartPosition)
-          : details.localPosition.dx - tempoButtonGestureStartPosition;
+          ? -(details.localPosition.dy - tempoButtonGestureStartPosition!)
+          : details.localPosition.dx - tempoButtonGestureStartPosition!;
       widget.setAppState(() {
         var startTempo = (BeatScratchPlugin.unmultipliedBpm *
                 BeatScratchPlugin.bpmMultiplier)
             .toStringAsFixed(0);
-        double newMultiplier = tempoButtonGestureStartMultiplier + change / 250;
+        double newMultiplier =
+            tempoButtonGestureStartMultiplier! + change / 250;
         BeatScratchPlugin.bpmMultiplier = max(0.1, min(newMultiplier, 2));
         var endTempo = (BeatScratchPlugin.unmultipliedBpm *
                 BeatScratchPlugin.bpmMultiplier)
@@ -1086,7 +1087,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
 
     final buttonBackgroundColor =
         (widget.showTempoConfiguration) ? Colors.white : backgroundColor;
-    final buttonForegroundColor = buttonBackgroundColor.textColor();
+    final buttonForegroundColor = buttonBackgroundColor!.textColor();
     return GestureDetector(
         onVerticalDragStart: widget.vertical ? tempoDragStart : null,
         onVerticalDragUpdate:

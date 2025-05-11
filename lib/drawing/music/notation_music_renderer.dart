@@ -137,46 +137,44 @@ class NotationMusicRenderer extends BaseMusicRenderer {
           Offset(right + 3 * xScale, position * xScale), alphaDrawerPaint);
     });
 
-    if (noteSign != null) {
-      double signLeft, signRight, signTop, signBottom;
-      if (staggered) {
-        signLeft = left -
-            0.7 *
-                noteheadWidth; //bounds.left - 0.7 * noteheadWidth + xOffset;// bounds.right - 2.3 * noteheadWidth;
-      } else {
-        signLeft = left -
-            0.5 *
-                noteheadWidth; //bounds.left - 0.5 * noteheadWidth + xOffset; //bounds.right - 2.8 * noteheadWidth;
-      }
-      signRight = signLeft + 0.5 * noteheadWidth;
-
-      switch (noteSign) {
-        case NoteSign.flat:
-        case NoteSign.double_flat:
-          double difference = noteheadHeight * 1.5;
-          signTop = top - 2 * noteheadHeight / 3 - difference;
-          signBottom = bottom - difference;
-          break;
-        case NoteSign.double_sharp:
-          signTop = top + noteheadHeight / 4;
-          signBottom = bottom - noteheadHeight / 4;
-          break;
-        case NoteSign.sharp:
-        case NoteSign.natural:
-        default:
-          double difference = noteheadHeight * 1.8;
-          signTop = top - difference; //- noteheadHeight / 3;
-          signBottom = bottom - difference; // + noteheadHeight / 3;
-      }
-      final signTopOffset = 26 * yScale;
-      final signLeftOffset = -2 * xScale;
-      signTop += signTopOffset;
-      signBottom += signTopOffset;
-      signLeft += signLeftOffset;
-      signRight += signLeftOffset;
-      Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
-      _renderSign(canvas, signRect, noteSign);
+    double signLeft, signRight, signTop, signBottom;
+    if (staggered) {
+      signLeft = left -
+          0.7 *
+              noteheadWidth; //bounds.left - 0.7 * noteheadWidth + xOffset;// bounds.right - 2.3 * noteheadWidth;
+    } else {
+      signLeft = left -
+          0.5 *
+              noteheadWidth; //bounds.left - 0.5 * noteheadWidth + xOffset; //bounds.right - 2.8 * noteheadWidth;
     }
+    signRight = signLeft + 0.5 * noteheadWidth;
+
+    switch (noteSign) {
+      case NoteSign.flat:
+      case NoteSign.double_flat:
+        double difference = noteheadHeight * 1.5;
+        signTop = top - 2 * noteheadHeight / 3 - difference;
+        signBottom = bottom - difference;
+        break;
+      case NoteSign.double_sharp:
+        signTop = top + noteheadHeight / 4;
+        signBottom = bottom - noteheadHeight / 4;
+        break;
+      case NoteSign.sharp:
+      case NoteSign.natural:
+      default:
+        double difference = noteheadHeight * 1.8;
+        signTop = top - difference; //- noteheadHeight / 3;
+        signBottom = bottom - difference; // + noteheadHeight / 3;
+    }
+    final signTopOffset = 26 * yScale;
+    final signLeftOffset = -2 * xScale;
+    signTop += signTopOffset;
+    signBottom += signTopOffset;
+    signLeft += signLeftOffset;
+    signRight += signLeftOffset;
+    Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
+    _renderSign(canvas, signRect, noteSign);
   }
 
   _planNoteheadsSignsAndLedgers(_RenderInstructions result) {
@@ -255,8 +253,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
             break;
           case NoteSign.natural:
           default:
-            if (forceShowNaturals ||
-                (previousSign != null && previousSign != NoteSign.natural))
+            if (forceShowNaturals || (previousSign != NoteSign.natural))
               signToDraw = NoteSign.natural;
             break;
         }
@@ -448,9 +445,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
       default:
         break;
     }
-    if (signPath != null) {
-      canvas.drawPath(signPath, alphaDrawerPaint);
-    }
+    canvas.drawPath(signPath, alphaDrawerPaint);
     canvas.restore();
   }
 

@@ -96,8 +96,7 @@ class ScorePickerState extends State<ScorePicker> {
   String overwritingScoreName;
   BSMethod universeAnimation = BSMethod();
 
-  bool get wasShowingScoreNameEntry =>
-      previousMode?.showScoreNameEntry ?? false;
+  bool get wasShowingScoreNameEntry => previousMode.showScoreNameEntry ?? false;
 
   @override
   initState() {
@@ -256,7 +255,7 @@ class ScorePickerState extends State<ScorePicker> {
                                     animateIcon: universeAnimation,
                                   )),
                             )),
-                        if (icon != null && operationText.isNotEmpty)
+                        if (operationText.isNotEmpty)
                           MyFlatButton(
                               padding: EdgeInsets.zero,
                               lightHighlight: true,
@@ -620,11 +619,8 @@ class ScorePickerState extends State<ScorePicker> {
     } else {
       return scoreManager.scoreFiles.map((scoreFile) {
         Future<Score> loadScore() async {
-          if (scoreFile == null) {
-            return Future.value(defaultScore());
-          }
           try {
-            final data = await File(scoreFile?.path).readAsBytes();
+            final data = await File(scoreFile.path).readAsBytes();
 
             return Score.fromBuffer(data);
           } catch (e) {
@@ -645,7 +641,7 @@ class ScorePickerState extends State<ScorePicker> {
       spawnIsolate: false,
       controller: _scrollController,
       items: scores,
-      areItemsTheSame: (a, b) => a?.identity == b?.identity,
+      areItemsTheSame: (a, b) => a.identity == b.identity,
       // Called, as needed, to build list item widgets.
       // List items are only built when they're scrolled into view.
       itemBuilder: (context, animation, section, index) {
@@ -653,7 +649,7 @@ class ScorePickerState extends State<ScorePicker> {
         if (index < scores.length) {
           scoreFuture = scores[index];
         }
-        File scoreFile = scoreFuture?.file;
+        File scoreFile = scoreFuture.file;
 
         Widget tile = ScorePickerPreview(
           sectionColor: widget.sectionColor,
@@ -666,10 +662,8 @@ class ScorePickerState extends State<ScorePicker> {
               : () {
                   switch (widget.mode) {
                     case ScorePickerMode.open:
-                      if (scoreFile != null) {
-                        widget.scoreManager.openScore(scoreFile);
-                        widget.universeManager.currentUniverseScore = "";
-                      }
+                      widget.scoreManager.openScore(scoreFile);
+                      widget.universeManager.currentUniverseScore = "";
                       break;
                     case ScorePickerMode.universe:
                       if (BeatScratchPlugin.supportsStorage) {
@@ -684,19 +678,17 @@ class ScorePickerState extends State<ScorePicker> {
                       });
                       break;
                     default:
-                      String scoreName = scoreFile?.scoreName;
-                      if (scoreName != null) {
-                        nameController.clear();
-                        setState(() {
-                          nameController.value =
-                              nameController.value.copyWith(text: scoreName);
-                        });
-                      }
+                      String scoreName = scoreFile.scoreName;
+                      nameController.clear();
+                      setState(() {
+                        nameController.value =
+                            nameController.value.copyWith(text: scoreName);
+                      });
                   }
                 },
           scoreManager: scoreManager,
           universeManager: widget.universeManager,
-          scoreKey: (scoreFile?.lastModifiedSync() ?? DateTime(0)).hashCode,
+          scoreKey: (scoreFile.lastModifiedSync() ?? DateTime(0)).hashCode,
           scoreFuture: scoreFuture,
           deleteScore: widget.mode == ScorePickerMode.universe
               ? null
@@ -737,7 +729,7 @@ class ScorePickerState extends State<ScorePicker> {
                 bottom: widget.scrollDirection == Axis.vertical ? 10 : 0),
             child: tile);
         return SizeFadeTransition(
-            key: ValueKey("ScorePickerTile-${scoreFuture?.identity}"),
+            key: ValueKey("ScorePickerTile-${scoreFuture.identity}"),
             sizeFraction: 0.7,
             curve: Curves.easeInOut,
             axis: widget.scrollDirection,

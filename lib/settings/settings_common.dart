@@ -10,7 +10,7 @@ extension Sanitize on String {
 }
 
 extension ControllerNameOrId on MidiController {
-  String get nameOrId => (name?.isNotEmpty == true) ? name : id;
+  String get nameOrId => (name.isNotEmpty == true) ? name : id;
 }
 
 const Map<String, String> supportedAndroidSynthApps = {

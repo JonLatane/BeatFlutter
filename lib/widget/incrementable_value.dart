@@ -92,7 +92,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
     double buttonWidth = showButtons ? 32 : 0;
 
     onPointerDown(event) {
-      widget.onPointerDownCallback?.call();
+      widget.onPointerDownCallback.call();
       incrementStartPos = event.position;
       incrementStartTimeMs = DateTime.now().millisecondsSinceEpoch;
       lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
@@ -135,13 +135,13 @@ class _IncrementableValueState extends State<IncrementableValue> {
         isDown = true;
       }
 //          print("direction=$direction | isUp=$isUp | isDown=$isDown");
-      if (isUp && widget.onIncrement != null) {
+      if (isUp) {
         vibrate();
         incrementStartPos = event.position;
         incrementStartTimeMs = eventTime;
         // print("increment");
         widget.onIncrement();
-      } else if (isDown && widget.onDecrement != null) {
+      } else if (isDown) {
         vibrate();
         incrementStartPos = event.position;
         incrementStartTimeMs = eventTime;
@@ -153,7 +153,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
     onPointerUp(event) {
       lastTouchTimeMs = DateTime.now().millisecondsSinceEpoch;
       incrementStartPos = null;
-      widget.onPointerUpCallback?.call();
+      widget.onPointerUpCallback.call();
     }
 
     ;

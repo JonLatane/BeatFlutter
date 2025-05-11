@@ -6,7 +6,7 @@ extension Iterables<E> on Iterable<E> {
       (Map<K, List<E>> map, E element) =>
           map..putIfAbsent(keyFunction(element), () => <E>[]).add(element));
 
-  E maxBy(num Function(E) valueFunction) => (isEmpty)
+  E? maxBy(num Function(E) valueFunction) => (isEmpty)
       ? null
       : reduce((value, element) {
           if (value == null) {

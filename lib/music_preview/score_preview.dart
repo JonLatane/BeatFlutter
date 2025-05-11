@@ -86,7 +86,7 @@ class _ScorePreviewState extends State<ScorePreview> {
   initState() {
     super.initState();
     currentThumbnail = _Thumbnail.a;
-    widget.notifyUpdate?.addListener(_updateScoreImage);
+    widget.notifyUpdate.addListener(_updateScoreImage);
     renderableWidth = actualWidth;
     _prevRenderColor = widget.renderColor ?? musicForegroundColor;
     _prevRenderingMode = AppSettings.globalRenderingMode;
@@ -97,7 +97,7 @@ class _ScorePreviewState extends State<ScorePreview> {
 
   @override
   dispose() {
-    widget.notifyUpdate?.removeListener(_updateScoreImage);
+    widget.notifyUpdate.removeListener(_updateScoreImage);
     disposed = true;
     super.dispose();
   }
@@ -167,13 +167,6 @@ class _ScorePreviewState extends State<ScorePreview> {
   _updateScoreImage() {
     Future.delayed(animationDuration, () async {
       final Uint8List data = RENDER_CACHE.get(renderingArguments);
-      if (data == null) {
-        // print("Ummm this bad");
-        if (widget.width != 0 && widget.height != 0) {
-          _updateScoreImage();
-        }
-        return;
-      }
       if (disposed) return;
       setState(() {
         if (actualWidth > renderableWidth) {

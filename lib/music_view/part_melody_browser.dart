@@ -163,7 +163,7 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
   }
 
   Widget getList(BuildContext context) {
-    var items = widget.part?.melodies ?? [];
+    var items = widget.part.melodies ?? [];
     items.sort((m1, m2) {
       final r1 = widget.currentSection.referenceTo(m1);
       final r2 = widget.currentSection.referenceTo(m2);

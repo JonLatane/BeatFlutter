@@ -31,24 +31,22 @@ class ScoreManager {
   SharedPreferences _prefs;
 
   String get currentScoreName =>
-      _prefs?.getString('currentScoreName') ?? UNIVERSE_SCORE;
+      _prefs.getString('currentScoreName') ?? UNIVERSE_SCORE;
 
   set currentScoreName(String value) =>
-      _prefs?.setString("currentScoreName", value);
+      _prefs.setString("currentScoreName", value);
 
   File get currentScoreFile => File(
       "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
-    if (scoresDirectory != null) {
-      List<FileSystemEntity> result = scoresDirectory
-          ?.listSync()
-          .where((f) => f.path.endsWith(".beatscratch"))
-          .toList();
-      result.sort(
-          (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
-      return result;
-    }
+    List<FileSystemEntity> result = scoresDirectory
+        ?.listSync()
+        .where((f) => f.path.endsWith(".beatscratch"))
+        .toList();
+    result
+        .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+    return result;
     return [];
   }
 
@@ -108,7 +106,7 @@ class ScoreManager {
     } catch (e) {
       score = defaultScore();
     }
-    doOpenScore?.call(score);
+    doOpenScore.call(score);
   }
 
   loadFromScoreUrl(String scoreUrl,
@@ -126,7 +124,7 @@ class ScoreManager {
         throw Exception("nope");
       }
       Score score = scoreFromUrlHashValue(scoreUrl);
-      if (score == null || score.sections.isEmpty) {
+      if (score.sections.isEmpty) {
         throw Exception("nope");
       }
       String scoreName = score.name ?? "";
@@ -136,13 +134,11 @@ class ScoreManager {
       } else {
         suggestedScoreName += newScoreNameSuffix;
       }
-      if (currentScoreToSave != null) {
-        saveCurrentScore(currentScoreToSave);
-      }
+      saveCurrentScore(currentScoreToSave);
       openScoreWithFilename(
           score, newScoreDefaultFilename); // side-effect: updates this.score
       _lastSuggestedScoreName = suggestedScoreName;
-      onSuccess?.call(suggestedScoreName);
+      onSuccess.call(suggestedScoreName);
     } catch (any) {
       loadPastebinScoreIntoUI(scoreUrl,
           newScoreDefaultFilename: newScoreDefaultFilename,
@@ -180,9 +176,7 @@ class ScoreManager {
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
 
     Score score = scoreFromUrlHashValue(longUrl);
-    if (titleOverride != null) {
-      score.name = titleOverride;
-    }
+    score.name = titleOverride;
     return score;
   }
 
@@ -192,9 +186,6 @@ class ScoreManager {
       Score currentScoreToSave,
       VoidCallback onFail,
       Function(String) onSuccess}) async {
-    if (pastebinCode == null) {
-      return;
-    }
     try {
       Score score = await loadPastebinScore(pastebinCode);
       String scoreName = score.name ?? "";
@@ -205,17 +196,15 @@ class ScoreManager {
         suggestedScoreName += newScoreNameSuffix;
       }
       if (BeatScratchPlugin.supportsStorage) {
-        if (currentScoreToSave != null) {
-          saveCurrentScore(currentScoreToSave);
-        }
+        saveCurrentScore(currentScoreToSave);
         openScoreWithFilename(score, newScoreDefaultFilename);
       } else {
         doOpenScore(score);
       }
-      onSuccess?.call(suggestedScoreName);
+      onSuccess.call(suggestedScoreName);
       _lastSuggestedScoreName = suggestedScoreName;
     } catch (any) {
-      onFail?.call();
+      onFail.call();
     }
   }
 
@@ -233,7 +222,7 @@ class ScoreManager {
 
 extension ScoreName on FileSystemEntity {
   String get scoreName {
-    String fileName = path.split("/")?.last ?? ".beatscratch";
+    String fileName = path.split("/").last ?? ".beatscratch";
     fileName = fileName.substring(0, max(0, fileName.length - 12));
     String scoreName = Uri.decodeComponent(fileName.replaceAll(" ", "%20"));
     return scoreName;

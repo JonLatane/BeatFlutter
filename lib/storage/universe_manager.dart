@@ -29,31 +29,29 @@ class UniverseManager {
     _initialize();
   }
 
-  bool get useWebViewSignIn => _prefs?.getBool('useWebViewSignIn') ?? false;
-  set useWebViewSignIn(bool v) => _prefs?.setBool("useWebViewSignIn", v);
+  bool get useWebViewSignIn => _prefs.getBool('useWebViewSignIn') ?? false;
+  set useWebViewSignIn(bool v) => _prefs.setBool("useWebViewSignIn", v);
 
   String get currentUniverseScore =>
-      _prefs?.getString('currentUniverseScore') ?? '';
+      _prefs.getString('currentUniverseScore') ?? '';
   set currentUniverseScore(String v) =>
-      _prefs?.setString("currentUniverseScore", v);
+      _prefs.setString("currentUniverseScore", v);
 
   ScoreFuture get currentUniverseScoreFuture => currentUniverseScore == ''
       ? null
       : cachedUniverseData.firstWhere((d) => d.identity == currentUniverseScore,
           orElse: () => null);
 
-  String get redditRefreshToken =>
-      _prefs?.getString('redditRefreshToken') ?? "";
+  String get redditRefreshToken => _prefs.getString('redditRefreshToken') ?? "";
   set redditRefreshToken(String value) =>
-      _prefs?.setString("redditRefreshToken", value);
+      _prefs.setString("redditRefreshToken", value);
 
-  String get redditAccessToken => _prefs?.getString('redditAccessToken') ?? "";
+  String get redditAccessToken => _prefs.getString('redditAccessToken') ?? "";
   set redditAccessToken(String value) =>
-      _prefs?.setString("redditAccessToken", value);
+      _prefs.setString("redditAccessToken", value);
 
-  String get redditUsername => _prefs?.getString('redditUsername') ?? "";
-  set redditUsername(String value) =>
-      _prefs?.setString("redditUsername", value);
+  String get redditUsername => _prefs.getString('redditUsername') ?? "";
+  set redditUsername(String value) => _prefs.setString("redditUsername", value);
 
   static const String DEFAULT_UNIVERSE_DATA_STRING =
       '[{"filePath":null,"title":"Tropico-Pastoral","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/n5f1s1/tropicopastoral/","voteCount":1,"likes":true,"fullName":"t3_n5f1s1","scoreUrl":"https://beatscratch.io/app/#/s/CZZX0"},{"filePath":null,"title":"A cheesy educational intro","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/myliqr/a_cheesy_educational_intro/","voteCount":1,"likes":true,"fullName":"t3_myliqr","scoreUrl":"https://beatscratch.io/app/#/s/ORXsf"},{"filePath":null,"title":"A longer, original demo using 5 instruments","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/my7ajg/a_longer_original_demo_using_5_instruments/","voteCount":1,"likes":true,"fullName":"t3_my7ajg","scoreUrl":"https://beatscratch.io/app/#/s/Z4hZh"},{"filePath":null,"title":"2021, From Jacob Collier’s Insta","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/mwyv7m/2021_from_jacob_colliers_insta/","voteCount":1,"likes":null,"fullName":"t3_mwyv7m","scoreUrl":"https://beatscratch.io/app/#/s/5dVNM"},{"filePath":null,"title":"Tee Time 2.6","author":"pseudocomposer","commentUrl":"https://reddit.com/r/BeatScratch/comments/lnmxyh/tee_time_26/","voteCount":1,"likes":null,"fullName":"t3_lnmxyh","scoreUrl":"https://beatscratch.io/app/#/s/rx0w0"}]';
@@ -64,7 +62,7 @@ class UniverseManager {
             ..putIfAbsent("likes", () => null))))
           .toList();
   List<ScoreFuture> get __cachedUniverseData =>
-      (_prefs?.getStringList('cachedUniverseData') ?? DEFAULT_UNIVERSE_DATA)
+      (_prefs.getStringList('cachedUniverseData') ?? DEFAULT_UNIVERSE_DATA)
           .map((it) => ScoreFuture.fromJson(jsonDecode(it)))
           .toList();
   List<ScoreFuture> _cachedUniverseData = [];
@@ -72,7 +70,7 @@ class UniverseManager {
   List<ScoreFuture> get cachedUniverseData => _cachedUniverseData;
   set cachedUniverseData(List<ScoreFuture> value) {
     _cachedUniverseData = value;
-    Future.microtask(() => _prefs?.setStringList("cachedUniverseData",
+    Future.microtask(() => _prefs.setStringList("cachedUniverseData",
         value.map((it) => jsonEncode(it.toJson())).toList()));
   }
 
@@ -85,8 +83,8 @@ class UniverseManager {
     refreshAccessToken(andPoll: true);
   }
 
-  String get _authState => _prefs?.getString('redditAuthState') ?? "";
-  set _authState(String value) => _prefs?.setString("redditAuthState", value);
+  String get _authState => _prefs.getString('redditAuthState') ?? "";
+  set _authState(String value) => _prefs.setString("redditAuthState", value);
 
   initiateSignIn() {
     _authState = uuid.v4();
@@ -106,7 +104,7 @@ class UniverseManager {
     final uri = Uri.parse(authUrl);
     String state = uri.queryParameters["state"];
     String code = uri.queryParameters["code"];
-    if (state != null && code != null) {
+    if (code != null) {
       if (state != _authState) {
         messagesUI.sendMessage(
             message: "Auth codes did not match!",
@@ -133,7 +131,7 @@ class UniverseManager {
           final data = jsonDecode(response.body);
           String accessToken = data['access_token'];
           String refreshToken = data['refresh_token'];
-          if (accessToken != null && refreshToken != null) {
+          if (refreshToken != null) {
             redditRefreshToken = refreshToken;
             redditAccessToken = accessToken;
             loadRedditUsername();
@@ -182,17 +180,13 @@ class UniverseManager {
       final username = data['name'];
       if (username != null) {
         redditUsername = username;
-        if (messagesUI != null) {
-          messagesUI.sendMessage(
-              message: "Reddit authentication successful!", andSetState: true);
-        }
+        messagesUI.sendMessage(
+            message: "Reddit authentication successful!", andSetState: true);
       } else {
-        if (messagesUI != null) {
-          messagesUI.sendMessage(
-              message: "Failed to load Reddit user information!",
-              isError: true,
-              andSetState: true);
-        }
+        messagesUI.sendMessage(
+            message: "Failed to load Reddit user information!",
+            isError: true,
+            andSetState: true);
       }
     });
   }
@@ -225,9 +219,7 @@ class UniverseManager {
     ).then((response) {
       final data = jsonDecode(response.body);
       String accessToken = data['access_token'];
-      if (accessToken != null) {
-        redditAccessToken = accessToken;
-      }
+      redditAccessToken = accessToken;
     });
   }
 
@@ -248,9 +240,7 @@ class UniverseManager {
     ).then((response) {
       final data = jsonDecode(response.body);
       String accessToken = data['access_token'];
-      if (accessToken != null) {
-        redditAccessToken = accessToken;
-      }
+      redditAccessToken = accessToken;
     });
   }
 
@@ -266,9 +256,6 @@ class UniverseManager {
           andSetState: true);
       return null;
     });
-    if (response == null) {
-      return [];
-    }
     if (response.statusCode == 401) {
       await refreshAccessToken();
       return await loadUniverseData();
@@ -415,13 +402,9 @@ class UniverseManager {
             ScoreFuture scoreFuture = cachedUniverseData.firstWhere(
                 (it) => it.scoreUrl == scoreUrl,
                 orElse: () => null);
-            if (scoreFuture != null) {
-              messagesUI.setAppState(() {
-                currentUniverseScore = scoreFuture.identity;
-              });
-            } else if (retries > 0) {
-              tryToSelectScore(retries - 1);
-            }
+            messagesUI.setAppState(() {
+              currentUniverseScore = scoreFuture.identity;
+            });
           });
         }
 
