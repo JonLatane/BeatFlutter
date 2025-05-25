@@ -2,7 +2,6 @@ import '../drawing/canvas_tone_drawer.dart';
 import '../drawing/color_guide.dart';
 import 'package:flutter/material.dart';
 import '../beatscratch_plugin.dart';
-import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'dart:async';
 import 'dart:math';
 import '../generated/protos/music.pb.dart';
@@ -29,16 +28,16 @@ class Colorboard extends StatefulWidget {
   final double leftMargin;
 
   Colorboard({
-    Key key,
-    this.height,
-    this.showConfiguration,
-    this.hideConfiguration,
-    this.sectionColor,
-    this.part,
-    this.pressedNotesNotifier,
-    this.distanceFromBottom,
-    this.width,
-    this.leftMargin,
+    Key? key,
+    required this.height,
+    required this.showConfiguration,
+    required this.hideConfiguration,
+    required this.sectionColor,
+    required this.part,
+    required this.pressedNotesNotifier,
+    required this.distanceFromBottom,
+    required this.width,
+    required this.leftMargin,
   }) : super(key: key);
 
   @override
@@ -51,8 +50,8 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
   bool useOrientation = true;
   List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
-  ValueNotifier<double> scrollPositionNotifier;
-  ValueNotifier<Chord> chordNotifier;
+  late ValueNotifier<double> scrollPositionNotifier;
+  late ValueNotifier<Chord> chordNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
 
@@ -72,19 +71,19 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     _scaleAnimationControllers.clear();
     AnimationController scaleAnimationController = animationController();
     _scaleAnimationControllers.add(scaleAnimationController);
-    Animation animation;
+    late Animation animation;
     animation = Tween<double>(begin: _halfStepWidthInPx, end: value)
         .animate(scaleAnimationController)
-          ..addListener(() {
-            setState(() {
-              _halfStepWidthInPx = animation.value;
-            });
-          });
+      ..addListener(() {
+        setState(() {
+          _halfStepWidthInPx = animation.value;
+        });
+      });
     scaleAnimationController.forward();
   }
 
-  AnimationController orientationAnimationController;
-  Animation orientationAnimation;
+  late AnimationController orientationAnimationController;
+  late Animation orientationAnimation;
   int highestPitch = CanvasToneDrawer.TOP;
   int lowestPitch = CanvasToneDrawer.BOTTOM;
   bool showScrollHint = true;
@@ -102,51 +101,51 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
     scrollPositionNotifier = ValueNotifier(0);
     chordNotifier = ValueNotifier(widget.chord);
     if (MyPlatform.isMobile) {
-      try {
-        _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
-          if (scrollingMode != ScrollingMode.sideScroll) {
-            print("Sensor event: $event");
-            double normalizedPitch;
-            switch (scrollingMode) {
-              case ScrollingMode.pitch:
-                var absoluteScrollPosition = event.pitch;
-                if (absoluteScrollPosition < 0) {
-                  absoluteScrollPosition = -absoluteScrollPosition;
-                }
-                normalizedPitch = max(
-                    0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
-                break;
-              case ScrollingMode.roll:
-//              var maxRoll = -1.45; // All the way to the right
-//              var minRoll = 1.45; // All the way to the left
-                normalizedPitch = (1.45 - event.roll) / 2.9;
-                break;
-              case ScrollingMode.sideScroll:
-                break;
-            }
+//       try {
+//         _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
+//           if (scrollingMode != ScrollingMode.sideScroll) {
+//             print("Sensor event: $event");
+//             double normalizedPitch;
+//             switch (scrollingMode) {
+//               case ScrollingMode.pitch:
+//                 var absoluteScrollPosition = event.pitch;
+//                 if (absoluteScrollPosition < 0) {
+//                   absoluteScrollPosition = -absoluteScrollPosition;
+//                 }
+//                 normalizedPitch = max(
+//                     0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
+//                 break;
+//               case ScrollingMode.roll:
+// //              var maxRoll = -1.45; // All the way to the right
+// //              var minRoll = 1.45; // All the way to the left
+//                 normalizedPitch = (1.45 - event.roll) / 2.9;
+//                 break;
+//               case ScrollingMode.sideScroll:
+//                 break;
+//             }
 
-            double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
-            if (newScrollPositionValue.isFinite &&
-                !newScrollPositionValue.isNaN) {
-              Animation animation;
-              animation = Tween<double>(
-                      begin: scrollPositionNotifier.value,
-                      end: newScrollPositionValue)
-                  .animate(orientationAnimationController)
-                    ..addListener(() {
-                      scrollPositionNotifier.value = animation.value;
-//                setState(() {});
-                    });
-              orientationAnimationController.forward(
-                  from: scrollPositionNotifier.value);
-//            scrollPositionNotifier.value = newScrollPositionValue;
-            }
-          }
-        }));
-      } catch (MissingPluginException) {
-        // It's fine for this to not work on desktop
-        scrollingMode = ScrollingMode.sideScroll;
-      }
+//             double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
+//             if (newScrollPositionValue.isFinite &&
+//                 !newScrollPositionValue.isNaN) {
+//               Animation animation;
+//               animation = Tween<double>(
+//                       begin: scrollPositionNotifier.value,
+//                       end: newScrollPositionValue)
+//                   .animate(orientationAnimationController)
+//                     ..addListener(() {
+//                       scrollPositionNotifier.value = animation.value;
+// //                setState(() {});
+//                     });
+//               orientationAnimationController.forward(
+//                   from: scrollPositionNotifier.value);
+// //            scrollPositionNotifier.value = newScrollPositionValue;
+//             }
+//           }
+//         }));
+//       } catch (MissingPluginException) {
+//         // It's fine for this to not work on desktop
+//         scrollingMode = ScrollingMode.sideScroll;
+//       }
     }
   }
 
@@ -183,7 +182,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
           scrollDirection: Axis.horizontal,
           slivers: [
             CustomSliverToBoxAdapter(
-              setVisibleRect: (rect) {
+              (rect) {
                 _visibleRect = rect;
                 _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right,
                     rect.bottom - touchScrollAreaHeight);
@@ -290,7 +289,7 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
 //              print("dy=$dy; maxDy=$maxDy; velocity ratio=$velocityRatio");
                   int velocity =
                       min(127, max(0, (velocityRatio * 127).toInt()));
-                  int oldTone = _pointerIdsToTones[event.pointer];
+                  int oldTone = _pointerIdsToTones[event.pointer]!;
                   if (tone != oldTone) {
                     print("moving tone $oldTone to $tone");
                     try {
@@ -305,7 +304,9 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                   }
                 },
                 onPointerUp: (event) {
-                  int tone = _pointerIdsToTones.remove(event.pointer);
+                  int? tone = _pointerIdsToTones.remove(event.pointer);
+                  if (tone == null) return;
+
                   widget.pressedNotesNotifier.value =
                       _pointerIdsToTones.values.toSet();
                   try {
@@ -313,7 +314,9 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
                   } catch (t) {}
                 },
                 onPointerCancel: (event) {
-                  int tone = _pointerIdsToTones.remove(event.pointer);
+                  int? tone = _pointerIdsToTones.remove(event.pointer);
+                  if (tone == null) return;
+
                   widget.pressedNotesNotifier.value =
                       _pointerIdsToTones.values.toSet();
                   try {
@@ -487,13 +490,13 @@ class _ColorboardPainter extends CustomPainter {
   final ValueNotifier<Chord> chordNotifier;
 
   _ColorboardPainter(
-      {this.chordNotifier,
-      this.lowestPitch,
-      this.highestPitch,
-      this.pressedNotesNotifier,
-      this.scrollPositionNotifier,
-      this.halfStepsOnScreen,
-      this.visibleRect})
+      {required this.chordNotifier,
+      required this.lowestPitch,
+      required this.highestPitch,
+      required this.pressedNotesNotifier,
+      required this.scrollPositionNotifier,
+      required this.halfStepsOnScreen,
+      required this.visibleRect})
       : super(
             repaint: Listenable.merge(
                 [scrollPositionNotifier, pressedNotesNotifier, chordNotifier]));

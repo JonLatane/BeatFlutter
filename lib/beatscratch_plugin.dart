@@ -1,6 +1,5 @@
-import 'package:dart_midi/dart_midi.dart';
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -192,24 +191,24 @@ class BeatScratchPlugin {
   }
 
   static double unmultipliedBpm = 123;
-  static bool _playing;
+  static bool _playing = false;
   static bool get playing {
     return _playing;
   }
 
   static final ValueNotifier<int> currentBeat = ValueNotifier(0);
 
-  static bool _isBeatScratchAudioAvailable;
+  static bool _isBeatScratchAudioAvailable = false;
   static bool get isSynthesizerAvailable {
     return _isBeatScratchAudioAvailable;
   }
 
-  static VoidCallback onCountInInitiated;
-  static VoidCallback onSynthesizerStatusChange;
-  static Function(String) onOpenUrlFromSystem;
-  static Function(String) onSectionSelected;
-  static Function(Melody) onRecordingMelodyUpdated;
-  static MessagesUI messagesUI;
+  static late VoidCallback onCountInInitiated;
+  static late VoidCallback onSynthesizerStatusChange;
+  static late Function(String) onOpenUrlFromSystem;
+  static late Function(String) onSectionSelected;
+  static late Function(Melody) onRecordingMelodyUpdated;
+  static late MessagesUI messagesUI;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds: 5), () {
       getApps();
@@ -455,7 +454,7 @@ class BeatScratchPlugin {
     _stopUIPlayback();
   }
 
-  static DateTime _pausedTime;
+  static late DateTime _pausedTime;
   static void _stopUIPlayback() {
     _playing = false;
     onSynthesizerStatusChange();
@@ -547,7 +546,7 @@ class BeatScratchPlugin {
     }
   }
 
-  static Future<String> getScoreId() async =>
+  static Future<String?> getScoreId() async =>
       _channel.invokeMethod<String>("getScoreId");
 
   static Future<Melody> get recordedMelody async {

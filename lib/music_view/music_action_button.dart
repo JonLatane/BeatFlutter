@@ -9,11 +9,11 @@ class MusicActionButton extends StatelessWidget {
   final bool visible;
   final double width, height;
   final Widget child;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color color;
 
   MusicActionButton(
-      {Key key,
+      {Key? key,
       this.visible = true,
       this.width = 48,
       this.height = 48,

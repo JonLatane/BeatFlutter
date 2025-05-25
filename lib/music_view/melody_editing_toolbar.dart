@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../cache_management.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
@@ -18,16 +20,16 @@ class MelodyEditingToolbar extends StatefulWidget {
   final Section currentSection;
   final bool recordingMelody;
   final bool visible;
-  final ValueNotifier<int> highlightedBeat;
+  final ValueNotifier<int?> highlightedBeat;
   final Function(MelodyReference, double) setReferenceVolume;
   final VoidCallback toggleRecording;
 
-  Melody get melody => score.parts
+  Melody? get melody => score.parts
       .expand((p) => p.melodies)
-      .firstWhere((m) => m.id == melodyId, orElse: () => null);
+      .firstWhereOrNull((m) => m.id == melodyId);
 
   const MelodyEditingToolbar(
-      {Key key,
+      {Key? key,
       required this.melodyId,
       required this.sectionColor,
       required this.score,
@@ -45,9 +47,9 @@ class MelodyEditingToolbar extends StatefulWidget {
 
 class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
     with TickerProviderStateMixin {
-  AnimationController animationController;
-  Color recordingAnimationColor;
-  Animation<Color> recordingAnimation;
+  late AnimationController animationController;
+  Color? recordingAnimationColor;
+  late Animation<Color?> recordingAnimation;
   bool showHoldToClear = false;
   bool showDataCleared = false;
   bool animationStarted = false;
@@ -89,16 +91,24 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       animationStarted = false;
     }
     Color recordingColor;
-    if (widget.recordingMelody && BeatScratchPlugin.playing) {
-      recordingColor = recordingAnimationColor;
+    if (widget.recordingMelody &&
+        BeatScratchPlugin.playing &&
+        recordingAnimationColor != null) {
+      recordingColor = recordingAnimationColor!;
     } else {
       recordingColor = Colors.grey;
     }
     int beats;
-    beats = widget.melody.length ~/ widget.melody.subdivisionsPerBeat;
+    final melody = widget.melody;
+    if (melody == null) {
+      beats = 0;
+    } else {
+      beats = melody.length ~/ melody.subdivisionsPerBeat;
+    }
     bool hasHighlightedBeat =
         BeatScratchPlugin.playing && widget.recordingMelody;
-    final melodyReference = widget.currentSection.referenceTo(widget.melody);
+    final melodyReference =
+        melody != null ? widget.currentSection.referenceTo(melody) : null;
     bool playingOrCountingIn =
         BeatScratchPlugin.playing || BeatScratchPlugin.countInInitiated;
     bool showGo = widget.recordingMelody &&
@@ -214,23 +224,25 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       SizedBox(width: 7),
       IncrementableValue(
         collapsing: true,
-        onDecrement: (widget.melody.beatCount > 1)
+        onDecrement: ((melody?.beatCount ?? -1) > 1)
             ? () {
-                if (widget.melody.beatCount > 1) {
-                  widget.melody.length -= widget.melody.subdivisionsPerBeat;
+                if (melody == null) return;
+                if (melody.beatCount > 1) {
+                  melody.length -= melody.subdivisionsPerBeat;
                   BeatScratchPlugin.onSynthesizerStatusChange();
-                  clearMutableCachesForMelody(widget.melody.id);
-                  BeatScratchPlugin.updateMelody(widget.melody);
+                  clearMutableCachesForMelody(melody.id);
+                  BeatScratchPlugin.updateMelody(melody);
                 }
               }
             : null,
-        onIncrement: (widget.melody.beatCount <= 999)
+        onIncrement: ((melody?.beatCount ?? 1000) <= 999)
             ? () {
-                if (widget.melody.beatCount <= 999) {
-                  widget.melody.length += widget.melody.subdivisionsPerBeat;
+                if (melody == null) return;
+                if (melody.beatCount <= 999) {
+                  melody.length += melody.subdivisionsPerBeat;
                   BeatScratchPlugin.onSynthesizerStatusChange();
-                  clearMutableCachesForMelody(widget.melody.id);
-                  BeatScratchPlugin.updateMelody(widget.melody);
+                  clearMutableCachesForMelody(melody.id);
+                  BeatScratchPlugin.updateMelody(melody);
                 }
               }
             : null,
@@ -243,36 +255,36 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
       SizedBox(width: 5),
       IncrementableValue(
         collapsing: true,
-        onDecrement: (widget.melody.subdivisionsPerBeat ?? -1) > 1
+        onDecrement: (melody?.subdivisionsPerBeat ?? -1) > 1
             ? () {
-                if ((widget.melody.subdivisionsPerBeat ?? -1) > 1) {
-                  widget.melody.subdivisionsPerBeat -= 1;
-                  widget.melody.length =
-                      beats * widget.melody.subdivisionsPerBeat;
-                  clearMutableCachesForMelody(widget.melody.id);
+                if (melody == null) return;
+                if ((melody?.subdivisionsPerBeat ?? -1) > 1) {
+                  melody.subdivisionsPerBeat -= 1;
+                  melody.length = beats * melody.subdivisionsPerBeat;
+                  clearMutableCachesForMelody(melody.id);
                   BeatScratchPlugin.onSynthesizerStatusChange();
-                  clearMutableCachesForMelody(widget.melody.id);
-                  BeatScratchPlugin.updateMelody(widget.melody);
+                  clearMutableCachesForMelody(melody.id);
+                  BeatScratchPlugin.updateMelody(melody);
                 }
               }
             : null,
-        onIncrement: (widget.melody.subdivisionsPerBeat ?? -1) < 24
+        onIncrement: (melody?.subdivisionsPerBeat ?? -1) < 24
             ? () {
-                if ((widget.melody.subdivisionsPerBeat ?? -1) < 24) {
-                  widget.melody.subdivisionsPerBeat += 1;
-                  widget.melody.length =
-                      beats * widget.melody.subdivisionsPerBeat;
-                  clearMutableCachesForMelody(widget.melody.id);
+                if (melody == null) return;
+                if (melody.subdivisionsPerBeat < 24) {
+                  melody.subdivisionsPerBeat += 1;
+                  melody.length = beats * melody.subdivisionsPerBeat;
+                  clearMutableCachesForMelody(melody.id);
                   BeatScratchPlugin.onSynthesizerStatusChange();
-                  clearMutableCachesForMelody(widget.melody.id);
-                  BeatScratchPlugin.updateMelody(widget.melody);
+                  clearMutableCachesForMelody(melody.id);
+                  BeatScratchPlugin.updateMelody(melody);
                 }
               }
             : null,
         child: Padding(
             padding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
             child: BeatsBadge(
-              beats: widget.melody.subdivisionsPerBeat,
+              beats: melody?.subdivisionsPerBeat ?? 0,
               isPerBeat: true,
             )),
       ),
@@ -282,12 +294,12 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
         duration: animationDuration,
         opacity: widget.visible ? 1 : 0,
         child: MySlider(
-            value: melodyReference.volume ?? 0,
-            activeColor: melodyReference.playbackType ==
+            value: melodyReference?.volume ?? 0,
+            activeColor: melodyReference?.playbackType ==
                     MelodyReference_PlaybackType.playback_indefinitely
                 ? widget.sectionColor
                 : widget.sectionColor.withOpacity(0.5),
-            onChanged: (widget.visible)
+            onChanged: (widget.visible && melodyReference != null)
                 ? (value) {
                     widget.setReferenceVolume(melodyReference, value);
                   }
@@ -355,13 +367,13 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
           child: MyRaisedButton(
               color: Color(0x424242).withOpacity(1),
               padding: EdgeInsets.zero,
-              onLongPress: widget.melody != null
+              onLongPress: melody != null
                   ? () {
                       print("clearing");
-                      widget.melody.midiData.data.clear();
-                      clearMutableCachesForMelody(widget.melody.id);
+                      melody.midiData.data.clear();
+                      clearMutableCachesForMelody(melody.id);
                       BeatScratchPlugin.onSynthesizerStatusChange();
-                      BeatScratchPlugin.updateMelody(widget.melody);
+                      BeatScratchPlugin.updateMelody(melody);
                       setState(() {
                         showDataCleared = true;
                         showHoldToClear = false;
@@ -415,15 +427,17 @@ class _MelodyEditingToolbarState extends State<MelodyEditingToolbar>
           child: MyRaisedButton(
               color: Color(0x424242).withOpacity(1),
               padding: EdgeInsets.zero,
-              onLongPress: widget.melody != null
+              onLongPress: melody != null
                   ? () {
                       print("clearing single beat");
-                      int beatToDelete = widget.highlightedBeat.value;
+                      var beatToDelete = widget.highlightedBeat.value;
+                      if (beatToDelete == null) return;
+
                       beatToDelete -= firstBeatOfSection;
-                      widget.melody.deleteBeat(beatToDelete);
-                      clearMutableCachesForMelody(widget.melody.id);
+                      melody.deleteBeat(beatToDelete);
+                      clearMutableCachesForMelody(melody.id);
                       BeatScratchPlugin.onSynthesizerStatusChange();
-                      BeatScratchPlugin.updateMelody(widget.melody);
+                      BeatScratchPlugin.updateMelody(melody);
                       setState(() {
                         showDataCleared = true;
                         showHoldToClear = false;

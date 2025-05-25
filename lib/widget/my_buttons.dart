@@ -99,7 +99,7 @@ class MySlider extends Slider {
   const MySlider({
     Key? key,
     required double value,
-    required ValueChanged<double> onChanged,
+    ValueChanged<double>? onChanged,
     ValueChanged<double>? onChangeStart,
     ValueChanged<double>? onChangeEnd,
     double min = 0.0,

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:aeyrium_sensor/aeyrium_sensor.dart';
+// import 'package:aeyrium_sensor/aeyrium_sensor.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:flutter/services.dart';
 import '../drawing/canvas_tone_drawer.dart';
@@ -36,20 +36,20 @@ class Keyboard extends StatefulWidget {
   final VoidCallback closeKeyboard;
 
   const Keyboard(
-      {Key key,
-      this.appSettings,
-      this.height,
-      this.showConfiguration,
-      this.hideConfiguration,
-      this.sectionColor,
-      this.part,
-      this.pressedNotesNotifier,
-      this.bluetoothControllerPressedNotes,
-      this.width,
-      this.leftMargin,
-      this.distanceFromBottom,
-      this.closed,
-      this.closeKeyboard})
+      {Key? key,
+      required this.appSettings,
+      required this.height,
+      required this.showConfiguration,
+      required this.hideConfiguration,
+      required this.sectionColor,
+      required this.part,
+      required this.pressedNotesNotifier,
+      required this.bluetoothControllerPressedNotes,
+      required this.width,
+      required this.leftMargin,
+      required this.distanceFromBottom,
+      required this.closed,
+      required this.closeKeyboard})
       : super(key: key);
 
   @override
@@ -75,10 +75,10 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   bool useOrientation = false;
   List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
-  ValueNotifier<double> scrollPositionNotifier;
+  late ValueNotifier<double> scrollPositionNotifier;
   bool reverseScrolling = false;
   ScrollingMode scrollingMode = ScrollingMode.sideScroll;
-  ScrollingMode previousScrollingMode;
+  ScrollingMode? previousScrollingMode;
   bool showScrollHint = false;
 
   List<AnimationController> _scaleAnimationControllers = [];
@@ -99,7 +99,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     _scaleAnimationControllers.clear();
     AnimationController scaleAnimationController = animationController();
     _scaleAnimationControllers.add(scaleAnimationController);
-    Animation animation;
+    late Animation animation;
     animation = Tween<double>(begin: _halfStepWidthInPx, end: value)
         .animate(scaleAnimationController)
       ..addListener(() {
@@ -111,10 +111,10 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
   }
 
   double get diatonicStepWidthInPx => halfStepWidthInPx * 12 / 7;
-  AnimationController orientationAnimationController;
-  Animation orientationAnimation;
-  AnimationController blurAnimationController;
-  Animation blurAnimation;
+  late AnimationController orientationAnimationController;
+  late Animation orientationAnimation;
+  late AnimationController blurAnimationController;
+  late Animation blurAnimation;
   int highestPitch = CanvasToneDrawer.TOP;
   int lowestPitch = CanvasToneDrawer.BOTTOM;
 
@@ -124,7 +124,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
       (scrollingMode == ScrollingMode.sideScroll) ? 30 : 0;
 
   Map<int, int> _pointerIdsToTones = Map();
-  double _startHalfStepWidthInPx;
+  late double _startHalfStepWidthInPx;
 
   @override
   void initState() {
@@ -141,51 +141,49 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
     ).animate(blurAnimationController);
     scrollPositionNotifier = ValueNotifier(0);
     if (MyPlatform.isMobile) {
-      try {
-        _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
-          if (scrollingMode != ScrollingMode.sideScroll) {
-            print("Sensor event: $event");
-            double normalizedPitch;
-            switch (scrollingMode) {
-              case ScrollingMode.pitch:
-                var absoluteScrollPosition = event.pitch;
-                if (absoluteScrollPosition < 0) {
-                  absoluteScrollPosition = -absoluteScrollPosition;
-                }
-                normalizedPitch = max(
-                    0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
-                break;
-              case ScrollingMode.roll:
-//              var maxRoll = -1.45; // All the way to the right
-//              var minRoll = 1.45; // All the way to the left
-                normalizedPitch = (1.45 - event.roll) / 2.9;
-                break;
-              case ScrollingMode.sideScroll:
-                break;
-            }
+//       try {
+//         _streamSubscriptions.add(AeyriumSensor.sensorEvents.listen((event) {
+//           if (scrollingMode != ScrollingMode.sideScroll) {
+//             print("Sensor event: $event");
+//             double normalizedPitch;
+//             switch (scrollingMode) {
+//               case ScrollingMode.pitch:
+//                 var absoluteScrollPosition = event.pitch;
+//                 if (absoluteScrollPosition < 0) {
+//                   absoluteScrollPosition = -absoluteScrollPosition;
+//                 }
+//                 normalizedPitch = max(
+//                     0.0, min(1.0, (1.58 - absoluteScrollPosition * 1.2) / 1.5));
+//                 break;
+//               case ScrollingMode.roll:
+// //              var maxRoll = -1.45; // All the way to the right
+// //              var minRoll = 1.45; // All the way to the left
+//                 normalizedPitch = (1.45 - event.roll) / 2.9;
+//                 break;
+//               case ScrollingMode.sideScroll:
+//                 break;
+//             }
 
-            double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
-            if (newScrollPositionValue.isFinite &&
-                !newScrollPositionValue.isNaN) {
-              Animation animation;
-              animation = Tween<double>(
-                      begin: scrollPositionNotifier.value,
-                      end: newScrollPositionValue)
-                  .animate(orientationAnimationController)
-                ..addListener(() {
-                  scrollPositionNotifier.value = animation.value;
-//                setState(() {});
-                });
-              orientationAnimationController.forward(
-                  from: scrollPositionNotifier.value);
-//            scrollPositionNotifier.value = newScrollPositionValue;
-            }
-          }
-        }));
-      } catch (MissingPluginException) {
-        // It's fine for this to not work on desktop
-        scrollingMode = ScrollingMode.sideScroll;
-      }
+//             double newScrollPositionValue = max(0.0, min(1.0, normalizedPitch));
+//             if (newScrollPositionValue.isFinite &&
+//                 !newScrollPositionValue.isNaN) {
+//               Animation animation;
+//               animation = Tween<double>(
+//                       begin: scrollPositionNotifier.value,
+//                       end: newScrollPositionValue)
+//                   .animate(orientationAnimationController)
+//                 ..addListener(() {
+//                   scrollPositionNotifier.value = animation.value;
+//                 });
+//               orientationAnimationController.forward(
+//                   from: scrollPositionNotifier.value);
+//             }
+//           }
+//         }));
+//       } catch (MissingPluginException) {
+//         // It's fine for this to not work on desktop
+//         scrollingMode = ScrollingMode.sideScroll;
+//       }
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -242,7 +240,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
               scrollDirection: Axis.horizontal,
               slivers: [
                 CustomSliverToBoxAdapter(
-                  setVisibleRect: (rect) {
+                  (rect) {
                     _visibleRect = rect;
                     _visibleRect = Rect.fromLTRB(rect.left, rect.top,
                         rect.right, rect.bottom - touchScrollAreaHeight);
@@ -389,7 +387,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                     event.position.dy -
                     widget.distanceFromBottom;
                 double maxDy = widget.height - touchScrollAreaHeight;
-                int oldTone = _pointerIdsToTones[event.pointer];
+                int oldTone = _pointerIdsToTones[event.pointer]!;
                 int tone;
                 if (dy > maxDy / 2) {
                   // Black key area press
@@ -412,7 +410,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 }
               },
               onPointerUp: (event) {
-                int tone = _pointerIdsToTones.remove(event.pointer);
+                int tone = _pointerIdsToTones.remove(event.pointer)!;
                 widget.pressedNotesNotifier.value =
                     _pointerIdsToTones.values.toSet();
                 try {
@@ -420,7 +418,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 } catch (t) {}
               },
               onPointerCancel: (event) {
-                int tone = _pointerIdsToTones.remove(event.pointer);
+                int tone = _pointerIdsToTones.remove(event.pointer)!;
                 widget.pressedNotesNotifier.value =
                     _pointerIdsToTones.values.toSet();
                 try {
@@ -794,6 +792,9 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
       case 6:
         toneOffset = 11;
         break;
+      default:
+        toneOffset = 0;
+        break;
     }
     int tone = 12 * (octave - 4) + toneOffset;
 //    print("diatonic tone: $diatonicTone octave: $octave toneoffset: $toneOffset tone: $tone");
@@ -809,12 +810,12 @@ class _KeyboardPainter extends CustomPainter {
   final int highestPitch, lowestPitch;
 
   _KeyboardPainter(
-      {this.highestPitch,
-      this.lowestPitch,
-      this.pressedNotesNotifier,
-      this.scrollPositionNotifier,
-      this.halfStepsOnScreen,
-      this.visibleRect})
+      {required this.highestPitch,
+      required this.lowestPitch,
+      required this.pressedNotesNotifier,
+      required this.scrollPositionNotifier,
+      required this.halfStepsOnScreen,
+      required this.visibleRect})
       : super(
             repaint: Listenable.merge([
           scrollPositionNotifier,
@@ -876,7 +877,7 @@ class _KeyboardPainter extends CustomPainter {
 }
 
 class KeyboardRenderer extends CanvasToneDrawer {
-  Iterable<int> pressedNotes;
+  Iterable<int> pressedNotes = [];
   bool renderLettersAndNumbers = true;
 
   draw(Canvas canvas) {

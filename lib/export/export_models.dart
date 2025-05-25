@@ -22,7 +22,7 @@ class BSExport {
       this.sectionId});
 
   File call(ExportManager exportManager) {
-    final midiFile = score.exportMidi(this);
+    final midiFile = score.exportMidi(this)!;
     final fileHandle = exportManager.createExportFile(this);
     MidiWriter().writeMidiToFile(midiFile, fileHandle);
     return fileHandle;

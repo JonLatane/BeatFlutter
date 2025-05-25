@@ -1,4 +1,3 @@
-
 import '../music_preview/score_preview.dart';
 
 import 'package:flutter/material.dart';
@@ -83,7 +82,10 @@ class UniverseUploadWidget extends StatefulWidget {
   final BSMethod onDoDuplicate;
 
   const UniverseUploadWidget(
-      {Key key, this.score, this.universeManager, this.onDoDuplicate})
+      {Key? key,
+      required this.score,
+      required this.universeManager,
+      required this.onDoDuplicate})
       : super(key: key);
 
   @override
@@ -91,7 +93,7 @@ class UniverseUploadWidget extends StatefulWidget {
 }
 
 class _UniverseUploadWidgetState extends State<UniverseUploadWidget> {
-  bool didFindDuplicate;
+  bool? didFindDuplicate;
   @override
   void initState() {
     super.initState();

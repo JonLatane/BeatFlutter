@@ -16,7 +16,7 @@ launchURL(
   bool universalLinksOnly = false,
   Map<String, String> headers = const <String, String>{},
   Brightness statusBarBrightness = Brightness.dark,
-  String webOnlyWindowName = '',
+  String? webOnlyWindowName,
 }) async {
   if (await canLaunchUrl(Uri.parse(url))) {
     await launchURL(

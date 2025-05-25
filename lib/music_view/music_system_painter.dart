@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../util/util.dart';
@@ -38,11 +39,9 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
-  final ValueNotifier<Part> keyboardPart,
-      colorboardPart,
-      focusedPart,
-      tappedPart;
-  final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
+  final ValueNotifier<Part> keyboardPart, colorboardPart, focusedPart;
+  final ValueNotifier<Part?> tappedPart;
+  final ValueNotifier<int?> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
   final double firstBeatOfSection;
   final int systemsToRender;
@@ -51,9 +50,9 @@ class MusicSystemPainter extends CustomPainter {
   double get yScale => 1;
   double get scale => transformationController.value.getMaxScaleOnAxis();
 
-  Melody get focusedMelody => score.parts
+  Melody? get focusedMelody => score.parts
       .expand((p) => p.melodies)
-      .firstWhere((m) => m.id == focusedMelodyId, orElse: () => null);
+      .firstWhereOrNull((m) => m.id == focusedMelodyId);
 
   int get numberOfBeats => /*isViewingSection ? section.harmony.beatCount :*/
       score.beatCount;
@@ -63,38 +62,38 @@ class MusicSystemPainter extends CustomPainter {
   int get colorGuideAlpha => (255 * colorGuideOpacityNotifier.value).toInt();
 
   MusicSystemPainter(
-      {this.isPreview,
-      this.focusedBeat,
-      this.tappedBeat,
-      this.firstBeatOfSection,
-      this.highlightedBeat,
-      this.musicViewMode,
-      this.colorGuideOpacityNotifier,
-      this.sectionColor,
-      this.focusedPart,
-      this.tappedPart,
-      this.keyboardPart,
-      this.colorboardPart,
-      this.staves,
-      this.partTopOffsets,
-      this.staffOffsets,
-      this.sectionScaleNotifier,
-      this.colorboardNotesNotifier,
-      this.keyboardNotesNotifier,
-      this.bluetoothControllerPressedNotes,
-      this.score,
-      this.section,
-      this.transformationController,
+      {required this.isPreview,
+      required this.focusedBeat,
+      required this.tappedBeat,
+      required this.firstBeatOfSection,
+      required this.highlightedBeat,
+      required this.musicViewMode,
+      required this.colorGuideOpacityNotifier,
+      required this.sectionColor,
+      required this.focusedPart,
+      required this.tappedPart,
+      required this.keyboardPart,
+      required this.colorboardPart,
+      required this.staves,
+      required this.partTopOffsets,
+      required this.staffOffsets,
+      required this.sectionScaleNotifier,
+      required this.colorboardNotesNotifier,
+      required this.keyboardNotesNotifier,
+      required this.bluetoothControllerPressedNotes,
+      required this.score,
+      required this.section,
+      required this.transformationController,
       this.rescale = false,
-      this.visibleRect,
-      this.verticallyVisibleRect,
-      this.focusedMelodyId,
-      this.colorblockOpacityNotifier,
-      this.notationOpacityNotifier,
-      this.isCurrentScore,
-      this.renderPartNames,
+      required this.visibleRect,
+      required this.verticallyVisibleRect,
+      required this.focusedMelodyId,
+      required this.colorblockOpacityNotifier,
+      required this.notationOpacityNotifier,
+      required this.isCurrentScore,
+      required this.renderPartNames,
       this.systemsToRender = 1,
-      List<Listenable> otherListenables = null})
+      List<Listenable> otherListenables = const []})
       : super(
             repaint: Listenable.merge([
           colorblockOpacityNotifier,

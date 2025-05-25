@@ -469,13 +469,15 @@ class _SettingsPanelState extends State<SettingsPanel> {
           ),
         ),
     ];
-    List<dynamic> items = <dynamic>[
+    List<Identifiable> items = <Identifiable>[
       if (observedDevices.isNotEmpty)
         SeparatorTile(text: "Bluetooth Devices", id: "bluetooth-settings"),
-      ...observedDevices,
+      ...observedDevices.map((d) => IdentifiableWrapper<MidiDevice>(d, d.id)),
       SeparatorTile(text: "MIDI Devices", id: "midi-settings"),
-      ...midiSynthesizers,
-      ...midiControllers,
+      ...midiSynthesizers
+          .map((d) => IdentifiableWrapper<MidiSynthesizer>(d, d.id)),
+      ...midiControllers
+          .map((d) => IdentifiableWrapper<MidiController>(d, d.id)),
       ...appSettings,
       ...features,
     ];
@@ -494,39 +496,41 @@ class _SettingsPanelState extends State<SettingsPanel> {
         }
         final dynamic item = items[index];
         Widget? tile;
-        if (item is MidiController) {
-          tile = MidiControllerTile(
-            appSettings: widget.appSettings,
-            scrollDirection: Axis.horizontal,
-            midiController: item,
-            enableColorboard: widget.enableColorboard,
-            setColorboardEnabled: widget.setColorboardEnabled,
-            sectionColor: widget.sectionColor,
-            toggleKeyboardConfig: widget.toggleKeyboardConfig,
-            toggleColorboardConfig: widget.toggleColorboardConfig,
-          );
-        } else if (item is MidiSynthesizer) {
-          tile = MidiSynthTile(
-            scrollDirection: Axis.horizontal,
-            midiSynthesizer: item,
-          );
-        } else if (item is SettingsTile || item is SeparatorTile) {
+        if (item is SettingsTile || item is SeparatorTile || item is Widget) {
           tile = item;
-        } else if (item is MidiDevice) {
-          tile = BluetoothDeviceTile(
-            key: ValueKey("Bluetooth-Device-${item.id}"),
-            device: item,
-            sectionColor: widget.sectionColor,
-            connected: connectedDeviceIds.any((id) => id == item.id),
-            onConnect: () {
-              connectedDeviceIds.add(item.id.toString());
-            },
-            onDisconnect: () {
-              connectedDeviceIds.remove(item.id.toString());
-            },
-            bluetoothControllerPressedNotes:
-                widget.bluetoothControllerPressedNotes,
-          );
+        } else if (item is IdentifiableWrapper) {
+          if (item.item is MidiController) {
+            tile = MidiControllerTile(
+              appSettings: widget.appSettings,
+              scrollDirection: Axis.horizontal,
+              midiController: item.item,
+              enableColorboard: widget.enableColorboard,
+              setColorboardEnabled: widget.setColorboardEnabled,
+              sectionColor: widget.sectionColor,
+              toggleKeyboardConfig: widget.toggleKeyboardConfig,
+              toggleColorboardConfig: widget.toggleColorboardConfig,
+            );
+          } else if (item.item is MidiSynthesizer) {
+            tile = MidiSynthTile(
+              scrollDirection: Axis.horizontal,
+              midiSynthesizer: item.item,
+            );
+          } else if (item is MidiDevice) {
+            tile = BluetoothDeviceTile(
+              key: ValueKey("Bluetooth-Device-${item.id}"),
+              device: item.item,
+              sectionColor: widget.sectionColor,
+              connected: connectedDeviceIds.any((id) => id == item.id),
+              onConnect: () {
+                connectedDeviceIds.add(item.id.toString());
+              },
+              onDisconnect: () {
+                connectedDeviceIds.remove(item.id.toString());
+              },
+              bluetoothControllerPressedNotes:
+                  widget.bluetoothControllerPressedNotes,
+            );
+          }
         }
         tile = Padding(padding: EdgeInsets.all(5), child: tile);
         return SizeFadeTransition(
@@ -706,4 +710,10 @@ showColors(BuildContext context, Color sectionColor) {
 
 abstract class Identifiable {
   String get id;
+}
+
+class IdentifiableWrapper<T> extends Identifiable {
+  final T item;
+  final String id;
+  IdentifiableWrapper(this.item, this.id);
 }

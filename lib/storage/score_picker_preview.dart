@@ -18,9 +18,9 @@ import 'universe_manager.dart';
 import 'url_conversions.dart';
 
 class ScoreFuture {
-  final String filePath, scoreUrl, title, author, commentUrl, fullName;
-  int voteCount;
-  bool likes;
+  final String? filePath, scoreUrl, title, author, commentUrl, fullName;
+  int? voteCount;
+  bool? likes;
 
   ScoreFuture({
     this.filePath,
@@ -55,9 +55,11 @@ class ScoreFuture {
       };
 
   String get identity => filePath ?? "//universe-score://$scoreUrl";
-  FileSystemEntity get file {
+  File? get file {
     try {
-      return File(filePath);
+      if (filePath == null) return null;
+
+      return File(filePath!);
     } catch (e) {
       print("Error loading score from file: $e");
     }
@@ -70,6 +72,10 @@ class ScoreFuture {
 
   Future<Score> loadScoreFromFile() async {
     try {
+      final file = this.file;
+      if (file == null) {
+        return Future.value(defaultScore());
+      }
       final data = await File(file.path).readAsBytes();
 
       return Score.fromBuffer(data);
@@ -79,16 +85,19 @@ class ScoreFuture {
   }
 
   Future<Score> loadScoreFromUniverse(ScoreManager scoreManager) async {
-    String scoreUrl = this.scoreUrl;
+    String scoreUrl = this.scoreUrl!;
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
     try {
       final score = scoreFromUrlHashValue(scoreUrl);
-      return score..name = title;
+      if (score == null) {
+        return Future.value(defaultScore());
+      }
+      return score..name = title!;
     } catch (e) {
       try {
-        return scoreManager.loadPastebinScore(scoreUrl, titleOverride: title);
+        return scoreManager.loadPastebinScore(scoreUrl, titleOverride: title!);
       } catch (e) {
         return Future.value(defaultScore());
       }
@@ -99,36 +108,36 @@ class ScoreFuture {
 class ScorePickerPreview extends StatefulWidget {
   final Color sectionColor;
   final ScoreFuture scoreFuture;
-  final VoidCallback deleteScore;
-  final VoidCallback overwriteScore;
+  final VoidCallback? deleteScore;
+  final VoidCallback? overwriteScore;
   final ScoreManager scoreManager;
   final UniverseManager universeManager;
   final AppSettings appSettings;
-  final VoidCallback onClickScore;
+  final VoidCallback? onClickScore;
   final int scoreKey;
-  final String deletingScoreName;
-  final String overwritingScoreName;
-  final VoidCallback cancelDelete;
-  final VoidCallback cancelOverwrite;
+  final String? deletingScoreName;
+  final String? overwritingScoreName;
+  final VoidCallback? cancelDelete;
+  final VoidCallback? cancelOverwrite;
   final double width, height;
 
   const ScorePickerPreview(
-      {Key key,
-      this.sectionColor,
-      this.scoreFuture,
-      this.deleteScore,
-      this.overwriteScore,
-      this.scoreManager,
-      this.appSettings,
+      {Key? key,
+      required this.sectionColor,
+      required this.scoreFuture,
+      required this.deleteScore,
+      required this.overwriteScore,
+      required this.scoreManager,
+      required this.appSettings,
       this.deletingScoreName,
       this.overwritingScoreName,
-      this.scoreKey,
-      this.cancelDelete,
-      this.cancelOverwrite,
-      this.universeManager,
+      required this.scoreKey,
+      required this.cancelDelete,
+      required this.cancelOverwrite,
+      required this.universeManager,
       this.onClickScore,
-      this.width,
-      this.height})
+      required this.width,
+      required this.height})
       : super(key: key);
 
   @override
@@ -136,14 +145,14 @@ class ScorePickerPreview extends StatefulWidget {
 }
 
 class _ScorePickerPreviewState extends State<ScorePickerPreview> {
-  bool _confirmingDelete;
-  bool _confirmingOverwrite;
-  int _lastScoreKey;
-  bool disposed;
+  late bool _confirmingDelete;
+  late bool _confirmingOverwrite;
+  late int _lastScoreKey;
+  late bool disposed;
 
-  Score _previewScore;
-  ScrollController scrollController;
-  BSMethod notifyUpdate;
+  late Score? _previewScore;
+  late ScrollController scrollController;
+  late BSMethod notifyUpdate;
 
   @override
   initState() {
@@ -163,7 +172,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
   }
 
   String get unloadedScoreName =>
-      widget.scoreFuture.title ?? widget.scoreFuture.file.scoreName ?? "";
+      widget.scoreFuture.title ?? widget.scoreFuture.file?.scoreName ?? "";
 
   bool get isUniverse => widget.scoreFuture.voteCount != null;
   @override
@@ -206,7 +215,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
       backgroundColor = musicBackgroundColor;
     }
 
-    Score previewScore = _previewScore;
+    Score previewScore = _previewScore ?? defaultScore();
     // if (previewScore == null) {
     //   previewScore = defaultScore();
     // }
@@ -216,7 +225,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
     final actualScoreName = isUniverse
         ? unloadedScoreName
         : _previewScore != null
-            ? _previewScore.name
+            ? _previewScore!.name
             : unloadedScoreName;
 
     double previewScale =
@@ -351,7 +360,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                     onPressed: () {
                                       if (!disposed) {
                                         setState(() {
-                                          widget.deleteScore();
+                                          widget.deleteScore?.call();
                                         });
                                       }
                                     },
@@ -364,7 +373,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                       if (!disposed) {
                                         setState(() {
                                           _confirmingDelete = false;
-                                          widget.cancelDelete();
+                                          widget.cancelDelete?.call();
                                         });
                                       }
                                     },
@@ -397,7 +406,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                     onPressed: () {
                                       if (!disposed) {
                                         setState(() {
-                                          widget.overwriteScore();
+                                          widget.overwriteScore?.call();
                                         });
                                       }
                                     },
@@ -410,7 +419,7 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                                       if (!disposed) {
                                         setState(() {
                                           _confirmingOverwrite = false;
-                                          widget.cancelOverwrite();
+                                          widget.cancelOverwrite?.call();
                                         });
                                       }
                                     },
@@ -472,18 +481,20 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
                               ? () {
-                                  bool oldValue = widget.scoreFuture.likes;
+                                  bool? oldValue = widget.scoreFuture.likes;
                                   setState(() {
                                     if (oldValue == true) {
                                       widget.scoreFuture.likes = null;
-                                      widget.scoreFuture.voteCount -= 1;
+                                      widget.scoreFuture.voteCount =
+                                          widget.scoreFuture.voteCount! - 1;
                                     } else {
                                       widget.scoreFuture.likes = true;
-                                      widget.scoreFuture.voteCount +=
-                                          oldValue == null ? 1 : 2;
+                                      widget.scoreFuture.voteCount =
+                                          widget.scoreFuture.voteCount! +
+                                              (oldValue == null ? 1 : 2);
                                     }
                                     widget.universeManager.vote(
-                                        widget.scoreFuture.fullName,
+                                        widget.scoreFuture.fullName!,
                                         widget.scoreFuture.likes);
                                   });
                                 }
@@ -510,18 +521,20 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                       onPressed:
                           widget.universeManager.redditUsername.isNotEmpty
                               ? () {
-                                  bool oldValue = widget.scoreFuture.likes;
+                                  bool? oldValue = widget.scoreFuture.likes;
                                   setState(() {
                                     if (oldValue == false) {
                                       widget.scoreFuture.likes = null;
-                                      widget.scoreFuture.voteCount += 1;
+                                      widget.scoreFuture.voteCount =
+                                          widget.scoreFuture.voteCount! + 1;
                                     } else {
                                       widget.scoreFuture.likes = false;
-                                      widget.scoreFuture.voteCount -=
-                                          oldValue == null ? 1 : 2;
+                                      widget.scoreFuture.voteCount =
+                                          widget.scoreFuture.voteCount! -
+                                              (oldValue == null ? 1 : 2);
                                     }
                                     widget.universeManager.vote(
-                                        widget.scoreFuture.fullName,
+                                        widget.scoreFuture.fullName!,
                                         widget.scoreFuture.likes);
                                   });
                                 }
@@ -538,11 +551,11 @@ class _ScorePickerPreviewState extends State<ScorePickerPreview> {
                       onPressed: () {
                         if (widget.appSettings.enableApollo) {
                           launchURL(
-                              widget.scoreFuture.commentUrl
+                              widget.scoreFuture.commentUrl!
                                   .replaceAll("https://", "apollo://"),
                               forceSafariVC: false);
                         } else {
-                          launchURL(widget.scoreFuture.commentUrl,
+                          launchURL(widget.scoreFuture.commentUrl!,
                               forceSafariVC: false);
                         }
                       },

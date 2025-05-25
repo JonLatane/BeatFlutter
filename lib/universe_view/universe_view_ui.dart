@@ -3,29 +3,26 @@ import 'package:beatscratch_flutter_redux/messages/messages_ui.dart';
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
 import 'package:beatscratch_flutter_redux/util/bs_methods.dart';
 import 'package:beatscratch_flutter_redux/widget/my_buttons.dart';
-
-import '../widget/my_popup_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'dart:async';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import '../colors.dart';
 import '../ui_models.dart';
 import '../util/util.dart';
-import 'universe_icon.dart';
 import '../widget/my_platform.dart';
+import '../widget/my_popup_menu.dart';
+import 'universe_icon.dart';
 
 class UniverseViewUI {
-  BSMethod refreshUniverseData;
-  VoidCallback switchToLocalScores;
-  MessagesUI messagesUI;
+  BSMethod? refreshUniverseData;
+  VoidCallback? switchToLocalScores;
+  MessagesUI? messagesUI;
   bool visible = true;
   final UniverseManager universeManager;
   final Function(VoidCallback) setAppState;
   bool signingIn = false;
-  final Completer<WebViewController> _webViewController =
-      Completer<WebViewController>();
+  // final Completer<WebViewController> _webViewController =
+  //     Completer<WebViewController>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -85,7 +82,7 @@ class UniverseViewUI {
                 Transform.translate(
                   offset: Offset(0, 0),
                   child: MyFlatButton(
-                    onPressed: refreshUniverseData,
+                    onPressed: () => refreshUniverseData?.call(),
                     padding: EdgeInsets.all(5),
                     lightHighlight: true,
                     child: Transform.translate(
@@ -186,7 +183,7 @@ class UniverseViewUI {
                         case "signOut":
                           setAppState(() {
                             universeManager.signOut();
-                            messagesUI.sendMessage(
+                            messagesUI?.sendMessage(
                                 message: "Signed out of Reddit");
                           });
                           break;

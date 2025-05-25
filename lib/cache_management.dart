@@ -16,10 +16,10 @@ clearMutableCachesForSection(String sectionId) {
 }
 
 clearMutableCachesForMelody(String melodyId,
-    {String sectionId,
-    int beat,
-    int sectionLengthBeats,
-    double melodyLengthBeats}) {
+    {String? sectionId,
+    int? beat,
+    int? sectionLengthBeats,
+    double? melodyLengthBeats}) {
   MelodyTheory.averageToneCache.removeWhere((key, value) => key == melodyId);
   MelodyTheory.tonesAtCache
       .removeWhere((key, value) => key.arguments[0] == melodyId);
@@ -39,8 +39,8 @@ clearMutableCachesForMelody(String melodyId,
       String keySectionId = (key.arguments[2] as String);
       int keyBeat = key.arguments[3] as int;
       return keySectionId == sectionId &&
-          ((keyBeat % melodyLengthBeats).round() == beat ||
-              (((keyBeat + 1) % sectionLengthBeats) % melodyLengthBeats)
+          ((keyBeat % melodyLengthBeats!).round() == beat ||
+              (((keyBeat + 1) % sectionLengthBeats!) % melodyLengthBeats)
                       .round() ==
                   beat ||
               (((keyBeat - 1 + sectionLengthBeats) % sectionLengthBeats) %

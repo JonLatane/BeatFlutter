@@ -46,7 +46,7 @@ extension ShowScoreNameEntry on ScorePickerMode {
 class ScorePicker extends StatefulWidget {
   final Axis scrollDirection;
   final Color sectionColor;
-  final Function(VoidCallback) setState;
+  final Function(VoidCallback)? setState;
   final VoidCallback close;
   final VoidCallback switchToUniverse;
   final ScorePickerMode mode;
@@ -60,22 +60,22 @@ class ScorePicker extends StatefulWidget {
   final BSMethod refreshUniverseData;
 
   const ScorePicker(
-      {Key key,
+      {Key? key,
       this.scrollDirection = Axis.horizontal,
-      this.sectionColor,
+      required this.sectionColor,
       this.setState,
-      this.close,
-      this.mode,
-      this.openedScore,
-      this.scoreManager,
-      this.universeManager,
-      this.appSettings,
-      this.requestKeyboardFocused,
-      this.requestMode,
-      this.width,
-      this.height,
-      this.refreshUniverseData,
-      this.switchToUniverse})
+      required this.close,
+      required this.mode,
+      required this.openedScore,
+      required this.scoreManager,
+      required this.universeManager,
+      required this.appSettings,
+      required this.requestKeyboardFocused,
+      required this.requestMode,
+      required this.width,
+      required this.height,
+      required this.refreshUniverseData,
+      required this.switchToUniverse})
       : super(key: key);
 
   @override
@@ -91,12 +91,13 @@ class ScorePickerState extends State<ScorePicker> {
   FocusNode nameFocus = FocusNode();
 
   ScoreManager get scoreManager => widget.scoreManager;
-  ScorePickerMode previousMode;
-  String deletingScoreName;
-  String overwritingScoreName;
+  ScorePickerMode? previousMode;
+  String? deletingScoreName;
+  String? overwritingScoreName;
   BSMethod universeAnimation = BSMethod();
 
-  bool get wasShowingScoreNameEntry => previousMode.showScoreNameEntry ?? false;
+  bool get wasShowingScoreNameEntry =>
+      previousMode?.showScoreNameEntry ?? false;
 
   @override
   initState() {
@@ -179,7 +180,7 @@ class ScorePickerState extends State<ScorePicker> {
       text: '',
       style: detailTextStyle,
     ); //ing extraDetailText = "";
-    IconData icon;
+    late IconData icon;
     switch (widget.mode) {
       case ScorePickerMode.open:
         operationText = "Open";
@@ -216,7 +217,7 @@ class ScorePickerState extends State<ScorePicker> {
     }
     bool detailsTextInColumn = true; //MediaQuery.of(context).size.width < 500;
     bool showDetailsText = detailsTextInColumn &&
-        extraDetailText.text.isNotEmpty &&
+        (extraDetailText.text?.isNotEmpty ?? false) &&
         !hideDetailsText;
 
     return Column(
@@ -386,7 +387,7 @@ class ScorePickerState extends State<ScorePicker> {
                 ))),
         AnimatedContainer(
             height: showDetailsText
-                ? 0 == extraDetailText.children?.length ?? 0
+                ? 0 == (extraDetailText.children?.length ?? 0)
                     ? 32
                     : 48
                 : 0,
@@ -618,15 +619,15 @@ class ScorePickerState extends State<ScorePicker> {
       return widget.universeManager.cachedUniverseData;
     } else {
       return scoreManager.scoreFiles.map((scoreFile) {
-        Future<Score> loadScore() async {
-          try {
-            final data = await File(scoreFile.path).readAsBytes();
+        // Future<Score> loadScore() async {
+        //   try {
+        //     final data = await File(scoreFile.path).readAsBytes();
 
-            return Score.fromBuffer(data);
-          } catch (e) {
-            return Future.value(defaultScore());
-          }
-        }
+        //     return Score.fromBuffer(data);
+        //   } catch (e) {
+        //     return Future.value(defaultScore());
+        //   }
+        // }
 
         return ScoreFuture(filePath: scoreFile.path);
       }).toList();
@@ -645,11 +646,14 @@ class ScorePickerState extends State<ScorePicker> {
       // Called, as needed, to build list item widgets.
       // List items are only built when they're scrolled into view.
       itemBuilder: (context, animation, section, index) {
-        ScoreFuture scoreFuture;
+        late final ScoreFuture? scoreFuture;
         if (index < scores.length) {
           scoreFuture = scores[index];
         }
-        File scoreFile = scoreFuture.file;
+        final scoreFile = scoreFuture?.file;
+        if (scoreFuture == null || scoreFile == null) {
+          return SizedBox();
+        }
 
         Widget tile = ScorePickerPreview(
           sectionColor: widget.sectionColor,
@@ -670,10 +674,10 @@ class ScorePickerState extends State<ScorePicker> {
                         scoreManager.currentScoreName =
                             ScoreManager.UNIVERSE_SCORE;
                       }
-                      scoreFuture.loadScore(scoreManager).then((value) {
+                      scoreFuture?.loadScore(scoreManager).then((value) {
                         widget.scoreManager.doOpenScore(value);
                         widget.universeManager.currentUniverseScore =
-                            scoreFuture.identity;
+                            scoreFuture!.identity;
                         widget.scoreManager.saveCurrentScore(value);
                       });
                       break;

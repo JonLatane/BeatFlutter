@@ -337,7 +337,7 @@ extension SectionTheory on Section {
   double get realBeatCount => harmony.realBeatCount;
   int get beatCount => harmony.beatCount;
 
-  MelodyReference? referenceTo(Melody melody) =>
+  MelodyReference referenceTo(Melody melody) =>
       melodies.firstWhere((element) => element.melodyId == melody.id,
           orElse: () => _defaultMelodyReference(melody));
 

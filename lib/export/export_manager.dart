@@ -1,16 +1,14 @@
 import 'dart:io';
 
 import 'package:beatscratch_flutter_redux/generated/protos/protos.dart';
-
-import '../widget/my_platform.dart';
-
+import 'package:beatscratch_flutter_redux/util/music_theory.dart';
 import 'package:path_provider/path_provider.dart';
 
-// import '../util/music_theory.dart';
+import '../widget/my_platform.dart';
 import 'export_models.dart';
 
 class ExportManager {
-  Directory exportsDirectory;
+  late Directory exportsDirectory;
 
   File createExportFile(BSExport export) {
     String path =
@@ -29,11 +27,10 @@ class ExportManager {
   }
 
   List<FileSystemEntity> get exportFiles {
-    List<FileSystemEntity> result = exportsDirectory?.listSync();
+    List<FileSystemEntity> result = exportsDirectory.listSync();
     result
         .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
     return result;
-    return [];
   }
 
   ExportManager() {

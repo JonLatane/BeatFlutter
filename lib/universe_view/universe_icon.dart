@@ -1,8 +1,9 @@
 import 'package:beatscratch_flutter_redux/ui_models.dart';
 import 'package:beatscratch_flutter_redux/util/bs_methods.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
+// import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'dart:math';
 
 import '../colors.dart';
@@ -10,10 +11,10 @@ import '../colors.dart';
 class UniverseIcon extends StatefulWidget {
   final Color sectionColor;
   final InteractionMode interactionMode;
-  final BSMethod animateIcon;
+  final BSMethod? animateIcon;
 
   const UniverseIcon(
-      {Key key,
+      {Key? key,
       this.sectionColor = Colors.white,
       this.interactionMode = InteractionMode.view,
       this.animateIcon})
@@ -25,10 +26,10 @@ class UniverseIcon extends StatefulWidget {
 
 class _UniverseIconState extends State<UniverseIcon>
     with TickerProviderStateMixin {
-  AnimationController orbitRotationController;
-  Animation<double> orbitRotation;
-  AnimationController atomRotationController;
-  Animation<double> atomRotation;
+  late AnimationController orbitRotationController;
+  late Animation<double> orbitRotation;
+  late AnimationController atomRotationController;
+  late Animation<double> atomRotation;
   @override
   initState() {
     super.initState();
@@ -51,7 +52,7 @@ class _UniverseIconState extends State<UniverseIcon>
       end: -2 * pi,
     ).animate(atomRotationController);
 
-    widget.animateIcon.addListener(() {
+    widget.animateIcon?.addListener(() {
       if (widget.interactionMode != InteractionMode.universe) {
         orbitRotationController.forward().then(
             (_) => (!disposed) ? orbitRotationController.reverse() : null);
@@ -96,7 +97,7 @@ class _UniverseIconState extends State<UniverseIcon>
                   alignment: Alignment.center,
                   child: Transform.scale(
                       scale: 1.4,
-                      child: Icon(MaterialCommunityIcons.orbit,
+                      child: Icon(MdiIcons.orbit,
                           color: ((widget.interactionMode ==
                                       InteractionMode.universe)
                                   ? widget.sectionColor

@@ -22,11 +22,11 @@ class PartConfiguration extends StatefulWidget {
   final bool visible;
 
   const PartConfiguration(
-      {Key key,
-      this.part,
-      this.superSetState,
-      this.availableHeight,
-      this.visible})
+      {Key? key,
+      required this.part,
+      required this.superSetState,
+      required this.availableHeight,
+      required this.visible})
       : super(key: key);
 
   @override

@@ -2,6 +2,7 @@ import 'package:beatscratch_flutter_redux/messages/messages.dart';
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:beatscratch_flutter_redux/storage/score_picker_preview.dart';
 import 'package:beatscratch_flutter_redux/util/util.dart';
+import 'package:collection/collection.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,12 +19,12 @@ import 'url_conversions.dart';
 class UniverseManager {
   static final REDDIT_CLIENT_ID = 'rSA9vlCRCznMCw';
   static final REDDIT_REDIRECT_URI = 'https://beatscratch.io/app';
-  Function(Score) doOpenScore;
-  Directory scoresDirectory;
-  SharedPreferences _prefs;
-  ScoreManager scoreManager;
-  MessagesUI messagesUI;
-  BSMethod refreshUniverseData;
+  late Function(Score) doOpenScore;
+  late Directory scoresDirectory;
+  late SharedPreferences _prefs;
+  late ScoreManager scoreManager;
+  late MessagesUI messagesUI;
+  late BSMethod refreshUniverseData;
 
   UniverseManager() {
     _initialize();
@@ -37,10 +38,11 @@ class UniverseManager {
   set currentUniverseScore(String v) =>
       _prefs.setString("currentUniverseScore", v);
 
-  ScoreFuture get currentUniverseScoreFuture => currentUniverseScore == ''
+  ScoreFuture? get currentUniverseScoreFuture => currentUniverseScore == ''
       ? null
-      : cachedUniverseData.firstWhere((d) => d.identity == currentUniverseScore,
-          orElse: () => null);
+      : cachedUniverseData.firstWhereOrNull(
+          (d) => d.identity == currentUniverseScore,
+        );
 
   String get redditRefreshToken => _prefs.getString('redditRefreshToken') ?? "";
   set redditRefreshToken(String value) =>
@@ -102,8 +104,8 @@ class UniverseManager {
 
   bool tryAuthentication(String authUrl) {
     final uri = Uri.parse(authUrl);
-    String state = uri.queryParameters["state"];
-    String code = uri.queryParameters["code"];
+    String? state = uri.queryParameters["state"];
+    String? code = uri.queryParameters["code"];
     if (code != null) {
       if (state != _authState) {
         messagesUI.sendMessage(
@@ -162,10 +164,11 @@ class UniverseManager {
     redditAccessToken = "";
     redditUsername = "";
     redditRefreshToken = "";
-    cachedUniverseData =
-        cachedUniverseData.map((sf) => ScoreFuture.fromJson(sf.toJson()
+    cachedUniverseData = cachedUniverseData
+        .map((sf) => ScoreFuture.fromJson(sf.toJson()
           ..remove("likes")
-          ..putIfAbsent("likes", () => null)));
+          ..putIfAbsent("likes", () => null)))
+        .toList();
     refreshAccessToken();
   }
 
@@ -245,17 +248,25 @@ class UniverseManager {
   }
 
   Future<List<ScoreFuture>> loadUniverseData() async {
-    http.Response response = await http
-        .get(Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
-            headers: authenticatedRedditRequestHeaders)
-        .onError((error, stackTrace) {
-      print(error);
+    http.Response response = await http.get(
+        Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
+        headers: authenticatedRedditRequestHeaders);
+    //     .onError((error, stackTrace) {
+    //   print(error);
+    //   messagesUI.sendMessage(
+    //       message: "Error loading data from Reddit!",
+    //       isError: true,
+    //       andSetState: true);
+    //   // return null;
+    //   return Response(body, statusCode)
+    // });
+    if (response.statusCode != 200 && response.statusCode != 401) {
       messagesUI.sendMessage(
           message: "Error loading data from Reddit!",
           isError: true,
           andSetState: true);
-      return null;
-    });
+      return Future.value([]);
+    }
     if (response.statusCode == 401) {
       await refreshAccessToken();
       return await loadUniverseData();
@@ -309,7 +320,7 @@ class UniverseManager {
     }
   }
 
-  vote(String fullName, bool likes, {bool andReauth = true}) async {
+  vote(String fullName, bool? likes, {bool andReauth = true}) async {
     http
         .post(Uri.parse('https://oauth.reddit.com/api/vote'),
             body: {
@@ -367,7 +378,7 @@ class UniverseManager {
         icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
         message: "Generating short URL via https://paste.ee...",
         andSetState: true);
-    String scoreUrl = await score.convertToShortUrl();
+    String? scoreUrl = await score.convertToShortUrl();
     messagesUI.sendMessage(
         icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
         message: "Uploading to the Universe...",
@@ -399,9 +410,9 @@ class UniverseManager {
         tryToSelectScore(int retries) {
           Future.delayed(Duration(seconds: 2), () {
             refreshUniverseData();
-            ScoreFuture scoreFuture = cachedUniverseData.firstWhere(
-                (it) => it.scoreUrl == scoreUrl,
-                orElse: () => null);
+            final scoreFuture = cachedUniverseData
+                .firstWhereOrNull((it) => it.scoreUrl == scoreUrl);
+            if (scoreFuture == null) return;
             messagesUI.setAppState(() {
               currentUniverseScore = scoreFuture.identity;
             });

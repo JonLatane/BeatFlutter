@@ -12,11 +12,11 @@ import '../util/music_utils.dart';
 /// are sent to this singleton queue for processing.
 class RecordedSegmentQueue {
   /// Gets the recording melody from your UI. Should be set in [State.initState] and [State.dispose].
-  static Melody Function() getRecordingMelody;
+  static Melody Function()? getRecordingMelody;
 
   /// Should be set in [State.initState] and [State.dispose] for
-  static Function(Melody) updateRecordingMelody;
-  static Melody get recordingMelody => getRecordingMelody.call();
+  static Function(Melody)? updateRecordingMelody;
+  static Melody get recordingMelody => getRecordingMelody!.call();
   // static set recordingMelody(Melody melody) => updateRecordingMelody(melody);
   static final Queue<RecordedSegment> segments = ListQueue<RecordedSegment>();
   static final BSValueMethod<bool> enabled = BSValueMethod(false)
@@ -51,7 +51,7 @@ class RecordedSegmentQueue {
     RecordedSegment_RecordedBeat firstBeat =
         segment.beats.minBy((rb) => rb.timestamp.toInt());
     RecordedSegment_RecordedBeat secondBeat =
-        segment.beats.maxBy((rb) => rb.timestamp.toInt());
+        segment.beats.maxBy((rb) => rb.timestamp.toInt())!;
     segment.recordedData.forEach((data) {
       _processSegmentData(segment, data, melody, firstBeat, secondBeat);
     });

@@ -35,7 +35,7 @@ class ExportUI {
 
   bool visible = false;
   bool exporting = false;
-  final BSExport export = BSExport(score: defaultScore());
+  final BSExport export = BSExport(defaultScore());
   ExportManager exportManager = ExportManager();
   MessagesUI? messagesUI;
 
@@ -294,11 +294,11 @@ class ExportUI {
         exportTypeWidth + sectionWidth + partsWidth + speedWidth;
     bool usesFlex = scrollContainerWidth > scrollContentsWidth;
 
-    Widget exportOption(String label, String value, double size, Color color,
-        {List<String> values,
-        List<String> disabledValues,
-        Widget customValue,
-        Function(String) selectValue}) {
+    Widget exportOption(String label, String? value, double size, Color color,
+        {required List<String?> values,
+        List<String> disabledValues = const [],
+        Widget? customValue,
+        required Function(String?) selectValue}) {
       if (values.isEmpty) {
         values = [value];
       }
@@ -315,7 +315,7 @@ class ExportUI {
               color: v == value ? Colors.white : Colors.black12,
               padding: EdgeInsets.all(5),
               onPressed: clickable ? () => selectValue(v) : null,
-              child: Text(v,
+              child: Text(v ?? "",
                   textAlign: TextAlign.center,
                   style: valueStyle(
                     !clickable
@@ -325,7 +325,7 @@ class ExportUI {
                             : Colors.white,
                   )));
         }).toList(),
-        customValue,
+        customValue ?? SizedBox(),
         // if (usesFlex) Expanded(child:SizedBox())
       ]);
       // if (!usesFlex) {
@@ -378,7 +378,8 @@ class ExportUI {
             "${(BeatScratchPlugin.bpmMultiplier ?? 1).toStringAsFixed(3).replaceAll("1.000", "1")}x"
           ],
           selectValue: (v) => setState(() {
-                export.tempoMultiplier = double.parse(v.replaceAll("x", ""));
+                export.tempoMultiplier =
+                    double.parse((v ?? "").replaceAll("x", ""));
               })),
       exportOption(
           "Section",
