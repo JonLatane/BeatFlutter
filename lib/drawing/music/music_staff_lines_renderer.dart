@@ -8,7 +8,7 @@ import 'base_music_renderer.dart';
 enum Clef { treble, bass, tenor_treble, drum_treble, drum_bass }
 
 extension ClefNotes on Clef {
-  List<NoteSpecification> get notes => clefNotes[this];
+  List<NoteSpecification> get notes => clefNotes[this]!;
 
   static final Map<Clef, List<NoteSpecification>> clefNotes = {
     Clef.treble: [
@@ -75,7 +75,7 @@ extension ClefNotes on Clef {
 
   static Map<Clef, int> diatonicMaxCache = Map();
   int get diatonicMax => diatonicMaxCache.putIfAbsent(
-      this, () => notes.maxBy((it) => it.diatonicValue).diatonicValue);
+      this, () => notes.maxBy((it) => it.diatonicValue)!.diatonicValue);
 
   static Map<Clef, int> diatonicMinCache = Map();
   int get diatonicMin => diatonicMinCache.putIfAbsent(

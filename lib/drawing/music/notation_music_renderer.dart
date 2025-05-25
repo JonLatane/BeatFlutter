@@ -17,25 +17,25 @@ enum Notehead { quarter, half, whole, percussion }
 
 class _NoteheadInstruction {
   final Notehead notehead;
-  final NoteSign noteSign;
+  final NoteSign? noteSign;
   final double noteheadTop;
   final double noteheadLeft;
   final bool staggered;
-  final bool hadStaggeredNotes;
+  final bool hadStaggeredNotes = false;
   final List<double> ledgerLines;
   const _NoteheadInstruction(
-      {this.notehead,
-      this.noteSign,
-      this.noteheadLeft,
-      this.ledgerLines,
-      this.noteheadTop,
-      this.staggered});
+      {required this.notehead,
+      required this.noteSign,
+      required this.noteheadLeft,
+      required this.ledgerLines,
+      required this.noteheadTop,
+      required this.staggered});
 }
 
 class _StemInstruction {
   final Offset top;
   final Offset bottom;
-  const _StemInstruction({this.top, this.bottom});
+  const _StemInstruction({required this.top, required this.bottom});
 }
 
 class _RenderInstructions {
@@ -107,7 +107,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
 
   _renderNoteheadSignAndLedgers(
       Canvas canvas, _NoteheadInstruction instruction) {
-    NoteSign noteSign = instruction.noteSign;
+    NoteSign? noteSign = instruction.noteSign;
     bool staggered = instruction.staggered;
     double noteheadWidth = 18 * xScale;
     double noteheadHeight = noteheadWidth;
@@ -222,7 +222,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
         }
 
         // Draw signs
-        NoteSign previousSign;
+        NoteSign? previousSign;
         Iterable<NoteSign> previousSigns = getMostRecentSignsOf(
           note: note,
           relevantMelodies: otherMelodiesOnStaff.followedBy([melody]),
@@ -235,7 +235,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
           forceShowNaturals = true;
         }
 //        val previousSign = previousSignOf(melody, harmony, note, elementPosition)
-        NoteSign signToDraw;
+        NoteSign? signToDraw;
         switch (note.sign) {
           case NoteSign.sharp:
             if (previousSign != NoteSign.sharp) signToDraw = NoteSign.sharp;
@@ -303,8 +303,8 @@ class NotationMusicRenderer extends BaseMusicRenderer {
 
   static Map<ArgumentList, Iterable<NoteSign>> recentSignCache = Map();
   Iterable<NoteSign> getMostRecentSignsOf({
-    NoteSpecification note,
-    Iterable<Melody> relevantMelodies,
+    required NoteSpecification note,
+    required Iterable<Melody> relevantMelodies,
   }) {
     final args = ArgumentList([
       relevantMelodies.map((e) => e.id).join(),
@@ -323,8 +323,8 @@ class NotationMusicRenderer extends BaseMusicRenderer {
   }
 
   Iterable<NoteSign> _calculateMostRecentSignsOf({
-    NoteSpecification note,
-    Iterable<Melody> relevantMelodies,
+    required NoteSpecification note,
+    required Iterable<Melody> relevantMelodies,
   }) {
     // final currentBeatPosition = elementPosition.toDouble() / melody.subdivisionsPerBeat;
     // final lastDownbeat = range(0,1000000).firstWhere((it) {
@@ -348,7 +348,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
         }
         relevantMelodyIndex -= 1;
       }
-      NoteSign melodyResult;
+      NoteSign? melodyResult;
       while (melodyResult == null) {
         if (relevantMelodyIndex % relevantMelody.subdivisionsPerBeat ==
                 0 && // Beginning of measure, stop searching
@@ -390,8 +390,8 @@ class NotationMusicRenderer extends BaseMusicRenderer {
       return [];
     }
     double highestKey =
-        resultCandidates.keys.toList().maxBy((it) => (it * 1000).toInt());
-    return resultCandidates[highestKey];
+        resultCandidates.keys.toList().maxBy((it) => (it * 1000).toInt()) ?? -1;
+    return resultCandidates[highestKey] ?? [];
   }
 
   static Path _sharpPath = parseSvgPathData(
@@ -408,12 +408,12 @@ class NotationMusicRenderer extends BaseMusicRenderer {
         Offset.zero);
   static Path _naturalPath = parseSvgPathData(
       "M 26.578125,106.17187 L 22.640625,107.57812 L 22.640625,75.375001 L 0,85.218751 L 0,1.6875 L 3.796875,1.4210855e-014 L 3.796875,32.765625 L 26.578125,22.359375 L 26.578125,106.17187 z M 22.640625,61.171871 L 22.640625,38.671875 L 3.796875,46.96875 L 3.796875,69.468751 L 22.640625,61.171871 z ");
-  _renderSign(Canvas canvas, Rect signRect, NoteSign sign) {
+  _renderSign(Canvas canvas, Rect signRect, NoteSign? sign) {
 //    canvas.drawRect(signRect, Paint()..style=PaintingStyle.fill..color=Colors.black26);
 //    print("Rendering sign: $sign");
     canvas.save();
     canvas.translate(signRect.topLeft.dx, signRect.topLeft.dy);
-    Path signPath;
+    Path? signPath;
     switch (sign) {
       case NoteSign.sharp:
         signPath = _sharpPath;
@@ -445,7 +445,10 @@ class NotationMusicRenderer extends BaseMusicRenderer {
       default:
         break;
     }
-    canvas.drawPath(signPath, alphaDrawerPaint);
+
+    if (signPath != null) {
+      canvas.drawPath(signPath, alphaDrawerPaint);
+    }
     canvas.restore();
   }
 

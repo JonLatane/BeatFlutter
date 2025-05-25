@@ -27,7 +27,7 @@ class LayersPartView extends StatefulWidget {
       MelodyReferenceView.columnWidthMicroIncrement;
 
   final Score score;
-  final Axis scrollDirection;
+  final Axis? scrollDirection;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
   final VoidCallback hideMelodyView;
@@ -58,33 +58,33 @@ class LayersPartView extends StatefulWidget {
   }
 
   LayersPartView({
-    this.score,
+    required this.score,
     this.scrollDirection,
-    this.part,
-    this.sectionColor,
-    this.currentSection,
-    this.selectedMelody,
-    this.selectMelody,
-    this.colorboardPart,
-    this.keyboardPart,
-    this.setKeyboardPart,
-    this.setColorboardPart,
-    this.selectPart,
-    this.toggleMelodyReference,
-    this.setReferenceVolume,
-    this.setPartVolume,
-    this.editingMelody,
-    this.toggleEditingMelody,
-    this.hideMelodyView,
-    this.removePart,
-    this.selectedPart,
-    this.enableColorboard,
-    this.showBeatCounts,
-    this.height,
-    this.showMediumDetails,
-    this.autoScroll,
-    this.showHighDetails,
-    this.width,
+    required this.part,
+    required this.sectionColor,
+    required this.currentSection,
+    required this.selectedMelody,
+    required this.selectMelody,
+    required this.colorboardPart,
+    required this.keyboardPart,
+    required this.setKeyboardPart,
+    required this.setColorboardPart,
+    required this.selectPart,
+    required this.toggleMelodyReference,
+    required this.setReferenceVolume,
+    required this.setPartVolume,
+    required this.editingMelody,
+    required this.toggleEditingMelody,
+    required this.hideMelodyView,
+    required this.removePart,
+    required this.selectedPart,
+    required this.enableColorboard,
+    required this.showBeatCounts,
+    required this.height,
+    required this.showMediumDetails,
+    required this.autoScroll,
+    required this.showHighDetails,
+    required this.width,
   });
 
   @override
@@ -141,7 +141,7 @@ class _LayersPartViewState extends State<LayersPartView> {
   get toggleEditingMelody => widget.toggleEditingMelody;
 
   get hideMelodyView => widget.hideMelodyView;
-  ScrollController scrollController;
+  late ScrollController scrollController;
 
   int _indexOfKey(Key key) {
     return widget._items.indexWhere((Melody melody) => Key(melody.id) == key);
@@ -172,7 +172,7 @@ class _LayersPartViewState extends State<LayersPartView> {
   bool get scrollControllerIsNearTop =>
       scrollController.hasClients &&
       scrollController.offset < (widget.showMediumDetails ? 150 : 165);
-  DateTime _lastScrollTime;
+  DateTime? _lastScrollTime;
   setScrollToTopTimeout() {
     final v = DateTime.now();
     Future.delayed(Duration(seconds: 3), () {
@@ -265,8 +265,8 @@ class _LayersPartViewState extends State<LayersPartView> {
       ];
   int newMelodyBeatCountIndex = 0;
 
-  String lastSelectedMelodyId;
-  double prevWidth;
+  String? lastSelectedMelodyId;
+  double? prevWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -592,9 +592,9 @@ class _LayersPartViewState extends State<LayersPartView> {
                 r"^(.*?)(\d*)\s*$",
               );
               final match = expr.allMatches(melody.name).first;
-              String prefix = match.group(1);
+              String prefix = match.group(1)!;
               prefix = prefix.trim();
-              int number = int.tryParse(match.group(2)) ?? 1;
+              int number = int.tryParse(match.group(2)!) ?? 1;
               int newNumber = number + 1;
               melody.name = "$prefix $newNumber";
               while (part.melodies.any((it) {
