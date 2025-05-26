@@ -20,7 +20,7 @@ dependencies:
   flutter_reorderable_list: ^1.2.0
   url_launcher: ^6.0.3
   animated_list_plus: ^0.5.0
-  flutter_keyboard_visibility: ^5.4.1
+  flutter_keyboard_visibility: ^6.0.0
   # aeyrium_sensor: ^1.0.7
   sensors: ^2.0.3
   # dart_midi: 1.0.1
@@ -55,13 +55,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:beatscratch_flutter_redux/storage/universe_manager.dart';
+import 'package:collection/collection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -64,17 +66,15 @@ const Map<int, Color> swatch = {
 ScoreManager _scoreManager = ScoreManager();
 UniverseManager _universeManager = UniverseManager();
 AppSettings _appSettings = AppSettings();
-var baseHandler = Fluro.Handler(
-    handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+var baseHandler = Fluro.Handler(handlerFunc: (context, params) {
   return MyHomePage(title: 'BeatScratch', initialScore: defaultScore());
   // return UsersScreen(params["scoreData"][0]);
 });
-var scoreRouteHandler = Fluro.Handler(
-    handlerFunc: (BuildContext context, Map<String, dynamic> params) {
-  String scoreData = params["scoreData"][0];
+var scoreRouteHandler = Fluro.Handler(handlerFunc: (context, params) {
+  String scoreData = params["scoreData"]![0];
   Score score;
   try {
-    score = scoreFromUrlHashValue(scoreData);
+    score = scoreFromUrlHashValue(scoreData)!;
   } catch (any) {
     score = defaultScore();
   }
@@ -82,9 +82,8 @@ var scoreRouteHandler = Fluro.Handler(
   return MyHomePage(title: 'BeatScratch', initialScore: score);
   // return UsersScreen(params["scoreData"][0]);
 });
-var pastebinRouteHandler = Fluro.Handler(
-    handlerFunc: (BuildContext context, Map<String, dynamic> params) {
-  String pastebinCode = params["pasteBinData"][0];
+var pastebinRouteHandler = Fluro.Handler(handlerFunc: (context, params) {
+  String pastebinCode = params["pasteBinData"]![0];
   return MyHomePage(
     title: 'BeatScratch',
     initialScore: defaultScore(),
@@ -108,7 +107,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 //    debugPaintSizeEnabled = true;
-    MyHomePage home;
+    late MyHomePage home;
     try {
       home = MyHomePage(title: 'BeatScratch', initialScore: defaultScore());
     } catch (e) {
@@ -142,21 +141,25 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.initialScore, this.pastebinCode})
+  MyHomePage(
+      {Key? key,
+      required this.title,
+      required this.initialScore,
+      this.pastebinCode})
       : super(key: key);
 
   final String title;
   final Score initialScore;
-  final String pastebinCode;
+  final String? pastebinCode;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  Score score;
+  late Score score;
   InteractionMode interactionMode = InteractionMode.view;
-  SplitMode _splitMode;
+  late SplitMode _splitMode;
 
   SplitMode get splitMode => _splitMode;
 
@@ -196,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   set recordingMelody(value) {
     _recordingMelody = value;
     if (value) {
-      BeatScratchPlugin.setRecordingMelody(selectedMelody);
+      BeatScratchPlugin.setRecordingMelody(value);
       _showMusicView();
     } else {
       BeatScratchPlugin.setRecordingMelody(null);
@@ -206,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  Section _currentSection; //
+  Section _currentSection = Section();
 
   Section get currentSection => _currentSection;
 
@@ -216,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         min(section.beatCount - 1, BeatScratchPlugin.currentBeat.value);
     _currentSection = section;
     if (recordingMelody &&
-        section.referenceTo(selectedMelody).playbackType ==
+        section.referenceTo(selectedMelody!).playbackType ==
             MelodyReference_PlaybackType.disabled) {
       recordingMelody = false;
     }
@@ -227,7 +230,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  int _tapInBeat;
+  int? _tapInBeat;
   bool showViewOptions = false;
   bool _wasKeyboardShowingWhenMidiConfigurationOpened = false;
   bool _wasColorboardShowingWhenMidiConfigurationOpened = false;
@@ -251,7 +254,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _showKeyboardConfiguration = false;
   bool _enableColorboard = false;
 
-  get enableColorboard => _enableColorboard;
+  bool get enableColorboard => _enableColorboard;
 
   set enableColorboard(bool value) {
     _enableColorboard = value;
@@ -261,30 +264,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool showColorboard = false;
   bool _showColorboardConfiguration = false;
-  Part _keyboardPart;
+  Part? _keyboardPart;
 
-  Part get keyboardPart => _keyboardPart;
+  Part? get keyboardPart => _keyboardPart;
 
-  set keyboardPart(Part part) {
+  set keyboardPart(Part? part) {
     _keyboardPart = part;
-    BeatScratchPlugin.setKeyboardPart(part);
+    if (part != null) BeatScratchPlugin.setKeyboardPart(part);
   }
 
-  Part _colorboardPart;
+  Part? _colorboardPart;
 
-  Part get colorboardPart => _colorboardPart;
+  Part? get colorboardPart => _colorboardPart;
 
-  set colorboardPart(Part part) {
+  set colorboardPart(Part? part) {
     _colorboardPart = part;
 //    BeatScratchPlugin.setColorboardPart(part);
   }
 
-  ValueNotifier<Iterable<int>> colorboardNotesNotifier;
-  ValueNotifier<Iterable<int>> keyboardNotesNotifier;
-  ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
-  int keyboardChordBase;
-  Set<int> keyboardChordNotes = Set();
-  ValueNotifier<Chord> keyboardChordNotifier;
+  late ValueNotifier<Iterable<int>> colorboardNotesNotifier;
+  late ValueNotifier<Iterable<int>> keyboardNotesNotifier;
+  late ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
+  int? keyboardChordBase;
+  final Set<int> keyboardChordNotes = Set();
+  late ValueNotifier<Chord> keyboardChordNotifier;
 
   bool get melodyViewVisible => _musicViewSizeFactor > 0;
 
@@ -362,33 +365,33 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  Melody _selectedMelody;
+  Melody? _selectedMelody;
 
-  Melody get selectedMelody => _selectedMelody;
+  Melody? get selectedMelody => _selectedMelody;
 
-  set selectedMelody(Melody selectedMelody) {
+  set selectedMelody(Melody? selectedMelody) {
     _selectedMelody = selectedMelody;
-    Part part = score.parts
-        .firstWhere((p) => p.melodies.any((m) => m.id == selectedMelody.id));
+    Part? part = score.parts.firstWhereOrNull(
+        (p) => p.melodies.any((m) => m.id == selectedMelody?.id));
     if (part != null) {
       keyboardPart = part;
     }
   }
 
-  Part _selectedPart;
+  Part? _selectedPart;
 
-  Part get selectedPart => _selectedPart;
+  Part? get selectedPart => _selectedPart;
 
-  set selectedPart(Part selectedPart) {
+  set selectedPart(Part? selectedPart) {
     _selectedPart = selectedPart;
     keyboardPart = selectedPart;
   }
 
-  Part _viewingPart;
+  Part? _viewingPart;
 
-  Part get viewingPart => _viewingPart;
+  Part? get viewingPart => _viewingPart;
 
-  set viewingPart(Part viewingPart) {
+  set viewingPart(Part? viewingPart) {
     _viewingPart = viewingPart;
     keyboardPart = viewingPart;
   }
@@ -397,7 +400,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Color get sectionColor => currentSection.color.color;
 
-  _selectOrDeselectMelody(Melody melody, {bool hideMusicOnDeselect = true}) {
+  _selectOrDeselectMelody(Melody? melody, {bool hideMusicOnDeselect = true}) {
     setState(() {
       if (selectedMelody != melody) {
         selectedMelody = melody;
@@ -413,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         recordingMelody = false;
         if (hideMusicOnDeselect) {
           _hideMusicView();
-        } else {
+        } else if (melody != null) {
           final part = score.parts
               .firstWhere((p) => p.melodies.any((m) => m.id == melody.id));
           _selectOrDeselectPart(part, hideMusicOnDeselect: hideMusicOnDeselect);
@@ -437,8 +440,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           _hideMusicView();
         } else {
           if (musicViewMode == MusicViewMode.melody) {
-            _selectOrDeselectMelody(selectedMelody,
-                hideMusicOnDeselect: hideMusicOnDeselect);
+            if (selectedMelody != null) {
+              _selectOrDeselectMelody(selectedMelody!,
+                  hideMusicOnDeselect: hideMusicOnDeselect);
+            }
           } else {
             selectedPart = null;
             _prevSelectedPart = null;
@@ -457,7 +462,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     } else {
       setState(() {
         ref.playbackType = MelodyReference_PlaybackType.disabled;
-        if (ref != null && ref.melodyId == selectedMelody.id) {
+        if (ref.melodyId == selectedMelody?.id) {
           recordingMelody = false;
         }
       });
@@ -541,8 +546,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  Part _prevSelectedPart;
-  Melody _prevSelectedMelody;
+  Part? _prevSelectedPart;
+  Melody? _prevSelectedMelody;
 
   _editMode() {
     BeatScratchPlugin.setPlaybackMode(Playback_Mode.section);
@@ -651,7 +656,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool get _portraitPhoneUI => !_landscapePhoneUI && !_scalableUI;
 
-  BuildContext nativeDeviceOrientationReaderContext;
+  late BuildContext nativeDeviceOrientationReaderContext;
 
   NativeDeviceOrientation get _nativeOrientation {
     try {
@@ -793,15 +798,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double get horizontalSectionListHeight =>
       showSections && !verticalSectionList ? 36 : 0;
 
-  ExportUI exportUI;
-  MessagesUI messagesUI;
-  UniverseViewUI universeViewUI;
+  late KeyboardVisibilityController keyboardVisibilityController;
+  late StreamSubscription<bool> keyboardVisbilitySubscription;
+  late ExportUI exportUI;
+  late MessagesUI messagesUI;
+  late UniverseViewUI universeViewUI;
   double get universeViewUIHeight => universeViewUI.height(context,
       keyboardHeight: _keyboardHeight, settingsHeight: _midiSettingsHeight);
-  BSMethod scrollToCurrentBeat;
-  BSMethod refreshUniverseData;
-  BSMethod bluetoothScan;
-  BSMethod duplicateCurrentScore;
+  late BSMethod scrollToCurrentBeat;
+  late BSMethod refreshUniverseData;
+  late BSMethod bluetoothScan;
+  late BSMethod duplicateCurrentScore;
 
   @override
   void initState() {
@@ -840,16 +847,22 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     score = widget.initialScore;
     _currentSection = widget.initialScore.sections[0];
     _scoreManager.doOpenScore = doOpenScore;
-    _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode, onFail: () {
-      messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
-    });
-    if (MyPlatform.isMobile) {
-      KeyboardVisibility.onChange.listen((bool visible) {
+    if (widget.pastebinCode != null) {
+      _scoreManager.loadPastebinScoreIntoUI(widget.pastebinCode!, onFail: () {
+        messagesUI.sendMessage(message: "Failed to load URL!", isError: true);
+      });
+    }
+    keyboardVisibilityController = KeyboardVisibilityController();
+    keyboardVisbilitySubscription =
+        keyboardVisibilityController.onChange.listen((bool visible) {
+      // print('Keyboard visibility update. Is visible: $visible');
+      if (MyPlatform.isMobile) {
         setState(() {
           _softKeyboardVisible = visible;
         });
-      });
-    }
+      }
+    });
+
 //    BeatScratchPlugin.createScore(_score);
     BeatScratchPlugin.onSectionSelected = (sectionId) {
       setState(() {
@@ -899,10 +912,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             : null;
     RecordedSegmentQueue.updateRecordingMelody =
         BeatScratchPlugin.onRecordingMelodyUpdated;
-    keyboardPart = score.parts.firstWhere((part) => true, orElse: () => null);
-    colorboardPart = score.parts.firstWhere(
-        (part) => part.instrument.type == InstrumentType.harmonic,
-        orElse: () => null);
+    keyboardPart = score.parts.firstWhereOrNull(
+      (part) => true,
+    );
+    colorboardPart = score.parts.firstWhereOrNull(
+      (part) => part.instrument.type == InstrumentType.harmonic,
+    );
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
@@ -1037,6 +1052,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           )) ??
           false;
+    } else {
+      return true;
     }
   }
 
@@ -2772,9 +2789,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           final match = RegExp(
             r"^(.*?)(\d*)\s*$",
           ).allMatches(section.name).first;
-          String prefix = match.group(1);
+          String prefix = match.group(1)!;
           prefix = prefix.trim();
-          int number = int.tryParse(match.group(2)) ?? 1;
+          int number = int.tryParse(match.group(2)!) ?? 1;
           while (score.sections.any((s) => s.name == section.name)) {
             section.name = "$prefix ${++number}";
           }
@@ -3015,6 +3032,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           part: keyboardPart,
           height: _keyboardHeight,
           showConfiguration: _showKeyboardConfiguration,
+          hideConfiguration: () {
+            setState(() {
+              _showKeyboardConfiguration = false;
+            });
+          },
           sectionColor: sectionColor,
           pressedNotesNotifier: keyboardNotesNotifier,
           bluetoothControllerPressedNotes: bluetoothControllerPressedNotes,
@@ -3042,6 +3064,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           part: colorboardPart,
           height: _colorboardHeight,
           showConfiguration: _showColorboardConfiguration,
+          hideConfiguration: () {
+            setState(() {
+              // showColorboard = false;
+              _showColorboardConfiguration = false;
+            });
+          },
           sectionColor: sectionColor,
           pressedNotesNotifier: colorboardNotesNotifier,
           distanceFromBottom:

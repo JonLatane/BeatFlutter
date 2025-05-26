@@ -26,9 +26,9 @@ class ScoreManager {
   static const String FROM_WEB = " (from Link)";
   static const String UNIVERSE_SCORE = "Universe Score";
   static const String FROM_UNIVERSE = " (from Universe)";
-  Function(Score) doOpenScore;
-  Directory scoresDirectory;
-  SharedPreferences _prefs;
+  late Function(Score) doOpenScore;
+  late Directory scoresDirectory;
+  late SharedPreferences _prefs;
 
   String get currentScoreName =>
       _prefs.getString('currentScoreName') ?? UNIVERSE_SCORE;
@@ -41,13 +41,13 @@ class ScoreManager {
 
   List<FileSystemEntity> get scoreFiles {
     List<FileSystemEntity> result = scoresDirectory
-        ?.listSync()
+        .listSync()
         .where((f) => f.path.endsWith(".beatscratch"))
         .toList();
     result
         .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
     return result;
-    return [];
+    // return [];
   }
 
   ScoreManager() {
@@ -73,7 +73,7 @@ class ScoreManager {
     }
   }
 
-  createScore(String name, {Score score}) {
+  createScore(String name, {Score? score}) {
     score = score ?? defaultScore();
     currentScoreName = name;
     saveCurrentScore(score);
@@ -112,9 +112,9 @@ class ScoreManager {
   loadFromScoreUrl(String scoreUrl,
       {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
-      Score currentScoreToSave,
-      VoidCallback onFail,
-      Function(String) onSuccess}) {
+      required Score currentScoreToSave,
+      VoidCallback? onFail,
+      Function(String)? onSuccess}) {
     print("ScoreURL=$scoreUrl");
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
@@ -123,7 +123,7 @@ class ScoreManager {
       if (scoreUrl.length < 10) {
         throw Exception("nope");
       }
-      Score score = scoreFromUrlHashValue(scoreUrl);
+      Score score = scoreFromUrlHashValue(scoreUrl)!;
       if (score.sections.isEmpty) {
         throw Exception("nope");
       }
@@ -138,7 +138,7 @@ class ScoreManager {
       openScoreWithFilename(
           score, newScoreDefaultFilename); // side-effect: updates this.score
       _lastSuggestedScoreName = suggestedScoreName;
-      onSuccess.call(suggestedScoreName);
+      onSuccess?.call(suggestedScoreName);
     } catch (any) {
       loadPastebinScoreIntoUI(scoreUrl,
           newScoreDefaultFilename: newScoreDefaultFilename,
@@ -149,8 +149,8 @@ class ScoreManager {
     }
   }
 
-  static String _lastSuggestedScoreName;
-  static String get lastSuggestedScoreName {
+  static String? _lastSuggestedScoreName;
+  static String? get lastSuggestedScoreName {
     final value = _lastSuggestedScoreName;
     _lastSuggestedScoreName = null;
     return value;
@@ -161,7 +161,7 @@ class ScoreManager {
   }
 
   Future<Score> loadPastebinScore(String codeOrUrl,
-      {String titleOverride}) async {
+      {String? titleOverride}) async {
     final code = codeOrUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
 
     http.Response response = await http.get(
@@ -175,17 +175,17 @@ class ScoreManager {
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
 
-    Score score = scoreFromUrlHashValue(longUrl);
-    score.name = titleOverride;
+    Score score = scoreFromUrlHashValue(longUrl)!;
+    if (titleOverride != null) score.name = titleOverride;
     return score;
   }
 
   loadPastebinScoreIntoUI(String pastebinCode,
       {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
-      Score currentScoreToSave,
-      VoidCallback onFail,
-      Function(String) onSuccess}) async {
+      Score? currentScoreToSave,
+      VoidCallback? onFail,
+      Function(String)? onSuccess}) async {
     try {
       Score score = await loadPastebinScore(pastebinCode);
       String scoreName = score.name ?? "";
@@ -196,15 +196,17 @@ class ScoreManager {
         suggestedScoreName += newScoreNameSuffix;
       }
       if (BeatScratchPlugin.supportsStorage) {
-        saveCurrentScore(currentScoreToSave);
+        if (currentScoreToSave != null) {
+          saveCurrentScore(currentScoreToSave);
+        }
         openScoreWithFilename(score, newScoreDefaultFilename);
       } else {
         doOpenScore(score);
       }
-      onSuccess.call(suggestedScoreName);
+      onSuccess?.call(suggestedScoreName);
       _lastSuggestedScoreName = suggestedScoreName;
     } catch (any) {
-      onFail.call();
+      onFail?.call();
     }
   }
 

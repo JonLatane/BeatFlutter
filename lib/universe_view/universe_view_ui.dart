@@ -50,7 +50,7 @@ class UniverseViewUI {
       required Color sectionColor,
       required double keyboardHeight,
       required double settingsHeight,
-      required VoidCallback showDownloads,
+      VoidCallback? showDownloads,
       required double scorePickerWidth}) {
     double abbreviateAtWidth = 340;
     return AnimatedOpacity(

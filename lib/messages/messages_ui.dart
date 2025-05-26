@@ -23,7 +23,7 @@ class MessagesUI {
     color,
     timeout = const Duration(milliseconds: 5500),
     bool isError = false,
-    String messageId,
+    String? messageId,
     bool andSetState = false,
   }) {
     if (icon == null) {

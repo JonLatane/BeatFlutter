@@ -22,14 +22,14 @@ class MelodyMenuBrowser extends StatefulWidget {
   final Section currentSection;
   final Function(Melody) onMelodySelected;
   final Color textColor;
-  final Widget child;
+  final Widget? child;
 
   const MelodyMenuBrowser(
-      {Key key,
+      {Key? key,
       this.child,
-      this.part,
-      this.currentSection,
-      this.onMelodySelected,
+      required this.part,
+      required this.currentSection,
+      required this.onMelodySelected,
       this.textColor = Colors.white})
       : super(key: key);
 
@@ -77,10 +77,10 @@ final Map<String, List<Melody>> _sampleDrumMelodies = {
 final _manager = ScoreManager();
 
 class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
-  Score selectedScore;
-  Part selectedPart;
-  BSMethod updatedMenu;
-  String selectedSamples;
+  Score? selectedScore;
+  Part? selectedPart;
+  late BSMethod updatedMenu;
+  String? selectedSamples;
   Iterable<String> get sampleLists =>
       (widget.part.isDrum == true ? _sampleDrumMelodies : _sampleMelodies).keys;
   List<Melody> get samples =>
@@ -121,7 +121,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
 
   @override
   Widget build(BuildContext context) {
-    return new MyPopupMenuButton(
+    return new MyPopupMenuButton<String>(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         color: musicBackgroundColor.withOpacity(0.95),
         padding: EdgeInsets.zero,
@@ -145,11 +145,9 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             ]),
         updatedMenu: updatedMenu,
         itemBuilder: (ctx) {
+          late List<myPopup.PopupMenuEntry<String>> result;
           if (selectedScore == null && selectedSamples == null) {
-            List<myPopup.PopupMenuEntry<String>> result = [
-              mainHeader(),
-              samplesSectionHeader()
-            ];
+            result = [mainHeader(), samplesSectionHeader()];
             result.addAll(
                 sampleLists.map((listName) => sampleListMenuItem(listName)));
             // result.addAll(samples.map((m) => melodyMenuItem(m, isSample: true)));
@@ -159,10 +157,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
             }
             return result;
           } else
-            List<myPopup.PopupMenuEntry<String>> result = [
-              backMenuItem(),
-              sampleListHeader()
-            ];
+            result = [backMenuItem(), sampleListHeader()];
           result.addAll(menuEntriesByDuplicateStatus(samples, isSample: true));
           // result.addAll(samples.map((m) => melodyMenuItem(m, isSample: true)));
           return result;
@@ -170,7 +165,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
         onSelected: (value) {
           switch (value) {
             case "back":
-              if (selectedPart.isDrum) {
+              if (selectedPart?.isDrum ?? false) {
                 selectedScore = null;
               }
               selectedPart = null;
@@ -184,7 +179,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                   selectedScore =
                       _scoreDataCache.firstWhere((s) => s.id == value);
                   if (widget.part.isDrum == true) {
-                    selectedPart = selectedScore.parts
+                    selectedPart = selectedScore?.parts
                         .firstWhere((p) => p.isDrum, orElse: null);
                   }
                 }
@@ -211,7 +206,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
                 child: Text(
               selectedSamples != null
                   ? "Import"
-                  : !selectedPart.isDrum
+                  : !(selectedPart?.isDrum ?? false)
                       ? "Parts"
                       : "Import",
               style: TextStyle(color: musicForegroundColor),
@@ -467,7 +462,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: 10, color: musicForegroundColor)),
-      Text(selectedSamples,
+      Text(selectedSamples!,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -482,7 +477,7 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: 10, color: musicForegroundColor)),
-      Text(selectedScore.name,
+      Text(selectedScore?.name ?? "",
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -492,12 +487,12 @@ class _MelodyMenuBrowserState extends State<MelodyMenuBrowser> {
 
   MyPopupMenuItem<String> melodyListHeader(Part part) {
     return _splitListHeader(
-        Text(selectedScore.name,
+        Text(selectedScore?.name ?? "",
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 10, color: musicForegroundColor)),
-        Text(selectedPart.midiName,
+        Text(selectedPart?.midiName ?? "",
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
