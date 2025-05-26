@@ -1,15 +1,17 @@
+import 'package:beatscratch_flutter_redux/midi/byte_reader.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_file.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_header.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_parser.dart';
+
 import '../export/export.dart';
 import '../generated/protos/protos.dart';
-import 'package:dart_midi/dart_midi.dart';
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_reader.dart';
 import '../util/music_theory.dart';
 import '../util/midi_theory.dart';
 
 extension ScoreMidiExport on Score {
-  MidiFile exportMidi(BSExport export) {
+  MidiFile? exportMidi(BSExport export) {
     if (parts.isEmpty || sections.isEmpty) return null;
     final List<MidiEvent> track = parts
         .where((p) => export.includesPart(p))
@@ -35,7 +37,8 @@ extension ScoreMidiExport on Score {
     }
 
     print("Track assembled");
-    final result = MidiFile([track], MidiHeader(ticksPerBeat: 24, format: 0));
+    final result = MidiFile(
+        [track], MidiHeader(ticksPerBeat: 24, format: 0, numTracks: 1));
     return result;
   }
 }
@@ -53,6 +56,7 @@ extension SectionMidiExport on Section {
               r.isEnabled && part.melodies.any((m) => m.id == r.melodyId))
           .forEach((ref) {
         final melody = score.melodyReferencedBy(ref);
+        if (melody == null) return;
         if (melody.type == MelodyType.midi) {
           int startBeat = 0;
           while (startBeat < beatCount) {
@@ -61,8 +65,8 @@ extension SectionMidiExport on Section {
               final absoluteBeat =
                   (subdivision.toDouble() / melody.subdivisionsPerBeat).floor();
               final convertedTickOfBeat =
-                  Base24Conversion.map[melody.subdivisionsPerBeat]
-                      [subdivision % melody.subdivisionsPerBeat];
+                  Base24Conversion.map[melody.subdivisionsPerBeat]![
+                      subdivision % melody.subdivisionsPerBeat];
               final absoluteTick = 24 * startBeat +
                   startTick +
                   24 * absoluteBeat +

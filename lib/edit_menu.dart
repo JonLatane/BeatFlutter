@@ -1,36 +1,30 @@
 import 'package:beatscratch_flutter_redux/util/music_theory.dart';
-import 'package:beatscratch_flutter_redux/util/ui_utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-import 'beatscratch_plugin.dart';
 import 'colors.dart';
-import 'export/export_ui.dart';
 import 'generated/protos/protos.dart';
 import 'music_preview/melody_preview.dart';
 import 'music_preview/part_preview.dart';
 import 'music_preview/section_preview.dart';
 import 'ui_models.dart';
 import 'widget/beats_badge.dart';
-import 'widget/my_platform.dart';
 
 Future<Object> showEditMenu(
-    {@required BuildContext context,
-    @required RelativeRect position,
-    @required Score score,
-    @required Part part,
-    @required Melody selectedMelody,
-    @required MusicViewMode musicViewMode,
-    @required Section section,
-    @required Function(Object) editObject}) async {
+    {required BuildContext context,
+    required RelativeRect position,
+    required Score score,
+    required Part part,
+    Melody? selectedMelody,
+    required MusicViewMode musicViewMode,
+    required Section section,
+    required Function(Object) editObject}) async {
   onSelected(Object object) {
     Navigator.pop(context);
     editObject(object);
   }
 
-  final melodies = part.melodies.where((m) => section.referenceTo(m).isEnabled);
+  final melodies =
+      part.melodies.where((m) => section.referenceTo(m)?.isEnabled == true);
   return showMenu(
       context: context,
       position: position,
@@ -38,6 +32,7 @@ Future<Object> showEditMenu(
       color: (musicBackgroundColor.luminance < 0.5
               ? subBackgroundColor
               : musicBackgroundColor)
+          // .withAlpha(240)
           .withOpacity(0.95),
       items: [
         PopupMenuItem(

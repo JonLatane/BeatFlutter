@@ -4,7 +4,7 @@ import AVFoundation
 import Foundation
 import AudioKit
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
   var flutterViewController: FlutterViewController?
   

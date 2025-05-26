@@ -1,12 +1,9 @@
 import '../util/bs_methods.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/protos/music.pb.dart';
 import 'score_preview.dart';
 import '../util/dummydata.dart';
-import '../util/music_theory.dart';
-import '../colors.dart';
 
 class PartPreview extends StatefulWidget {
   final Section section;
@@ -17,10 +14,10 @@ class PartPreview extends StatefulWidget {
   final double scale;
 
   const PartPreview({
-    Key key,
-    this.section,
-    this.score,
-    this.part,
+    Key? key,
+    required this.section,
+    required this.score,
+    required this.part,
     this.width = 300,
     this.height = 100,
     this.scale = 0.15,
@@ -31,9 +28,9 @@ class PartPreview extends StatefulWidget {
 }
 
 class _PartPreviewState extends State<PartPreview> {
-  String lastPreviewKey;
-  Score preview;
-  BSMethod notifyUpdate;
+  String? lastPreviewKey;
+  late Score preview;
+  late BSMethod notifyUpdate;
 
   String get previewKey => "${widget.section.id}-${widget.section.hashCode}";
 

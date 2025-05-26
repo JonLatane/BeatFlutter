@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:base_x/base_x.dart';
@@ -20,7 +21,7 @@ extension URLConversions on Score {
     return urlString;
   }
 
-  Future<String> convertToShortUrl() async { 
+  Future<String?> convertToShortUrl() async {
     try {
       http.Response response = await http.post(
         Uri.parse('https://api.paste.ee/v1/pastes'),
@@ -47,14 +48,14 @@ extension URLConversions on Score {
     final data = writeToBuffer();
     final bz2Data = BZip2Encoder().encode(data);
     final dataToConvert = (data.length <= bz2Data.length) ? data : bz2Data;
-    final dataString = _base58.encode(dataToConvert);
+    final dataString = _base58.encode(Uint8List.fromList(dataToConvert));
     return dataString;
   }
 }
 
-Score scoreFromUrlHashValue(String urlString) {
+Score? scoreFromUrlHashValue(String urlString) {
   final dataBytes = _base58.decode(urlString);
-  Score score;
+  Score? score;
   try {
     score = Score.fromBuffer(dataBytes);
   } catch (any) {

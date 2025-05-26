@@ -227,7 +227,7 @@ Melody odeToJoyB() => baseMelody()
 
 final defaultSubdivisionsPerBeat = 4;
 
-Melody defaultMelody({int sectionBeats}) => baseMelody()
+Melody defaultMelody({int? sectionBeats}) => baseMelody()
   ..subdivisionsPerBeat = defaultSubdivisionsPerBeat
   ..length = (sectionBeats ?? defaultSectionBeats) * defaultSubdivisionsPerBeat
   ..interpretationType = MelodyInterpretationType.fixed

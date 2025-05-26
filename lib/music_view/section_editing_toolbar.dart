@@ -15,7 +15,10 @@ class SectionEditingToolbar extends StatefulWidget {
   final Section currentSection;
 
   const SectionEditingToolbar(
-      {Key key, this.sectionColor, this.score, this.currentSection})
+      {Key? key,
+      required this.sectionColor,
+      required this.score,
+      required this.currentSection})
       : super(key: key);
 
   @override
@@ -24,9 +27,9 @@ class SectionEditingToolbar extends StatefulWidget {
 
 class _SectionEditingToolbarState extends State<SectionEditingToolbar>
     with TickerProviderStateMixin {
-  AnimationController animationController;
-  Color recordingAnimationColor;
-  Animation<Color> recordingAnimation;
+  late AnimationController animationController;
+  late Color recordingAnimationColor;
+  late Animation<Color> recordingAnimation;
 
   static final List<NoteName> keys = [
     NoteName()
@@ -116,7 +119,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
 //    } else {
 //      recordingColor = Colors.grey;
 //    }
-    NoteName key = widget.currentSection.harmony.data[0].rootNote;
+    NoteName key = widget.currentSection.harmony.data[0]!.rootNote;
     int keyIndex = keys.indexOf(key);
     return Row(children: [
       SizedBox(width: 1),
@@ -290,7 +293,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
           if (newKeyIndex < 0) {
             newKeyIndex += keys.length;
           }
-          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
+          widget.currentSection.harmony.data[0]!.rootNote = keys[newKeyIndex];
           MelodyTheory.tonesInMeasureCache.clear();
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateSections(widget.score);
@@ -303,7 +306,7 @@ class _SectionEditingToolbarState extends State<SectionEditingToolbar>
           if (newKeyIndex >= keys.length) {
             newKeyIndex -= keys.length;
           }
-          widget.currentSection.harmony.data[0].rootNote = keys[newKeyIndex];
+          widget.currentSection.harmony.data[0]!.rootNote = keys[newKeyIndex];
           MelodyTheory.tonesInMeasureCache.clear();
           BeatScratchPlugin.onSynthesizerStatusChange();
           BeatScratchPlugin.updateSections(widget.score);

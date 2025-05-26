@@ -11,7 +11,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
   double uiScale = 1;
   @override
   double get halfStepsOnScreen => (highestPitch - lowestPitch + 1).toDouble();
-  double colorblockAlpha;
+  double colorblockAlpha = 0.5;
   static double stepLineScaleThreshold = 0.7;
 
   draw(Canvas canvas) {
@@ -48,7 +48,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
     }
   }
 
-  _drawColorblockMelody({Canvas canvas, double alpha}) {
+  _drawColorblockMelody({required Canvas canvas, required double alpha}) {
     iterateSubdivisions(() {
       _drawColorblockNotes(
           canvas: canvas, elementPosition: elementPosition, alpha: alpha);
@@ -61,7 +61,10 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
 //    }
   }
 
-  _drawColorblockNotes({Canvas canvas, int elementPosition, double alpha}) {
+  _drawColorblockNotes(
+      {required Canvas canvas,
+      required int elementPosition,
+      required double alpha}) {
     alphaDrawerPaint.color =
         musicForegroundColor.withAlpha((alpha * 255).toInt());
 

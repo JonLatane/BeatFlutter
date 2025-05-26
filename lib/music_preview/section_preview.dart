@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../generated/protos/music.pb.dart';
 import 'score_preview.dart';
 import '../util/dummydata.dart';
-import '../util/music_theory.dart';
 import '../colors.dart';
 
 class SectionPreview extends StatefulWidget {

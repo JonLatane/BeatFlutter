@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -25,13 +23,13 @@ class MusicPreviewRenderer {
   Score get score => Score.fromBuffer(scoreData);
 
   MusicPreviewRenderer(
-      {@required this.scoreData,
-      @required this.scale,
-      @required this.width,
-      @required this.height,
-      @required this.renderSections,
-      @required this.renderPartNames,
-      @required this.musicViewMode,
+      {required this.scoreData,
+      required this.scale,
+      required this.width,
+      required this.height,
+      required this.renderSections,
+      required this.renderPartNames,
+      required this.musicViewMode,
       this.renderColor});
 
   MusicSystemPainter get painter {
@@ -96,9 +94,7 @@ class MusicPreviewRenderer {
     canvas.scale(_overSampleScale);
     // await () async {
     final originalForegroundColor = musicForegroundColor;
-    if (renderColor != null) {
-      musicForegroundColor = renderColor;
-    }
+    musicForegroundColor = renderColor;
     painter.paint(canvas, size);
     musicForegroundColor = originalForegroundColor;
     // };
@@ -111,9 +107,6 @@ class MusicPreviewRenderer {
 
   Future<Uint8List> get renderedScoreImageData async {
     final image = await renderedScoreImage;
-    if (image == null) {
-      return null;
-    }
     return Uint8List.sublistView(
         await image.toByteData(format: ui.ImageByteFormat.png));
   }

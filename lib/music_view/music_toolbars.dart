@@ -49,12 +49,11 @@ class MelodyToolbarState extends State<MelodyToolbar> {
       widget.currentSection.referenceTo(widget.melody);
   bool get melodySelected => widget.melody != null;
   bool get melodyEnabled =>
-      melodySelected && (melodyReference?.isEnabled ?? false);
+      melodySelected && (melodyReference.isEnabled ?? false);
   Melody confirmingDeleteFor;
-  bool get isConfirmingDelete =>
-      confirmingDeleteFor != null && confirmingDeleteFor == widget.melody;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.melody;
   bool get showVolume =>
-      (melodyReference?.isEnabled == true) &&
+      (melodyReference.isEnabled == true) &&
       (/*context.isTablet ||*/ _showVolume);
 
   @override
@@ -76,15 +75,13 @@ class MelodyToolbarState extends State<MelodyToolbar> {
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
-    _showVolume &= melodyReference != null &&
-        (melodyReference?.isEnabled == true) &&
-        !isConfirmingDelete;
+    _showVolume &= (melodyReference.isEnabled == true) && !isConfirmingDelete;
 
-    if (confirmingDeleteFor != null && confirmingDeleteFor != widget.melody) {
+    if (confirmingDeleteFor != widget.melody) {
       confirmingDeleteFor = null;
     }
     nameController.value =
-        nameController.value.copyWith(text: widget.melody?.name ?? "");
+        nameController.value.copyWith(text: widget.melody.name ?? "");
 
     return Container(
 //        color: Colors.white,
@@ -160,10 +157,10 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           height: 36,
           padding: EdgeInsets.zero,
           child: MySlider(
-              value: melodyReference?.volume ?? 0,
+              value: melodyReference.volume ?? 0,
               activeColor:
                   (melodyReference != null) ? widget.sectionColor : Colors.grey,
-              onChanged: (melodyReference?.isEnabled != true)
+              onChanged: (melodyReference.isEnabled != true)
                   ? null
                   : (value) {
                       widget.setReferenceVolume(melodyReference, value);
@@ -181,7 +178,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
                       widget.toggleMelodyReference(melodyReference);
                     }
                   : null,
-              onLongPress: (melodyReference?.isEnabled == true)
+              onLongPress: (melodyReference.isEnabled == true)
                   ? () {
                       setState(() {
                         _showVolume = !_showVolume;
@@ -245,7 +242,7 @@ class MelodyToolbarState extends State<MelodyToolbar> {
           child: MyRaisedButton(
               onPressed: () {
                 setState(() {
-                  if (widget.melody.name?.isEmpty != false &&
+                  if (widget.melody.name.isEmpty != false &&
                       (widget.melody.midiData.data.isEmpty ||
                           widget.melody.midiData.data.values
                               .where((mc) => mc.data.length != 0)
@@ -303,19 +300,18 @@ class PartToolbar extends StatefulWidget {
 class PartToolbarState extends State<PartToolbar> {
   Part confirmingDeleteFor;
 
-  bool get isConfirmingDelete =>
-      confirmingDeleteFor != null && confirmingDeleteFor == widget.part;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.part;
 
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
-    if (confirmingDeleteFor != null && confirmingDeleteFor != widget.part) {
+    if (confirmingDeleteFor != widget.part) {
       confirmingDeleteFor = null;
     }
     return Container(
-      key: Key("part-toolbar-${widget.part?.id}"),
+      key: Key("part-toolbar-${widget.part.id}"),
       child: Row(children: [
         AnimatedContainer(
             duration: animationDuration,
@@ -328,7 +324,7 @@ class PartToolbarState extends State<PartToolbar> {
                 color: widget.configuringPart ? Colors.white : null,
                 child: AnimatedOpacity(
                     duration: animationDuration,
-                    opacity: widget.part == null || isConfirmingDelete ? 0 : 1,
+                    opacity: isConfirmingDelete ? 0 : 1,
                     child: Icon(Icons.settings,
                         color: widget.configuringPart
                             ? Colors.black
@@ -377,8 +373,7 @@ class PartToolbarState extends State<PartToolbar> {
             height: 36,
             padding: EdgeInsets.only(right: 5),
             child: MyRaisedButton(
-                onPressed: (widget.part != null &&
-                        widget.part.instrument.type != InstrumentType.drum)
+                onPressed: (widget.part.instrument.type != InstrumentType.drum)
                     ? () {
                         widget.setColorboardPart(widget.part);
                       }
@@ -386,19 +381,15 @@ class PartToolbarState extends State<PartToolbar> {
                 padding: EdgeInsets.zero,
                 child: AnimatedOpacity(
                     duration: animationDuration,
-                    opacity: widget.part == null ||
-                            isConfirmingDelete ||
-                            !widget.enableColorboard
-                        ? 0
-                        : 1,
+                    opacity:
+                        isConfirmingDelete || !widget.enableColorboard ? 0 : 1,
                     child: Stack(children: [
                       Align(
                           alignment: Alignment.bottomRight,
                           child: AnimatedOpacity(
                               duration: animationDuration,
-                              opacity: (widget.part != null &&
-                                      widget.part.instrument.type !=
-                                          InstrumentType.drum)
+                              opacity: (widget.part.instrument.type !=
+                                      InstrumentType.drum)
                                   ? 1
                                   : 0.25,
                               child: Padding(
@@ -431,7 +422,7 @@ class PartToolbarState extends State<PartToolbar> {
               padding: EdgeInsets.all(0),
               child: AnimatedOpacity(
                   duration: animationDuration,
-                  opacity: (widget.part != null && !isConfirmingDelete) ? 0 : 0,
+                  opacity: (!isConfirmingDelete) ? 0 : 0,
                   child: Stack(children: [
                     Align(
                         alignment: Alignment.topLeft,
@@ -543,9 +534,7 @@ class SectionToolbar extends StatefulWidget {
 class SectionToolbarState extends State<SectionToolbar> {
   Section confirmingDeleteFor;
 
-  bool get isConfirmingDelete =>
-      confirmingDeleteFor != null &&
-      confirmingDeleteFor == widget.currentSection;
+  bool get isConfirmingDelete => confirmingDeleteFor == widget.currentSection;
 
   TextEditingController nameController = TextEditingController();
   @override
@@ -560,8 +549,7 @@ class SectionToolbarState extends State<SectionToolbar> {
     if (context.isTabletOrLandscapey) {
       width = width / 2;
     }
-    if (confirmingDeleteFor != null &&
-        confirmingDeleteFor != widget.currentSection) {
+    if (confirmingDeleteFor != widget.currentSection) {
       confirmingDeleteFor = null;
     }
     nameController.value =
@@ -619,7 +607,7 @@ class SectionToolbarState extends State<SectionToolbar> {
           )),
       AnimatedContainer(
           duration: animationDuration,
-          width: isConfirmingDelete || widget.addPart == null ? 0 : 69,
+          width: isConfirmingDelete ? 0 : 69,
           height: 36,
           padding: EdgeInsets.only(right: 5),
           child: MyRaisedButton(
@@ -628,8 +616,7 @@ class SectionToolbarState extends State<SectionToolbar> {
               child: AnimatedOpacity(
                   duration: animationDuration,
                   opacity: widget.musicViewMode != MusicViewMode.section ||
-                          isConfirmingDelete ||
-                          widget.addPart == null
+                          isConfirmingDelete
                       ? 0
                       : 1,
                   child: Row(children: [
