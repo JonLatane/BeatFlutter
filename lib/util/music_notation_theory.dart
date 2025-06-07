@@ -170,7 +170,7 @@ abstract class MusicStaff {
   MusicStaff();
 
   String get id;
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration);
+  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration);
 
   @override
   bool operator ==(other) => other is MusicStaff && id == other.id;
@@ -184,7 +184,8 @@ class PartStaff extends MusicStaff {
   @override
   String get id => "staff-part-${part.id}";
   @override
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration) =>
+  Iterable<Part> getParts(
+          Score score, Iterable<MusicStaff> staffConfiguration) =>
       [part];
 }
 

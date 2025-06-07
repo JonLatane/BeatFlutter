@@ -61,7 +61,7 @@ class MusicView extends StatefulWidget {
   final Function(Part) selectOrDeselectPart;
   final Function(Melody) selectOrDeselectMelody;
   final Function(Part, Melody, bool) createMelody;
-  final Function addPart;
+  final Function? addPart;
   final Function cloneCurrentSection;
   final Color backgroundColor;
   final bool isCurrentScore;
@@ -77,7 +77,7 @@ class MusicView extends StatefulWidget {
       required this.selectOrDeselectPart,
       required this.selectOrDeselectMelody,
       required this.melodyViewSizeFactor,
-      required this.addPart,
+      this.addPart,
       required this.cloneCurrentSection,
       required this.superSetState,
       required this.musicViewMode,
@@ -1683,7 +1683,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   }
 
   double get sectionsHeight => widget.musicViewMode == MusicViewMode.score ||
-          targetedScale < 2 * MusicScrollContainer.minScale
+          (targetedScale ?? 1) < 2 * MusicScrollContainer.minScale
       ? 30
       : 0;
 

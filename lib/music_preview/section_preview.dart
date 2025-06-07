@@ -15,9 +15,9 @@ class SectionPreview extends StatefulWidget {
   final double scale;
 
   const SectionPreview({
-    Key key,
-    this.section,
-    this.score,
+    Key? key,
+    required this.section,
+    required this.score,
     this.width = 300,
     this.height = 100,
     this.scale = 0.15,
@@ -28,9 +28,9 @@ class SectionPreview extends StatefulWidget {
 }
 
 class _SectionPreviewState extends State<SectionPreview> {
-  String lastPreviewKey;
-  Score preview;
-  BSMethod notifyUpdate;
+  String? lastPreviewKey;
+  late Score preview;
+  late BSMethod notifyUpdate;
 
   String get previewKey => "${widget.section.id}-${widget.section.hashCode}";
 

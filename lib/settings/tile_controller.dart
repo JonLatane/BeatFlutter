@@ -23,15 +23,15 @@ class MidiControllerTile extends StatelessWidget {
   final VoidCallback toggleColorboardConfig;
 
   const MidiControllerTile(
-      {Key key,
-      this.appSettings,
-      this.enableColorboard,
-      this.setColorboardEnabled,
-      this.scrollDirection,
-      this.midiController,
-      this.sectionColor,
-      this.toggleKeyboardConfig,
-      this.toggleColorboardConfig})
+      {Key? key,
+      required this.appSettings,
+      required this.enableColorboard,
+      required this.setColorboardEnabled,
+      required this.scrollDirection,
+      required this.midiController,
+      required this.sectionColor,
+      required this.toggleKeyboardConfig,
+      required this.toggleColorboardConfig})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -202,7 +202,7 @@ class MidiControllerTile extends StatelessWidget {
                           value: appSettings.controllersReplacingKeyboard
                               .contains(midiController.nameOrId),
                           onChanged: (v) {
-                            if (v) {
+                            if (v == true) {
                               appSettings.controllersReplacingKeyboard =
                                   appSettings.controllersReplacingKeyboard +
                                       [midiController.nameOrId];

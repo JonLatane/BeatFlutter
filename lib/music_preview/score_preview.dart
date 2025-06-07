@@ -23,17 +23,17 @@ class ScorePreview extends StatefulWidget {
   final double height;
   final double scale;
   final BSMethod notifyUpdate;
-  final Color renderColor;
+  final Color? renderColor;
 
   const ScorePreview(this.score,
-      {Key key,
+      {Key? key,
       this.width = 300,
       this.height = 100,
       this.scale = 0.15,
       this.musicViewMode = MusicViewMode.score,
       this.renderPartNames = true,
       this.renderSections = true,
-      this.notifyUpdate,
+      required this.notifyUpdate,
       this.renderColor})
       : super(key: key);
 
@@ -44,22 +44,22 @@ class ScorePreview extends StatefulWidget {
 enum _Thumbnail { a, b }
 
 class _ScorePreviewState extends State<ScorePreview> {
-  bool hasBuilt;
-  String _prevScoreId;
-  RenderingMode _prevRenderingMode;
-  double _prevScale, _prevWidth, _prevHeight;
-  Color _prevRenderColor;
-  _Thumbnail currentThumbnail;
-  Uint8List thumbnailA, thumbnailB;
+  late bool hasBuilt;
+  late String _prevScoreId;
+  late RenderingMode _prevRenderingMode;
+  late double _prevScale, _prevWidth, _prevHeight;
+  late Color _prevRenderColor;
+  late _Thumbnail currentThumbnail;
+  Uint8List? thumbnailA, thumbnailB;
 
-  Uint8List get currentThumbnailData =>
+  Uint8List? get currentThumbnailData =>
       currentThumbnail == _Thumbnail.a ? thumbnailA : thumbnailB;
-  set currentThumbnailData(Uint8List value) => currentThumbnail == _Thumbnail.a
+  set currentThumbnailData(Uint8List? value) => currentThumbnail == _Thumbnail.a
       ? thumbnailA = value
       : thumbnailB = value;
-  Uint8List get otherThumbnailData =>
+  Uint8List? get otherThumbnailData =>
       currentThumbnail == _Thumbnail.b ? thumbnailA : thumbnailB;
-  set otherThumbnailData(Uint8List value) => currentThumbnail == _Thumbnail.b
+  set otherThumbnailData(Uint8List? value) => currentThumbnail == _Thumbnail.b
       ? thumbnailA = value
       : thumbnailB = value;
 
@@ -80,7 +80,7 @@ class _ScorePreviewState extends State<ScorePreview> {
           : 0
       : 0;
 
-  double renderableWidth;
+  double renderableWidth = 1;
   bool disposed = false;
   @override
   initState() {
@@ -126,11 +126,15 @@ class _ScorePreviewState extends State<ScorePreview> {
         AnimatedOpacity(
             opacity: thumbnailAOpacity,
             duration: animationDuration,
-            child: thumbnailA == null ? SizedBox() : Image.memory(thumbnailA)),
+            child: thumbnailA == null
+                ? SizedBox()
+                : Image.memory(thumbnailA ?? Uint8List(0))),
         AnimatedOpacity(
             opacity: thumbnailBOpacity,
             duration: animationDuration,
-            child: thumbnailB == null ? SizedBox() : Image.memory(thumbnailB))
+            child: thumbnailB == null
+                ? SizedBox()
+                : Image.memory(thumbnailB ?? Uint8List(0)))
       ]),
     );
   }
@@ -142,7 +146,7 @@ class _ScorePreviewState extends State<ScorePreview> {
       storage: new InMemoryStorage<ArgumentList, Uint8List>(500))
     ..loader = (key, oldValue) async =>
         oldValue ??
-        await MusicPreviewRenderer(
+        (await MusicPreviewRenderer(
           scoreData: key.arguments[0].writeToBuffer(),
           scale: key.arguments[1],
           width: key.arguments[2],
@@ -151,7 +155,7 @@ class _ScorePreviewState extends State<ScorePreview> {
           renderPartNames: key.arguments[5],
           musicViewMode: key.arguments[6],
           renderColor: key.arguments[7],
-        ).renderedScoreImageData;
+        ).renderedScoreImageData)!;
 
   ArgumentList get renderingArguments => ArgumentList([
         widget.score,

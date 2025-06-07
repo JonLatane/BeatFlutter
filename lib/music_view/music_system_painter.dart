@@ -21,7 +21,7 @@ import '../util/music_theory.dart';
 class MusicSystemPainter extends CustomPainter {
   Paint _tickPaint = Paint()..style = PaintingStyle.fill;
 
-  final String focusedMelodyId;
+  final String? focusedMelodyId;
   final Score score;
   final Section section;
   final TransformationController transformationController;
@@ -39,7 +39,7 @@ class MusicSystemPainter extends CustomPainter {
   final ValueNotifier<Iterable<MusicStaff>> staves;
   final ValueNotifier<Map<String, double>> partTopOffsets, staffOffsets;
   final ValueNotifier<Color> sectionColor;
-  final ValueNotifier<Part> keyboardPart, colorboardPart, focusedPart;
+  final ValueNotifier<Part?> keyboardPart, colorboardPart, focusedPart;
   final ValueNotifier<Part?> tappedPart;
   final ValueNotifier<int?> highlightedBeat, focusedBeat, tappedBeat;
   final bool isCurrentScore, isPreview, renderPartNames;
@@ -87,7 +87,7 @@ class MusicSystemPainter extends CustomPainter {
       this.rescale = false,
       required this.visibleRect,
       required this.verticallyVisibleRect,
-      required this.focusedMelodyId,
+      this.focusedMelodyId,
       required this.colorblockOpacityNotifier,
       required this.notationOpacityNotifier,
       required this.isCurrentScore,
@@ -232,7 +232,7 @@ class MusicSystemPainter extends CustomPainter {
           if (sectionIndex < score.sections.length) {
             candidate = score.sections[sectionIndex];
           } else {
-            candidate = null;
+            // candidate = null;
             break;
           }
         }
@@ -436,8 +436,8 @@ class MusicSystemPainter extends CustomPainter {
           opacity = 0;
         }
       }
-      _renderMelodyBeat(canvas, focusedMelody, melodyBounds, renderingSection,
-          renderingSectionBeat, true, opacity, renderQueue,
+      _renderMelodyBeat(canvas, focusedMelody ?? Melody(), melodyBounds,
+          renderingSection, renderingSectionBeat, true, opacity, renderQueue,
           renderLoopStarts: true);
     }
 
@@ -473,14 +473,14 @@ class MusicSystemPainter extends CustomPainter {
             melodyBounds,
             Paint()
               ..style = PaintingStyle.fill
-              ..color = tappedPart.value.id == part.id &&
+              ..color = tappedPart.value?.id == part.id &&
                       renderingBeat == tappedBeat.value
                   ? sectionColor.value.withOpacity(0.12)
                   : Colors.black12);
       }
       if (isCurrentScore &&
           (renderingBeat == tappedBeat.value) &&
-          tappedPart.value.id == part.id) {
+          tappedPart.value?.id == part.id) {
         canvas.drawRect(
             melodyBounds,
             Paint()
@@ -540,7 +540,7 @@ class MusicSystemPainter extends CustomPainter {
 
     if (staff
         .getParts(score, staves.value)
-        .any((element) => element.id == focusedPart.value.id)) {
+        .any((element) => element.id == focusedPart.value?.id)) {
       Rect highlight = Rect.fromPoints(
           bounds.topLeft.translate(-bounds.width / 13,
               notationOpacityNotifier.value * bounds.height / 6),
@@ -598,7 +598,7 @@ class MusicSystemPainter extends CustomPainter {
       int renderingSectionBeat,
       Iterable<Melody> otherMelodiesOnStaff,
       MusicStaff staff,
-      {Paint backgroundPaint}) {
+      {Paint? backgroundPaint}) {
     canvas.drawRect(
         melodyBounds,
         backgroundPaint ?? Paint()
@@ -606,9 +606,9 @@ class MusicSystemPainter extends CustomPainter {
           ..color = musicForegroundColor.withOpacity(0.26));
     var staffParts = staff.getParts(score, staves.value);
     bool hasColorboardPart =
-        staffParts.any((part) => part.id == colorboardPart.value.id);
+        staffParts.any((part) => part.id == colorboardPart.value?.id);
     bool hasKeyboardPart =
-        staffParts.any((part) => part.id == keyboardPart.value.id);
+        staffParts.any((part) => part.id == keyboardPart.value?.id);
     if (hasColorboardPart || hasKeyboardPart) {
       _colorboardDummyMelody.setMidiDataFromSimpleMelody(
           {0: colorboardNotesNotifier.value.toList()});
@@ -629,7 +629,7 @@ class MusicSystemPainter extends CustomPainter {
               keyboardNotes.length.toDouble();
 
       _keyboardDummyMelody.instrumentType =
-          keyboardPart.value.instrument.type ?? InstrumentType.harmonic;
+          keyboardPart.value?.instrument.type ?? InstrumentType.harmonic;
       if (hasColorboardPart) {
         _renderMelodyBeat(
             canvas,
@@ -803,7 +803,7 @@ class MusicSystemPainter extends CustomPainter {
     final double startOffset = renderingBeat * beatWidth;
     double left = startOffset;
     double chordLeft = left;
-    Chord renderingChord;
+    Chord? renderingChord;
 
     while (left < visibleRect().right + beatWidth) {
       if (renderingBeat < 0) {
@@ -821,7 +821,7 @@ class MusicSystemPainter extends CustomPainter {
               1)) {
         Chord chordAtSubdivision =
             renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic;
-        if (renderingChord != chordAtSubdivision) {
+        if (renderingChord != null && renderingChord != chordAtSubdivision) {
           Rect renderingRect = Rect.fromLTRB(chordLeft, top, left, bottom);
           try {
             ColorGuide()
@@ -855,7 +855,7 @@ class MusicSystemPainter extends CustomPainter {
         ..halfStepsOnScreen = 88
         ..normalizedDevicePitch = 0
         ..bounds = renderingRect
-        ..chord = renderingChord
+        ..chord = renderingChord!
         ..drawPadding = 0
         ..nonRootPadding = 0
         ..drawnColorGuideAlpha = colorGuideAlpha

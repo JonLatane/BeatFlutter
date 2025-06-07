@@ -18,7 +18,7 @@ class BluetoothDeviceTile extends StatefulWidget {
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
 
   const BluetoothDeviceTile(
-      {Key key,
+      {Key? key,
       required this.connected,
       required this.device,
       required this.sectionColor,

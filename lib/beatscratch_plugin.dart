@@ -410,11 +410,11 @@ class BeatScratchPlugin {
   /// [Melody]. Implementation-wise: this is just done by passing the [Melody.id].
   /// This applies to notes played either with a physical MIDI controller on
   /// the native side or from [sendMIDI] in the plugin.
-  static void setRecordingMelody(Melody melody) async {
+  static void setRecordingMelody(Melody? melody) async {
     if (kIsWeb) {
-      context.callMethod('setRecordingMelody', [melody.id]);
+      context.callMethod('setRecordingMelody', [melody?.id]);
     } else {
-      _channel.invokeMethod('setRecordingMelody', melody.id);
+      _channel.invokeMethod('setRecordingMelody', melody?.id);
     }
   }
 

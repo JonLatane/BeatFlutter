@@ -508,15 +508,15 @@ class SectionToolbar extends StatefulWidget {
   final MusicViewMode musicViewMode;
   final Function(Section, String) setSectionName;
   final Function(Section) deleteSection;
-  final Function addPart;
+  final Function? addPart;
   final Function cloneCurrentSection;
   final bool editingSection;
   final Function(bool) setEditingSection;
 
   const SectionToolbar(
-      {Key key,
-      this.currentSection,
-      this.sectionColor,
+      {Key? key,
+      required this.currentSection,
+      required this.sectionColor,
       this.musicViewMode,
       this.setSectionName,
       this.deleteSection,

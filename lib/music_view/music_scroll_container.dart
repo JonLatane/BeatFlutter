@@ -759,7 +759,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     var removedOffsets = staffOffsets.value.keys
         .where((id) => !widget.staves.any((staff) => staff.id == id));
     removedOffsets.forEach((removedStaffId) {
-      Animation staffAnimation;
+      late Animation staffAnimation;
       staffAnimation = Tween<double>(
               begin: staffOffsets.value[removedStaffId], end: 0)
           .animate(
@@ -774,7 +774,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       double staffPosition = staffIndex * staffHeight;
       double initialStaffPosition =
           staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight());
-      Animation staffAnimation;
+      late Animation staffAnimation;
       staffAnimation = Tween<double>(
               begin: initialStaffPosition, end: staffPosition)
           .animate(
@@ -788,7 +788,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         double partPosition = staffPosition;
         double initialPartPosition = partTopOffsets.value
             .putIfAbsent(part.id, () => overallCanvasHeight());
-        Animation partAnimation;
+        late Animation partAnimation;
         partAnimation =
             Tween<double>(begin: initialPartPosition, end: partPosition)
                 .animate(CurvedAnimation(
@@ -813,28 +813,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     double notationOpacityValue =
         (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
     double sectionScaleValue = sectionsHeight != 0 ? 1 : 0;
-    Animation animation1;
+    late Animation animation1, animation2, animation3, animation4;
     animation1 = Tween<double>(
             begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
         .animate(animationController)
       ..addListener(() {
         colorblockOpacityNotifier.value = animation1.value;
       });
-    Animation animation2;
     animation2 = Tween<double>(
             begin: notationOpacityNotifier.value, end: notationOpacityValue)
         .animate(animationController)
       ..addListener(() {
         notationOpacityNotifier.value = animation2.value;
       });
-    Animation animation3;
     animation3 =
         Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
             .animate(animationController)
           ..addListener(() {
             sectionScaleNotifier.value = animation3.value;
           });
-    Animation animation4;
     animation4 = Tween<double>(
             begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue)
         .animate(animationController)

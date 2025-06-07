@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +14,8 @@ class MidiSynthTile extends StatefulWidget {
   final Axis scrollDirection;
   final MidiSynthesizer midiSynthesizer;
 
-  const MidiSynthTile({Key key, this.scrollDirection, this.midiSynthesizer})
+  const MidiSynthTile(
+      {Key? key, required this.scrollDirection, required this.midiSynthesizer})
       : super(key: key);
 
   @override

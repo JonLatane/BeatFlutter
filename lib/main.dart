@@ -1354,22 +1354,26 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                   onPressed: _universeManager.redditUsername.isNotEmpty
                       ? () {
-                          bool oldValue =
-                              _universeManager.currentUniverseScoreFuture.likes;
+                          if (scoreFuture == null) return;
+                          bool? oldValue = scoreFuture.likes;
                           setState(() {
                             if (oldValue == true) {
                               scoreFuture.likes = null;
-                              scoreFuture.voteCount -= 1;
+                              if (scoreFuture.voteCount != null)
+                                scoreFuture.voteCount =
+                                    scoreFuture.voteCount! - 1;
                             } else {
                               scoreFuture.likes = true;
-                              scoreFuture.voteCount += oldValue == null ? 1 : 2;
+                              if (scoreFuture.voteCount != null)
+                                scoreFuture.voteCount = scoreFuture.voteCount! +
+                                    (oldValue == null ? 1 : 2);
                             }
                             _universeManager.vote(
-                                scoreFuture.fullName, scoreFuture.likes);
+                                scoreFuture.fullName ?? '', scoreFuture.likes);
                           });
                         }
                       : null,
-                  color: scoreFuture.likes == true
+                  color: scoreFuture?.likes == true
                       ? chromaticSteps[11]
                       : Colors.transparent,
                   child: Align(
@@ -1379,7 +1383,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           duration: animationDuration,
                           child: Icon(Icons.arrow_upward,
                               color: _universeManager.isAuthenticated
-                                  ? scoreFuture.likes == true
+                                  ? scoreFuture?.likes == true
                                       ? chromaticSteps[11].textColor()
                                       : chromaticSteps[11]
                                   : musicForegroundColor.withOpacity(0.5)))),
@@ -1389,7 +1393,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 duration: animationDuration,
                 child: Align(
                     alignment: Alignment.center,
-                    child: Text(scoreFuture.voteCount.toString() ?? '',
+                    child: Text(scoreFuture?.voteCount.toString() ?? '',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: musicForegroundColor,
@@ -1401,22 +1405,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   padding: EdgeInsets.zero,
                   onPressed: _universeManager.redditUsername.isNotEmpty
                       ? () {
-                          bool oldValue =
-                              _universeManager.currentUniverseScoreFuture.likes;
+                          if (scoreFuture == null) return;
+                          bool? oldValue = scoreFuture.likes;
                           setState(() {
                             if (oldValue == false) {
                               scoreFuture.likes = null;
-                              scoreFuture.voteCount += 1;
+                              scoreFuture.voteCount =
+                                  scoreFuture.voteCount! + 1;
                             } else {
                               scoreFuture.likes = false;
-                              scoreFuture.voteCount -= oldValue == null ? 1 : 2;
+                              scoreFuture.voteCount = scoreFuture.voteCount! -
+                                  (oldValue == null ? 1 : 2);
                             }
                             _universeManager.vote(
-                                scoreFuture.fullName, scoreFuture.likes);
+                                scoreFuture.fullName ?? '', scoreFuture.likes);
                           });
                         }
                       : null,
-                  color: scoreFuture.likes == false
+                  color: scoreFuture?.likes == false
                       ? chromaticSteps[10]
                       : Colors.transparent,
                   child: Align(
@@ -1426,7 +1432,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           duration: animationDuration,
                           child: Icon(Icons.arrow_downward,
                               color: _universeManager.isAuthenticated
-                                  ? scoreFuture.likes == false
+                                  ? scoreFuture?.likes == false
                                       ? chromaticSteps[10].textColor()
                                       : chromaticSteps[10]
                                   : musicForegroundColor.withOpacity(0.5)))),
@@ -1472,13 +1478,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 child: MyFlatButton(
                   padding: EdgeInsets.zero,
                   onPressed: () {
+                    if (scoreFuture == null) return;
+
                     if (_appSettings.enableApollo) {
                       launchURL(
-                          scoreFuture.commentUrl
-                              .replaceAll("https://", "apollo://"),
+                          scoreFuture?.commentUrl
+                                  ?.replaceAll("https://", "apollo://") ??
+                              '',
                           forceSafariVC: false);
-                    } else {
-                      launchURL(scoreFuture.commentUrl, forceSafariVC: false);
+                    } else if (scoreFuture.commentUrl != null) {
+                      launchURL(scoreFuture.commentUrl!, forceSafariVC: false);
                     }
                   },
                   child: Align(
@@ -1726,7 +1735,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool bottom = false,
   }) {
     bool playing = BeatScratchPlugin.playing;
-    int tapInBeat = _tapInBeat;
+    int? tapInBeat = _tapInBeat;
     bool isDisplayed = (!vertical && !bottom && _tapInBarHeight != 0) ||
         (vertical && _landscapeTapInBarWidth != 0) ||
         (bottom && _bottomTapInBarHeight != 0);
