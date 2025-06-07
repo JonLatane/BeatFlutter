@@ -1,6 +1,5 @@
 import '../layers_view/melody_menu_browser.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 
@@ -24,15 +23,15 @@ class PartMelodyBrowser extends StatefulWidget {
   final Function(Part, Melody, bool) createMelody;
 
   const PartMelodyBrowser(
-      {Key key,
-      this.sectionColor,
-      this.score,
-      this.currentSection,
-      this.part,
-      this.browsingMelodies,
-      this.selectOrDeselectMelody,
-      this.createMelody,
-      this.toggleMelodyReference})
+      {Key? key,
+      required this.sectionColor,
+      required this.score,
+      required this.currentSection,
+      required this.part,
+      required this.browsingMelodies,
+      required this.selectOrDeselectMelody,
+      required this.createMelody,
+      required this.toggleMelodyReference})
       : super(key: key);
 
   @override
@@ -41,7 +40,7 @@ class PartMelodyBrowser extends StatefulWidget {
 
 class _PartMelodyBrowserState extends State<PartMelodyBrowser>
     with TickerProviderStateMixin {
-  ScrollController _scrollController;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
@@ -164,10 +163,10 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
   }
 
   Widget getList(BuildContext context) {
-    var items = widget.part?.melodies ?? [];
+    var items = widget.part.melodies ?? [];
     items.sort((m1, m2) {
-      final r1 = widget.currentSection.referenceTo(m1);
-      final r2 = widget.currentSection.referenceTo(m2);
+      final r1 = widget.currentSection.referenceTo(m1)!;
+      final r2 = widget.currentSection.referenceTo(m2)!;
       if (r1.isEnabled == r2.isEnabled) {
         return 0;
       } else if (r1.isEnabled) {
@@ -184,7 +183,7 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
       items: items,
       areItemsTheSame: (a, b) => a.id == b.id,
       itemBuilder: (context, animation, melody, index) {
-        final reference = widget.currentSection.referenceTo(melody);
+        final reference = widget.currentSection.referenceTo(melody)!;
         final width = 120.0;
         final height = widget.browsingMelodies ? 48.0 : 0.0;
 
@@ -211,7 +210,7 @@ class _PartMelodyBrowserState extends State<PartMelodyBrowser>
                           },
                           onLongPress: () {
                             final reference =
-                                widget.currentSection.referenceTo(melody);
+                                widget.currentSection.referenceTo(melody)!;
                             widget.toggleMelodyReference(reference);
                           },
                           child: Text(melody.canonicalName,

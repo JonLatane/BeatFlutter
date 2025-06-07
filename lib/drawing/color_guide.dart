@@ -5,10 +5,10 @@ import '../util/music_theory.dart';
 import 'canvas_tone_drawer.dart';
 
 class ColorGuide extends CanvasToneDrawer {
-  int colorGuideAlpha;
-  int drawPadding;
-  int nonRootPadding;
-  int drawnColorGuideAlpha;
+  late int colorGuideAlpha;
+  late int drawPadding;
+  late int nonRootPadding;
+  late int drawnColorGuideAlpha;
   Iterable<int> pressedNotes = [];
 
   drawColorGuide(Canvas canvas) {

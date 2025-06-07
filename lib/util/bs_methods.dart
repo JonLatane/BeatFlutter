@@ -7,5 +7,5 @@ class BSMethod extends ChangeNotifier {
 
 class BSValueMethod<T> extends ValueNotifier<T> {
   BSValueMethod(value) : super(value);
-  call(value) => this.value = value;
+  void call(value) => this.value = value;
 }

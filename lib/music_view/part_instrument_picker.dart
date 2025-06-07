@@ -1,8 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:recase/recase.dart';
@@ -24,11 +22,11 @@ class PartConfiguration extends StatefulWidget {
   final bool visible;
 
   const PartConfiguration(
-      {Key key,
-      this.part,
-      this.superSetState,
-      this.availableHeight,
-      this.visible})
+      {Key? key,
+      required this.part,
+      required this.superSetState,
+      required this.availableHeight,
+      required this.visible})
       : super(key: key);
 
   @override
@@ -39,28 +37,26 @@ class _PartConfigurationState extends State<PartConfiguration> {
   TextEditingController searchController = TextEditingController();
   ScrollController scrollController = ScrollController();
 
-  int get midiChannel => widget.part?.instrument?.midiChannel;
+  int get midiChannel => widget.part.instrument.midiChannel;
 
-  int get midiInstrument => widget.part?.instrument?.midiInstrument;
+  int get midiInstrument => widget.part.instrument.midiInstrument;
 
-  int get midiMsb => widget.part?.instrument?.midiGm2Msb;
+  int get midiMsb => widget.part.instrument.midiGm2Msb;
 
-  int get midiLsb => widget.part?.instrument?.midiGm2Lsb;
+  int get midiLsb => widget.part.instrument.midiGm2Lsb;
 
   set midiChannel(int value) {
-    widget.part?.instrument?.midiChannel = value;
+    widget.part.instrument.midiChannel = value;
   }
 
   set midiInstrument(int value) {
     var part = widget.part;
-    if (part != null) {
-      part.instrument.midiInstrument = value;
-    }
+    part.instrument.midiInstrument = value;
   }
 
-  bool get isHarmonic => widget?.part?.isHarmonic ?? false;
+  bool get isHarmonic => widget.part.isHarmonic ?? false;
 
-  bool get isDrum => widget?.part?.isDrum ?? false;
+  bool get isDrum => widget.part.isDrum ?? false;
   String searchText = "";
 
   Widget _buildMidiInstrumentDisplay(
@@ -193,7 +189,7 @@ class _PartConfigurationState extends State<PartConfiguration> {
                         onChanged: (value) {
                           widget.superSetState(() {
                             setState(() {
-                              widget.part?.instrument?.volume = value;
+                              widget.part.instrument.volume = value;
                               BeatScratchPlugin.updatePartConfiguration(
                                   widget.part);
                             });

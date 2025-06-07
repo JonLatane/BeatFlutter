@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -25,14 +23,14 @@ class MusicPreviewRenderer {
   Score get score => Score.fromBuffer(scoreData);
 
   MusicPreviewRenderer(
-      {@required this.scoreData,
-      @required this.scale,
-      @required this.width,
-      @required this.height,
-      @required this.renderSections,
-      @required this.renderPartNames,
-      @required this.musicViewMode,
-      this.renderColor});
+      {required this.scoreData,
+      required this.scale,
+      required this.width,
+      required this.height,
+      required this.renderSections,
+      required this.renderPartNames,
+      required this.musicViewMode,
+      required this.renderColor});
 
   MusicSystemPainter get painter {
     final parts = score.parts;
@@ -53,6 +51,9 @@ class MusicPreviewRenderer {
       partTopOffsets: ValueNotifier(partTopOffsets),
       staffOffsets: ValueNotifier(staffOffsets),
       colorGuideOpacityNotifier: ValueNotifier(0),
+      tappedBeat: ValueNotifier(null),
+      tappedPart: ValueNotifier(null),
+      bluetoothControllerPressedNotes: ValueNotifier(Map()),
       colorblockOpacityNotifier: ValueNotifier(
           AppSettings.globalRenderingMode == RenderingMode.colorblock ? 1 : 0),
       notationOpacityNotifier: ValueNotifier(
@@ -78,7 +79,7 @@ class MusicPreviewRenderer {
   double get maxWidth =>
       (extraBeatsSpaceForClefs + score.beatCount) * beatWidth * scale;
   double get actualWidth => min(maxWidth, width);
-  Future<ui.Image> get renderedScoreImage async {
+  Future<ui.Image?> get renderedScoreImage async {
     if (height < 1 || width < 1) {
       return null;
     }
@@ -96,9 +97,7 @@ class MusicPreviewRenderer {
     canvas.scale(_overSampleScale);
     // await () async {
     final originalForegroundColor = musicForegroundColor;
-    if (renderColor != null) {
-      musicForegroundColor = renderColor;
-    }
+    musicForegroundColor = renderColor;
     painter.paint(canvas, size);
     musicForegroundColor = originalForegroundColor;
     // };
@@ -109,12 +108,9 @@ class MusicPreviewRenderer {
     return data;
   }
 
-  Future<Uint8List> get renderedScoreImageData async {
+  Future<Uint8List?> get renderedScoreImageData async {
     final image = await renderedScoreImage;
-    if (image == null) {
-      return null;
-    }
     return Uint8List.sublistView(
-        await image.toByteData(format: ui.ImageByteFormat.png));
+        (await image?.toByteData(format: ui.ImageByteFormat.png))!);
   }
 }

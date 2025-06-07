@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -10,17 +9,17 @@ import 'package:url_launcher/url_launcher.dart';
 
 launchURL(
   String url, {
-  bool forceSafariVC,
-  bool forceWebView,
-  bool enableJavaScript,
-  bool enableDomStorage,
-  bool universalLinksOnly,
-  Map<String, String> headers,
-  Brightness statusBarBrightness,
-  String webOnlyWindowName,
+  bool forceSafariVC = false,
+  bool forceWebView = false,
+  bool enableJavaScript = false,
+  bool enableDomStorage = false,
+  bool universalLinksOnly = false,
+  Map<String, String> headers = const <String, String>{},
+  Brightness statusBarBrightness = Brightness.dark,
+  String? webOnlyWindowName,
 }) async {
-  if (await canLaunch(url)) {
-    await launch(
+  if (await canLaunchUrl(Uri.parse(url))) {
+    await launchURL(
       url,
       forceSafariVC: forceSafariVC,
       forceWebView: forceWebView,
@@ -73,29 +72,30 @@ Future<ui.Image> loadUiImage(String imageAssetPath) async {
 class CustomSliverToBoxAdapter extends SingleChildRenderObjectWidget {
   final Function(Rect) setVisibleRect;
 
-  const CustomSliverToBoxAdapter({
-    this.setVisibleRect,
-    Key key,
-    Widget child,
+  const CustomSliverToBoxAdapter(
+    this.setVisibleRect, {
+    Key? key,
+    Widget? child,
   }) : super(key: key, child: child);
 
   @override
   _CustomRenderSliverToBoxAdapter createRenderObject(BuildContext context) =>
-      _CustomRenderSliverToBoxAdapter(setVisibleRect: setVisibleRect);
+      _CustomRenderSliverToBoxAdapter(setVisibleRect);
 }
 
 class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
   final Function(Rect) setVisibleRect;
 
-  _CustomRenderSliverToBoxAdapter({
-    this.setVisibleRect,
-    RenderBox child,
+  _CustomRenderSliverToBoxAdapter(
+    this.setVisibleRect, {
+    RenderBox? child,
   }) : super(child: child);
 
   @override
   void performLayout() {
+    final child = this.child;
     if (child == null) {
-      geometry = SliverGeometry.zero;
+      this.geometry = SliverGeometry.zero;
       return;
     }
     child.layout(constraints.asBoxConstraints(), parentUsesSize: true);
@@ -108,12 +108,11 @@ class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
         childExtent = child.size.height;
         break;
     }
-    assert(childExtent != null);
     final double paintedChildSize =
         calculatePaintOffset(constraints, from: 0.0, to: childExtent);
     assert(paintedChildSize.isFinite);
     assert(paintedChildSize >= 0.0);
-    geometry = new SliverGeometry(
+    final geometry = new SliverGeometry(
       scrollExtent: childExtent,
       paintExtent: paintedChildSize,
       maxPaintExtent: childExtent,
@@ -121,6 +120,7 @@ class _CustomRenderSliverToBoxAdapter extends RenderSliverSingleBoxAdapter {
       hasVisualOverflow: childExtent > constraints.remainingPaintExtent ||
           constraints.scrollOffset > 0.0,
     );
+    this.geometry = geometry;
     setChildParentData(child, constraints, geometry);
 
     // Expose geometry

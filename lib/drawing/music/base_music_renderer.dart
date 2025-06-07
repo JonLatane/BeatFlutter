@@ -14,14 +14,14 @@ class BaseMusicRenderer extends ColorGuide {
   final bool renderVertically = true;
   @override
   final double normalizedDevicePitch = 0;
-  Rect overallBounds;
-  Melody melody;
-  int elementPosition;
-  bool isCurrentlyPlayingBeat;
-  bool isSelectedBeatInHarmony;
-  Section section;
-  bool isUserChoosingHarmonyChord;
-  bool isMelodyReferenceEnabled;
+  late Rect overallBounds;
+  late Melody melody;
+  late int elementPosition;
+  late bool isCurrentlyPlayingBeat;
+  late bool isSelectedBeatInHarmony;
+  late Section section;
+  late bool isUserChoosingHarmonyChord;
+  late bool isMelodyReferenceEnabled;
   int beatPosition = 0;
   double xScale = 1;
   double yScale = 1;
@@ -49,12 +49,12 @@ class BaseMusicRenderer extends ColorGuide {
 
   ///doesn't work for [renderVertically]=false.
   drawTimewiseLineRelativeToBounds(
-      {Canvas canvas,
+      {required Canvas canvas,
       bool leftSide = true,
       double alpha = 1,
       double strokeWidth = 1,
-      double startY,
-      double stopY,
+      required double startY,
+      required double stopY,
       double percentThrough = 0,
       Offset offset = Offset.zero}) {
     double oldStrokeWidth = alphaDrawerPaint.strokeWidth;
@@ -72,7 +72,10 @@ class BaseMusicRenderer extends ColorGuide {
   }
 
   drawPitchwiseLine(
-      {Canvas canvas, double pointOnToneAxis, double left, double right}) {
+      {required Canvas canvas,
+      required double pointOnToneAxis,
+      double? left,
+      double? right}) {
     if (renderVertically) {
       canvas.drawLine(
           Offset(left ?? bounds.left, pointOnToneAxis),
@@ -133,7 +136,7 @@ class BaseMusicRenderer extends ColorGuide {
   double centerOfTone(int tone) =>
       startPoint - (bottomMostNote + tone - 9.5) * halfStepWidth;
 
-  double pointFor({NoteLetter letter, int octave}) {
+  double pointFor({required NoteLetter letter, required int octave}) {
     double middleC = centerOfTone(0);
     double result =
         middleC - letterStepSize * (((octave - 4) * 7) + letter.value);

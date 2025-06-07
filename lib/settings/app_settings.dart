@@ -9,7 +9,7 @@ import '../widget/my_platform.dart';
 class AppSettings {
   static bool initializingState = true;
   static RenderingMode globalRenderingMode = RenderingMode.notation;
-  SharedPreferences _preferences;
+  SharedPreferences? _preferences;
   AppSettings() {
     _initialize();
   }
@@ -26,7 +26,7 @@ class AppSettings {
     melodyColor = darkMode ? Color(0xFF424242) : Color(0xFFDDDDDD);
     globalRenderingMode = renderingMode;
     if (!initializingState) {
-      BeatScratchPlugin.onSynthesizerStatusChange?.call();
+      BeatScratchPlugin.onSynthesizerStatusChange.call();
     }
   }
 
@@ -79,7 +79,7 @@ class AppSettings {
     _preferences?.setBool("autoZoomAlignMusic", value);
   }
 
-  double get musicScale => _preferences?.getDouble('musicScale');
+  double get musicScale => _preferences?.getDouble('musicScale') ?? 1.0;
   set musicScale(double value) => _preferences?.setDouble("musicScale", value);
 
   bool get alignMusic => _preferences?.getBool('alignMusic') ?? true;
@@ -93,7 +93,9 @@ class AppSettings {
   }
 
   RenderingMode get renderMode => RenderingMode.values.firstWhere(
-      (m) => m.toString().endsWith(_preferences.getString('renderMode')),
+      (m) => m
+          .toString()
+          .endsWith(_preferences?.getString('renderMode') ?? 'no render mode'),
       orElse: () => RenderingMode.notation);
   set renderMode(RenderingMode value) => _preferences?.setString(
       "musicRenderingType", value.toString().split('.').last);
