@@ -27,7 +27,7 @@ class LayersView extends StatefulWidget {
   final Score score;
   final Color sectionColor;
   final Section currentSection;
-  final Melody selectedMelody;
+  final Melody? selectedMelody;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
   final VoidCallback hideMelodyView;
@@ -36,7 +36,7 @@ class LayersView extends StatefulWidget {
   final Function(Part, double) setPartVolume;
   final Part colorboardPart;
   final Part keyboardPart;
-  final Part selectedPart;
+  final Part? selectedPart;
   final Function(Part) setKeyboardPart;
   final Function(Part) setColorboardPart;
   final Function(Part) selectPart;

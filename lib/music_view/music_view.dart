@@ -17,6 +17,8 @@ import '../ui_models.dart';
 import '../util/music_notation_theory.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
+import "package:flutter_feather_icons/flutter_feather_icons.dart";
+
 import '../widget/incrementable_value.dart';
 import '../widget/my_buttons.dart';
 import 'part_instrument_picker.dart';
@@ -40,7 +42,7 @@ class MusicView extends StatefulWidget {
       keyboardNotesNotifier;
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final Melody melody;
-  final Part part;
+  final Part? part;
   final Color sectionColor;
   final VoidCallback toggleSplitMode, closeMelodyView, toggleRecording;
   final Function(VoidCallback) superSetState;
@@ -51,7 +53,7 @@ class MusicView extends StatefulWidget {
   final Function(Section, String) setSectionName;
   final bool recordingMelody;
   final Function(Part) setKeyboardPart, setColorboardPart;
-  final Part keyboardPart, colorboardPart;
+  final Part? keyboardPart, colorboardPart;
   final Function(Part) deletePart;
   final Function(Melody) deleteMelody;
   final Function(Section) deleteSection;
@@ -541,7 +543,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   : (widget.musicViewMode == MusicViewMode.melody)
                       ? Colors.white
                       : (widget.musicViewMode == MusicViewMode.part)
-                          ? ((widget.part.instrument.type ==
+                          ? ((widget.part?.instrument.type ==
                                   InstrumentType.drum)
                               ? Colors.brown
                               : Colors.grey)
@@ -835,7 +837,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               duration: animationDuration,
               opacity: widget.musicViewMode == MusicViewMode.part ? 1 : 0,
               child: AnimatedContainer(
-                  color: widget.part.instrument.type == InstrumentType.drum
+                  color: widget.part?.instrument.type == InstrumentType.drum
                       ? Colors.brown
                       : Colors.grey,
                   duration: animationDuration,
@@ -846,7 +848,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     sectionColor: widget.sectionColor,
                     score: widget.score,
                     currentSection: widget.currentSection,
-                    part: widget.part,
+                    part: widget.part ?? Part(),
                     browsingMelodies: isBrowsingPartMelodies,
                     selectOrDeselectMelody: widget.selectOrDeselectMelody,
                     createMelody: widget.createMelody,
@@ -861,7 +863,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     : 0,
                 child: AnimatedContainer(
                     duration: animationDuration,
-                    color: widget.part.instrument.type == InstrumentType.drum
+                    color: widget.part?.instrument.type == InstrumentType.drum
                         ? Colors.brown
                         : Colors.grey,
                     height: (widget.musicViewMode == MusicViewMode.part &&
@@ -1258,19 +1260,19 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   handleZoomAlign() {
     return;
-    if (autoZoomAlign) {
-      final double x = targetedScale,
-          // y = targetedScale,
-          w = widget.width,
-          numberOfBeatsOnScreen = w / (x * beatWidth),
-          targetNumberOfBeatsOnScreen = numberOfBeatsOnScreen.roundToDouble(),
-          newXScale = w / (targetNumberOfBeatsOnScreen * beatWidth);
-      targetedScale = newXScale;
-      // scale = newXScale;
-    }
+    // if (autoZoomAlign) {
+    //   final double x = targetedScale,
+    //       // y = targetedScale,
+    //       w = widget.width,
+    //       numberOfBeatsOnScreen = w / (x * beatWidth),
+    //       targetNumberOfBeatsOnScreen = numberOfBeatsOnScreen.roundToDouble(),
+    //       newXScale = w / (targetNumberOfBeatsOnScreen * beatWidth);
+    //   targetedScale = newXScale;
+    //   // scale = newXScale;
+    // }
   }
 
-  Widget autoFocusButton({bool visible}) {
+  Widget autoFocusButton({required bool visible}) {
     return MusicActionButton(
         child: Stack(children: [
           Transform.translate(
@@ -1330,7 +1332,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         });
   }
 
-  Widget autoZoomAlignButton({bool visible}) {
+  Widget autoZoomAlignButton({required bool visible}) {
     return MusicActionButton(
         child: Stack(children: [
           Transform.translate(
@@ -1348,7 +1350,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               duration: animationDuration,
               opacity: !autoZoomAlign ? 1 : 0,
               child: Icon(
-                Feather.move,
+                FeatherIcons.move,
                 color: Colors.grey,
               ),
             ),
@@ -1367,7 +1369,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
               duration: animationDuration,
               opacity: autoZoomAlign ? 1 : 0,
               child: Icon(
-                Feather.move,
+                FeatherIcons.move,
                 color: Colors.white,
               ),
             ),
@@ -1395,11 +1397,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
   Widget zoomButton() {
     final zoomIncrement = .01;
     final bigDecrementIcon =
-        (targetedScale > alignedScale || scale > alignedScale)
+        (targetedScale! > alignedScale || scale > alignedScale)
             ? Icons.expand
             : FontAwesomeIcons.compressArrowsAlt;
     final bigDecrementAction =
-        (targetedScale > alignedScale || scale > alignedScale)
+        (targetedScale! > alignedScale || scale > alignedScale)
             ? () {
                 setState(() {
                   _aligned = true;
@@ -1411,7 +1413,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   });
                 });
               }
-            : (targetedScale > minScale || scale > minScale)
+            : (targetedScale! > minScale || scale > minScale)
                 ? () {
                     setState(() {
                       minimize();
@@ -1419,11 +1421,11 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   }
                 : null;
     final bigIncrementIcon =
-        (targetedScale >= alignedScale || scale >= alignedScale)
+        (targetedScale! >= alignedScale || scale >= alignedScale)
             ? FontAwesomeIcons.expandArrowsAlt
             : Icons.expand;
     final bigIncrementAction =
-        (targetedScale < alignedScale || scale < alignedScale)
+        (targetedScale! < alignedScale || scale < alignedScale)
             ? () {
                 setState(() {
                   _aligned = true;
@@ -1436,8 +1438,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   });
                 });
               }
-            : (targetedScale < partAlignedScale || scale < partAlignedScale) &&
-                    !targetedScale.roughlyEquals(partAlignedScale) &&
+            : (targetedScale! < partAlignedScale || scale < partAlignedScale) &&
+                    !targetedScale!.roughlyEquals(partAlignedScale) &&
                     widget.musicViewMode != MusicViewMode.section
                 ? () {
                     setState(() {
@@ -1478,7 +1480,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                     musicForegroundColor.withOpacity(0.54)))),
                     Transform.translate(
                       offset: Offset(2, 20),
-                      child: Text(scaleText(targetedScale),
+                      child: Text(scaleText(targetedScale!),
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
@@ -1500,7 +1502,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
           incrementIcon: Icons.zoom_in,
           decrementIcon: Icons.zoom_out,
           incrementDistance: 1,
-          onIncrement: (targetedScale < maxScale || scale < maxScale)
+          onIncrement: (targetedScale! < maxScale || scale < maxScale)
               ? () {
                   _ignoreNextScale = true;
                   _aligned = false;
@@ -1508,12 +1510,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                   setState(() {
                     print("zoomIn: scale=$scale, targetedScale=$targetedScale");
                     targetedScale =
-                        min(maxScale, targetedScale + zoomIncrement);
+                        min(maxScale, targetedScale! + zoomIncrement);
                     // print("zoomIn done; targetedScale=$targetXScale, scale=$targetYScale");
                   });
                 }
               : null,
-          onDecrement: (targetedScale > minScale || scale > minScale)
+          onDecrement: (targetedScale! > minScale || scale > minScale)
               ? () {
                   _ignoreNextScale = true;
                   _aligned = false;
@@ -1522,7 +1524,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                     print(
                         "zoomOut: scale=$scale, targetedScale=$targetedScale");
                     targetedScale =
-                        max(minScale, targetedScale - zoomIncrement);
+                        max(minScale, targetedScale! - zoomIncrement);
                     // print("zoomOut done; targetedScale=$targetedScale, scale=$scale");
                   });
                 }

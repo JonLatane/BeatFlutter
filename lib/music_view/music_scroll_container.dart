@@ -34,10 +34,10 @@ class MusicScrollContainer extends StatefulWidget {
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final ValueNotifier<int?> highlightedBeat, focusedBeat, tappedBeat;
   final ValueNotifier<Part?> tappedPart;
-  final ValueNotifier<Offset> requestedScrollOffsetForScale;
+  final ValueNotifier<Offset?> requestedScrollOffsetForScale;
   final TransformationController transformationController;
   final ValueNotifier<ScaleUpdateDetails> scaleUpdateNotifier;
-  final ValueNotifier<double> targetScaleNotifier;
+  final ValueNotifier<double?> targetScaleNotifier;
   final bool showingSectionList;
 
   const MusicScrollContainer(
@@ -129,7 +129,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   double get scaledStandardBeatWidth => beatWidth * scale;
 
-  double get targetScale => widget.targetScaleNotifier.value;
+  double? get targetScale => widget.targetScaleNotifier.value;
 
   double get targetBeatWidth => beatWidth;
 
@@ -254,6 +254,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     } else {
       // interactiveController.reset();
       final targetedMatrix = transformationController.value.clone();
+      final targetScale = widget.targetScaleNotifier.value;
+      if (targetScale ==
+              null /*||
+          targetScale < minScale ||
+          targetScale > maxScale*/
+          ) {
+        return;
+      }
       targetedMatrix.scale(
           targetScale / scale, targetScale / scale, targetScale / scale);
 

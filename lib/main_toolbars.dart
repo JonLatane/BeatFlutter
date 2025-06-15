@@ -31,7 +31,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final UniverseManager universeManager;
   final Score score;
   final Section currentSection;
-  final Part currentPart;
+  final Part? currentPart;
   final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
@@ -56,10 +56,10 @@ class BeatScratchToolbar extends StatefulWidget {
   final bool vertical;
   final bool showSections;
   final bool verticalSections;
-  final Melody openMelody;
-  final Melody prevMelody;
-  final Part openPart;
-  final Part prevPart;
+  final Melody? openMelody;
+  final Melody? prevMelody;
+  final Part? openPart;
+  final Part? prevPart;
   final bool isMelodyViewOpen;
   final bool leftHalfOnly;
   final bool rightHalfOnly;
@@ -133,7 +133,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
   bool get hasPart => !hasMelody || widget.prevPart != null;
   bool get hasDrumPart =>
-      hasPart && (widget.openPart.isDrum ?? widget.prevPart.isDrum ?? false);
+      hasPart && (widget.openPart?.isDrum ?? widget.prevPart?.isDrum ?? false);
 
   @override
   void initState() {
@@ -564,8 +564,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 class _EditButton extends StatelessWidget {
   final Score score;
   final Section currentSection;
-  final Part currentPart;
-  final Part? openPart, prevPart;
+  final Part? openPart, prevPart, currentPart;
   final Melody? openMelody, prevMelody;
   final InteractionMode interactionMode;
   final MusicViewMode musicViewMode;
@@ -773,12 +772,12 @@ class _EditButton extends StatelessWidget {
 
 class SecondToolbar extends StatefulWidget {
   final AppSettings appSettings;
-  final VoidCallback toggleKeyboard;
-  final VoidCallback toggleColorboard;
-  final VoidCallback toggleKeyboardConfiguration;
-  final VoidCallback toggleColorboardConfiguration;
+  final VoidCallback? toggleKeyboard;
+  final VoidCallback? toggleColorboard;
+  final VoidCallback? toggleKeyboardConfiguration;
+  final VoidCallback? toggleColorboardConfiguration;
   final VoidCallback toggleTempoConfiguration;
-  final VoidCallback tempoLongPress;
+  final VoidCallback? tempoLongPress;
   final VoidCallback rewind;
   final bool recordingMelody;
   final bool showKeyboard;
@@ -1015,7 +1014,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
                     onPressed: widget.toggleKeyboard,
                     onLongPress: () {
                       HapticFeedback.lightImpact();
-                      widget.toggleKeyboardConfiguration();
+                      widget.toggleKeyboardConfiguration?.call();
                     },
                     color: keyboardBackgroundColor,
                   ))),
@@ -1201,7 +1200,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
           onPressed: widget.toggleTempoConfiguration,
           onLongPress: () {
             HapticFeedback.lightImpact();
-            widget.tempoLongPress();
+            widget.tempoLongPress?.call();
           },
         ));
   }

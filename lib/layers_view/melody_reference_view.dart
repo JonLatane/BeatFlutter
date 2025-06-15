@@ -25,7 +25,7 @@ class MelodyReferenceView extends StatefulWidget {
   final Color sectionColor;
   final Section currentSection;
   final Part part;
-  final Melody selectedMelody;
+  final Melody? selectedMelody;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
   final VoidCallback hideMelodyView;
@@ -72,7 +72,7 @@ class _MelodyReferenceViewState extends State<MelodyReferenceView>
   MelodyReference get reference =>
       widget.currentSection.referenceTo(widget.melody)!;
 
-  bool get isSelectedMelody => widget.melody.id == widget.selectedMelody.id;
+  bool get isSelectedMelody => widget.melody.id == widget.selectedMelody?.id;
   late AnimationController animationController;
   TextEditingController nameController = TextEditingController();
   bool get allowEditName => widget.showMediumDetails;

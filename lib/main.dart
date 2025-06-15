@@ -1735,13 +1735,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     bool bottom = false,
   }) {
     bool playing = BeatScratchPlugin.playing;
-    int? tapInBeat = _tapInBeat;
+    final int? tapInBeat = _tapInBeat;
     bool isDisplayed = (!vertical && !bottom && _tapInBarHeight != 0) ||
         (vertical && _landscapeTapInBarWidth != 0) ||
         (bottom && _bottomTapInBarHeight != 0);
     final double tapInFirstSize = !playing && (vertical) ? 42 : 0;
     final double tapInSecondSize =
-        !BeatScratchPlugin.playing && (_tapInBeat <= -2) ? 42 : 0;
+        !playing && (tapInBeat != null) && (tapInBeat <= -2) ? 42 : 0;
     final audioButtonColor =
         BeatScratchPlugin.metronomeEnabled ? sectionColor : Colors.grey;
     Widget tapInBarInstructions({bool withText = true, bool withIcon = true}) =>
@@ -2228,8 +2228,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           saveCurrentScore: saveCurrentScore,
           pasteScore: () async {
-            ClipboardData data = await Clipboard.getData(Clipboard.kTextPlain);
-            String scoreUrl = data.text;
+            ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+            String scoreUrl = data?.text ?? '';
             _scoreManager.loadFromScoreUrl(scoreUrl,
                 currentScoreToSave: this.score, onFail: () {
               setState(() {
@@ -2293,7 +2293,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         }
       } else if (object is Section) {
         _selectOrDeselectMelody(selectedMelody);
-        _selectOrDeselectPart(selectedPart);
+        if (selectedPart != null) {
+          _selectOrDeselectPart(selectedPart!);
+        }
         musicViewMode = MusicViewMode.section;
         if (!interactionMode.isEdit) {
           _editMode();
@@ -2407,7 +2409,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return result;
   }
 
-  saveCurrentScore({Duration delay}) {
+  saveCurrentScore({Duration? delay}) {
     final score = this.score;
     final scoreFile = _scoreManager.currentScoreFile;
     print("Saving score ${score.name} to ${scoreFile.path.split('/').last}...");
@@ -2426,7 +2428,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               }));
     }
 
-    Future.delayed(delay, doSave);
+    if (delay == null) {
+      Future.microtask(doSave);
+    } else
+      Future.delayed(delay, doSave);
   }
 
   double beatScratchToolbarHeight(BuildContext context) =>
@@ -2648,8 +2653,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         setPartVolume: _setPartVolume,
         setColorboardPart: _setColorboardPart,
         setKeyboardPart: _setKeyboardPart,
-        colorboardPart: colorboardPart,
-        keyboardPart: keyboardPart,
+        colorboardPart: colorboardPart ?? Part(),
+        keyboardPart: keyboardPart ?? Part(),
         editingMelody: recordingMelody,
         hideMelodyView: _hideMusicView,
         availableWidth: availableWidth,
