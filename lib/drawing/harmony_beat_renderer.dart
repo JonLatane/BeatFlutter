@@ -9,7 +9,8 @@ import '../util/util.dart';
 
 extension _HarmonyHighlight on Color {
   // ignore: unused_element
-  Color withHighlight({bool isPlaying, bool isSelected, bool isFaded}) {
+  Color withHighlight(
+      {bool isPlaying = false, bool isSelected = false, bool isFaded = false}) {
     int alpha = 187;
     if (isPlaying) {
       alpha = 255;
@@ -65,10 +66,10 @@ extension _HarmonyColor on Chord {
 }
 
 class HarmonyBeatRenderer {
-  Section section;
+  late Section section;
 
-  Harmony get harmony => section?.harmony;
-  Meter get meter => section?.meter;
+  Harmony get harmony => section.harmony;
+  Meter get meter => section.meter;
   int beatPosition = 0;
 
   Iterable<int> get subdivisionRange => range(

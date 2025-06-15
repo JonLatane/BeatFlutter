@@ -5,38 +5,36 @@ import 'package:beatscratch_flutter_redux/colors.dart';
 import '../music_view/music_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/rendering.dart';
 
 import 'dart:async';
 
 import 'my_buttons.dart';
-import 'my_platform.dart';
 import '../ui_models.dart';
 
 class IncrementableValue extends StatefulWidget {
-  final Function onIncrement;
-  final Function onDecrement;
-  final Function onBigIncrement;
-  final Function onBigDecrement;
-  final String value;
-  final TextStyle textStyle;
+  final Function? onIncrement;
+  final Function? onDecrement;
+  final Function? onBigIncrement;
+  final Function? onBigDecrement;
+  final String? value;
+  final TextStyle? textStyle;
   final double valueWidth;
-  final VoidCallback onValuePressed;
-  final Widget child;
+  final VoidCallback? onValuePressed;
+  final Widget? child;
   final double incrementDistance;
   final double incrementTimingDifferenceMs;
   final bool collapsing;
-  final IconData incrementIcon;
-  final IconData decrementIcon;
-  final IconData bigIncrementIcon;
-  final IconData bigDecrementIcon;
-  final VoidCallback onPointerUpCallback;
-  final VoidCallback onPointerDownCallback;
+  final IconData? incrementIcon;
+  final IconData? decrementIcon;
+  final IconData? bigIncrementIcon;
+  final IconData? bigDecrementIcon;
+  final VoidCallback? onPointerUpCallback;
+  final VoidCallback? onPointerDownCallback;
   final bool musicActionButtonStyle;
-  final Color musicActionButtonColor;
+  final Color? musicActionButtonColor;
 
   const IncrementableValue({
-    Key key,
+    Key? key,
     this.onIncrement,
     this.onDecrement,
     this.value,
@@ -65,8 +63,8 @@ class IncrementableValue extends StatefulWidget {
 
 class _IncrementableValueState extends State<IncrementableValue> {
   int lastTouchTimeMs = 0;
-  Offset incrementStartPos;
-  int incrementStartTimeMs;
+  Offset? incrementStartPos;
+  late int incrementStartTimeMs;
   static const _msDelay = 3000;
   // static const _delay = Duration(milliseconds: _msDelay);
   bool _disposed = false;
@@ -137,17 +135,17 @@ class _IncrementableValueState extends State<IncrementableValue> {
         isDown = true;
       }
 //          print("direction=$direction | isUp=$isUp | isDown=$isDown");
-      if (isUp && widget.onIncrement != null) {
+      if (isUp) {
         vibrate();
         incrementStartPos = event.position;
         incrementStartTimeMs = eventTime;
         // print("increment");
-        widget.onIncrement();
-      } else if (isDown && widget.onDecrement != null) {
+        widget.onIncrement?.call();
+      } else if (isDown) {
         vibrate();
         incrementStartPos = event.position;
         incrementStartTimeMs = eventTime;
-        widget.onDecrement();
+        widget.onDecrement?.call();
       }
     }
 
@@ -227,7 +225,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       ? () {
                           lastTouchTimeMs =
                               DateTime.now().millisecondsSinceEpoch;
-                          widget.onBigDecrement();
+                          widget.onBigDecrement?.call();
                         }
                       : null,
                   padding: EdgeInsets.zero,
@@ -248,7 +246,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       ? () {
                           lastTouchTimeMs =
                               DateTime.now().millisecondsSinceEpoch;
-                          widget.onDecrement();
+                          widget.onDecrement?.call();
                         }
                       : null,
                   padding: EdgeInsets.all(0),
@@ -281,7 +279,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       ? () {
                           lastTouchTimeMs =
                               DateTime.now().millisecondsSinceEpoch;
-                          widget.onIncrement();
+                          widget.onIncrement?.call();
                         }
                       : null,
                   padding: EdgeInsets.all(0),
@@ -302,7 +300,7 @@ class _IncrementableValueState extends State<IncrementableValue> {
                       ? () {
                           lastTouchTimeMs =
                               DateTime.now().millisecondsSinceEpoch;
-                          widget.onBigIncrement();
+                          widget.onBigIncrement?.call();
                         }
                       : null,
                   padding: EdgeInsets.all(0),

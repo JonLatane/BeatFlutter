@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../generated/protos/music.pb.dart';
 import 'music_theory.dart';
 import 'util.dart';
@@ -25,10 +27,12 @@ class NoteSpecification {
   @override
   String toString() => "NoteSpecification:$uiString";
 
-  NoteSpecification({this.noteName, this.octave});
+  NoteSpecification({required this.noteName, required this.octave});
 
   NoteSpecification.name(
-      {NoteLetter letter, NoteSign sign = NoteSign.natural, int octave})
+      {required NoteLetter letter,
+      NoteSign sign = NoteSign.natural,
+      required int octave})
       : this(
             noteName: (NoteName()
               ..noteLetter = letter
@@ -55,9 +59,9 @@ extension HeptatonicConversions on int {
       .groupBy(((note) => note.tone));
 
   NoteSpecification get naturalOrSharpNote =>
-      _notesFor[this].firstWhere((note) => note.sign == NoteSign.natural,
-          orElse: () => null) ??
-      _notesFor[this].firstWhere((note) => note.sign == NoteSign.sharp);
+      _notesFor[this]!
+          .firstWhereOrNull((note) => note.sign == NoteSign.natural) ??
+      _notesFor[this]!.firstWhere((note) => note.sign == NoteSign.sharp);
 
   // ignore: unused_field
   static final Map<Chord, Map<int, NoteSpecification>> _noteNameChordCache =
@@ -75,73 +79,74 @@ extension HeptatonicConversions on int {
     int difference = (this - rootNote.tone).mod12;
     switch (difference) {
       case 0:
-        return _notesFor[this].firstWhere((it) => it.letter == rootNote.letter);
+        return _notesFor[this]!
+            .firstWhere((it) => it.letter == rootNote.letter);
       case 1:
-        return _notesFor[this]
+        return _notesFor[this]!
             .firstWhere((it) => it.letter == rootNote.letter + 1); // m2
       case 2:
-        return _notesFor[this]
+        return _notesFor[this]!
             .firstWhere((it) => it.letter == rootNote.letter + 1); // M2
       case 3:
         if (chord.hasAug2) {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 1); // A2
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 2); // m3
         }
         break;
       case 4:
-        return _notesFor[this]
+        return _notesFor[this]!
             .firstWhere((it) => it.letter == rootNote.letter + 2); // M3
       case 5:
-        return _notesFor[this]
+        return _notesFor[this]!
             .firstWhere((it) => it.letter == rootNote.letter + 3); // P4
       case 6:
         if (chord.hasAug4) {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 3); // A4
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 4); // d5
         }
         break;
       case 7:
-        return _notesFor[this]
+        return _notesFor[this]!
             .firstWhere((it) => it.letter == rootNote.letter + 4); // P5
       case 8:
         if (chord.hasAug5) {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 4); // A5
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 5); // m6
         }
         break;
       case 9:
         if (chord.hasDim7) {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 5); // d7
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 5); // M6
         }
         break;
       case 10:
         if (chord.hasAug6) {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 5); // A6
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 6); // m7
         }
         break;
       case 11:
         if (rootNote.sign == NoteSign.double_sharp) {
-          return _notesFor[this].firstWhere((it) =>
+          return _notesFor[this]!.firstWhere((it) =>
               it.letter == rootNote.letter); // diminished 1 (for readability)
         } else {
-          return _notesFor[this]
+          return _notesFor[this]!
               .firstWhere((it) => it.letter == rootNote.letter + 6); //M7
         }
         break;
@@ -165,7 +170,7 @@ abstract class MusicStaff {
   MusicStaff();
 
   String get id;
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration);
+  Iterable<Part> getParts(Score score, Iterable<MusicStaff> staffConfiguration);
 
   @override
   bool operator ==(other) => other is MusicStaff && id == other.id;
@@ -179,7 +184,8 @@ class PartStaff extends MusicStaff {
   @override
   String get id => "staff-part-${part.id}";
   @override
-  Iterable<Part> getParts(Score score, List<MusicStaff> staffConfiguration) =>
+  Iterable<Part> getParts(
+          Score score, Iterable<MusicStaff> staffConfiguration) =>
       [part];
 }
 

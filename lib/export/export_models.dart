@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:dart_midi/dart_midi.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_writer.dart';
+import 'package:collection/collection.dart';
 
 import '../generated/protos/protos.dart';
 import 'export_manager.dart';
@@ -12,29 +13,26 @@ class BSExport {
   Score score;
   double tempoMultiplier;
   ExportType exportType;
-  String sectionId;
+  String? sectionId;
   final List<String> partIds = [];
 
-  BSExport(
-      {this.score,
-      this.exportType = ExportType.midi,
+  BSExport(this.score,
+      {this.exportType = ExportType.midi,
       this.tempoMultiplier = 1,
       this.sectionId});
 
   File call(ExportManager exportManager) {
-    final midiFile = score.exportMidi(this);
+    final midiFile = score.exportMidi(this)!;
     final fileHandle = exportManager.createExportFile(this);
     MidiWriter().writeMidiToFile(midiFile, fileHandle);
     return fileHandle;
   }
 
-  Section get exportedSection => score.sections.isEmpty
+  Section? get exportedSection => score.sections.isEmpty
       ? null
-      : score.sections.firstWhere((s) => s.id == sectionId, orElse: () => null);
+      : score.sections.firstWhereOrNull((s) => s.id == sectionId);
 
-  bool includesSection(Section section) =>
-      sectionId == null || sectionId == section.id;
+  bool includesSection(Section section) => sectionId == section.id;
 
-  bool includesPart(Part part) =>
-      partIds == null || partIds.isEmpty || partIds.contains(part.id);
+  bool includesPart(Part part) => partIds.isEmpty || partIds.contains(part.id);
 }

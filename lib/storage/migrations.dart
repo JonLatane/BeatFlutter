@@ -14,15 +14,15 @@ extension Migrations on Score {
   }
 
   _setBpmsOnSections() {
-    double firstSeenBpm;
+    double? firstSeenBpm;
     for (Section section in sections) {
-      if (section.tempo != null && section.tempo.bpm != null) {
+      if (section.tempo.bpm > 0) {
         firstSeenBpm = section.tempo.bpm;
         break;
       }
     }
     sections.forEach((section) {
-      if (section.tempo == null || section.tempo.bpm == null) {
+      if (section.tempo.bpm > 0) {
         section.tempo = Tempo()..bpm = firstSeenBpm ?? 123;
       }
     });

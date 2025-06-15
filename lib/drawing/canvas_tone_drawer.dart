@@ -30,10 +30,10 @@ class CanvasToneDrawer {
   Paint alphaDrawerPaint = Paint();
 
   /// Represent the bounds for whatever is to be drawn
-  Rect bounds;
-  bool renderVertically;
+  late Rect bounds;
+  late bool renderVertically;
   double get axisLength => renderVertically ? bounds.height : bounds.width;
-  double halfStepsOnScreen;
+  late double halfStepsOnScreen;
 
   int highestPitch = TOP;
 

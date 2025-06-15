@@ -1,20 +1,22 @@
-import 'package:dart_midi/dart_midi.dart';
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_parser.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 
 import '../generated/protos/protos.dart';
 import 'util.dart';
 
 extension MidiEventFilters on Iterable<MidiEvent> {
-  bool hasNoteOnEvent(int midiNote) => any((it) =>
-      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  bool hasNoteOffEvent(int midiNote) => any((it) =>
-      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  Iterable<MidiEvent> withoutNoteOnEvents(int midiNote) => where((it) =>
-      !(it is NoteOnEvent) || (it as NoteOnEvent).noteNumber != midiNote);
-  Iterable<MidiEvent> withoutNoteOffEvents(int midiNote) => where((it) =>
-      !(it is NoteOffEvent) || (it as NoteOffEvent).noteNumber != midiNote);
+  bool hasNoteOnEvent(int midiNote) =>
+      any((it) => !(it is NoteOnEvent) || it.noteNumber != midiNote);
+  bool hasNoteOffEvent(int midiNote) =>
+      any((it) => !(it is NoteOnEvent) || it.noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOnEvents(int midiNote) =>
+      where((it) => !(it is NoteOnEvent) || it.noteNumber != midiNote);
+  Iterable<MidiEvent> withoutNoteOffEvents(int midiNote) =>
+      where((it) => !(it is NoteOffEvent) || it.noteNumber != midiNote);
 }
 
 extension MidiChangeTheory on MidiChange {
@@ -29,7 +31,7 @@ extension MidiChangeTheory on MidiChange {
   }
 
   Iterable<MidiEvent> get _midiEvents {
-    if (data == null || data.isEmpty) {
+    if (data.isEmpty) {
       return [];
     }
     var chunkedData = data.chunked(3);
@@ -73,7 +75,7 @@ extension MidiEvents on MidiPacket {
   }
 
   Iterable<MidiEvent> get _midiEvents {
-    if (data == null || data.isEmpty) {
+    if (data.isEmpty) {
       return [];
     }
     var chunkedData = data.chunked(3);
@@ -91,7 +93,7 @@ extension MidiEvents on MidiPacket {
     value.forEach((event) {
       event.writeEvent(writer);
     });
-    data = writer.buffer;
+    data = Uint8List.fromList(writer.buffer);
 //    print("done setting midiEvents; data1=${writer.buffer}");
 //    print("done setting midiEvents; data=$data");
   }
@@ -113,14 +115,11 @@ extension MidiMelodies on Melody {
     Map<int, MidiChange> convertedData = Map();
     List<MapEntry<int, Iterable<int>>> sortedData = simpleData.entries.toList()
       ..sort((e1, e2) => e1.key.compareTo(e2.key));
-    Iterable<int> prevTones;
+    Iterable<int> prevTones = [];
     sortedData.forEach((entry) {
       int key = entry.key;
       Iterable<int> tones = entry.value;
       List<MidiEvent> events = [];
-      if (prevTones == null) {
-        prevTones = sortedData.last.value;
-      }
       events.addAll(prevTones.map((tone) => NoteOffEvent()
         ..noteNumber = tone + 60
         ..velocity = 127

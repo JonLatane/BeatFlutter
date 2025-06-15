@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_appavailability/flutter_appavailability.dart';
+import 'package:appcheck/appcheck.dart';
 
 import '../beatscratch_plugin.dart';
 import '../generated/protos/protos.dart';
@@ -11,7 +10,7 @@ extension Sanitize on String {
 }
 
 extension ControllerNameOrId on MidiController {
-  String get nameOrId => (name?.isNotEmpty == true) ? name : id;
+  String get nameOrId => (name.isNotEmpty == true) ? name : id;
 }
 
 const Map<String, String> supportedAndroidSynthApps = {
@@ -22,11 +21,10 @@ const Map<String, String> supportedAndroidControllerApps = {
 };
 
 _launchAndroidApp(BuildContext context, String packageName) async {
-  AppAvailability.launchApp(packageName).then((_) {
+  new AppCheck().launchApp(packageName).then((_) {
     print("App $packageName launched!");
   }).catchError((err) {
     ScaffoldMessenger.of(context)
-        // ignore: deprecated_member_use
         .showSnackBar(SnackBar(content: Text("App $packageName not found!")));
     print(err);
   });
@@ -45,10 +43,14 @@ Future<void> getApps() async {
   if (MyPlatform.isAndroid) {
     // print(await AppAvailability.checkAvailability(
     //     "net.volcanomobile.fluidsynthmidi"));
-    hasVolcanoFluidSynth =
-        await AppAvailability.isAppEnabled("net.volcanomobile.fluidsynthmidi");
-    hasMobileerMidiBTLEPairing = await AppAvailability.isAppEnabled(
-        "com.mobileer.example.midibtlepairing");
+    hasVolcanoFluidSynth = await new AppCheck()
+            .checkAvailability("net.volcanomobile.fluidsynthmidi") !=
+        null;
+    hasMobileerMidiBTLEPairing = await new AppCheck()
+            .checkAvailability("com.mobileer.example.midibtlepairing") !=
+        null;
+    // await AppAvailability.isAppEnabled(
+    //     "com.mobileer.example.midibtlepairing");
 
     // Returns: true
   }

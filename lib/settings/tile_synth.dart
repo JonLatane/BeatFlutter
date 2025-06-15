@@ -1,8 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
@@ -17,7 +14,8 @@ class MidiSynthTile extends StatefulWidget {
   final Axis scrollDirection;
   final MidiSynthesizer midiSynthesizer;
 
-  const MidiSynthTile({Key key, this.scrollDirection, this.midiSynthesizer})
+  const MidiSynthTile(
+      {Key? key, required this.scrollDirection, required this.midiSynthesizer})
       : super(key: key);
 
   @override

@@ -18,21 +18,18 @@ class MessagesUI {
       messages.where((m) => m.visible).length * _messageHeight(context);
 
   BSMessage sendMessage({
-    @required message,
+    required message,
     icon,
     color,
     timeout = const Duration(milliseconds: 5500),
     bool isError = false,
-    String messageId,
+    String? messageId,
     bool andSetState = false,
   }) {
     if (icon == null) {
       icon = isError
           ? Icon(Icons.warning, size: 18, color: color ?? chromaticSteps[7])
           : Icon(Icons.info, size: 18, color: color ?? chromaticSteps[0]);
-    }
-    if (messageId == null) {
-      messageId = uuid.v4();
     }
     final bsMessage = BSMessage(
       id: messageId,
@@ -62,8 +59,8 @@ class MessagesUI {
 
   _removeMessage(
     BSMessage bsMessage, {
-    @required icon,
-    @required message,
+    required icon,
+    required message,
   }) {
     setAppState(() {
       bsMessage.visible = false;
@@ -75,7 +72,7 @@ class MessagesUI {
     });
   }
 
-  Widget build({@required BuildContext context}) {
+  Widget build({required BuildContext context}) {
     return Column(
         children: messages
             .map((m) => buildMessage(m, context: context))
@@ -84,7 +81,7 @@ class MessagesUI {
 
   Widget buildMessage(
     BSMessage message, {
-    @required BuildContext context,
+    required BuildContext context,
   }) {
     return AnimatedContainer(
         duration: animationDuration,

@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../util/midi_theory.dart';
 
 import '../generated/protos/music.pb.dart';
@@ -113,8 +115,8 @@ extension NoteConversions on int {
 
 extension PatternIndexConversions on int {
   int convertPatternIndex(
-      {int fromSubdivisionsPerBeat,
-      int toSubdivisionsPerBeat,
+      {int fromSubdivisionsPerBeat = 0,
+      int toSubdivisionsPerBeat = 0,
       int toLength = 1000000000}) {
     // In the storageContext of the "from" melody, in, say, sixteenth notes (subdivisionsPerBeat=4),
     // if this is 5, then currentBeat is 1.25.
@@ -155,17 +157,8 @@ extension ChordTheory on Chord {
 
   /// Returns the nearest
   int closestTone(int tone) {
-    int result;
-    range(0, 11).forEach((i) {
-      if (result == null) {
-        if (containsTone(tone - i)) {
-          result = tone - i;
-        }
-        if (containsTone(tone + i)) {
-          result = tone + i;
-        }
-      }
-    });
+    int? result;
+    range(0, 11).forEach((i) {});
     if (chroma != 2047) {
 //      print("closest to $tone for ${this.toString().replaceAll("\n", "")} is $result");
     }
@@ -198,7 +191,7 @@ extension HarmonyTheory on Harmony {
 
   Chord _changeBefore(int subdivision) {
     // final int initialSubdivision = subdivision;
-    Chord result = data[subdivision];
+    Chord? result = data[subdivision];
     while (result == null) {
       subdivision = subdivision - 1;
       if (subdivision < 0) {
@@ -212,12 +205,12 @@ extension HarmonyTheory on Harmony {
 
 extension MelodyTheory on Melody {
   String get idName => "Melody ${id.substring(0, 5)}";
-  String get canonicalName => name?.isNotEmpty == true ? name : idName;
+  String get canonicalName => name.isNotEmpty == true ? name : idName;
   int get beatCount => (length / subdivisionsPerBeat).floor();
   double get realBeatCount => length.toDouble() / subdivisionsPerBeat;
   Iterable<int> get tones => (type == MelodyType.midi)
       ? midiData.data.values
-          .expand((it) => it.noteOns.map((e) => e.noteNumber - 60))
+          .expand((it) => it.noteOns.map((e) => e!.noteNumber - 60))
       : [];
   static final Map<String, double> averageToneCache = Map();
   double get averageTone =>
@@ -326,7 +319,7 @@ extension MelodyTheory on Melody {
 
   MidiChange midiChangeBefore(int subdivision) {
     // final int initialSubdivision = subdivision;
-    MidiChange result = midiData.data[subdivision];
+    MidiChange? result = midiData.data[subdivision];
     while (result == null) {
       subdivision = subdivision - 1;
       if (subdivision < 0) {
@@ -344,10 +337,9 @@ extension SectionTheory on Section {
   double get realBeatCount => harmony.realBeatCount;
   int get beatCount => harmony.beatCount;
 
-  MelodyReference referenceTo(Melody melody) => (melody != null)
-      ? melodies.firstWhere((element) => element.melodyId == melody.id,
-          orElse: () => _defaultMelodyReference(melody))
-      : null;
+  MelodyReference referenceTo(Melody melody) =>
+      melodies.firstWhere((element) => element.melodyId == melody.id,
+          orElse: () => _defaultMelodyReference(melody));
 
   MelodyReference _defaultMelodyReference(Melody melody) {
     var result = MelodyReference()
@@ -381,12 +373,13 @@ extension ScoreTheory on Score {
   int get beatCount => sections.fold(0, (p, s) => p + s.beatCount);
   int get maxBeat => beatCount - 1;
 
-  Melody melodyReferencedBy(MelodyReference ref) => parts.fold(
+  Melody? melodyReferencedBy(MelodyReference ref) => parts.fold(
       null,
       (previousValue, part) =>
           previousValue ??
-          part.melodies.firstWhere((melody) => melody.id == ref.melodyId,
-              orElse: () => null));
+          part.melodies.firstWhereOrNull(
+            (melody) => melody.id == ref.melodyId,
+          ));
 
   int firstBeatOfSection(Section currentSection) {
     if (sections.isEmpty) {

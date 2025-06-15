@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:ui';
 
-import 'package:dart_midi/dart_midi.dart';
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
 
 import '../messages/messages_ui.dart';
 import 'tile_bluetooth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:animated_list_plus/animated_list_plus.dart';
@@ -16,14 +13,12 @@ import 'package:animated_list_plus/transitions.dart';
 
 import '../beatscratch_plugin.dart';
 import '../colors.dart';
-import '../generated/protos/protobeats_plugin.pb.dart';
 import '../generated/protos/protos.dart';
 import '../music_preview/melody_preview.dart';
 import 'app_settings.dart';
 import '../storage/universe_manager.dart';
 import '../ui_models.dart';
 import '../universe_view/universe_icon.dart';
-import '../util/bs_methods.dart';
 import '../util/dummydata.dart';
 import '../util/midi_theory.dart';
 import '../util/util.dart';
@@ -50,20 +45,20 @@ class SettingsPanel extends StatefulWidget {
   final Part keyboardPart;
 
   const SettingsPanel(
-      {Key key,
-      @required this.appSettings,
-      @required this.universeManager,
-      @required this.sectionColor,
-      @required this.close,
-      @required this.enableColorboard,
-      @required this.setColorboardEnabled,
-      @required this.toggleKeyboardConfig,
-      @required this.toggleColorboardConfig,
-      @required this.bluetoothScan,
-      @required this.visible,
-      @required this.messagesUI,
-      @required this.bluetoothControllerPressedNotes,
-      @required this.keyboardPart})
+      {Key? key,
+      required this.appSettings,
+      required this.universeManager,
+      required this.sectionColor,
+      required this.close,
+      required this.enableColorboard,
+      required this.setColorboardEnabled,
+      required this.toggleKeyboardConfig,
+      required this.toggleColorboardConfig,
+      required this.bluetoothScan,
+      required this.visible,
+      required this.messagesUI,
+      required this.bluetoothControllerPressedNotes,
+      required this.keyboardPart})
       : super(key: key);
 
   @override
@@ -76,15 +71,15 @@ class _SettingsPanelState extends State<SettingsPanel> {
       BeatScratchPlugin.midiControllers;
   Iterable<MidiSynthesizer> get midiSynthesizers =>
       BeatScratchPlugin.midiSynthesizers;
-  List<MidiDevice> observedDevices;
-  List<String> connectedDeviceIds;
-  StreamSubscription<MidiPacket> midiCommandSubscription;
+  late List<MidiDevice> observedDevices;
+  late List<String> connectedDeviceIds;
+  late StreamSubscription<MidiPacket>? midiCommandSubscription;
 
   _startBluetoothScanLoop() async {
     MidiCommand().devices.then((results) {
-      observedDevices = results.where((r) => r.type == "BLE").toList();
+      observedDevices = results?.where((r) => r.type == "BLE").toList() ?? [];
       connectedDeviceIds
-          .removeWhere((id) => !observedDevices.any((d) => d.id == id));
+          .removeWhere((id) => !observedDevices!.any((d) => d.id == id));
       Future.delayed(
           Duration(seconds: widget.visible ? 5 : 15), _startBluetoothScanLoop);
     });
@@ -108,13 +103,13 @@ class _SettingsPanelState extends State<SettingsPanel> {
           if (e is NoteOnEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id]
+            widget.bluetoothControllerPressedNotes.value[event.device.id]!
                 .add(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           } else if (e is NoteOffEvent) {
             e.channel = widget.keyboardPart.instrument.midiChannel;
             e.writeEvent(writer);
-            widget.bluetoothControllerPressedNotes.value[event.device.id]
+            widget.bluetoothControllerPressedNotes.value[event.device.id]!
                 .remove(e.noteNumber - 60);
             widget.bluetoothControllerPressedNotes.notifyListeners();
           }
@@ -172,7 +167,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
         BeatScratchPlugin.supportsSynthesizerConfig
             ? this.midiSynthesizers.toList()
             : [this.midiSynthesizers.toList().first];
-    List<dynamic> appSettings = [
+    List<Identifiable> appSettings = [
       SeparatorTile(text: "App Settings", id: "app-settings"),
       SettingsTile(
         id: "pasteeIntegration",
@@ -474,17 +469,19 @@ class _SettingsPanelState extends State<SettingsPanel> {
           ),
         ),
     ];
-    List<dynamic> items = <dynamic>[
+    List<Identifiable> items = <Identifiable>[
       if (observedDevices.isNotEmpty)
         SeparatorTile(text: "Bluetooth Devices", id: "bluetooth-settings"),
-      ...observedDevices,
+      ...observedDevices.map((d) => IdentifiableWrapper<MidiDevice>(d, d.id)),
       SeparatorTile(text: "MIDI Devices", id: "midi-settings"),
-      ...midiSynthesizers,
-      ...midiControllers,
+      ...midiSynthesizers
+          .map((d) => IdentifiableWrapper<MidiSynthesizer>(d, d.id)),
+      ...midiControllers
+          .map((d) => IdentifiableWrapper<MidiController>(d, d.id)),
       ...appSettings,
       ...features,
     ];
-    return ImplicitlyAnimatedList<dynamic>(
+    return ImplicitlyAnimatedList<Identifiable>(
       key: ValueKey("MidiSettingsList"),
       scrollDirection: Axis.horizontal,
       spawnIsolate: false,
@@ -498,40 +495,42 @@ class _SettingsPanelState extends State<SettingsPanel> {
           return SizedBox();
         }
         final dynamic item = items[index];
-        Widget tile;
-        if (item is MidiController) {
-          tile = MidiControllerTile(
-            appSettings: widget.appSettings,
-            scrollDirection: Axis.horizontal,
-            midiController: item,
-            enableColorboard: widget.enableColorboard,
-            setColorboardEnabled: widget.setColorboardEnabled,
-            sectionColor: widget.sectionColor,
-            toggleKeyboardConfig: widget.toggleKeyboardConfig,
-            toggleColorboardConfig: widget.toggleColorboardConfig,
-          );
-        } else if (item is MidiSynthesizer) {
-          tile = MidiSynthTile(
-            scrollDirection: Axis.horizontal,
-            midiSynthesizer: item,
-          );
-        } else if (item is SettingsTile || item is SeparatorTile) {
+        Widget? tile;
+        if (item is SettingsTile || item is SeparatorTile || item is Widget) {
           tile = item;
-        } else if (item is MidiDevice) {
-          tile = BluetoothDeviceTile(
-            key: ValueKey("Bluetooth-Device-${item.id}"),
-            device: item,
-            sectionColor: widget.sectionColor,
-            connected: connectedDeviceIds.any((id) => id == item.id),
-            onConnect: () {
-              connectedDeviceIds.add(item.id.toString());
-            },
-            onDisconnect: () {
-              connectedDeviceIds.remove(item.id.toString());
-            },
-            bluetoothControllerPressedNotes:
-                widget.bluetoothControllerPressedNotes,
-          );
+        } else if (item is IdentifiableWrapper) {
+          if (item.item is MidiController) {
+            tile = MidiControllerTile(
+              appSettings: widget.appSettings,
+              scrollDirection: Axis.horizontal,
+              midiController: item.item,
+              enableColorboard: widget.enableColorboard,
+              setColorboardEnabled: widget.setColorboardEnabled,
+              sectionColor: widget.sectionColor,
+              toggleKeyboardConfig: widget.toggleKeyboardConfig,
+              toggleColorboardConfig: widget.toggleColorboardConfig,
+            );
+          } else if (item.item is MidiSynthesizer) {
+            tile = MidiSynthTile(
+              scrollDirection: Axis.horizontal,
+              midiSynthesizer: item.item,
+            );
+          } else if (item is MidiDevice) {
+            tile = BluetoothDeviceTile(
+              key: ValueKey("Bluetooth-Device-${item.id}"),
+              device: item.item,
+              sectionColor: widget.sectionColor,
+              connected: connectedDeviceIds.any((id) => id == item.id),
+              onConnect: () {
+                connectedDeviceIds.add(item.id.toString());
+              },
+              onDisconnect: () {
+                connectedDeviceIds.remove(item.id.toString());
+              },
+              bluetoothControllerPressedNotes:
+                  widget.bluetoothControllerPressedNotes,
+            );
+          }
         }
         tile = Padding(padding: EdgeInsets.all(5), child: tile);
         return SizeFadeTransition(
@@ -707,4 +706,14 @@ showColors(BuildContext context, Color sectionColor) {
       // ],
     ),
   );
+}
+
+abstract class Identifiable {
+  String get id;
+}
+
+class IdentifiableWrapper<T> extends Identifiable {
+  final T item;
+  final String id;
+  IdentifiableWrapper(this.item, this.id);
 }

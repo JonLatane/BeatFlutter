@@ -1,7 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_reorderable_list/flutter_reorderable_list.dart' as frl;
 import 'package:animated_list_plus/transitions.dart';
 
@@ -21,14 +18,14 @@ class MelodyReferenceView extends StatefulWidget {
   static const double maxColumnWidth = 250;
   static const double columnWidthIncrement = 12;
   static const double columnWidthMicroIncrement = 1.4;
-  static Melody lastAddedMelody;
+  static Melody? lastAddedMelody;
   final Melody melody;
   final bool isFirst;
   final bool isLast;
   final Color sectionColor;
   final Section currentSection;
   final Part part;
-  final Melody selectedMelody;
+  final Melody? selectedMelody;
   final Function(Melody) selectMelody;
   final VoidCallback toggleEditingMelody;
   final VoidCallback hideMelodyView;
@@ -44,26 +41,26 @@ class MelodyReferenceView extends StatefulWidget {
   final double width;
 
   MelodyReferenceView({
-    this.melody,
-    this.isFirst,
-    this.isLast,
-    this.sectionColor,
-    this.currentSection,
-    this.selectedMelody,
-    this.selectMelody,
-    this.colorboardPart,
-    this.keyboardPart,
-    this.toggleMelodyReference,
-    this.setReferenceVolume,
-    this.editingMelody,
-    this.toggleEditingMelody,
-    this.hideMelodyView,
-    this.showBeatsBadge,
-    this.requestScrollToTop,
-    this.showMediumDetails,
-    this.showHighDetails,
-    this.part,
-    this.width,
+    required this.melody,
+    required this.isFirst,
+    required this.isLast,
+    required this.sectionColor,
+    required this.currentSection,
+    required this.selectedMelody,
+    required this.selectMelody,
+    required this.colorboardPart,
+    required this.keyboardPart,
+    required this.toggleMelodyReference,
+    required this.setReferenceVolume,
+    required this.editingMelody,
+    required this.toggleEditingMelody,
+    required this.hideMelodyView,
+    required this.showBeatsBadge,
+    required this.requestScrollToTop,
+    required this.showMediumDetails,
+    required this.showHighDetails,
+    required this.part,
+    required this.width,
   });
 
   @override
@@ -73,10 +70,10 @@ class MelodyReferenceView extends StatefulWidget {
 class _MelodyReferenceViewState extends State<MelodyReferenceView>
     with TickerProviderStateMixin {
   MelodyReference get reference =>
-      widget.currentSection.referenceTo(widget.melody);
+      widget.currentSection.referenceTo(widget.melody)!;
 
   bool get isSelectedMelody => widget.melody.id == widget.selectedMelody?.id;
-  AnimationController animationController;
+  late AnimationController animationController;
   TextEditingController nameController = TextEditingController();
   bool get allowEditName => widget.showMediumDetails;
   bool get showVolume =>
@@ -285,7 +282,7 @@ class _MelodyReferenceViewState extends State<MelodyReferenceView>
                       },
                       style: TextStyle(
                           color: melodyColor.textColor().withOpacity(
-                              reference?.isEnabled == true ? 1 : 0.5)),
+                              reference.isEnabled == true ? 1 : 0.5)),
                       onTap: () {
                         if (!context.isTabletOrLandscapey) {
                           widget.hideMelodyView();
@@ -306,7 +303,7 @@ class _MelodyReferenceViewState extends State<MelodyReferenceView>
 //                          padding: EdgeInsets.only(right:0),
                           child: Icon(Icons.reorder,
                               color: melodyColor.textColor().withOpacity(
-                                  reference?.isEnabled == true ? 1 : 0.5))))
+                                  reference.isEnabled == true ? 1 : 0.5))))
                 ])),
           ),
           Row(

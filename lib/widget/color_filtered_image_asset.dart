@@ -4,7 +4,8 @@ class ColorFilteredImageAsset extends StatelessWidget {
   final String imageSource;
   final Color imageColor;
 
-  const ColorFilteredImageAsset({Key key, this.imageSource, this.imageColor})
+  const ColorFilteredImageAsset(
+      {Key? key, required this.imageSource, required this.imageColor})
       : super(key: key);
 
   @override

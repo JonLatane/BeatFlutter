@@ -31,6 +31,7 @@ var musicForegroundColor = Colors.white;
 var melodyColor = Color(0xFFDDDDDD);
 
 enum ChordColor { dominant, major, minor, augmented, diminished, tonic, none }
+
 enum SectionColor { major, minor, perfect, augmented, diminished }
 
 extension ChordColors on ChordColor {
@@ -93,7 +94,8 @@ extension BSColors on Color {
       BSColors._luminanceCache.putIfAbsent(this, () => computeLuminance());
 
   /// With [this] as the background color, computes the appropriate text color.
-  Color textColor({Color subBackgroundColor}) {
+  Color textColor({Color? subBackgroundColor}) {
+    final luminance = subBackgroundColor?.luminance ?? this.luminance;
     if (luminance > 0.5) {
       return Colors.black;
     }

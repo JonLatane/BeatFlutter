@@ -1,22 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:beatscratch_flutter_redux/edit_menu.dart';
 import 'package:beatscratch_flutter_redux/main_menu.dart';
 import 'package:beatscratch_flutter_redux/universe_view/universe_view.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import 'beatscratch_plugin.dart';
 import 'cache_management.dart';
 import 'colors.dart';
-import 'export/export.dart';
 import 'generated/protos/music.pb.dart';
 import 'messages/messages_ui.dart';
 import 'settings/app_settings.dart';
@@ -25,7 +20,6 @@ import 'storage/score_picker.dart';
 import 'storage/universe_manager.dart';
 import 'storage/url_conversions.dart';
 import 'ui_models.dart';
-import 'util/bs_methods.dart';
 import 'util/music_theory.dart';
 import 'util/util.dart';
 import 'widget/my_buttons.dart';
@@ -37,7 +31,7 @@ class BeatScratchToolbar extends StatefulWidget {
   final UniverseManager universeManager;
   final Score score;
   final Section currentSection;
-  final Part currentPart;
+  final Part? currentPart;
   final ScoreManager scoreManager;
   final Function(ScorePickerMode) showScorePicker;
   final VoidCallback viewMode;
@@ -62,10 +56,10 @@ class BeatScratchToolbar extends StatefulWidget {
   final bool vertical;
   final bool showSections;
   final bool verticalSections;
-  final Melody openMelody;
-  final Melody prevMelody;
-  final Part openPart;
-  final Part prevPart;
+  final Melody? openMelody;
+  final Melody? prevMelody;
+  final Part? openPart;
+  final Part? prevPart;
   final bool isMelodyViewOpen;
   final bool leftHalfOnly;
   final bool rightHalfOnly;
@@ -76,49 +70,49 @@ class BeatScratchToolbar extends StatefulWidget {
   final BSMethod refreshUniverseData;
   final Function(Object) editObject;
   const BeatScratchToolbar(
-      {Key key,
-      @required this.appSettings,
-      @required this.universeManager,
-      @required this.interactionMode,
-      @required this.musicViewMode,
-      @required this.viewMode,
-      @required this.universeMode,
-      @required this.editMode,
-      @required this.toggleViewOptions,
-      @required this.sectionColor,
-      @required this.togglePlaying,
-      @required this.toggleSectionListDisplayMode,
-      @required this.setRenderingMode,
-      @required this.renderingMode,
-      @required this.showMidiInputSettings,
-      @required this.showBeatCounts,
-      @required this.toggleShowBeatCounts,
-      @required this.showScorePicker,
-      @required this.saveCurrentScore,
-      @required this.currentScoreName,
-      @required this.score,
-      @required this.pasteScore,
-      @required this.export,
-      @required this.scoreManager,
-      @required this.routeToCurrentScore,
-      @required this.vertical,
-      @required this.showSections,
-      @required this.verticalSections,
-      @required this.openMelody,
-      @required this.prevMelody,
-      @required this.openPart,
-      @required this.prevPart,
-      @required this.isMelodyViewOpen,
-      @required this.currentSection,
-      @required this.currentPart,
-      @required this.leftHalfOnly,
-      @required this.rightHalfOnly,
-      @required this.savingScore, // BeatScratchPlugin.isSynthesizerAvailable
-      @required this.messagesUI,
-      @required this.showDownloads,
-      @required this.toggleShowDownloads,
-      @required this.refreshUniverseData,
-      @required this.editObject})
+      {Key? key,
+      required this.appSettings,
+      required this.universeManager,
+      required this.interactionMode,
+      required this.musicViewMode,
+      required this.viewMode,
+      required this.universeMode,
+      required this.editMode,
+      required this.toggleViewOptions,
+      required this.sectionColor,
+      required this.togglePlaying,
+      required this.toggleSectionListDisplayMode,
+      required this.setRenderingMode,
+      required this.renderingMode,
+      required this.showMidiInputSettings,
+      required this.showBeatCounts,
+      required this.toggleShowBeatCounts,
+      required this.showScorePicker,
+      required this.saveCurrentScore,
+      required this.currentScoreName,
+      required this.score,
+      required this.pasteScore,
+      required this.export,
+      required this.scoreManager,
+      required this.routeToCurrentScore,
+      required this.vertical,
+      required this.showSections,
+      required this.verticalSections,
+      required this.openMelody,
+      required this.prevMelody,
+      required this.openPart,
+      required this.prevPart,
+      required this.isMelodyViewOpen,
+      required this.currentSection,
+      required this.currentPart,
+      required this.leftHalfOnly,
+      required this.rightHalfOnly,
+      required this.savingScore, // BeatScratchPlugin.isSynthesizerAvailable
+      required this.messagesUI,
+      required this.showDownloads,
+      required this.toggleShowDownloads,
+      required this.refreshUniverseData,
+      required this.editObject})
       : super(key: key);
 
   @override
@@ -127,18 +121,17 @@ class BeatScratchToolbar extends StatefulWidget {
 
 class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     with TickerProviderStateMixin {
-  AnimationController sectionRotationController;
-  Animation<double> sectionOrPlayRotation;
-  AnimationController editController;
-  Animation<double> editRotation;
-  Animation<double> editTranslation;
-  Animation<double> editScale;
-  AnimationController editRotationOnlyController;
-  Animation<double> editRotationOnlyRotation;
+  late AnimationController sectionRotationController;
+  late Animation<double> sectionOrPlayRotation;
+  late AnimationController editController;
+  late Animation<double> editRotation;
+  late Animation<double> editTranslation;
+  late Animation<double> editScale;
+  late AnimationController editRotationOnlyController;
+  late Animation<double> editRotationOnlyRotation;
 
   bool get hasMelody => widget.openMelody != null || widget.prevMelody != null;
-  bool get hasPart =>
-      !hasMelody && widget.openPart != null || widget.prevPart != null;
+  bool get hasPart => !hasMelody || widget.prevPart != null;
   bool get hasDrumPart =>
       hasPart && (widget.openPart?.isDrum ?? widget.prevPart?.isDrum ?? false);
 
@@ -196,7 +189,7 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
     // clipboardTriggerTime.cancel();
   }
 
-  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+  Widget columnOrRow(BuildContext context, {required List<Widget> children}) {
     if (widget.vertical) {
       return Column(children: children);
     } else {
@@ -571,8 +564,8 @@ class _BeatScratchToolbarState extends State<BeatScratchToolbar>
 class _EditButton extends StatelessWidget {
   final Score score;
   final Section currentSection;
-  final Part currentPart, openPart, prevPart;
-  final Melody openMelody, prevMelody;
+  final Part? openPart, prevPart, currentPart;
+  final Melody? openMelody, prevMelody;
   final InteractionMode interactionMode;
   final MusicViewMode musicViewMode;
   final VoidCallback editMode;
@@ -587,31 +580,31 @@ class _EditButton extends StatelessWidget {
   final Function(Object) editObject;
 
   const _EditButton({
-    Key key,
-    this.score,
-    this.currentSection,
-    this.currentPart,
+    Key? key,
+    required this.score,
+    required this.currentSection,
+    required this.currentPart,
     this.openPart,
     this.prevPart,
-    this.openMelody,
-    this.prevMelody,
-    this.interactionMode,
-    this.musicViewMode,
-    this.editMode,
-    this.sectionColor,
-    this.editController,
-    this.vertical,
-    this.isMelodyViewOpen,
-    this.editRotation,
-    this.editTranslation,
-    this.editScale,
-    this.editRotationOnlyController,
-    this.editRotationOnlyRotation,
-    this.editObject,
+    required this.openMelody,
+    required this.prevMelody,
+    required this.interactionMode,
+    required this.musicViewMode,
+    required this.editMode,
+    required this.sectionColor,
+    required this.editController,
+    required this.vertical,
+    required this.isMelodyViewOpen,
+    required this.editRotation,
+    required this.editTranslation,
+    required this.editScale,
+    required this.editRotationOnlyController,
+    required this.editRotationOnlyRotation,
+    required this.editObject,
   }) : super(key: key);
 
   bool get hasMelody => openMelody != null || prevMelody != null;
-  bool get hasPart => !hasMelody && openPart != null || prevPart != null;
+  bool get hasPart => !hasMelody || prevPart != null;
   bool get hasDrumPart =>
       hasPart && (openPart?.isDrum ?? prevPart?.isDrum ?? false);
 
@@ -734,17 +727,17 @@ class _EditButton extends StatelessWidget {
                                 width: vertical ? 44 : 60,
                                 child: Text(
                                     openMelody != null
-                                        ? openMelody.canonicalName
+                                        ? openMelody!.canonicalName
                                         : openPart != null
-                                            ? openPart.midiName
+                                            ? openPart!.midiName
                                             : isMelodyViewOpen ||
                                                     (prevPart == null &&
                                                         prevMelody == null)
                                                 ? currentSection.canonicalName
                                                 : prevMelody != null
-                                                    ? prevMelody.canonicalName
+                                                    ? prevMelody!.canonicalName
                                                     : prevPart != null
-                                                        ? prevPart.midiName
+                                                        ? prevPart!.midiName
                                                         : "Oops",
                                     textAlign: TextAlign.center,
                                     maxLines: vertical ? 2 : 2,
@@ -779,12 +772,12 @@ class _EditButton extends StatelessWidget {
 
 class SecondToolbar extends StatefulWidget {
   final AppSettings appSettings;
-  final VoidCallback toggleKeyboard;
-  final VoidCallback toggleColorboard;
-  final VoidCallback toggleKeyboardConfiguration;
-  final VoidCallback toggleColorboardConfiguration;
+  final VoidCallback? toggleKeyboard;
+  final VoidCallback? toggleColorboard;
+  final VoidCallback? toggleKeyboardConfiguration;
+  final VoidCallback? toggleColorboardConfiguration;
   final VoidCallback toggleTempoConfiguration;
-  final VoidCallback tempoLongPress;
+  final VoidCallback? tempoLongPress;
   final VoidCallback rewind;
   final bool recordingMelody;
   final bool showKeyboard;
@@ -801,28 +794,28 @@ class SecondToolbar extends StatefulWidget {
   final Function(VoidCallback) setAppState;
 
   const SecondToolbar({
-    Key key,
-    this.appSettings,
-    this.toggleKeyboard,
-    this.toggleColorboard,
-    this.showKeyboard,
-    this.showColorboard,
-    this.interactionMode,
-    this.showViewOptions,
-    this.showKeyboardConfiguration,
-    this.showColorboardConfiguration,
-    this.toggleKeyboardConfiguration,
-    this.toggleColorboardConfiguration,
-    this.sectionColor,
-    this.enableColorboard,
-    this.recordingMelody,
-    this.toggleTempoConfiguration,
-    this.showTempoConfiguration,
-    this.vertical,
-    this.visible,
-    this.tempoLongPress,
-    this.rewind,
-    this.setAppState,
+    Key? key,
+    required this.appSettings,
+    required this.toggleKeyboard,
+    required this.toggleColorboard,
+    required this.showKeyboard,
+    required this.showColorboard,
+    required this.interactionMode,
+    required this.showViewOptions,
+    required this.showKeyboardConfiguration,
+    required this.showColorboardConfiguration,
+    required this.toggleKeyboardConfiguration,
+    required this.toggleColorboardConfiguration,
+    required this.sectionColor,
+    required this.enableColorboard,
+    required this.recordingMelody,
+    required this.toggleTempoConfiguration,
+    required this.showTempoConfiguration,
+    required this.vertical,
+    required this.visible,
+    required this.tempoLongPress,
+    required this.rewind,
+    required this.setAppState,
   }) : super(key: key);
 
   @override
@@ -831,9 +824,9 @@ class SecondToolbar extends StatefulWidget {
 
 class _SecondToolbarState extends State<SecondToolbar> {
   DateTime lastMetronomeAudioToggleTime = DateTime(0);
-  double tempoButtonGestureStartMultiplier;
-  double tempoButtonGestureStartPosition;
-  Widget columnOrRow(BuildContext context, {List<Widget> children}) {
+  double? tempoButtonGestureStartMultiplier;
+  double? tempoButtonGestureStartPosition;
+  Widget columnOrRow(BuildContext context, {List<Widget> children = const []}) {
     if (widget.vertical) {
       return Column(children: children);
     } else {
@@ -855,7 +848,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
     if (widget.enableColorboard) {
       numberOfButtons += 1;
     }
-    Widget createPlayIcon(IconData icon, {bool visible, Color color}) {
+    Widget createPlayIcon(IconData icon, {bool visible = true, Color? color}) {
       return AnimatedOpacity(
           opacity: visible ? 1 : 0,
           duration: animationDuration,
@@ -1021,14 +1014,14 @@ class _SecondToolbarState extends State<SecondToolbar> {
                     onPressed: widget.toggleKeyboard,
                     onLongPress: () {
                       HapticFeedback.lightImpact();
-                      widget.toggleKeyboardConfiguration();
+                      widget.toggleKeyboardConfiguration?.call();
                     },
                     color: keyboardBackgroundColor,
                   ))),
         ]));
   }
 
-  Widget tempoButton(BuildContext context, {Color backgroundColor}) {
+  Widget tempoButton(BuildContext context, {required Color backgroundColor}) {
     double sensitivity = 7;
     tempoDragStart(DragStartDetails details) {
       tempoButtonGestureStartPosition =
@@ -1038,13 +1031,14 @@ class _SecondToolbarState extends State<SecondToolbar> {
 
     tempoDragUpdate(DragUpdateDetails details) {
       final change = widget.vertical
-          ? -(details.localPosition.dy - tempoButtonGestureStartPosition)
-          : details.localPosition.dx - tempoButtonGestureStartPosition;
+          ? -(details.localPosition.dy - tempoButtonGestureStartPosition!)
+          : details.localPosition.dx - tempoButtonGestureStartPosition!;
       widget.setAppState(() {
         var startTempo = (BeatScratchPlugin.unmultipliedBpm *
                 BeatScratchPlugin.bpmMultiplier)
             .toStringAsFixed(0);
-        double newMultiplier = tempoButtonGestureStartMultiplier + change / 250;
+        double newMultiplier =
+            tempoButtonGestureStartMultiplier! + change / 250;
         BeatScratchPlugin.bpmMultiplier = max(0.1, min(newMultiplier, 2));
         var endTempo = (BeatScratchPlugin.unmultipliedBpm *
                 BeatScratchPlugin.bpmMultiplier)
@@ -1092,7 +1086,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
 
     final buttonBackgroundColor =
         (widget.showTempoConfiguration) ? Colors.white : backgroundColor;
-    final buttonForegroundColor = buttonBackgroundColor.textColor();
+    final buttonForegroundColor = buttonBackgroundColor!.textColor();
     return GestureDetector(
         onVerticalDragStart: widget.vertical ? tempoDragStart : null,
         onVerticalDragUpdate:
@@ -1206,7 +1200,7 @@ class _SecondToolbarState extends State<SecondToolbar> {
           onPressed: widget.toggleTempoConfiguration,
           onLongPress: () {
             HapticFeedback.lightImpact();
-            widget.tempoLongPress();
+            widget.tempoLongPress?.call();
           },
         ));
   }
