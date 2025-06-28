@@ -2,7 +2,7 @@ import Cocoa
 import FlutterMacOS
 //import Firebase
 
-@NSApplicationMain
+@main
 class AppDelegate: FlutterAppDelegate {
   
   override init() {
