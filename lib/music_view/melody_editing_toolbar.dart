@@ -14,7 +14,7 @@ import '../widget/incrementable_value.dart';
 import '../widget/my_buttons.dart';
 
 class MelodyEditingToolbar extends StatefulWidget {
-  final String melodyId;
+  final String? melodyId;
   final Score score;
   final Color sectionColor;
   final Section currentSection;

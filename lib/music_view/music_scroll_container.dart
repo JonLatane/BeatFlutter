@@ -21,7 +21,7 @@ class MusicScrollContainer extends StatefulWidget {
   final Score score;
   final Section currentSection;
   final Color sectionColor;
-  final Melody focusedMelody;
+  final Melody? focusedMelody;
   final RenderingMode renderingMode;
   final List<MusicStaff> staves;
   final Part focusedPart, keyboardPart, colorboardPart;
@@ -568,7 +568,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
               section: widget.currentSection,
               musicViewMode: widget.musicViewMode,
               transformationController: transformationController,
-              focusedMelodyId: widget.focusedMelody.id,
+              focusedMelodyId: widget.focusedMelody?.id,
               staves: stavesNotifier,
               partTopOffsets: partTopOffsets,
               staffOffsets: staffOffsets,

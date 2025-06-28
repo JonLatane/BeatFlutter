@@ -41,8 +41,8 @@ class MusicView extends StatefulWidget {
   final ValueNotifier<Iterable<int>> colorboardNotesNotifier,
       keyboardNotesNotifier;
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
-  final Melody melody;
-  final Part? part;
+  final Melody? melody;
+  final Part part;
   final Color sectionColor;
   final VoidCallback toggleSplitMode, closeMelodyView, toggleRecording;
   final Function(VoidCallback) superSetState;
@@ -53,7 +53,7 @@ class MusicView extends StatefulWidget {
   final Function(Section, String) setSectionName;
   final bool recordingMelody;
   final Function(Part) setKeyboardPart, setColorboardPart;
-  final Part? keyboardPart, colorboardPart;
+  final Part keyboardPart, colorboardPart;
   final Function(Part) deletePart;
   final Function(Melody) deleteMelody;
   final Function(Section) deleteSection;
@@ -480,7 +480,8 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
 
   bool get recordingMelody =>
       widget.recordingMelody &&
-      widget.currentSection.referenceTo(widget.melody).isEnabled;
+      widget.melody != null &&
+      widget.currentSection.referenceTo(widget.melody!).isEnabled;
 
   set ignoreDragEvents(value) {
     _ignoreDragEvents = value;
@@ -827,7 +828,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                       recordingMelody: recordingMelody,
                       sectionColor: widget.sectionColor,
                       score: widget.score,
-                      melodyId: widget.melody.id,
+                      melodyId: widget.melody?.id,
                       currentSection: widget.currentSection,
                       highlightedBeat: highlightedBeat,
                       setReferenceVolume: widget.setReferenceVolume,

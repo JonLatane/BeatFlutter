@@ -264,22 +264,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   bool showColorboard = false;
   bool _showColorboardConfiguration = false;
-  Part? _keyboardPart;
+  Part _keyboardPart = Part();
 
-  Part? get keyboardPart => _keyboardPart;
+  Part get keyboardPart => _keyboardPart;
 
-  set keyboardPart(Part? part) {
+  set keyboardPart(Part part) {
     _keyboardPart = part;
-    if (part != null) BeatScratchPlugin.setKeyboardPart(part);
+    // if (part != null)
+    BeatScratchPlugin.setKeyboardPart(part);
   }
 
-  Part? _colorboardPart;
+  Part _colorboardPart = Part();
 
-  Part? get colorboardPart => _colorboardPart;
+  Part get colorboardPart => _colorboardPart;
 
-  set colorboardPart(Part? part) {
+  set colorboardPart(Part part) {
     _colorboardPart = part;
-//    BeatScratchPlugin.setColorboardPart(part);
+    //  BeatScratchPlugin.setColorboardPart(part);
   }
 
   late ValueNotifier<Iterable<int>> colorboardNotesNotifier;
@@ -347,21 +348,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   _setKeyboardPart(Part part) {
     setState(() {
-      bool wasAssignedByPartCreation = keyboardPart == null;
+      // bool wasAssignedByPartCreation = keyboardPart == null;
       keyboardPart = part;
-      if (!wasAssignedByPartCreation && !hasPrioritizedMIDIController) {
-        showKeyboard = true;
-      }
+      // if (!wasAssignedByPartCreation && !hasPrioritizedMIDIController) {
+      // showKeyboard = true;
+      // }
     });
   }
 
   _setColorboardPart(Part part) {
     setState(() {
-      bool wasAssignedByPartCreation = colorboardPart == null;
+      // bool wasAssignedByPartCreation = colorboardPart == null;
       colorboardPart = part;
-      if (!wasAssignedByPartCreation) {
-        showColorboard = true;
-      }
+      // if (!wasAssignedByPartCreation) {
+      // showColorboard = true;
+      // }
     });
   }
 
@@ -384,7 +385,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set selectedPart(Part? selectedPart) {
     _selectedPart = selectedPart;
-    keyboardPart = selectedPart;
+    if (selectedPart != null) keyboardPart = selectedPart;
   }
 
   Part? _viewingPart;
@@ -393,7 +394,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   set viewingPart(Part? viewingPart) {
     _viewingPart = viewingPart;
-    keyboardPart = viewingPart;
+    if (viewingPart != null) keyboardPart = viewingPart;
   }
 
   List<SectionList> _sectionLists = [];
@@ -913,11 +914,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     RecordedSegmentQueue.updateRecordingMelody =
         BeatScratchPlugin.onRecordingMelodyUpdated;
     keyboardPart = score.parts.firstWhereOrNull(
-      (part) => true,
-    );
+          (part) => true,
+        ) ??
+        Part();
     colorboardPart = score.parts.firstWhereOrNull(
-      (part) => part.instrument.type == InstrumentType.harmonic,
-    );
+          (part) => part.instrument.type == InstrumentType.harmonic,
+        ) ??
+        Part();
 
     colorboardNotesNotifier = ValueNotifier(Set());
     keyboardNotesNotifier = ValueNotifier(Set());
@@ -2716,7 +2719,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               this.keyboardPart = score.parts.first;
             }
             if (part == this.colorboardPart) {
-              this.colorboardPart = null;
+              this.colorboardPart = score.parts.first;
             }
             score.sections.forEach((section) {
               section.melodies.removeWhere(
