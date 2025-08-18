@@ -163,7 +163,7 @@ class HarmonyBeatRenderer {
 
     canvas.drawRect(
         Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
-            bounds.left + leftOffset, bounds.bottom),
+            bounds.left + leftOffset + 1, bounds.bottom),
         paint);
     canvas.drawRect(
         Rect.fromLTRB(bounds.right - rightOffset, bounds.top, bounds.right,
