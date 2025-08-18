@@ -263,7 +263,7 @@ class MusicSystemPainter extends CustomPainter {
           }
 //        print("fontSize=$fontSize topOffset=$topOffset");
           double opacityFactor =
-              magicOpacityFactor(Rect.fromLTRB(left, 0, left, 0));
+              magicOpacityFactor(Rect.fromLTRB(left, 0, left + 1, 1));
           TextSpan span = TextSpan(
               text: renderingSection.canonicalName,
               style: TextStyle(
