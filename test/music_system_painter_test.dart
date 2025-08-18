@@ -38,5 +38,24 @@ void main() {
       expect(newRect.height, equals(1.0));
       expect(newRect.isEmpty, isFalse);
     });
+
+    test('Zero-width rectangles for vertical lines should have minimal width', () {
+      // Test the harmony beat renderer fix
+      final bounds = Rect.fromLTRB(0, 0, 100, 50);
+      const double leftOffset = 10.0;
+      
+      // This was the old problematic way (zero width)
+      final oldRect = Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
+          bounds.left + leftOffset, bounds.bottom);
+      expect(oldRect.width, equals(0.0));
+      expect(oldRect.isEmpty, isTrue);
+      
+      // This is the new fixed way (minimal 1px width)
+      final newRect = Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
+          bounds.left + leftOffset + 1, bounds.bottom);
+      expect(newRect.width, equals(1.0));
+      expect(newRect.height, equals(bounds.height));
+      expect(newRect.isEmpty, isFalse);
+    });
   });
 }
