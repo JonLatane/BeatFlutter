@@ -44,9 +44,9 @@ class ScorePreview extends StatefulWidget {
 enum _Thumbnail { a, b }
 
 class _ScorePreviewState extends State<ScorePreview> {
-  late bool hasBuilt;
-  late String _prevScoreId;
-  late RenderingMode _prevRenderingMode;
+  bool hasBuilt = false;
+  String? _prevScoreId;
+  RenderingMode _prevRenderingMode = RenderingMode.notation;
   late double _prevScale, _prevWidth, _prevHeight;
   late Color _prevRenderColor;
   late _Thumbnail currentThumbnail;

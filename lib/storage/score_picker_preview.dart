@@ -145,12 +145,12 @@ class ScorePickerPreview extends StatefulWidget {
 }
 
 class _ScorePickerPreviewState extends State<ScorePickerPreview> {
-  late bool _confirmingDelete;
-  late bool _confirmingOverwrite;
-  late int _lastScoreKey;
-  late bool disposed;
+  bool _confirmingDelete = false;
+  bool _confirmingOverwrite = false;
+  int? _lastScoreKey;
+  bool disposed = false;
 
-  late Score? _previewScore;
+  Score? _previewScore;
   late ScrollController scrollController;
   late BSMethod notifyUpdate;
 

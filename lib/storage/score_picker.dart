@@ -223,7 +223,7 @@ class ScorePickerState extends State<ScorePicker> {
     return Column(
       children: [
         AnimatedContainer(
-            height: showHeader ? 45 : 0,
+            height: showHeader ? 48 : 0,
             duration: animationDuration,
             child: AnimatedOpacity(
                 duration: animationDuration,
@@ -646,7 +646,7 @@ class ScorePickerState extends State<ScorePicker> {
       // Called, as needed, to build list item widgets.
       // List items are only built when they're scrolled into view.
       itemBuilder: (context, animation, section, index) {
-        late final ScoreFuture? scoreFuture;
+        ScoreFuture? scoreFuture;
         if (index < scores.length) {
           scoreFuture = scores[index];
         }
@@ -675,7 +675,7 @@ class ScorePickerState extends State<ScorePicker> {
                             ScoreManager.UNIVERSE_SCORE;
                       }
                       scoreFuture?.loadScore(scoreManager).then((value) {
-                        widget.scoreManager.doOpenScore(value);
+                        widget.scoreManager.doOpenScore?.call(value);
                         widget.universeManager.currentUniverseScore =
                             scoreFuture!.identity;
                         widget.scoreManager.saveCurrentScore(value);

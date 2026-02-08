@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -196,7 +197,7 @@ class MusicSystemPainter extends CustomPainter {
       double staffOffset = staffOffsets.value.putIfAbsent(staff.id, () => 0);
       double top =
           visibleRect().top + harmonyHeight + sectionHeight + staffOffset;
-      Rect staffLineBounds = Rect.fromLTRB(
+      Rect staffLineBounds = RectRendering.fromLTRB(
           max(-offsetStart, visibleRect().left),
           top,
           max(-offsetStart, visibleRect().right),
@@ -204,7 +205,7 @@ class MusicSystemPainter extends CustomPainter {
 //      canvas.drawRect(staffLineBounds, Paint()..style=PaintingStyle.stroke..strokeWidth=10);
       _renderStaffLines(canvas,
           !(staff is DrumStaff) && drawContinuousColorGuide, staffLineBounds);
-      Rect clefBounds = Rect.fromLTRB(
+      Rect clefBounds = RectRendering.fromLTRB(
           max(-offsetStart, visibleRect().left),
           top,
           max(-offsetStart, visibleRect().left) + standardClefWidth,
@@ -254,7 +255,7 @@ class MusicSystemPainter extends CustomPainter {
           }
 //        print("fontSize=$fontSize topOffset=$topOffset");
           double opacityFactor =
-              magicOpacityFactor(Rect.fromLTRB(left, 0, left, 0));
+              magicOpacityFactor(RectRendering.fromLTRB(left, 0, left, 0));
           TextSpan span = TextSpan(
               text: renderingSection.canonicalName,
               style: TextStyle(
@@ -282,8 +283,8 @@ class MusicSystemPainter extends CustomPainter {
           sectionName = renderingSection.id;
         }
 
-        Rect harmonyBounds =
-            Rect.fromLTRB(left, top, left + beatWidth, top + harmonyHeight);
+        Rect harmonyBounds = RectRendering.fromLTRB(
+            left, top, left + beatWidth, top + harmonyHeight);
         if (isInBounds(harmonyBounds)) {
           _renderHarmonyBeat(
               harmonyBounds, renderingSection, renderingSectionBeat, canvas);
@@ -313,7 +314,7 @@ class MusicSystemPainter extends CustomPainter {
       }
 
       canvas.drawRect(
-          Rect.fromLTRB(
+          RectRendering.fromLTRB(
               left - extraWidth,
               translationTotal +
                   visibleRect().top -
@@ -325,8 +326,15 @@ class MusicSystemPainter extends CustomPainter {
     }
   }
 
-  doRenderMelodies(staff, renderingSection, canvas, left, right, top,
-      renderingSectionBeat, renderingBeat) {
+  doRenderMelodies(
+      MusicStaff staff,
+      Section renderingSection,
+      Canvas canvas,
+      double left,
+      double right,
+      double top,
+      int renderingSectionBeat,
+      int renderingBeat) {
     staff.getParts(score, staves.value).forEach((part) {
       double partOffset = partTopOffsets.value.putIfAbsent(part.id, () => 0);
       List<Melody> melodiesToRender = renderingSection.melodies
@@ -334,11 +342,11 @@ class MusicSystemPainter extends CustomPainter {
               melodyReference.playbackType !=
               MelodyReference_PlaybackType.disabled)
           .where((MelodyReference ref) =>
-              part.melodies.any((melody) => melody.id == ref.melodyId) as bool)
-          .map<Melody>((it) => score.melodyReferencedBy(it))
+              part.melodies.any((melody) => melody.id == ref.melodyId))
+          .map<Melody>((it) => score.melodyReferencedBy(it)!)
           .toList(growable: false);
 
-      Rect melodyBounds = Rect.fromLTRB(
+      Rect melodyBounds = RectRendering.fromLTRB(
           left, top + partOffset, right, top + partOffset + melodyHeight);
       if (isInBounds(melodyBounds)) {
         _renderMelodies(
@@ -424,8 +432,14 @@ class MusicSystemPainter extends CustomPainter {
       index++;
     }
 
-    final part = score.parts
-        .firstWhere((p) => p.melodies.any((m) => m.id == focusedMelodyId));
+    final part = score.parts.firstWhereOrNull(
+        (p) => p.melodies.any((m) => m.id == focusedMelodyId));
+
+    if (part == null) {
+      // No focused melody, so we don't render the focused melody
+      return;
+    }
+
     final parts = staff.getParts(score, staffConfiguration);
     if (parts.any((p) => p.id == part.id)) {
       double opacity = 1;
@@ -822,7 +836,8 @@ class MusicSystemPainter extends CustomPainter {
         Chord chordAtSubdivision =
             renderingHarmony.changeBefore(renderingSubdivision) ?? cChromatic;
         if (renderingChord != null && renderingChord != chordAtSubdivision) {
-          Rect renderingRect = Rect.fromLTRB(chordLeft, top, left, bottom);
+          Rect renderingRect =
+              RectRendering.fromLTRB(chordLeft, top, left, bottom);
           try {
             ColorGuide()
               ..renderVertically = true
@@ -847,7 +862,7 @@ class MusicSystemPainter extends CustomPainter {
       renderingBeat += 1;
     }
     Rect renderingRect =
-        Rect.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
+        RectRendering.fromLTRB(chordLeft, top + harmonyHeight, left, bottom);
     try {
       ColorGuide()
         ..renderVertically = true

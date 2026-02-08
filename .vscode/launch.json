@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "BeatScratch",
             "program": "lib/main.dart",
@@ -53,6 +52,12 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "77171629-E070-4F03-9FD7-0898D08E2DEA"
+        },
+        {
+            "name": "iPad Pro 13-inch (M4) (Simulator)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "BC339840-C42C-4177-A2D9-A5BC201DD68A"
         },
     ],
     "compounds": [

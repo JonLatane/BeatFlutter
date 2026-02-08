@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -86,14 +87,14 @@ class HarmonyBeatRenderer {
   draw(Canvas canvas) {
 //  canvas.getClipBounds(overallBounds)
     double overallWidth = overallBounds.right - overallBounds.left;
-    bounds = Rect.fromLTRB(overallBounds.left, overallBounds.top,
+    bounds = RectRendering.fromLTRB(overallBounds.left, overallBounds.top,
         overallBounds.right, overallBounds.bottom);
 
     paint.color = Color(0xFFFFFFFF).withOpacity(opacityFactor);
     canvas.drawRect(bounds, paint);
     var elementCount = subdivisionRange.length;
     subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
-      bounds = Rect.fromLTRB(
+      bounds = RectRendering.fromLTRB(
           overallBounds.left + overallWidth * elementIndex / elementCount,
           overallBounds.top,
           overallBounds.left + overallWidth * (elementIndex + 1) / elementCount,
@@ -163,12 +164,12 @@ class HarmonyBeatRenderer {
     }
 
     canvas.drawRect(
-        Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
+        RectRendering.fromLTRB(bounds.left + leftOffset, bounds.top,
             bounds.left + leftOffset, bounds.bottom),
         paint);
     canvas.drawRect(
-        Rect.fromLTRB(bounds.right - rightOffset, bounds.top, bounds.right,
-            bounds.bottom),
+        RectRendering.fromLTRB(bounds.right - rightOffset, bounds.top,
+            bounds.right, bounds.bottom),
         paint);
   }
 }

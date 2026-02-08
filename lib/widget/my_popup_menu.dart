@@ -1018,8 +1018,8 @@ class MyPopupMenuButton<T> extends StatefulWidget {
     this.captureInheritedThemes = true,
     this.updatedMenu,
   })  : assert(offset != null),
-        assert(
-            !(icon != null), 'You can only pass [child] or [icon], not both.'),
+        // assert(
+        //     !(icon != null), 'You can only pass [child] or [icon], not both.'),
         super(key: key);
 
   /// Called when the button is pressed to create the items to show in the menu.

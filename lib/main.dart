@@ -159,7 +159,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late Score score;
   InteractionMode interactionMode = InteractionMode.view;
-  late SplitMode _splitMode;
+  SplitMode _splitMode = SplitMode.full;
 
   SplitMode get splitMode => _splitMode;
 
@@ -558,7 +558,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       if (interactionMode.isEdit) {
         _prevSelectedMelody = selectedMelody;
         _prevSelectedPart = null;
-        _hideMusicView();
+        if (musicViewMode != MusicViewMode.none)
+          _hideMusicView();
+        else
+          _showMusicView();
       } else {
         if (_scoreManager.currentScoreName == ScoreManager.UNIVERSE_SCORE ||
             _scoreManager.currentScoreName == ScoreManager.WEB_SCORE ||
@@ -1544,7 +1547,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               TextStyle(
                                   color: foregroundColor,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w100),
+                                  fontWeight: FontWeight.w400),
                               score,
                               _scoreManager),
                           maxLines: 3,

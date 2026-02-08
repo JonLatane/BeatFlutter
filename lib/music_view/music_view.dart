@@ -42,7 +42,7 @@ class MusicView extends StatefulWidget {
       keyboardNotesNotifier;
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
   final Melody? melody;
-  final Part part;
+  final Part? part;
   final Color sectionColor;
   final VoidCallback toggleSplitMode, closeMelodyView, toggleRecording;
   final Function(VoidCallback) superSetState;
@@ -783,11 +783,12 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                                           child: Column(children: [
                                             Expanded(child: SizedBox()),
                                             Text(
-                                              currentSwipeTutorial!
-                                                  .tutorialText(
-                                                      widget.splitMode,
-                                                      widget.musicViewMode,
-                                                      context),
+                                              currentSwipeTutorial
+                                                      ?.tutorialText(
+                                                          widget.splitMode,
+                                                          widget.musicViewMode,
+                                                          context) ??
+                                                  "",
                                               style: TextStyle(fontSize: 11),
                                               overflow: TextOverflow.fade,
                                               maxLines: 2,
@@ -872,7 +873,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
                         ? partConfigHeight
                         : 0,
                     child: PartConfiguration(
-                        part: widget.part,
+                        part: widget.part ?? Part(),
                         superSetState: widget.superSetState,
                         availableHeight: widget.height,
                         visible: (widget.musicViewMode == MusicViewMode.part &&
@@ -1007,7 +1008,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
         mainPart = widget.keyboardPart;
         break;
       case MusicViewMode.part:
-        mainPart = widget.part;
+        mainPart = widget.part ?? Part();
         break;
       case MusicViewMode.melody:
         mainPart = widget.keyboardPart;
@@ -1064,7 +1065,7 @@ class _MusicViewState extends State<MusicView> with TickerProviderStateMixin {
     bool focusedPartIsNotFirst =
         widget.score.parts.indexWhere((it) => it.id == mainPart.id) != 0;
     bool focusedMelodyIsNotFirst = widget.score.parts.indexWhere(
-            (p) => p.melodies.any((m) => m.id == widget.melody.id)) !=
+            (p) => p.melodies.any((m) => m.id == widget.melody?.id)) !=
         0;
     bool showAutoFocusButton = (widget.musicViewMode == MusicViewMode.part ||
             widget.musicViewMode == MusicViewMode.melody ||

@@ -337,7 +337,8 @@ class PartToolbarState extends State<PartToolbar> {
         Expanded(
             child: Padding(
                 padding: EdgeInsets.only(left: 5),
-                child: Text((widget.part != null) ? widget.part!.midiName : "",
+                child: Text(
+                    (widget.part != null) ? widget.part?.midiName ?? "" : "",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -378,9 +379,11 @@ class PartToolbarState extends State<PartToolbar> {
             height: 36,
             padding: EdgeInsets.only(right: 5),
             child: MyRaisedButton(
-                onPressed: (widget.part!.instrument.type != InstrumentType.drum)
+                onPressed: (widget.part?.instrument.type != InstrumentType.drum)
                     ? () {
-                        widget.setColorboardPart(widget.part!);
+                        final part = widget.part;
+                        if (part == null) return;
+                        widget.setColorboardPart(part);
                       }
                     : null,
                 padding: EdgeInsets.zero,
@@ -393,7 +396,7 @@ class PartToolbarState extends State<PartToolbar> {
                           alignment: Alignment.bottomRight,
                           child: AnimatedOpacity(
                               duration: animationDuration,
-                              opacity: (widget.part!.instrument.type !=
+                              opacity: (widget.part?.instrument.type !=
                                       InstrumentType.drum)
                                   ? 1
                                   : 0.25,
@@ -459,7 +462,9 @@ class PartToolbarState extends State<PartToolbar> {
             child: MyRaisedButton(
                 onPressed: () {
                   setState(() {
-                    widget.deletePart(widget.part!);
+                    final part = widget.part;
+                    if (part == null) return;
+                    widget.deletePart(part);
                     confirmingDeleteFor = null;
                   });
                 },

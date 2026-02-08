@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:flutter/material.dart';
 
@@ -60,9 +61,10 @@ class MusicPreviewRenderer {
           AppSettings.globalRenderingMode == RenderingMode.notation ? 1 : 0),
       colorboardNotesNotifier: ValueNotifier([]),
       keyboardNotesNotifier: ValueNotifier([]),
-      visibleRect: () => Rect.fromLTRB(0, 0, width / scale, height / scale),
+      visibleRect: () =>
+          RectRendering.fromLTRB(0, 0, width / scale, height / scale),
       verticallyVisibleRect: () =>
-          Rect.fromLTRB(0, 0, width / scale, height / scale),
+          RectRendering.fromLTRB(0, 0, width / scale, height / scale),
       keyboardPart: ValueNotifier(null),
       colorboardPart: ValueNotifier(null),
       focusedPart: ValueNotifier(null),

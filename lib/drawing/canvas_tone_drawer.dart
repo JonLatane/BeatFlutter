@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../generated/protos/music.pb.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
+import 'rect_rendering.dart';
 
 extension PreserveColor on Paint {
   preserveProperties(VoidCallback callback) {
@@ -18,7 +19,7 @@ extension PreserveColor on Paint {
 
 class VisiblePitch {
   int tone = 0;
-  Rect bounds = Rect.fromLTRB(0, 0, 0, 0);
+  Rect bounds = RectRendering.fromLTRB(0, 0, 0, 0);
 
   VisiblePitch(this.tone, this.bounds);
 }
@@ -63,14 +64,14 @@ class CanvasToneDrawer {
         .forEach((tone) {
       // Tone may not be in chord...
       Rect visiblePitchBounds = renderVertically
-          ? Rect.fromLTRB(
+          ? RectRendering.fromLTRB(
               this.bounds.left,
               this.bounds.bottom -
                   (tone - bottomMostPoint) * halfStepPhysicalDistance,
               this.bounds.right,
               this.bounds.bottom -
                   (1 + tone - bottomMostPoint) * halfStepPhysicalDistance)
-          : Rect.fromLTRB(
+          : RectRendering.fromLTRB(
               this.bounds.left +
                   (tone - bottomMostPoint) * halfStepPhysicalDistance,
               this.bounds.top,
@@ -122,7 +123,7 @@ class CanvasToneDrawer {
           leftOffset = -0.415;
           break;
       }
-      Rect visiblePitchBounds = Rect.fromLTRB(
+      Rect visiblePitchBounds = RectRendering.fromLTRB(
           leftOffset * diatonicStepDistance +
               this.bounds.left +
               (tone - bottomMostPoint) * halfStepPhysicalDistance,

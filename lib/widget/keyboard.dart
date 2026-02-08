@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 // import 'package:aeyrium_sensor/aeyrium_sensor.dart';
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:beatscratch_flutter_redux/settings/app_settings.dart';
 import 'package:flutter/services.dart';
 import '../drawing/canvas_tone_drawer.dart';
@@ -242,7 +243,7 @@ class KeyboardState extends State<Keyboard> with TickerProviderStateMixin {
                 CustomSliverToBoxAdapter(
                   (rect) {
                     _visibleRect = rect;
-                    _visibleRect = Rect.fromLTRB(rect.left, rect.top,
+                    _visibleRect = RectRendering.fromLTRB(rect.left, rect.top,
                         rect.right, rect.bottom - touchScrollAreaHeight);
                     double newScrollPositionValue =
                         rect.left / (physicalWidth - rect.width);
@@ -952,7 +953,10 @@ class KeyboardRenderer extends CanvasToneDrawer {
                   chromaticSteps[(tone - chord.rootNote.tone).mod12];
             }
             canvas.drawRect(
-                Rect.fromLTRB(toneBounds.left, toneBounds.top, toneBounds.right,
+                RectRendering.fromLTRB(
+                    toneBounds.left,
+                    toneBounds.top,
+                    toneBounds.right,
                     toneBounds.top + (toneBounds.top + toneBounds.bottom) / 2),
                 alphaDrawerPaint);
             break;

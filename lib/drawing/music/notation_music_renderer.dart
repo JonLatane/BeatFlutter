@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
+
 import '../../colors.dart';
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
@@ -115,7 +117,7 @@ class NotationMusicRenderer extends BaseMusicRenderer {
     double bottom = top + noteheadHeight;
     double left = overallBounds.left + instruction.noteheadLeft * xScale;
     double right = left + noteheadWidth;
-    Rect noteheadRect = Rect.fromLTRB(left, top, right, bottom);
+    Rect noteheadRect = RectRendering.fromLTRB(left, top, right, bottom);
 
     switch (instruction.notehead) {
       case Notehead.quarter:
@@ -173,7 +175,8 @@ class NotationMusicRenderer extends BaseMusicRenderer {
     signBottom += signTopOffset;
     signLeft += signLeftOffset;
     signRight += signLeftOffset;
-    Rect signRect = Rect.fromLTRB(signLeft, signTop, signRight, signBottom);
+    Rect signRect =
+        RectRendering.fromLTRB(signLeft, signTop, signRight, signBottom);
     _renderSign(canvas, signRect, noteSign);
   }
 

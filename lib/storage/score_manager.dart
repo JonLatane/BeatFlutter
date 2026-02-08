@@ -26,24 +26,25 @@ class ScoreManager {
   static const String FROM_WEB = " (from Link)";
   static const String UNIVERSE_SCORE = "Universe Score";
   static const String FROM_UNIVERSE = " (from Universe)";
-  late Function(Score) doOpenScore;
-  late Directory scoresDirectory;
-  late SharedPreferences _prefs;
+  Function(Score)? doOpenScore;
+  Directory? scoresDirectory;
+  SharedPreferences? _prefs;
 
   String get currentScoreName =>
-      _prefs.getString('currentScoreName') ?? UNIVERSE_SCORE;
+      _prefs?.getString('currentScoreName') ?? UNIVERSE_SCORE;
 
   set currentScoreName(String value) =>
-      _prefs.setString("currentScoreName", value);
+      _prefs?.setString("currentScoreName", value);
 
   File get currentScoreFile => File(
-      "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
+      "${scoresDirectory?.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
     List<FileSystemEntity> result = scoresDirectory
-        .listSync()
-        .where((f) => f.path.endsWith(".beatscratch"))
-        .toList();
+            ?.listSync()
+            .where((f) => f.path.endsWith(".beatscratch"))
+            .toList() ??
+        [];
     result
         .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
     return result;
@@ -62,7 +63,7 @@ class ScoreManager {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       final scoresPath = "${documentsDirectory.path}/$scoresDirectoryName";
       scoresDirectory = Directory(scoresPath);
-      scoresDirectory.createSync();
+      scoresDirectory!.createSync();
 
       //Migrate files
       scoreFiles.forEach((file) {
@@ -77,7 +78,7 @@ class ScoreManager {
     score = score ?? defaultScore();
     currentScoreName = name;
     saveCurrentScore(score);
-    doOpenScore(score);
+    doOpenScore?.call(score);
   }
 
   saveCurrentScore(Score score) {
@@ -106,7 +107,7 @@ class ScoreManager {
     } catch (e) {
       score = defaultScore();
     }
-    doOpenScore.call(score);
+    doOpenScore?.call(score);
   }
 
   loadFromScoreUrl(String scoreUrl,
@@ -201,7 +202,7 @@ class ScoreManager {
         }
         openScoreWithFilename(score, newScoreDefaultFilename);
       } else {
-        doOpenScore(score);
+        doOpenScore?.call(score);
       }
       onSuccess?.call(suggestedScoreName);
       _lastSuggestedScoreName = suggestedScoreName;
@@ -212,7 +213,7 @@ class ScoreManager {
 
   openScoreWithFilename(Score score, String filename) async {
     currentScoreName = filename;
-    doOpenScore(score);
+    doOpenScore?.call(score);
     saveCurrentScore(score);
   }
 

@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
+
 import '../../colors.dart';
 import '../../generated/protos/music.pb.dart';
 import '../../util/music_notation_theory.dart';
@@ -112,7 +114,7 @@ class BaseMusicRenderer extends ColorGuide {
     elementPosition = beatPosition * melody.subdivisionsPerBeat;
 //    print("subdivisionRange=$subdivisionRange");
     subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
-      bounds = Rect.fromLTRB(
+      bounds = RectRendering.fromLTRB(
           overallBounds.left + overallWidth * elementIndex / elementCount,
           overallBounds.top,
           overallBounds.left +

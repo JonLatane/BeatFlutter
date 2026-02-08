@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
+
 import '../../colors.dart';
 import '../../generated/protos/music.pb.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +58,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
     });
 //    if (drawRhythm) {
 //      double overallWidth = overallBounds.right - overallBounds.left;
-//      bounds = Rect.fromLTRB(overallWidth, bounds.top, overallWidth, bounds.bottom);
+//      bounds = RectRendering.fromLTRB(overallWidth, bounds.top, overallWidth, bounds.bottom);
 //      this.drawRhythm(canvas, alphaSource);
 //    }
   }
@@ -106,7 +108,7 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
           bottom -= extraHeight;
         }
         canvas.drawRect(
-            Rect.fromLTRB(bounds.left + leftMargin, top,
+            RectRendering.fromLTRB(bounds.left + leftMargin, top,
                 bounds.right - rightMargin, bottom),
             alphaDrawerPaint);
       });
@@ -126,8 +128,11 @@ class ColorblockMusicRenderer extends BaseMusicRenderer {
           double bottom =
               bounds.height - bounds.height * (realTone - lowestPitch + 1) / 88;
           canvas.drawRect(
-              Rect.fromLTRB(bounds.left + leftMargin + xScale, top - xScale,
-                  bounds.left + noteOffWidth * uiScale, bottom + xScale),
+              RectRendering.fromLTRB(
+                  bounds.left + leftMargin + xScale,
+                  top - xScale,
+                  bounds.left + noteOffWidth * uiScale,
+                  bottom + xScale),
               Paint()
                 ..strokeWidth = 1.2 * xScale
                 ..style = PaintingStyle.stroke

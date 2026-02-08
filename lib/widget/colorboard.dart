@@ -1,3 +1,5 @@
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
+
 import '../drawing/canvas_tone_drawer.dart';
 import '../drawing/color_guide.dart';
 import 'package:flutter/material.dart';
@@ -184,8 +186,8 @@ class _ColorboardState extends State<Colorboard> with TickerProviderStateMixin {
             CustomSliverToBoxAdapter(
               (rect) {
                 _visibleRect = rect;
-                _visibleRect = Rect.fromLTRB(rect.left, rect.top, rect.right,
-                    rect.bottom - touchScrollAreaHeight);
+                _visibleRect = RectRendering.fromLTRB(rect.left, rect.top,
+                    rect.right, rect.bottom - touchScrollAreaHeight);
                 double newScrollPositionValue =
                     rect.left / (physicalWidth - rect.width);
                 if (newScrollPositionValue.isFinite &&

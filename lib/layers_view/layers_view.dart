@@ -13,6 +13,7 @@ import '../util/dummydata.dart';
 import '../util/music_theory.dart';
 import '../util/util.dart';
 import '../widget/my_buttons.dart';
+
 import '../widget/scalable_view.dart';
 import 'layers_part_view.dart';
 
@@ -180,6 +181,7 @@ class _LayersViewState extends State<LayersView> {
         duration: animationDuration,
         width: width,
         child: MyFlatButton(
+            // borderRadius: 0,
             color: Colors.grey,
             onPressed: canAddPart
                 ? () {

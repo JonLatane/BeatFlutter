@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:beatscratch_flutter_redux/settings/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -600,7 +601,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   Rect get transformedRect => MatrixUtils.inverseTransformRect(
       transformationController.value,
-      Rect.fromLTRB(0, 0, widget.width, widget.height));
+      RectRendering.fromLTRB(0, 0, widget.width, widget.height));
 
   // double get secondSystemOffset =>
   //     widget.width - clefWidth;
