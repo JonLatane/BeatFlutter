@@ -1,3 +1,4 @@
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -5,10 +6,10 @@ import '../util/music_theory.dart';
 import 'canvas_tone_drawer.dart';
 
 class ColorGuide extends CanvasToneDrawer {
-  int colorGuideAlpha;
-  int drawPadding;
-  int nonRootPadding;
-  int drawnColorGuideAlpha;
+  late int colorGuideAlpha;
+  late int drawPadding;
+  late int nonRootPadding;
+  late int drawnColorGuideAlpha;
   Iterable<int> pressedNotes = [];
 
   drawColorGuide(Canvas canvas) {
@@ -28,7 +29,7 @@ class ColorGuide extends CanvasToneDrawer {
             (toneInChord.mod12 == chord.rootNote.tone) ? 0 : nonRootPadding;
         if (renderVertically) {
           canvas.drawRect(
-              Rect.fromLTRB(
+              RectRendering.fromLTRB(
                   toneBounds.left + drawPadding + extraPadding,
                   toneBounds.top,
                   toneBounds.right - drawPadding - extraPadding,
@@ -38,7 +39,7 @@ class ColorGuide extends CanvasToneDrawer {
             alphaDrawerPaint.color = Color(0x11212121)
                 .withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(
+                RectRendering.fromLTRB(
                     toneBounds.left,
                     toneBounds.top - .183 * halfStepPhysicalDistance,
                     toneBounds.right,
@@ -49,7 +50,7 @@ class ColorGuide extends CanvasToneDrawer {
             alphaDrawerPaint.color = Color(0x11212121)
                 .withAlpha((drawnColorGuideAlpha * 0.3).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(
+                RectRendering.fromLTRB(
                     toneBounds.left,
                     toneBounds.top - .183 * halfStepPhysicalDistance,
                     toneBounds.right,
@@ -59,7 +60,7 @@ class ColorGuide extends CanvasToneDrawer {
         } else {
           // Horizontal rendering
           canvas.drawRect(
-              Rect.fromLTRB(
+              RectRendering.fromLTRB(
                   toneBounds.left,
                   toneBounds.top + drawPadding + extraPadding,
                   toneBounds.right,
@@ -69,7 +70,7 @@ class ColorGuide extends CanvasToneDrawer {
             alphaDrawerPaint.color = Color(0x11212121)
                 .withAlpha((drawnColorGuideAlpha * 0.1).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(
+                RectRendering.fromLTRB(
                     toneBounds.left + .183 * halfStepPhysicalDistance,
                     toneBounds.top + drawPadding + extraPadding,
                     toneBounds.right - .183 * halfStepPhysicalDistance,
@@ -80,7 +81,7 @@ class ColorGuide extends CanvasToneDrawer {
             alphaDrawerPaint.color = Color(0x11212121)
                 .withAlpha((drawnColorGuideAlpha * 0.3).toInt());
             canvas.drawRect(
-                Rect.fromLTRB(
+                RectRendering.fromLTRB(
                     toneBounds.left + .183 * halfStepPhysicalDistance,
                     toneBounds.top + drawPadding + extraPadding,
                     toneBounds.right - .183 * halfStepPhysicalDistance,

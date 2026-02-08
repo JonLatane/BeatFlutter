@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class BSMessage {
-  final String id;
+  final String? id;
   final Icon icon;
   final String message;
   final Duration timeout;
   bool visible = false;
 
   BSMessage({
-    @required this.id,
-    @required this.message,
+    this.id,
+    required this.message,
     this.timeout = const Duration(milliseconds: 500),
-    @required this.icon,
+    required this.icon,
   });
 }

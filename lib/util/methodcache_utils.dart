@@ -31,14 +31,10 @@ class ArgumentList {
 
   @override
   int get hashCode {
-    int result;
+    int result = 0;
     arguments.forEach((arg) {
-      if (result == null) {
-        result = arg.hashCode;
-      } else {
-        result = result ^ arg.hashCode;
-      }
+      result = result ^ arg.hashCode;
     });
-    return result ?? 0;
+    return result;
   }
 }

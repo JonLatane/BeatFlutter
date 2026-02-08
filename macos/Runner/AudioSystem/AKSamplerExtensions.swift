@@ -6,18 +6,18 @@
 //  Copyright © 2020 The Flutter Authors. All rights reserved.
 //
 
-import Foundation
 import AudioKit
+import Foundation
 
 extension AKSampler {
-  open func loadSfzWithEmbeddedSpacesInSampleNames(folderPath: String, sfzFileName: String) {
+  public func loadSfzWithEmbeddedSpacesInSampleNames(folderPath: String, sfzFileName: String) {
     stopAllVoices()
     do {
       try unloadAllSamples()
-    }  catch {
+    } catch {
       AKLog("Failed to unload samples")
     }
-    
+
     var lastPrefix: String = ""
     var lokey: Int32 = 0
     var hikey: Int32 = 127
@@ -28,7 +28,7 @@ extension AKSampler {
     var loopmode: String = ""
     var loopstart: Float32 = 0
     var loopend: Float32 = 0
-    
+
     func resetVars() {
       lokey = 0
       hikey = 127
@@ -39,7 +39,7 @@ extension AKSampler {
       loopstart = 0
       loopend = 0
     }
-    
+
     let baseURL = URL(fileURLWithPath: folderPath)
     let sfzURL = baseURL.appendingPathComponent(sfzFileName)
     do {
@@ -52,9 +52,14 @@ extension AKSampler {
           continue
         }
         for token in trimmed.components(separatedBy: .whitespaces) {
-          if token.hasPrefix("<global>") || token.hasPrefix("<group>") || token.hasPrefix("<region>") {
+          if token.hasPrefix("<global>") || token.hasPrefix("<group>")
+            || token.hasPrefix("<region>")
+          {
             if lastPrefix == "region" {
-              try buildSample(baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
+              try buildSample(
+                baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel,
+                hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart,
+                loopend: loopend)
             }
             resetVars()
           } else if token.hasPrefix("key=") {
@@ -78,9 +83,10 @@ extension AKSampler {
           } else if token.hasPrefix("loop_end") {
             loopend = Float32(token.components(separatedBy: "=")[1])!
           } else if token.hasPrefix("sample") {
-            sample = trimmed.components(separatedBy: "sample=")[1].replacingOccurrences(of: "\\", with: "/")
+            sample = trimmed.components(separatedBy: "sample=")[1].replacingOccurrences(
+              of: "\\", with: "/")
           }
-          
+
           if token.hasPrefix("<global>") {
             lastPrefix = "global"
           }
@@ -91,19 +97,21 @@ extension AKSampler {
             lastPrefix = "region"
           }
         }
-        
+
         //                if sample != "" {
         //                    buildSample(baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
         //                    sample = ""
         //                }
       }
-      if(lastPrefix == "region") {
-        try buildSample(baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel, sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
+      if lastPrefix == "region" {
+        try buildSample(
+          baseURL: baseURL, lokey: lokey, hikey: hikey, pitch: pitch, lovel: lovel, hivel: hivel,
+          sample: sample, loopmode: loopmode, loopstart: loopstart, loopend: loopend)
       }
     } catch {
       AKLog(error)
     }
-    
+
     buildKeyMap()
     restartVoices()
   }
@@ -120,20 +128,22 @@ extension AKSampler {
     loopstart: Float32,
     loopend: Float32
   ) throws {
-    let noteFreq = Float(AKPolyphonicNode.tuningTable.frequency(forNoteNumber: MIDINoteNumber(pitch)))
+    let noteFreq = Float(
+      AKPolyphonicNode.tuningTable.frequency(forNoteNumber: MIDINoteNumber(pitch)))
     AKLog("load \(pitch) \(noteFreq) Hz range \(lokey)-\(hikey) vel \(lovel)-\(hivel) \(sample)")
-    
-    let sd = AKSampleDescriptor(noteNumber: pitch,
-                                noteFrequency: noteFreq,
-                                minimumNoteNumber: lokey,
-                                maximumNoteNumber: hikey,
-                                minimumVelocity: lovel,
-                                maximumVelocity: hivel,
-                                isLooping: loopmode != "" && loopmode != "no_loop",
-                                loopStartPoint: loopstart,
-                                loopEndPoint: loopend,
-                                startPoint: 0.0,
-                                endPoint: 0.0)
+
+    let sd = AKSampleDescriptor(
+      noteNumber: pitch,
+      noteFrequency: noteFreq,
+      minimumNoteNumber: lokey,
+      maximumNoteNumber: hikey,
+      minimumVelocity: lovel,
+      maximumVelocity: hivel,
+      isLooping: loopmode != "" && loopmode != "no_loop",
+      loopStartPoint: loopstart,
+      loopEndPoint: loopend,
+      startPoint: 0.0,
+      endPoint: 0.0)
     let sampleFileURL = baseURL.appendingPathComponent(sample)
     if sample.hasSuffix(".wv") {
       let string = (sampleFileURL.path as NSString).utf8String

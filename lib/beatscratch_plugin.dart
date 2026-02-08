@@ -1,15 +1,11 @@
-import 'dart:typed_data';
-
-import 'package:dart_midi/dart_midi.dart';
-// ignore: implementation_imports
-import 'package:dart_midi/src/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/byte_writer.dart';
+import 'package:beatscratch_flutter_redux/midi/midi_events.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'generated/protos/protos.dart';
 import 'messages/messages_ui.dart';
 import 'recording/recording.dart';
-import 'settings/settings_panel.dart';
 import 'settings/settings_common.dart';
 import 'util/fake_js.dart' if (dart.library.js) 'dart:js';
 import 'util/music_utils.dart';
@@ -61,7 +57,7 @@ class BeatScratchPlugin {
         case "notifyCountInInitiated":
           _playing = false;
           _countInInitiated = true;
-          onCountInInitiated?.call();
+          onCountInInitiated.call();
           return Future.value(null);
           break;
         case "notifyCurrentSection":
@@ -122,20 +118,14 @@ class BeatScratchPlugin {
   }
 
   static _notifyScoreUrlOpened(String url) {
-    if (onOpenUrlFromSystem != null) {
-      onOpenUrlFromSystem(url);
-    } else {
-      Future.delayed(Duration(milliseconds: 500), () {
-        _notifyScoreUrlOpened(url);
-      });
-    }
+    onOpenUrlFromSystem(url);
   }
 
   static _notifyMidiDevices(MidiDevices devices) {
     connectedControllers = List.from(devices.controllers
         .where((it) => !MyPlatform.isIOS || it.name != "Session 1"));
     _connectedSynthesizers = List.from(devices.synthesizers);
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static _notifyCurrentSection(String sectionId) {
@@ -149,32 +139,31 @@ class BeatScratchPlugin {
 
   static _notifyPlayingBeat(int beat) {
     // In case the user pauses and a beat comes in in a race condition
-    if (_pausedTime == null ||
-        DateTime.now().difference(_pausedTime).inMilliseconds > 75) {
+    if (DateTime.now().difference(_pausedTime).inMilliseconds > 75) {
       _playing = true;
     }
     currentBeat.value = beat;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static _notifyPaused() {
     _playing = false;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static _notifyBpmMultiplier(double bpmMultiplier) {
     _bpmMultiplier = bpmMultiplier;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static _notifyUnmultipliedBpm(double unmultipliedBpm) {
     BeatScratchPlugin.unmultipliedBpm = unmultipliedBpm;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static _notifyBeatScratchAudioAvailable(bool available) {
     _isBeatScratchAudioAvailable = available;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static bool _metronomeEnabled = true;
@@ -202,32 +191,24 @@ class BeatScratchPlugin {
   }
 
   static double unmultipliedBpm = 123;
-  static bool _playing;
+  static bool _playing = false;
   static bool get playing {
-    if (_playing == null) {
-      _playing = false;
-      _doSynthesizerStatusChangeLoop();
-    }
     return _playing;
   }
 
   static final ValueNotifier<int> currentBeat = ValueNotifier(0);
 
-  static bool _isBeatScratchAudioAvailable;
+  static bool _isBeatScratchAudioAvailable = false;
   static bool get isSynthesizerAvailable {
-    if (_isBeatScratchAudioAvailable == null) {
-      _isBeatScratchAudioAvailable = false;
-      _doSynthesizerStatusChangeLoop();
-    }
     return _isBeatScratchAudioAvailable;
   }
 
-  static VoidCallback onCountInInitiated;
-  static VoidCallback onSynthesizerStatusChange;
-  static Function(String) onOpenUrlFromSystem;
-  static Function(String) onSectionSelected;
-  static Function(Melody) onRecordingMelodyUpdated;
-  static MessagesUI messagesUI;
+  static late VoidCallback onCountInInitiated;
+  static late VoidCallback onSynthesizerStatusChange;
+  static late Function(String) onOpenUrlFromSystem;
+  static late Function(String) onSectionSelected;
+  static late Function(Melody) onRecordingMelodyUpdated;
+  static late MessagesUI messagesUI;
   static _doSynthesizerStatusChangeLoop() {
     Future.delayed(Duration(seconds: 5), () {
       getApps();
@@ -289,17 +270,13 @@ class BeatScratchPlugin {
     } else {
       resultStatus = await _channel.invokeMethod('checkBeatScratchAudioStatus');
     }
-    if (resultStatus == null) {
-      print("Failed to retrieve Synthesizer Status from JS/Platform Channel");
-      resultStatus = false;
-    }
     _isBeatScratchAudioAvailable = resultStatus;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
   }
 
   static void resetAudioSystem() async {
     _isBeatScratchAudioAvailable = false;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
     if (kIsWeb) {
     } else {
       _channel.invokeMethod('resetAudioSystem');
@@ -308,7 +285,7 @@ class BeatScratchPlugin {
 
   static void createScore(Score score) async {
     _isBeatScratchAudioAvailable = false;
-    onSynthesizerStatusChange?.call();
+    onSynthesizerStatusChange.call();
     _pushScore(score, 'createScore', includeParts: true, includeSections: true);
   }
 
@@ -375,18 +352,18 @@ class BeatScratchPlugin {
 
   static void setCurrentSection(Section section) async {
     if (kIsWeb) {
-      context.callMethod('setCurrentSection', [section?.id]);
+      context.callMethod('setCurrentSection', [section.id]);
     } else {
-      _channel.invokeMethod('setCurrentSection', section?.id);
+      _channel.invokeMethod('setCurrentSection', section.id);
     }
   }
 
   /// Assigns all external MIDI controllers to the given part.
   static void setKeyboardPart(Part part) async {
     if (kIsWeb) {
-      context.callMethod('setKeyboardPart', [part?.id]);
+      context.callMethod('setKeyboardPart', [part.id]);
     } else {
-      _channel.invokeMethod('setKeyboardPart', part?.id);
+      _channel.invokeMethod('setKeyboardPart', part.id);
     }
   }
 
@@ -433,7 +410,7 @@ class BeatScratchPlugin {
   /// [Melody]. Implementation-wise: this is just done by passing the [Melody.id].
   /// This applies to notes played either with a physical MIDI controller on
   /// the native side or from [sendMIDI] in the plugin.
-  static void setRecordingMelody(Melody melody) async {
+  static void setRecordingMelody(Melody? melody) async {
     if (kIsWeb) {
       context.callMethod('setRecordingMelody', [melody?.id]);
     } else {
@@ -451,10 +428,10 @@ class BeatScratchPlugin {
   static void _play() async {
     if (kIsWeb) {
       context.callMethod('play', []);
-      messagesUI?.sendMessage(
+      messagesUI.sendMessage(
           message: "Web playback isn't great. Download the app!",
           isError: true);
-      messagesUI?.sendMessage(
+      messagesUI.sendMessage(
         message: "You may have to play the Keyboard to play.",
       );
     } else {
@@ -477,7 +454,7 @@ class BeatScratchPlugin {
     _stopUIPlayback();
   }
 
-  static DateTime _pausedTime;
+  static late DateTime _pausedTime;
   static void _stopUIPlayback() {
     _playing = false;
     onSynthesizerStatusChange();
@@ -569,7 +546,7 @@ class BeatScratchPlugin {
     }
   }
 
-  static Future<String> getScoreId() async =>
+  static Future<String?> getScoreId() async =>
       _channel.invokeMethod<String>("getScoreId");
 
   static Future<Melody> get recordedMelody async {

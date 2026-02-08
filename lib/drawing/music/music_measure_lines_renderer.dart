@@ -25,7 +25,7 @@ class MelodyMeasureLinesRenderer extends BaseMusicRenderer {
       try {
 //        print("drawing measure line");
         NoteSpecification highestDiatonicNote =
-            clefs.expand((clef) => clef.notes).maxBy((e) => e.diatonicValue);
+            clefs.expand((clef) => clef.notes).maxBy((e) => e.diatonicValue)!;
         NoteSpecification lowestDiatonicNote =
             clefs.expand((clef) => clef.notes).minBy((e) => e.diatonicValue);
         drawTimewiseLineRelativeToBounds(

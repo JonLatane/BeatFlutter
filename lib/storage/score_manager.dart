@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -27,9 +26,9 @@ class ScoreManager {
   static const String FROM_WEB = " (from Link)";
   static const String UNIVERSE_SCORE = "Universe Score";
   static const String FROM_UNIVERSE = " (from Universe)";
-  Function(Score) doOpenScore;
-  Directory scoresDirectory;
-  SharedPreferences _prefs;
+  Function(Score)? doOpenScore;
+  Directory? scoresDirectory;
+  SharedPreferences? _prefs;
 
   String get currentScoreName =>
       _prefs?.getString('currentScoreName') ?? UNIVERSE_SCORE;
@@ -38,19 +37,18 @@ class ScoreManager {
       _prefs?.setString("currentScoreName", value);
 
   File get currentScoreFile => File(
-      "${scoresDirectory.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
+      "${scoresDirectory?.path}/${Uri.encodeComponent(currentScoreName).replaceAll("%20", " ")}.beatscratch");
 
   List<FileSystemEntity> get scoreFiles {
-    if (scoresDirectory != null) {
-      List<FileSystemEntity> result = scoresDirectory
-          ?.listSync()
-          .where((f) => f.path.endsWith(".beatscratch"))
-          .toList();
-      result.sort(
-          (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
-      return result;
-    }
-    return [];
+    List<FileSystemEntity> result = scoresDirectory
+            ?.listSync()
+            .where((f) => f.path.endsWith(".beatscratch"))
+            .toList() ??
+        [];
+    result
+        .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+    return result;
+    // return [];
   }
 
   ScoreManager() {
@@ -65,7 +63,7 @@ class ScoreManager {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       final scoresPath = "${documentsDirectory.path}/$scoresDirectoryName";
       scoresDirectory = Directory(scoresPath);
-      scoresDirectory.createSync();
+      scoresDirectory!.createSync();
 
       //Migrate files
       scoreFiles.forEach((file) {
@@ -76,11 +74,11 @@ class ScoreManager {
     }
   }
 
-  createScore(String name, {Score score}) {
+  createScore(String name, {Score? score}) {
     score = score ?? defaultScore();
     currentScoreName = name;
     saveCurrentScore(score);
-    doOpenScore(score);
+    doOpenScore?.call(score);
   }
 
   saveCurrentScore(Score score) {
@@ -115,9 +113,9 @@ class ScoreManager {
   loadFromScoreUrl(String scoreUrl,
       {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
-      Score currentScoreToSave,
-      VoidCallback onFail,
-      Function(String) onSuccess}) {
+      required Score currentScoreToSave,
+      VoidCallback? onFail,
+      Function(String)? onSuccess}) {
     print("ScoreURL=$scoreUrl");
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     scoreUrl = scoreUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
@@ -126,8 +124,8 @@ class ScoreManager {
       if (scoreUrl.length < 10) {
         throw Exception("nope");
       }
-      Score score = scoreFromUrlHashValue(scoreUrl);
-      if (score == null || score.sections.isEmpty) {
+      Score score = scoreFromUrlHashValue(scoreUrl)!;
+      if (score.sections.isEmpty) {
         throw Exception("nope");
       }
       String scoreName = score.name ?? "";
@@ -137,9 +135,7 @@ class ScoreManager {
       } else {
         suggestedScoreName += newScoreNameSuffix;
       }
-      if (currentScoreToSave != null) {
-        saveCurrentScore(currentScoreToSave);
-      }
+      saveCurrentScore(currentScoreToSave);
       openScoreWithFilename(
           score, newScoreDefaultFilename); // side-effect: updates this.score
       _lastSuggestedScoreName = suggestedScoreName;
@@ -154,8 +150,8 @@ class ScoreManager {
     }
   }
 
-  static String _lastSuggestedScoreName;
-  static String get lastSuggestedScoreName {
+  static String? _lastSuggestedScoreName;
+  static String? get lastSuggestedScoreName {
     final value = _lastSuggestedScoreName;
     _lastSuggestedScoreName = null;
     return value;
@@ -166,7 +162,7 @@ class ScoreManager {
   }
 
   Future<Score> loadPastebinScore(String codeOrUrl,
-      {String titleOverride}) async {
+      {String? titleOverride}) async {
     final code = codeOrUrl.replaceFirst(new RegExp(r'http.*#/s/'), '');
 
     http.Response response = await http.get(
@@ -180,22 +176,17 @@ class ScoreManager {
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#score='), '');
     longUrl = longUrl.replaceFirst(new RegExp(r'http.*#/score/'), '');
 
-    Score score = scoreFromUrlHashValue(longUrl);
-    if (titleOverride != null) {
-      score.name = titleOverride;
-    }
+    Score score = scoreFromUrlHashValue(longUrl)!;
+    if (titleOverride != null) score.name = titleOverride;
     return score;
   }
 
   loadPastebinScoreIntoUI(String pastebinCode,
       {String newScoreDefaultFilename = PASTED_SCORE,
       String newScoreNameSuffix = FROM_CLIPBOARD,
-      Score currentScoreToSave,
-      VoidCallback onFail,
-      Function(String) onSuccess}) async {
-    if (pastebinCode == null) {
-      return;
-    }
+      Score? currentScoreToSave,
+      VoidCallback? onFail,
+      Function(String)? onSuccess}) async {
     try {
       Score score = await loadPastebinScore(pastebinCode);
       String scoreName = score.name ?? "";
@@ -211,7 +202,7 @@ class ScoreManager {
         }
         openScoreWithFilename(score, newScoreDefaultFilename);
       } else {
-        doOpenScore(score);
+        doOpenScore?.call(score);
       }
       onSuccess?.call(suggestedScoreName);
       _lastSuggestedScoreName = suggestedScoreName;
@@ -222,7 +213,7 @@ class ScoreManager {
 
   openScoreWithFilename(Score score, String filename) async {
     currentScoreName = filename;
-    doOpenScore(score);
+    doOpenScore?.call(score);
     saveCurrentScore(score);
   }
 
@@ -234,7 +225,7 @@ class ScoreManager {
 
 extension ScoreName on FileSystemEntity {
   String get scoreName {
-    String fileName = path.split("/")?.last ?? ".beatscratch";
+    String fileName = path.split("/").last ?? ".beatscratch";
     fileName = fileName.substring(0, max(0, fileName.length - 12));
     String scoreName = Uri.decodeComponent(fileName.replaceAll(" ", "%20"));
     return scoreName;

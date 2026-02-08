@@ -2,34 +2,29 @@ import 'package:beatscratch_flutter_redux/messages/messages.dart';
 import 'package:beatscratch_flutter_redux/storage/score_manager.dart';
 import 'package:beatscratch_flutter_redux/storage/score_picker_preview.dart';
 import 'package:beatscratch_flutter_redux/util/util.dart';
+import 'package:collection/collection.dart';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../beatscratch_plugin.dart';
 import '../colors.dart';
 import '../generated/protos/music.pb.dart';
-import '../util/dummydata.dart';
-import '../util/proto_utils.dart';
 import '../widget/my_platform.dart';
 import 'url_conversions.dart';
 
 class UniverseManager {
   static final REDDIT_CLIENT_ID = 'rSA9vlCRCznMCw';
   static final REDDIT_REDIRECT_URI = 'https://beatscratch.io/app';
-  Function(Score) doOpenScore;
-  Directory scoresDirectory;
-  SharedPreferences _prefs;
-  ScoreManager scoreManager;
-  MessagesUI messagesUI;
-  BSMethod refreshUniverseData;
+  late Function(Score) doOpenScore;
+  late Directory scoresDirectory;
+  SharedPreferences? _prefs;
+  late ScoreManager scoreManager;
+  late MessagesUI messagesUI;
+  late BSMethod refreshUniverseData;
 
   UniverseManager() {
     _initialize();
@@ -43,10 +38,11 @@ class UniverseManager {
   set currentUniverseScore(String v) =>
       _prefs?.setString("currentUniverseScore", v);
 
-  ScoreFuture get currentUniverseScoreFuture => currentUniverseScore == ''
+  ScoreFuture? get currentUniverseScoreFuture => currentUniverseScore == ''
       ? null
-      : cachedUniverseData.firstWhere((d) => d.identity == currentUniverseScore,
-          orElse: () => null);
+      : cachedUniverseData.firstWhereOrNull(
+          (d) => d.identity == currentUniverseScore,
+        );
 
   String get redditRefreshToken =>
       _prefs?.getString('redditRefreshToken') ?? "";
@@ -78,8 +74,10 @@ class UniverseManager {
   List<ScoreFuture> get cachedUniverseData => _cachedUniverseData;
   set cachedUniverseData(List<ScoreFuture> value) {
     _cachedUniverseData = value;
-    Future.microtask(() => _prefs?.setStringList("cachedUniverseData",
-        value.map((it) => jsonEncode(it.toJson())).toList()));
+    Future.microtask(() => {
+          _prefs?.setStringList("cachedUniverseData",
+              value.map((it) => jsonEncode(it.toJson())).toList())
+        });
   }
 
   bool get isAuthenticated =>
@@ -110,9 +108,9 @@ class UniverseManager {
 
   bool tryAuthentication(String authUrl) {
     final uri = Uri.parse(authUrl);
-    String state = uri.queryParameters["state"];
-    String code = uri.queryParameters["code"];
-    if (state != null && code != null) {
+    String? state = uri.queryParameters["state"];
+    String? code = uri.queryParameters["code"];
+    if (code != null) {
       if (state != _authState) {
         messagesUI.sendMessage(
             message: "Auth codes did not match!",
@@ -139,7 +137,7 @@ class UniverseManager {
           final data = jsonDecode(response.body);
           String accessToken = data['access_token'];
           String refreshToken = data['refresh_token'];
-          if (accessToken != null && refreshToken != null) {
+          if (refreshToken != null) {
             redditRefreshToken = refreshToken;
             redditAccessToken = accessToken;
             loadRedditUsername();
@@ -170,10 +168,11 @@ class UniverseManager {
     redditAccessToken = "";
     redditUsername = "";
     redditRefreshToken = "";
-    cachedUniverseData =
-        cachedUniverseData.map((sf) => ScoreFuture.fromJson(sf.toJson()
+    cachedUniverseData = cachedUniverseData
+        .map((sf) => ScoreFuture.fromJson(sf.toJson()
           ..remove("likes")
-          ..putIfAbsent("likes", () => null)));
+          ..putIfAbsent("likes", () => null)))
+        .toList();
     refreshAccessToken();
   }
 
@@ -188,17 +187,13 @@ class UniverseManager {
       final username = data['name'];
       if (username != null) {
         redditUsername = username;
-        if (messagesUI != null) {
-          messagesUI.sendMessage(
-              message: "Reddit authentication successful!", andSetState: true);
-        }
+        messagesUI.sendMessage(
+            message: "Reddit authentication successful!", andSetState: true);
       } else {
-        if (messagesUI != null) {
-          messagesUI.sendMessage(
-              message: "Failed to load Reddit user information!",
-              isError: true,
-              andSetState: true);
-        }
+        messagesUI.sendMessage(
+            message: "Failed to load Reddit user information!",
+            isError: true,
+            andSetState: true);
       }
     });
   }
@@ -231,9 +226,7 @@ class UniverseManager {
     ).then((response) {
       final data = jsonDecode(response.body);
       String accessToken = data['access_token'];
-      if (accessToken != null) {
-        redditAccessToken = accessToken;
-      }
+      redditAccessToken = accessToken;
     });
   }
 
@@ -254,26 +247,29 @@ class UniverseManager {
     ).then((response) {
       final data = jsonDecode(response.body);
       String accessToken = data['access_token'];
-      if (accessToken != null) {
-        redditAccessToken = accessToken;
-      }
+      redditAccessToken = accessToken;
     });
   }
 
   Future<List<ScoreFuture>> loadUniverseData() async {
-    http.Response response = await http
-        .get(Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
-            headers: authenticatedRedditRequestHeaders)
-        .onError((error, stackTrace) {
-      print(error);
+    http.Response response = await http.get(
+        Uri.parse('https://oauth.reddit.com/r/BeatScratch/hot'),
+        headers: authenticatedRedditRequestHeaders);
+    //     .onError((error, stackTrace) {
+    //   print(error);
+    //   messagesUI.sendMessage(
+    //       message: "Error loading data from Reddit!",
+    //       isError: true,
+    //       andSetState: true);
+    //   // return null;
+    //   return Response(body, statusCode)
+    // });
+    if (response.statusCode != 200 && response.statusCode != 401) {
       messagesUI.sendMessage(
           message: "Error loading data from Reddit!",
           isError: true,
           andSetState: true);
-      return null;
-    });
-    if (response == null) {
-      return [];
+      return Future.value([]);
     }
     if (response.statusCode == 401) {
       await refreshAccessToken();
@@ -328,7 +324,7 @@ class UniverseManager {
     }
   }
 
-  vote(String fullName, bool likes, {bool andReauth = true}) async {
+  vote(String fullName, bool? likes, {bool andReauth = true}) async {
     http
         .post(Uri.parse('https://oauth.reddit.com/api/vote'),
             body: {
@@ -386,7 +382,7 @@ class UniverseManager {
         icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
         message: "Generating short URL via https://paste.ee...",
         andSetState: true);
-    String scoreUrl = await score.convertToShortUrl();
+    String? scoreUrl = await score.convertToShortUrl();
     messagesUI.sendMessage(
         icon: Icon(FontAwesomeIcons.atom, color: chromaticSteps[0]),
         message: "Uploading to the Universe...",
@@ -418,16 +414,12 @@ class UniverseManager {
         tryToSelectScore(int retries) {
           Future.delayed(Duration(seconds: 2), () {
             refreshUniverseData();
-            ScoreFuture scoreFuture = cachedUniverseData.firstWhere(
-                (it) => it.scoreUrl == scoreUrl,
-                orElse: () => null);
-            if (scoreFuture != null) {
-              messagesUI.setAppState(() {
-                currentUniverseScore = scoreFuture.identity;
-              });
-            } else if (retries > 0) {
-              tryToSelectScore(retries - 1);
-            }
+            final scoreFuture = cachedUniverseData
+                .firstWhereOrNull((it) => it.scoreUrl == scoreUrl);
+            if (scoreFuture == null) return;
+            messagesUI.setAppState(() {
+              currentUniverseScore = scoreFuture.identity;
+            });
           });
         }
 

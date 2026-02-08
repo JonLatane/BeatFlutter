@@ -9,7 +9,7 @@
 //   final Widget child;
 //   const SizeFadeTransition({
 //     Key key,
-//     @required this.animation,
+//     required this.animation,
 //     this.sizeFraction = 0,
 //     this.curve = Curves.linear,
 //     this.axis = Axis.vertical,

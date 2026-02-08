@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:flutter/material.dart';
 
 import '../colors.dart';
@@ -9,7 +10,8 @@ import '../util/util.dart';
 
 extension _HarmonyHighlight on Color {
   // ignore: unused_element
-  Color withHighlight({bool isPlaying, bool isSelected, bool isFaded}) {
+  Color withHighlight(
+      {bool isPlaying = false, bool isSelected = false, bool isFaded = false}) {
     int alpha = 187;
     if (isPlaying) {
       alpha = 255;
@@ -65,10 +67,10 @@ extension _HarmonyColor on Chord {
 }
 
 class HarmonyBeatRenderer {
-  Section section;
+  late Section section;
 
-  Harmony get harmony => section?.harmony;
-  Meter get meter => section?.meter;
+  Harmony get harmony => section.harmony;
+  Meter get meter => section.meter;
   int beatPosition = 0;
 
   Iterable<int> get subdivisionRange => range(
@@ -85,14 +87,14 @@ class HarmonyBeatRenderer {
   draw(Canvas canvas) {
 //  canvas.getClipBounds(overallBounds)
     double overallWidth = overallBounds.right - overallBounds.left;
-    bounds = Rect.fromLTRB(overallBounds.left, overallBounds.top,
+    bounds = RectRendering.fromLTRB(overallBounds.left, overallBounds.top,
         overallBounds.right, overallBounds.bottom);
 
     paint.color = Color(0xFFFFFFFF).withOpacity(opacityFactor);
     canvas.drawRect(bounds, paint);
     var elementCount = subdivisionRange.length;
     subdivisionRange.toList().asMap().forEach((elementIndex, elementPosition) {
-      bounds = Rect.fromLTRB(
+      bounds = RectRendering.fromLTRB(
           overallBounds.left + overallWidth * elementIndex / elementCount,
           overallBounds.top,
           overallBounds.left + overallWidth * (elementIndex + 1) / elementCount,
@@ -162,12 +164,12 @@ class HarmonyBeatRenderer {
     }
 
     canvas.drawRect(
-        Rect.fromLTRB(bounds.left + leftOffset, bounds.top,
+        RectRendering.fromLTRB(bounds.left + leftOffset, bounds.top,
             bounds.left + leftOffset, bounds.bottom),
         paint);
     canvas.drawRect(
-        Rect.fromLTRB(bounds.right - rightOffset, bounds.top, bounds.right,
-            bounds.bottom),
+        RectRendering.fromLTRB(bounds.right - rightOffset, bounds.top,
+            bounds.right, bounds.bottom),
         paint);
   }
 }

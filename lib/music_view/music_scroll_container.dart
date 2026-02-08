@@ -1,11 +1,9 @@
 import 'dart:math';
 
+import 'package:beatscratch_flutter_redux/drawing/rect_rendering.dart';
 import 'package:beatscratch_flutter_redux/settings/settings.dart';
-import 'package:beatscratch_flutter_redux/widget/my_platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:matrix4_transform/matrix4_transform.dart';
 
 import '../beatscratch_plugin.dart';
 import '../generated/protos/music.pb.dart';
@@ -24,7 +22,7 @@ class MusicScrollContainer extends StatefulWidget {
   final Score score;
   final Section currentSection;
   final Color sectionColor;
-  final Melody focusedMelody;
+  final Melody? focusedMelody;
   final RenderingMode renderingMode;
   final List<MusicStaff> staves;
   final Part focusedPart, keyboardPart, colorboardPart;
@@ -35,45 +33,45 @@ class MusicScrollContainer extends StatefulWidget {
   final ValueNotifier<Iterable<int>> keyboardNotesNotifier,
       colorboardNotesNotifier;
   final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
-  final ValueNotifier<int> highlightedBeat, focusedBeat, tappedBeat;
-  final ValueNotifier<Part> tappedPart;
-  final ValueNotifier<Offset> requestedScrollOffsetForScale;
+  final ValueNotifier<int?> highlightedBeat, focusedBeat, tappedBeat;
+  final ValueNotifier<Part?> tappedPart;
+  final ValueNotifier<Offset?> requestedScrollOffsetForScale;
   final TransformationController transformationController;
   final ValueNotifier<ScaleUpdateDetails> scaleUpdateNotifier;
-  final ValueNotifier<double> targetScaleNotifier;
+  final ValueNotifier<double?> targetScaleNotifier;
   final bool showingSectionList;
 
   const MusicScrollContainer(
-      {Key key,
-      this.score,
-      this.currentSection,
-      this.sectionColor,
-      this.focusedMelody,
-      this.renderingMode,
-      this.colorboardNotesNotifier,
-      this.keyboardNotesNotifier,
-      this.bluetoothControllerPressedNotes,
-      this.musicViewMode,
-      this.staves,
-      this.keyboardPart,
-      this.colorboardPart,
-      this.focusedPart,
-      this.width,
-      this.height,
-      this.isCurrentScore,
-      this.highlightedBeat,
-      this.focusedBeat,
-      this.tappedBeat,
-      this.tappedPart,
-      this.requestedScrollOffsetForScale,
-      this.targetScaleNotifier,
-      this.scrollToCurrentBeat,
-      this.centerCurrentSection,
-      this.appSettings,
-      this.transformationController,
-      this.scaleUpdateNotifier,
-      this.scrollToPart,
-      this.showingSectionList})
+      {Key? key,
+      required this.score,
+      required this.currentSection,
+      required this.sectionColor,
+      required this.focusedMelody,
+      required this.renderingMode,
+      required this.colorboardNotesNotifier,
+      required this.keyboardNotesNotifier,
+      required this.bluetoothControllerPressedNotes,
+      required this.musicViewMode,
+      required this.staves,
+      required this.keyboardPart,
+      required this.colorboardPart,
+      required this.focusedPart,
+      required this.width,
+      required this.height,
+      required this.isCurrentScore,
+      required this.highlightedBeat,
+      required this.focusedBeat,
+      required this.tappedBeat,
+      required this.tappedPart,
+      required this.requestedScrollOffsetForScale,
+      required this.targetScaleNotifier,
+      required this.scrollToCurrentBeat,
+      required this.centerCurrentSection,
+      required this.appSettings,
+      required this.transformationController,
+      required this.scaleUpdateNotifier,
+      required this.scrollToPart,
+      required this.showingSectionList})
       : super(key: key);
 
   @override
@@ -87,32 +85,32 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     with TickerProviderStateMixin {
   static final double scrollTopMarginPercent = 0.17;
   static final double scrollLeftMarginPercent = 0.25;
-  AnimationController animationController;
-  ValueNotifier<double> colorGuideOpacityNotifier,
+  late AnimationController animationController;
+  late ValueNotifier<double> colorGuideOpacityNotifier,
       colorblockOpacityNotifier,
       notationOpacityNotifier,
       sectionScaleNotifier;
 
   // partTopOffsets are animated based off the Renderer's StaffConfigurations
-  ValueNotifier<List<MusicStaff>> stavesNotifier;
-  ValueNotifier<Map<String, double>> partTopOffsets;
-  ValueNotifier<Map<String, double>> staffOffsets;
+  late ValueNotifier<List<MusicStaff>> stavesNotifier;
+  late ValueNotifier<Map<String, double>> partTopOffsets;
+  late ValueNotifier<Map<String, double>> staffOffsets;
 
-  ValueNotifier<Part> keyboardPart;
-  ValueNotifier<Part> colorboardPart;
-  ValueNotifier<Part> focusedPart;
-  ValueNotifier<Color> sectionColor;
+  late ValueNotifier<Part> keyboardPart;
+  late ValueNotifier<Part> colorboardPart;
+  late ValueNotifier<Part> focusedPart;
+  late ValueNotifier<Color> sectionColor;
 
-  MusicViewMode _prevViewMode;
+  MusicViewMode? _prevViewMode;
   bool _hasBuilt = false;
   DateTime _lastAutoScrollTime = DateTime(0);
-  double prevWidth;
-  double _prevBeat;
-  String _prevSectionOrder;
-  String _prevSectionId;
-  Score _prevScore;
+  double? prevWidth;
+  double? _prevBeat;
+  String? _prevSectionOrder;
+  String? _prevSectionId;
+  Score? _prevScore;
   // ignore: unused_field
-  String _prevPartId;
+  String? _prevPartId;
   Rect visibleRect = Rect.zero;
 
   bool get isViewingSection => widget.musicViewMode != MusicViewMode.score;
@@ -125,14 +123,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   ValueNotifier<ScaleUpdateDetails> get scaleUpdateNotifier =>
       widget.scaleUpdateNotifier;
   double get dx =>
-      MatrixUtils.getAsTranslation(transformationController.value).dx;
+      MatrixUtils.getAsTranslation(transformationController.value)!.dx;
   double get dy =>
-      MatrixUtils.getAsTranslation(transformationController.value).dy;
+      MatrixUtils.getAsTranslation(transformationController.value)!.dy;
   double get scale => transformationController.value.getMaxScaleOnAxis();
 
   double get scaledStandardBeatWidth => beatWidth * scale;
 
-  double get targetScale => widget.targetScaleNotifier.value;
+  double? get targetScale => widget.targetScaleNotifier.value;
 
   double get targetBeatWidth => beatWidth;
 
@@ -151,18 +149,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       ? 9999999
       : widget.appSettings.systemsToRender;
 
-  double systemRenderAreaWidth({double customScale = null}) =>
+  double systemRenderAreaWidth({double? customScale = null}) =>
       max(0, (widget.width / (customScale ?? scale)) - clefWidth);
-  double beatsOnScreenPerSystem({double customScale = null}) =>
+  double beatsOnScreenPerSystem({double? customScale = null}) =>
       systemRenderAreaWidth(customScale: customScale) / beatWidth;
-  int maxSystemsNeeded({double customScale = null}) => (widget.score.beatCount /
-          max(0.1, beatsOnScreenPerSystem(customScale: customScale)))
-      .ceil();
+  int maxSystemsNeeded({double? customScale = null}) =>
+      (widget.score.beatCount /
+              max(0.1, beatsOnScreenPerSystem(customScale: customScale)))
+          .ceil();
 
-  int systemsToRender({double customScale = null}) =>
+  int systemsToRender({double? customScale = null}) =>
       min(maxSystemsNeeded(customScale: customScale), maxSupportedSystems);
 
-  double calculatedSystemThingy({double customScale = null}) {
+  double calculatedSystemThingy({double? customScale = null}) {
     final systemsToRender = this.systemsToRender(customScale: customScale);
     return ((systemsToRender) *
         ((currentBeat - 2) /
@@ -172,7 +171,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   // In multi-system mode, we select a "target system" for the
   // currentBeat based on how far into the score currentBeat is.
-  int currentBeatTargetSystemIndex({double customScale = null}) {
+  int currentBeatTargetSystemIndex({double? customScale = null}) {
     final systemsToRender = this.systemsToRender(customScale: customScale);
     return max(
         0,
@@ -183,7 +182,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
                 : calculatedSystemThingy(customScale: customScale).floor()));
   }
 
-  double currentBeatTargetSystemXOffset({double customScale = null}) =>
+  double currentBeatTargetSystemXOffset({double? customScale = null}) =>
       currentBeatTargetSystemIndex(customScale: customScale) *
       (systemRenderAreaWidth(customScale: customScale));
   double get _systemHeightForScrolling =>
@@ -200,7 +199,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       max(widget.width / smallerScale,
           (numberOfBeats + extraBeatsSpaceForClefs) * targetBeatWidth) *
       3;
-  double overallCanvasHeight({double customScale = null}) =>
+  double overallCanvasHeight({double? customScale = null}) =>
       max(widget.height / smallerScale,
           systemsToRender(customScale: customScale) * systemHeight) *
       3;
@@ -219,8 +218,8 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   double get scaledSystemHeight => MusicSystemPainter.calculateSystemHeight(
       scale, widget.score.parts.length);
 
-  Animation<Matrix4> interactiveAnimation;
-  AnimationController interactiveController;
+  Animation<Matrix4>? interactiveAnimation;
+  late AnimationController interactiveController;
   void _interactiveAnimationStop() {
     interactiveController.stop();
     interactiveAnimation?.removeListener(_onInteractiveAnimation);
@@ -229,13 +228,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void _onInteractiveAnimation() {
-    if (interactiveAnimation != null) {
-      transformationController.value = interactiveAnimation.value;
-      if (!interactiveController.isAnimating) {
-        interactiveAnimation.removeListener(_onInteractiveAnimation);
-        interactiveAnimation = null;
-        interactiveController.reset();
-      }
+    final interactiveAnimationValue = interactiveAnimation?.value;
+    if (interactiveAnimationValue == null) return;
+
+    transformationController.value = interactiveAnimationValue;
+    if (!interactiveController.isAnimating) {
+      interactiveAnimation?.removeListener(_onInteractiveAnimation);
+      interactiveAnimation = null;
+      interactiveController.reset();
     }
   }
 
@@ -255,6 +255,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     } else {
       // interactiveController.reset();
       final targetedMatrix = transformationController.value.clone();
+      final targetScale = widget.targetScaleNotifier.value;
+      if (targetScale ==
+              null /*||
+          targetScale < minScale ||
+          targetScale > maxScale*/
+          ) {
+        return;
+      }
       targetedMatrix.scale(
           targetScale / scale, targetScale / scale, targetScale / scale);
 
@@ -291,7 +299,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         begin: transformationController.value,
         end: targetedMatrix,
       ).animate(interactiveController);
-      interactiveAnimation.addListener(_onInteractiveAnimation);
+      interactiveAnimation?.addListener(_onInteractiveAnimation);
       interactiveController.forward();
     }
   }
@@ -356,7 +364,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     interactionStartFocal.addListener(_deriveStartSystemFromFocal);
   }
 
-  VoidCallback xScaleUpdateListener, yScaleUpdateListener;
+  // VoidCallback? xScaleUpdateListener, yScaleUpdateListener;
 
   _transformationListener() {}
 
@@ -384,20 +392,16 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     super.dispose();
   }
 
-  ValueNotifier<Offset> interactionStartFocal = ValueNotifier(null);
-  ValueNotifier<int> interactionStartSystem = ValueNotifier(null);
+  ValueNotifier<Offset?> interactionStartFocal = ValueNotifier(null);
+  ValueNotifier<int?> interactionStartSystem = ValueNotifier(null);
   _deriveStartSystemFromFocal() {
-    if (interactionStartFocal.value == null) {
-      interactionStartSystem.value = null;
-    } else {
-      interactionStartSystem.value =
-          max(0, (interactingFocal.dy / scaledSystemHeight).floor());
-    }
+    interactionStartSystem.value =
+        max(0, (interactingFocal.dy / scaledSystemHeight).floor());
   }
 
-  Offset get interactingFocal => interactionStartFocal.value;
+  Offset get interactingFocal => interactionStartFocal.value!;
   int get interactingSystem =>
-      max(0, min(systemsToRender() - 1, interactionStartSystem.value));
+      max(0, min(systemsToRender() - 1, interactionStartSystem.value!));
 
   adjustDxForScale(int systemNumber, double scaleChange, Matrix4 target,
       {bool adjustingAfterChange = true}) {
@@ -415,7 +419,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     if (transformedRect.left > -scaledAvailableWidth2) {
       target.translate(diff, 0.0, 0.0);
     } else {
-      interactionStartSystem.value -= 1;
+      interactionStartSystem.value = interactionStartSystem.value! - 1;
       target.translate(diff - scaledAvailableWidth2, systemHeight, 0.0);
     }
     // } else if (adjustingAfterChange) {
@@ -444,21 +448,19 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     if (autoScroll) {
       if (_prevViewMode == MusicViewMode.score &&
           widget.musicViewMode != MusicViewMode.score &&
-          _prevBeat > widget.currentSection.beatCount - 2) {
+          _prevBeat! > widget.currentSection.beatCount - 2) {
         Future.delayed(slowAnimationDuration, () {
           scrollToCurrentBeat();
           _lastAutoScrollTime = DateTime.now();
         });
-      } else if (_prevSectionId != null &&
-          _prevSectionId != widget.currentSection.id) {
+      } else if (_prevSectionId != widget.currentSection.id) {
         scrollToCurrentBeat();
         _lastAutoScrollTime = DateTime.now();
-      } else if (prevWidth != null && prevWidth != widget.width) {
+      } else if (prevWidth != widget.width) {
         // print("width changed");
         scrollToCurrentBeat();
         _lastAutoScrollTime = DateTime.now();
-      } else if (_prevSectionOrder != null &&
-          _prevSectionOrder != sectionOrder) {
+      } else if (_prevSectionOrder != sectionOrder) {
         Future.delayed(animationDuration, () {
           scrollToCurrentBeat();
           _lastAutoScrollTime = DateTime.now();
@@ -489,7 +491,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     _prevBeat = currentBeat;
     _prevSectionOrder = sectionOrder;
     _prevSectionId = widget.currentSection.id;
-    _prevPartId = widget.focusedPart?.id;
+    _prevPartId = widget.focusedPart.id;
     _hasBuilt = true;
     // print(
     //     "InteractiveViewer overallCanvasHeight=$overallCanvasHeight, systemsToRender=$systemsToRender, systemHeight=$systemHeight");
@@ -599,14 +601,14 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
   Rect get transformedRect => MatrixUtils.inverseTransformRect(
       transformationController.value,
-      Rect.fromLTRB(0, 0, widget.width, widget.height));
+      RectRendering.fromLTRB(0, 0, widget.width, widget.height));
 
   // double get secondSystemOffset =>
   //     widget.width - clefWidth;
   // bool showOnSecondSystem(double animationPos) =>
   //     systemsToRender > 1 && animationPos > secondSystemOffset;
 
-  double _animationPos(double currentBeat, {double customScale = null}) {
+  double _animationPos(double currentBeat, {double? customScale = null}) {
     // print(
     //     "_animationPos: $currentBeat $targetBeatWidth $overallCanvasWidth ${horizontallyVisibleRect.width}!");
 
@@ -644,7 +646,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       sectionWidth + targetClefWidth <= transformedRect.width;
   int get staffCount => stavesNotifier.value.length;
 
-  void scrollToCurrentBeat({double customScale = null}) {
+  void scrollToCurrentBeat({double? customScale = null}) {
     print("scrollToCurrentBeat, sectionCanBeCentered=$sectionCanBeCentered");
     if (sectionCanBeCentered) {
       constrainToSectionBounds(customScale: customScale);
@@ -657,7 +659,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       max(0, visibleWidth - 2 * targetClefWidth - targetBeatWidth) /
       targetBeatWidth;
 
-  constrainToSectionBounds({double customScale = null}) {
+  constrainToSectionBounds({double? customScale = null}) {
     double ratioScale = (customScale ?? scale) / scale;
     double marginBeatsForSection =
         max(0.0, visibleWidth / ratioScale - targetClefWidth - sectionWidth) /
@@ -674,7 +676,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
   }
 
   void scrollToBeat(double targetBeat,
-      {double customScale = null,
+      {double? customScale = null,
       bool includeMarginX = true,
       bool scrollHorizontally = true}) {
     final scale = this.scale;
@@ -766,7 +768,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     var removedOffsets = staffOffsets.value.keys
         .where((id) => !widget.staves.any((staff) => staff.id == id));
     removedOffsets.forEach((removedStaffId) {
-      Animation staffAnimation;
+      late Animation staffAnimation;
       staffAnimation = Tween<double>(
               begin: staffOffsets.value[removedStaffId], end: 0)
           .animate(
@@ -781,7 +783,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
       double staffPosition = staffIndex * staffHeight;
       double initialStaffPosition =
           staffOffsets.value.putIfAbsent(staff.id, () => overallCanvasHeight());
-      Animation staffAnimation;
+      late Animation staffAnimation;
       staffAnimation = Tween<double>(
               begin: initialStaffPosition, end: staffPosition)
           .animate(
@@ -795,7 +797,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
         double partPosition = staffPosition;
         double initialPartPosition = partTopOffsets.value
             .putIfAbsent(part.id, () => overallCanvasHeight());
-        Animation partAnimation;
+        late Animation partAnimation;
         partAnimation =
             Tween<double>(begin: initialPartPosition, end: partPosition)
                 .animate(CurvedAnimation(
@@ -820,28 +822,25 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
     double notationOpacityValue =
         (widget.renderingMode == RenderingMode.notation) ? 1 : 0;
     double sectionScaleValue = sectionsHeight != 0 ? 1 : 0;
-    Animation animation1;
+    late Animation animation1, animation2, animation3, animation4;
     animation1 = Tween<double>(
             begin: colorblockOpacityNotifier.value, end: colorblockOpacityValue)
         .animate(animationController)
       ..addListener(() {
         colorblockOpacityNotifier.value = animation1.value;
       });
-    Animation animation2;
     animation2 = Tween<double>(
             begin: notationOpacityNotifier.value, end: notationOpacityValue)
         .animate(animationController)
       ..addListener(() {
         notationOpacityNotifier.value = animation2.value;
       });
-    Animation animation3;
     animation3 =
         Tween<double>(begin: sectionScaleNotifier.value, end: sectionScaleValue)
             .animate(animationController)
           ..addListener(() {
             sectionScaleNotifier.value = animation3.value;
           });
-    Animation animation4;
     animation4 = Tween<double>(
             begin: colorGuideOpacityNotifier.value, end: colorGuideOpacityValue)
         .animate(animationController)
@@ -853,7 +852,7 @@ class _MusicScrollContainerState extends State<MusicScrollContainer>
 
 extension CloseComparison on double {
   bool roughlyEquals(double x, {double precision = 0.005}) =>
-      x != null && (this - x).abs() < precision;
+      (this - x).abs() < precision;
 
   bool notRoughlyEquals(double x, {double precision = 0.005}) =>
       !roughlyEquals(x, precision: precision);

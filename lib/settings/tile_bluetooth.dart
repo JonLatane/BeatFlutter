@@ -1,21 +1,10 @@
-import 'dart:ui';
-
-import 'package:beatscratch_flutter_redux/beatscratch_plugin.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import '../ui_models.dart';
 import '../widget/my_buttons.dart';
-import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 
-import '../ui_models.dart';
-import '../widget/my_buttons.dart';
 import '../colors.dart';
 
 class BluetoothDeviceTile extends StatefulWidget {
@@ -26,17 +15,16 @@ class BluetoothDeviceTile extends StatefulWidget {
   final VoidCallback onConnect, onDisconnect;
   final Color sectionColor;
   final bool connected;
-  final ValueNotifier<Map<String, List<int>>>
-      bluetoothControllerPressedNotes;
+  final ValueNotifier<Map<String, List<int>>> bluetoothControllerPressedNotes;
 
   const BluetoothDeviceTile(
-      {Key key,
-      @required this.connected,
-      @required this.device,
-      @required this.sectionColor,
-      @required this.onConnect,
-      @required this.onDisconnect,
-      @required this.bluetoothControllerPressedNotes})
+      {Key? key,
+      required this.connected,
+      required this.device,
+      required this.sectionColor,
+      required this.onConnect,
+      required this.onDisconnect,
+      required this.bluetoothControllerPressedNotes})
       : super(key: key);
 
   @override

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 enum InteractionMode { view, edit, universe }
 
